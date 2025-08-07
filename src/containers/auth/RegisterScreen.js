@@ -9,9 +9,15 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { useAuth } from '../../hooks';
+// import { useAuth } from '../../hooks';
 import { registerUser } from '../../store/slices/authSlice';
 import { COLORS, SIZES } from '../../constants';
+import Background from '../../components/background';
+import Header from '../../components/header';
+import { globalStyles } from '../../styles/globalStyle';
+import TextField from '../../components/textInput';
+import GradientButton from '../../components/button';
+import GradientText from '../../components/gradiantText';
 
 const RegisterScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -20,8 +26,9 @@ const RegisterScreen = ({ navigation }) => {
     password: '',
     confirmPassword: '',
   });
+
   const [selectedRole, setSelectedRole] = useState(null);
-  const { isLoading, dispatch } = useAuth();
+  // const { isLoading, dispatch } = useAuth();
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -46,17 +53,17 @@ const RegisterScreen = ({ navigation }) => {
       return;
     }
 
-    try {
-      await dispatch(registerUser({
-        name,
-        email,
-        password,
-        role: selectedRole,
-      })).unwrap();
-      // Navigation will be handled automatically by AppNavigator
-    } catch (error) {
-      Alert.alert('Registration Failed', error.message || 'Something went wrong');
-    }
+    // try {
+    //   await dispatch(registerUser({
+    //     name,
+    //     email,
+    //     password,
+    //     role: selectedRole,
+    //   })).unwrap();
+    //   // Navigation will be handled automatically by AppNavigator
+    // } catch (error) {
+    //   Alert.alert('Registration Failed', error.message || 'Something went wrong');
+    // }
   };
 
   const navigateToLogin = () => {
@@ -64,113 +71,77 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <Background>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Sign up to get started</Text>
+        <Header />
+        <Text style={globalStyles.title}>Register in to your Account</Text>
 
-          <View style={styles.form}>
-            <TextInput
-              style={styles.input}
-              placeholder="Full Name"
-              placeholderTextColor={COLORS.textLight}
-              value={formData.name}
-              onChangeText={(value) => handleInputChange('name', value)}
-            />
+        <View style={styles.form}>
+          <TextField
+            label={'First Name'}
+            placeholder="Enter Your First Name"
+            // value={email}
+            // onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor={COLORS.textLight}
-              value={formData.email}
-              onChangeText={(value) => handleInputChange('email', value)}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+          <View style={{ height: 10 }} />
+          <TextField
+            label={'Last Name'}
+            placeholder="Enter Your Last Name"
+            // value={email}
+            // onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor={COLORS.textLight}
-              value={formData.password}
-              onChangeText={(value) => handleInputChange('password', value)}
-              secureTextEntry
-            />
+          <View style={{ height: 10 }} />
+          <TextField
+            label={'Email Address'}
+            placeholder="Enter Your Email"
+            // value={email}
+            // onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <View style={{ height: 10 }} />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm Password"
-              placeholderTextColor={COLORS.textLight}
-              value={formData.confirmPassword}
-              onChangeText={(value) => handleInputChange('confirmPassword', value)}
-              secureTextEntry
-            />
+          <TextField
+            label={'Password'}
+            placeholder="Enter Your Password"
+            // value={email}
+            // onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <View style={{ height: 10 }} />
 
-            {/* Role Selection */}
-            <Text style={styles.roleTitle}>I am a:</Text>
-            <View style={styles.roleContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.roleButton,
-                  selectedRole === 'client' && styles.roleButtonSelected,
-                ]}
-                onPress={() => setSelectedRole('client')}
-              >
-                <Text
-                  style={[
-                    styles.roleButtonText,
-                    selectedRole === 'client' && styles.roleButtonTextSelected,
-                  ]}
-                >
-                  Client
-                </Text>
-                <Text style={styles.roleDescription}>
-                  Looking for events to attend
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.roleButton,
-                  selectedRole === 'vendor' && styles.roleButtonSelected,
-                ]}
-                onPress={() => setSelectedRole('vendor')}
-              >
-                <Text
-                  style={[
-                    styles.roleButtonText,
-                    selectedRole === 'vendor' && styles.roleButtonTextSelected,
-                  ]}
-                >
-                  Vendor
-                </Text>
-                <Text style={styles.roleDescription}>
-                  Organizing events for others
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={styles.registerButton}
-              onPress={handleRegister}
-              disabled={isLoading}
-            >
-              <Text style={styles.registerButtonText}>
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
-            <TouchableOpacity onPress={navigateToLogin}>
-              <Text style={styles.signInText}>Sign In</Text>
-            </TouchableOpacity>
-          </View>
+          <TextField
+            label={'Confirm Password'}
+            placeholder="Confirm Password"
+            // value={email}
+            // onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <View style={{ height: 25 }} />
+          <GradientButton
+            text="Register"
+            onPress={() => navigation.navigate('Home')}
+            type="filled"
+            gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+          />
+        </View>
+        <View style={{ height: 10 }} />
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Don't have an account? </Text>
+          <TouchableOpacity onPress={navigateToLogin}>
+            <GradientText text={"Log In"} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </Background >
   );
 };
 
@@ -202,6 +173,7 @@ const styles = StyleSheet.create({
   },
   form: {
     marginBottom: SIZES.lg,
+    marginTop: 20
   },
   input: {
     backgroundColor: COLORS.backgroundLight,

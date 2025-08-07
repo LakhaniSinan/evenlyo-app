@@ -4,6 +4,7 @@ import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
+import { fontFamly } from '../../constants';
 
 const Onboarding = ({navigation}) => {
   return (
@@ -46,7 +47,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
+    // fontWeight: '700',
+    fontFamily:fontFamly.PlusJakartaSansBold,
     color: '#000',
   },
   buttonContainer: {width: width(90), alignSelf: 'center'},

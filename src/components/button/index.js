@@ -1,6 +1,8 @@
 import React from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity} from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { fontFamly } from '../../constants';
+import GradientText from '../gradiantText';
 
 const GradientButton = ({
   text,
@@ -9,13 +11,14 @@ const GradientButton = ({
   gradientColors,
   icon,
   styleProps,
+  useGradient
 }) => {
   if (type === 'filled') {
     return (
       <LinearGradient
         colors={gradientColors}
-        start={{x: 0, y: 0}}
-        end={{x: 0, y: 1}}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
         style={styles.gradientContainer}>
         <TouchableOpacity
           onPress={onPress}
@@ -32,8 +35,8 @@ const GradientButton = ({
   return (
     <LinearGradient
       colors={gradientColors}
-      start={{x: 0, y: 0}}
-      end={{x: 1, y: 0}}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
       style={styles.outlineBorder}>
       <TouchableOpacity
         onPress={onPress}
@@ -42,11 +45,19 @@ const GradientButton = ({
         {icon && (
           <Image
             source={icon}
-            style={{width: 24, height: 24}}
+            style={{ width: 24, height: 24 }}
             resizeMode="contain"
           />
         )}
-        <Text style={styles.outlineText}>{text}</Text>
+        {useGradient ? (
+          <GradientText text={text} />
+        )
+          :
+          <Text style={{
+            fontSize: 13,
+            fontFamily: fontFamly.PlusJakartaSansBold
+          }}>{text}</Text>
+        }
       </TouchableOpacity>
     </LinearGradient>
   );
@@ -68,8 +79,8 @@ const styles = StyleSheet.create({
   },
   filledText: {
     color: '#fff',
-    fontWeight: 'bold',
     fontSize: 15,
+    fontFamily: fontFamly.PlusJakartaSansMedium
   },
   outlineBorder: {
     borderRadius: 20,

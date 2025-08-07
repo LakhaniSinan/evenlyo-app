@@ -76,3 +76,9 @@ export const EVENT_CATEGORIES = [
   'Sports',
   'Other',
 ];
+
+export const fontFamly = {
+  PlusJakartaSansBold: 'PlusJakartaSans-Bold',
+  PlusJakartaSansMedium: 'PlusJakartaSans-Medium',
+
+}

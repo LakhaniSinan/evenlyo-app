@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -7,99 +7,86 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {width} from 'react-native-dimension';
-import {ICONS, IMAGES} from '../../assets';
+import { width } from 'react-native-dimension';
+import { ICONS, IMAGES } from '../../assets';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
 import TextField from '../../components/textInput';
-import {COLORS, SIZES} from '../../constants';
+import { COLORS, fontFamly, SIZES } from '../../constants';
+import { globalStyles } from '../../styles/globalStyle';
+import LinearGradient from 'react-native-linear-gradient';
+import GradientText from '../../components/gradiantText';
+import Header from '../../components/header';
+import { useDispatch } from 'react-redux';
+import { setUserData } from '../../store/slice/auth';
 
-const LoginScreen = ({navigation}) => {
+const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch()
 
   const navigateToRegister = () => {
     navigation.navigate('Register');
   };
 
+  const navigateToHome = () => {
+    dispatch(setUserData({
+      name: "Sinan"
+    }))
+  }
+
   return (
     <Background>
-      <ScrollView style={{flex: 1}}>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            width: width(90),
-            alignSelf: 'center',
-          }}>
-          <Image
-            source={IMAGES.logo}
-            resizeMode="contain"
-            style={{height: 140, width: 140}}
-          />
-          <TouchableOpacity
-            style={{
-              borderWidth: 1,
-              borderColor: COLORS.black,
-              borderRadius: 10,
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: 5,
-              flexDirection: 'row',
-              paddingHorizontal: 10,
-              paddingVertical: 5,
-            }}>
-            <Image
-              source={ICONS.languageIcon}
-              resizeMode="contain"
-              style={{width: 15, height: 15, tintColor: COLORS.black}}
-            />
-            <Text style={{fontSize: 12, fontWeight: '600'}}>English</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.title}>Login in to your Account</Text>
+      <ScrollView style={{ flex: 1, width: width(90), }}>
+        <Header />
+        <Text style={globalStyles.title}>Login in to your Account</Text>
         <View style={styles.form}>
           <TextField
-            label={'Enter'}
-            placeholder="Enter your email"
+            label={'Email'}
+            placeholder="Enter Your Email"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          <View style={{height: 10}} />
+          <View style={{ height: 10 }} />
           <TextField
             label={'Password'}
-            placeholder="Enter your Password"
+            placeholder="Enter Your Password"
             value={password}
             onChangeText={setPassword}
             keyboardType="default"
             autoCapitalize="none"
           />
-          <View style={{height: 10}} />
+          <View style={{ height: 10 }} />
           <TouchableOpacity>
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: 'bold',
-                textAlign: 'right',
-                color: COLORS.primary,
-              }}>
-              Forgot Password?
-            </Text>
+            <GradientText customStyles={{
+              fontSize: 12,
+              textAlign: "right"
+            }} text={"Forgot Password ?"} />
+            {/* <Text
+                style={{
+                  fontSize: 12,
+                  // fontWeight: 'bold',
+                  fontFamily: fontFamly.PlusJakartaSansMedium,
+                  textAlign: 'right',
+                  color: COLORS.primary,
+                }}>
+                Forgot Password?
+              </Text> */}
+            {/* </GradientText> */}
+
           </TouchableOpacity>
-          <View style={{height: 25}} />
+          <View style={{ height: 25 }} />
           <GradientButton
             text="Login"
-            onPress={() => navigation.navigate('Home')}
+            onPress={navigateToHome}
             type="filled"
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}
           />
         </View>
-        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <View
             style={{
               width: width(45),
@@ -107,7 +94,7 @@ const LoginScreen = ({navigation}) => {
               backgroundColor: COLORS.border,
             }}
           />
-          <Text style={{fontSize: 12, fontWeight: '600', color: COLORS.text}}>
+          <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.text }}>
             OR
           </Text>
           <View
@@ -118,33 +105,33 @@ const LoginScreen = ({navigation}) => {
             }}
           />
         </View>
-        <View style={{paddingHorizontal: SIZES.lg}}>
-          <View style={{height: 25}} />
+        <View style={{ paddingHorizontal: SIZES.lg }}>
+          <View style={{ height: 25 }} />
           <GradientButton
             text="Continue with Google"
             onPress={() => navigation.navigate('Home')}
             type="outline"
             gradientColors={['#F6F6F6', '#F6F6F6']}
-            styleProps={{backgroundColor: '#F6F6F6'}}
+            styleProps={{ backgroundColor: '#F6F6F6' }}
             icon={ICONS.googleIcon}
             iconPosition="left"
           />
-          <View style={{height: 10}} />
+          <View style={{ height: 10 }} />
           <GradientButton
             text="Continue with Linkedin"
             onPress={() => navigation.navigate('Home')}
             type="outline"
             gradientColors={['#F6F6F6', '#F6F6F6']}
-            styleProps={{backgroundColor: '#F6F6F6'}}
+            styleProps={{ backgroundColor: '#F6F6F6' }}
             icon={ICONS.linkedInIcon}
             iconPosition="left"
           />
         </View>
-        <View style={{height: 10}} />
+        <View style={{ height: 10 }} />
         <View style={styles.footer}>
           <Text style={styles.footerText}>Don't have an account? </Text>
           <TouchableOpacity onPress={navigateToRegister}>
-            <Text style={styles.signUpText}>Sign Up</Text>
+            <GradientText text={"Sign Up"} />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -214,11 +201,13 @@ const styles = StyleSheet.create({
   footerText: {
     color: COLORS.textLight,
     fontSize: 14,
+    fontFamily: fontFamly.PlusJakartaSansMedium
   },
   signUpText: {
     color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
     fontSize: 14,
-    fontWeight: '600',
+    // fontWeight: '600',
   },
 });
 
