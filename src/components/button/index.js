@@ -3,6 +3,7 @@ import {Image, StyleSheet, Text, TouchableOpacity} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {fontFamly} from '../../constants';
 import GradientText from '../gradiantText';
+import {width} from 'react-native-dimension';
 
 const GradientButton = ({
   text,
@@ -24,7 +25,13 @@ const GradientButton = ({
           onPress={onPress}
           activeOpacity={0.8}
           style={styles.buttonBase}>
-          {icon}
+          {icon && (
+            <Image
+              source={icon}
+              style={{width: 24, height: 24}}
+              resizeMode="contain"
+            />
+          )}
           <Text style={styles.filledText}>{text}</Text>
         </TouchableOpacity>
       </LinearGradient>
@@ -45,7 +52,7 @@ const GradientButton = ({
         {icon && (
           <Image
             source={icon}
-            style={{width: 24, height: 24}}
+            style={{width: 19, height: 19}}
             resizeMode="contain"
           />
         )}
@@ -70,7 +77,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     paddingVertical: 3,
-    marginBottom: 10,
   },
   buttonBase: {
     paddingVertical: 14,
@@ -85,19 +91,18 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
   outlineBorder: {
-    borderRadius: 20,
+    borderRadius: width(4),
     padding: 2,
   },
   outlineButton: {
     backgroundColor: '#fff',
-    borderRadius: 20,
+    borderRadius: width(3.5),
     paddingVertical: 16,
     paddingHorizontal: 24,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    minHeight: 56,
   },
   outlineText: {
     fontWeight: '600',

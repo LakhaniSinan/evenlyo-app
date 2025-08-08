@@ -76,7 +76,7 @@ const RegisterScreen = ({navigation}) => {
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}>
-        <Header />
+        <Header languageModal={true} />
         <Text style={globalStyles.title}>{t('registerToAccount')}</Text>
 
         <View style={styles.form}>
@@ -147,7 +147,7 @@ const RegisterScreen = ({navigation}) => {
         <View style={styles.footer}>
           <Text style={styles.footerText}>{t('alreadyHaveAccount')}</Text>
           <TouchableOpacity onPress={navigateToLogin}>
-            <GradientText text={t('signIn')} />
+            <GradientText text={t('login')} />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.text,
-    marginBottom: SIZES.xs,
+    marginBottom: width(1),
   },
   roleButtonTextSelected: {
     color: COLORS.primary,

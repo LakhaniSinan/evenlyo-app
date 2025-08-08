@@ -46,6 +46,12 @@ export default {
   enterEmailToReset: 'Voer uw e-mailadres in om een wachtwoord reset link te ontvangen',
   sendResetLink: 'Reset Link Verzenden',
   backToLogin: 'Terug naar Inloggen',
+  verification: 'Verificatie',
+  phoneNumber: 'Telefoonnummer',
+  emailAddress: 'E-mailadres',
+  enterYourEmail: 'Voer uw e-mail in',
+  back: 'Terug',
+  continue: 'Doorgaan',
   
   // Error messages
   emailRequired: 'E-mail is verplicht',

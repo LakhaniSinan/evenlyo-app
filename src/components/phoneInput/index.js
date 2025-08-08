@@ -1,16 +1,25 @@
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
-import PhoneInput from 'react-native-phone-number-input';
 import {width} from 'react-native-dimension';
+import PhoneInput from 'react-native-phone-number-input';
 import {COLORS, fontFamly} from '../../constants';
-import {useTranslation} from 'react-i18next';
 
-const ContactNumberInput = ({labelColor, phoneNumber, ref, onChange}) => {
-  const {t} = useTranslation();
+const ContactNumberInput = ({
+  labelColor,
+  phoneNumber,
+  ref,
+  onChange,
+  labelText,
+}) => {
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, {color: labelColor ? labelColor : '#000'}]}>
-        {t('contactNumber')}
+      <Text
+        style={{
+          color: labelColor ? labelColor : '#000',
+          fontSize: 12,
+          fontFamily: fontFamly.PlusJakartaSansBold,
+        }}>
+        {labelText}
       </Text>
       <PhoneInput
         ref={ref}
@@ -36,7 +45,7 @@ const ContactNumberInput = ({labelColor, phoneNumber, ref, onChange}) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: width(1),
+    gap: width(4),
   },
 
   label: {
@@ -48,7 +57,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 55,
     borderRadius: 15,
-    backgroundColor: COLORS.backgroundLight,
+    backgroundColor: COLORS.white,
     paddingLeft: 5,
     alignItems: 'center',
     flexDirection: 'row',

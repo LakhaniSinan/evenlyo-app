@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { fontFamly } from '../../constants';
+import {fontFamly} from '../../constants';
 
 const TextField = ({
   placeholder,
@@ -24,6 +24,7 @@ const TextField = ({
   onEndIconPress,
   labelColor,
   secure,
+  styleProps,
   label,
 }) => {
   return (
@@ -33,7 +34,7 @@ const TextField = ({
           style={{
             color: labelColor ? labelColor : '#000',
             fontSize: 12,
-            fontFamily: fontFamly.PlusJakartaSansBold
+            fontFamily: fontFamly.PlusJakartaSansBold,
           }}>
           {label}
         </Text>
@@ -63,7 +64,11 @@ const TextField = ({
           secureTextEntry={secure}
           style={[
             styles.textInput,
-            { paddingLeft: startIcon ? 10 : 5, textAlignVertical: 'top' },
+            {
+              paddingLeft: startIcon ? 10 : 5,
+              textAlignVertical: 'top',
+              ...styleProps,
+            },
           ]}
           multiline={multiline}
           numberOfLines={numberOfLines}
@@ -100,7 +105,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     paddingVertical: 10,
     color: '#000',
-    fontFamily: fontFamly.PlusJakartaSansMedium
+    fontFamily: fontFamly.PlusJakartaSansMedium,
   },
   icon: {
     marginLeft: 10,

@@ -3,6 +3,7 @@ export const ICONS = {
   googleIcon: require('./icons/googleIcon.png'),
   linkedInIcon: require('./icons/linkedIn.png'),
   languageIcon: require('./icons/langIcon.png'),
+  backIcon: require('./icons/backIcon.png'),
 };
 
 export const IMAGES = {

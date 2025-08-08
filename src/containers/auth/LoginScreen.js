@@ -41,7 +41,7 @@ const LoginScreen = ({navigation}) => {
   return (
     <Background>
       <ScrollView style={{flex: 1, width: width(90)}}>
-        <Header />
+        <Header languageModal={true} />
         <Text style={globalStyles.title}>{t('loginToAccount')}</Text>
         <View style={styles.form}>
           <TextField
@@ -62,7 +62,8 @@ const LoginScreen = ({navigation}) => {
             autoCapitalize="none"
           />
           <View style={{height: 10}} />
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ForgotPassword')}>
             <GradientText
               customStyles={{
                 fontSize: 12,
@@ -79,10 +80,16 @@ const LoginScreen = ({navigation}) => {
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}
           />
         </View>
-        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            marginTop: width(2),
+          }}>
           <View
             style={{
-              width: width(45),
+              width: width(40),
               height: width(0.5),
               backgroundColor: COLORS.border,
             }}
@@ -92,7 +99,7 @@ const LoginScreen = ({navigation}) => {
           </Text>
           <View
             style={{
-              width: width(45),
+              width: width(40),
               height: width(0.5),
               backgroundColor: COLORS.border,
             }}
@@ -116,7 +123,7 @@ const LoginScreen = ({navigation}) => {
           icon={ICONS.linkedInIcon}
           iconPosition="left"
         />
-        <View style={{height: 10}} />
+        <View style={{height: 100}} />
         <View style={styles.footer}>
           <Text style={styles.footerText}>{t('dontHaveAccount')}</Text>
           <TouchableOpacity onPress={navigateToRegister}>

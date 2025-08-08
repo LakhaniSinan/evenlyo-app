@@ -46,6 +46,12 @@ export default {
   enterEmailToReset: 'Enter your email address to receive a password reset link',
   sendResetLink: 'Send Reset Link',
   backToLogin: 'Back to Login',
+  verification: 'Verification',
+  phoneNumber: 'Phone Number',
+  emailAddress: 'Email Address',
+  enterYourEmail: 'Enter your Email',
+  back: 'Back',
+  continue: 'Continue',
   
   // Error messages
   emailRequired: 'Email is required',
