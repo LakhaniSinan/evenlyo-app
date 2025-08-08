@@ -1,44 +1,45 @@
-import React, { useState } from 'react';
+import React, {useRef, useState} from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
   Alert,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-// import { useAuth } from '../../hooks';
-import { registerUser } from '../../store/slices/authSlice';
-import { COLORS, SIZES } from '../../constants';
+import {width} from 'react-native-dimension';
 import Background from '../../components/background';
-import Header from '../../components/header';
-import { globalStyles } from '../../styles/globalStyle';
-import TextField from '../../components/textInput';
 import GradientButton from '../../components/button';
 import GradientText from '../../components/gradiantText';
+import Header from '../../components/header';
+import ContactNumberInput from '../../components/phoneInput';
+import TextField from '../../components/textInput';
+import {COLORS, SIZES} from '../../constants';
+import useTranslation from '../../hooks/useTranslation';
+import {globalStyles} from '../../styles/globalStyle';
 
-const RegisterScreen = ({ navigation }) => {
+const RegisterScreen = ({navigation}) => {
+  const phoneInput = useRef(null);
+  const {t} = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    contact: '',
     password: '',
     confirmPassword: '',
   });
 
   const [selectedRole, setSelectedRole] = useState(null);
-  // const { isLoading, dispatch } = useAuth();
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({...prev, [field]: value}));
   };
 
   const handleRegister = async () => {
-    const { name, email, password, confirmPassword } = formData;
+    const {name, email, password, contact, confirmPassword} = formData;
 
     // Validation
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name || !email || !contact || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill all fields');
       return;
     }
@@ -72,76 +73,85 @@ const RegisterScreen = ({ navigation }) => {
 
   return (
     <Background>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}>
         <Header />
-        <Text style={globalStyles.title}>Register in to your Account</Text>
+        <Text style={globalStyles.title}>{t('registerToAccount')}</Text>
 
         <View style={styles.form}>
           <TextField
-            label={'First Name'}
-            placeholder="Enter Your First Name"
+            label={t('firstName')}
+            placeholder={t('firstNamePlaceholder')}
             // value={email}
             // onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
           />
 
-          <View style={{ height: 10 }} />
+          <View style={{height: 10}} />
           <TextField
-            label={'Last Name'}
-            placeholder="Enter Your Last Name"
+            label={t('lastName')}
+            placeholder={t('lastNamePlaceholder')}
             // value={email}
             // onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
           />
 
-          <View style={{ height: 10 }} />
+          <View style={{height: 10}} />
           <TextField
-            label={'Email Address'}
-            placeholder="Enter Your Email"
+            label={t('emailAddress')}
+            placeholder={t('emailPlaceholder')}
             // value={email}
             // onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          <View style={{ height: 10 }} />
+          <View style={{height: 10}} />
+          <ContactNumberInput
+            labelColor={'#000'}
+            phoneNumber={formData.contact}
+            onChange={value => handleInputChange('contact', value)}
+            ref={phoneInput}
+          />
+
+          <View style={{height: 10}} />
+          <TextField
+            label={t('password')}
+            placeholder={t('passwordPlaceholder')}
+            // value={email}
+            // onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <View style={{height: 10}} />
 
           <TextField
-            label={'Password'}
-            placeholder="Enter Your Password"
+            label={t('confirmPassword')}
+            placeholder={t('confirmPasswordPlaceholder')}
             // value={email}
             // onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          <View style={{ height: 10 }} />
-
-          <TextField
-            label={'Confirm Password'}
-            placeholder="Confirm Password"
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <View style={{ height: 25 }} />
+          <View style={{height: 25}} />
           <GradientButton
-            text="Register"
+            text={t('register')}
             onPress={() => navigation.navigate('Home')}
             type="filled"
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}
           />
         </View>
-        <View style={{ height: 10 }} />
+        <View style={{height: 10}} />
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
+          <Text style={styles.footerText}>{t('alreadyHaveAccount')}</Text>
           <TouchableOpacity onPress={navigateToLogin}>
-            <GradientText text={"Log In"} />
+            <GradientText text={t('signIn')} />
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </Background >
+    </Background>
   );
 };
 
@@ -173,7 +183,7 @@ const styles = StyleSheet.create({
   },
   form: {
     marginBottom: SIZES.lg,
-    marginTop: 20
+    marginTop: 20,
   },
   input: {
     backgroundColor: COLORS.backgroundLight,
@@ -237,6 +247,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: width(2),
   },
   footerText: {
     color: COLORS.textLight,

@@ -2,9 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {combineReducers, configureStore} from '@reduxjs/toolkit';
 import {thunk} from 'redux-thunk';
 import LoginSlice, {setUserData} from './slice/auth';
+import LanguageSlice from './slice/language';
 
 const rootReducer = combineReducers({
   LoginSlice: LoginSlice,
+  LanguageSlice: LanguageSlice,
 });
 
 const store = configureStore({

@@ -5,8 +5,11 @@ import {ICONS} from '../../assets';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
 import { fontFamly } from '../../constants';
+import useTranslation from '../../hooks/useTranslation';
 
 const Onboarding = ({navigation}) => {
+  const {t} = useTranslation();
+  
   return (
     <Background>
       <View style={{flex: 1, justifyContent: 'space-around'}}>
@@ -16,20 +19,20 @@ const Onboarding = ({navigation}) => {
             resizeMode="contain"
             style={{height: 60, width: 60, marginBottom: 16}}
           />
-          <Text style={styles.title}>Book & Manage Events</Text>
-          <Text style={styles.title}>Easily</Text>
+          <Text style={styles.title}>{t('bookManageEvents')}</Text>
+          <Text style={styles.title}>{t('easily')}</Text>
         </View>
 
         <View style={styles.buttonContainer}>
           <GradientButton
-            text="Continue As Client"
+            text={t('continueAsClient')}
             onPress={() => navigation.navigate('Login')}
             type="filled"
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}
           />
 
           <GradientButton
-            text="Continue As Vendor"
+            text={t('continueAsVendor')}
             onPress={() => navigation.navigate('Login')}
             type="outline"
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}

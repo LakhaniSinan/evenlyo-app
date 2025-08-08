@@ -3,7 +3,7 @@ import { Text, View } from 'react-native'
 import GradientButton from '../../../components/button'
 import { ICONS } from '../../../assets'
 import { useDispatch } from 'react-redux'
-import { setUserData } from '../../../store/slice/auth'
+import { setUserData } from '../../../redux/slice/auth'
 
 const Home = () => {
     const dispatch = useDispatch()
