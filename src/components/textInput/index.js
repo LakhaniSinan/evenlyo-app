@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {fontFamly} from '../../constants';
+import { fontFamly } from '../../constants';
 
 const TextField = ({
   placeholder,
@@ -104,6 +104,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     paddingVertical: 10,
+    backgroundColor: "white",
     color: '#000',
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },

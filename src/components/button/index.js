@@ -1,25 +1,26 @@
 import React from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity} from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import {fontFamly} from '../../constants';
+import { fontFamly } from '../../constants';
 import GradientText from '../gradiantText';
-import {width} from 'react-native-dimension';
+import { width } from 'react-native-dimension';
 
 const GradientButton = ({
   text,
   onPress,
   type = 'filled',
-  gradientColors = ['#F6F6F6', '#F6F6F6'],
+  gradientColors = ['#FF295D', '#E31B95', '#C817AE'],
   icon,
   styleProps,
   useGradient,
+  textStyle
 }) => {
   if (type === 'filled') {
     return (
       <LinearGradient
         colors={gradientColors}
-        start={{x: 0, y: 0}}
-        end={{x: 0, y: 1}}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
         style={styles.gradientContainer}>
         <TouchableOpacity
           onPress={onPress}
@@ -28,13 +29,13 @@ const GradientButton = ({
           {icon && (
             <Image
               source={icon}
-              style={{width: 24, height: 24}}
+              style={{ width: 24, height: 24 }}
               resizeMode="contain"
             />
           )}
-          <Text style={styles.filledText}>{text}</Text>
+          <Text style={textStyle ? textStyle : styles.filledText}>{text}</Text>
         </TouchableOpacity>
-      </LinearGradient>
+      </LinearGradient >
     );
   }
 
@@ -42,8 +43,8 @@ const GradientButton = ({
   return (
     <LinearGradient
       colors={gradientColors}
-      start={{x: 0, y: 0}}
-      end={{x: 1, y: 0}}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
       style={styles.outlineBorder}>
       <TouchableOpacity
         onPress={onPress}
@@ -52,7 +53,7 @@ const GradientButton = ({
         {icon && (
           <Image
             source={icon}
-            style={{width: 19, height: 19}}
+            style={{ width: 19, height: 19 }}
             resizeMode="contain"
           />
         )}

@@ -12,6 +12,8 @@ import {
   ForgotPasswordScreen,
   Onboarding,
 } from '../../containers/auth';
+import ForgotPasswordOtpScreen from '../../containers/auth/ForgotPasswordOtpScreen';
+import ResetPasswordScreen from '../../containers/auth/ResetPasswordScreen';
 
 const Stack = createStackNavigator();
 export const MyTransition = {
@@ -21,7 +23,7 @@ export const MyTransition = {
     close: TransitionSpecs.TransitionIOSSpec,
   },
   headerStyleInterpolator: HeaderStyleInterpolators.forFade,
-  cardStyleInterpolator: ({current, next, layouts}) => {
+  cardStyleInterpolator: ({ current, next, layouts }) => {
     return {
       cardStyle: {
         transform: [
@@ -49,13 +51,15 @@ const AuthStack = () => {
       initialRouteName="Onboarding"
       screenOptions={{
         headerShown: false,
-        cardStyle: {backgroundColor: '#FFFFFF'},
+        cardStyle: { backgroundColor: '#FFFFFF' },
         ...MyTransition,
       }}>
       <Stack.Screen name="Onboarding" component={Onboarding} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="ForgotPasswordOtpScreen" component={ForgotPasswordOtpScreen} />
+      <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
     </Stack.Navigator>
   );
 };

@@ -4,12 +4,12 @@ export default {
   english: 'Engels',
   dutch: 'Nederlands',
   loading: 'Laden...',
-  
+
   // Auth screens
   login: 'Inloggen',
   register: 'Registreren',
   forgotPassword: 'Wachtwoord Vergeten',
-  
+
   // Login screen
   loginToAccount: 'Inloggen op uw Account',
   email: 'E-mail',
@@ -21,7 +21,7 @@ export default {
   continueWithLinkedin: 'Doorgaan met LinkedIn',
   dontHaveAccount: 'Heeft u geen account? ',
   signUp: 'Aanmelden',
-  
+
   // Register screen
   registerToAccount: 'Registreer voor uw Account',
   firstName: 'Voornaam',
@@ -34,13 +34,13 @@ export default {
   contactNumber: 'Contactnummer',
   alreadyHaveAccount: 'Heeft u al een account? ',
   signIn: 'Inloggen',
-  
+
   // Onboarding screen
   bookManageEvents: 'Boek & Beheer Evenementen',
   easily: 'Gemakkelijk',
   continueAsClient: 'Doorgaan als Klant',
   continueAsVendor: 'Doorgaan als Leverancier',
-  
+
   // Forgot password screen
   resetPassword: 'Wachtwoord Resetten',
   enterEmailToReset: 'Voer uw e-mailadres in om een wachtwoord reset link te ontvangen',
@@ -52,26 +52,26 @@ export default {
   enterYourEmail: 'Voer uw e-mail in',
   back: 'Terug',
   continue: 'Doorgaan',
-  
+
   // Error messages
   emailRequired: 'E-mail is verplicht',
   passwordRequired: 'Wachtwoord is verplicht',
   invalidEmail: 'Voer een geldig e-mailadres in',
   passwordTooShort: 'Wachtwoord moet minimaal 6 tekens bevatten',
   passwordsDontMatch: 'Wachtwoorden komen niet overeen',
-  
+
   // Success messages
   loginSuccessful: 'Inloggen succesvol',
   registrationSuccessful: 'Registratie succesvol',
   passwordResetSent: 'Wachtwoord reset link verzonden naar uw e-mail',
-  
+
   // Buttons
   login: 'Inloggen',
   register: 'Registreren',
   submit: 'Verzenden',
   cancel: 'Annuleren',
   ok: 'OK',
-  
+
   // Navigation
   home: 'Thuis',
   events: 'Evenementen',
@@ -80,7 +80,11 @@ export default {
   search: 'Zoeken',
   dashboard: 'Dashboard',
   analytics: 'Analyses',
-  
+
   // Language selection
   selectLanguage: 'Selecteer Taal',
+  enterCode: "Voer OTP-code in",
+  resetPass: "Wachtwoord resetten",
+  enterPasswrod: "Voer nieuw wachtwoord in",
+  reEnterPassword: "Voer wachtwoord opnieuw in"
 };

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -6,51 +6,52 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {width} from 'react-native-dimension';
+import { width } from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
-import {ICONS} from '../../assets';
+import { ICONS } from '../../assets';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
 import GradientText from '../../components/gradiantText';
 import Header from '../../components/header';
 import ContactNumberInput from '../../components/phoneInput';
 import TextField from '../../components/textInput';
-import {COLORS, fontFamly} from '../../constants';
-import {useTranslation} from '../../hooks';
-import {globalStyles} from '../../styles/globalStyle';
+import { COLORS, fontFamly } from '../../constants';
+import { useTranslation } from '../../hooks';
+import { globalStyles } from '../../styles/globalStyle';
 
-const ForgotPasswordScreen = ({navigation}) => {
+const ForgotPasswordScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('phone'); // 'phone' or 'email'
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   const handleBack = () => {
     navigation.goBack();
   };
 
   const handleContinue = () => {
-    if (activeTab === 'phone') {
-      if (!phoneNumber) {
-        // Show alert using snackbar component as per user preference
-        return;
-      }
-      // Navigate to OTP verification for phone
-      navigation.navigate('PhoneOTPVerification', {phoneNumber});
-    } else {
-      if (!email) {
-        // Show alert using snackbar component as per user preference
-        return;
-      }
-      // Navigate to email verification
-      navigation.navigate('EmailVerification', {email});
-    }
+    navigation.navigate("ForgotPasswordOtpScreen")
+    // if (activeTab === 'phone') {
+    //   if (!phoneNumber) {
+    //     // Show alert using snackbar component as per user preference
+    //     return;
+    //   }
+    //   // Navigate to OTP verification for phone
+    //   navigation.navigate('PhoneOTPVerification', {phoneNumber});
+    // } else {
+    //   if (!email) {
+    //     // Show alert using snackbar component as per user preference
+    //     return;
+    //   }
+    //   // Navigate to email verification
+    //   navigation.navigate('EmailVerification', {email});
+    // }
   };
 
   return (
     <Background>
-      <ScrollView style={{flex: 1, width: width(90)}}>
-        <View style={{flex: 1, paddingVertical: width(20)}}>
+      <ScrollView style={{ flex: 1, width: width(90) }}>
+        <View style={{ flex: 1, paddingVertical: width(20) }}>
           <Header languageModal={false} />
           <View
             style={{
@@ -62,7 +63,7 @@ const ForgotPasswordScreen = ({navigation}) => {
               marginBottom: width(10),
               height: width(90),
             }}>
-            <Text style={[globalStyles.title, {textAlign: 'center'}]}>
+            <Text style={[globalStyles.title, { fontSize: 20, textAlign: 'center' }]}>
               {t('verification')}
             </Text>
             <View style={styles.tabContainer}>
@@ -73,8 +74,8 @@ const ForgotPasswordScreen = ({navigation}) => {
                     : ['#fff', '#fff', '#fff']
                 }
                 style={styles.tabGradient}
-                start={{x: 0, y: 0}}
-                end={{x: 0, y: 1}}>
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}>
                 <TouchableOpacity
                   style={styles.tab}
                   onPress={() => setActiveTab('phone')}>
@@ -95,8 +96,8 @@ const ForgotPasswordScreen = ({navigation}) => {
                     : ['#fff', '#fff', '#fff']
                 }
                 style={styles.tabGradient}
-                start={{x: 0, y: 0}}
-                end={{x: 0, y: 1}}>
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}>
                 <TouchableOpacity
                   style={styles.tab}
                   onPress={() => setActiveTab('email')}>
@@ -110,7 +111,7 @@ const ForgotPasswordScreen = ({navigation}) => {
                 </TouchableOpacity>
               </LinearGradient>
             </View>
-            <View style={{gap: 10, marginTop: width(1)}}>
+            <View style={{ gap: 10, marginTop: width(1) }}>
               {activeTab === 'phone' ? (
                 <ContactNumberInput
                   labelText={t('phoneNumber')}
@@ -151,7 +152,7 @@ const ForgotPasswordScreen = ({navigation}) => {
                 onPress={handleContinue}
                 type="filled"
                 gradientColors={['#FF295D', '#E31B95', '#C817AE']}
-                styleProps={{flex: 1}}
+                styleProps={{ flex: 1 }}
               />
             </View>
           </View>

@@ -8,7 +8,7 @@ export const COLORS = {
   text: '#000000',
   textLight: '#718096',
   background: '#FFFFFF',
-  backgroundLight: '#F7FAFC',
+  backgroundLight: '#F6F6F6',
   border: '#E2E8F0',
   white: '#FFFFFF',
   black: '#000000',
@@ -80,5 +80,6 @@ export const EVENT_CATEGORIES = [
 export const fontFamly = {
   PlusJakartaSansBold: 'PlusJakartaSans-Bold',
   PlusJakartaSansMedium: 'PlusJakartaSans-Medium',
-
+  PlusJakartaSansSemiBold: 'PlusJakartaSans-SemiBold',
+  PlusJakartaSansSemiRegular: 'PlusJakartaSans-Regular',
 }
