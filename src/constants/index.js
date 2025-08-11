@@ -82,4 +82,5 @@ export const fontFamly = {
   PlusJakartaSansMedium: 'PlusJakartaSans-Medium',
   PlusJakartaSansSemiBold: 'PlusJakartaSans-SemiBold',
   PlusJakartaSansSemiRegular: 'PlusJakartaSans-Regular',
+  PlusJakartaSansSemiMedium: 'PlusJakartaSans-Medium',
 }
