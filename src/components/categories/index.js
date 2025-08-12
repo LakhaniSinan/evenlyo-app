@@ -1,85 +1,147 @@
-import React, { useState } from 'react';
-import { Text, View, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, {useState} from 'react';
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { COLORS, fontFamly } from '../../constants';
-import { ICONS } from '../../assets';
+import {ICONS} from '../../assets';
+import {COLORS, fontFamly} from '../../constants';
 
-const data = ["All", "Entertainment", "Foods & Drinks", "Decoration", "4"];
+const data = [
+  {label: 'All', icon: ICONS.four},
+  {label: 'Entertainment & Attractions', icon: ICONS.four},
+  {label: 'Food & Drinks', icon: ICONS.four},
+  {label: 'Decoration & Style', icon: ICONS.four},
+  {label: 'Other', icon: ICONS.four},
+];
 
 const Categories = () => {
-    const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState(0);
+  return (
+    <FlatList
+      data={data}
+      horizontal
+      keyExtractor={(item, index) => index.toString()}
+      contentContainerStyle={{paddingHorizontal: 10}}
+      showsHorizontalScrollIndicator={false}
+      renderItem={({item, index}) => {
+        const isSelected = selected === index;
+        const CardContent = () => (
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: isSelected
+                  ? 'transparent'
+                  : COLORS.backgroundLight,
+                height: isSelected ? 84 : 97,
+                width: isSelected ? 99 : 120,
+              },
+            ]}>
+            {isSelected ? (
+              <LinearGradient
+                colors={['#FF295D', '#E31B95', '#C817AE']}
+                style={styles.activeIconWrapper}>
+                <Image
+                  style={styles.icon}
+                  source={item.icon}
+                  tintColor={COLORS.white}
+                />
+              </LinearGradient>
+            ) : (
+              <View style={styles.iconWrapper}>
+                <Image
+                  style={styles.icon}
+                  source={item.icon}
+                  tintColor={!isSelected ?? COLORS.white}
+                />
+              </View>
+            )}
+            <Text style={styles.cardText}>{item.label}</Text>
+          </View>
+        );
 
-    return (
-        <FlatList
-            data={data}
-            horizontal
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={{ paddingHorizontal: 10 }}
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item, index }) => {
-                const isSelected = selected === index;
-
-                const CardContent = () => (
-                    <View style={styles.card}>
-                        <View style={styles.iconWrapper}>
-                            <Image style={styles.icon} source={ICONS.four} />
-                        </View>
-                        <Text style={styles.cardText}>{item}</Text>
-                    </View>
-                );
-
-                return (
-                    <TouchableOpacity onPress={() => setSelected(index)}>
-                        {isSelected ? (
-                            <LinearGradient
-                                colors={['#FF295D', '#E31B95', '#C817AE']}
-                                style={styles.gradientBorder}
-                            >
-                                <CardContent />
-                            </LinearGradient>
-                        ) : (
-                            <CardContent />
-                        )}
-                    </TouchableOpacity>
-                );
-            }}
-        />
-    );
+        return (
+          <TouchableOpacity onPress={() => setSelected(index)}>
+            {isSelected ? (
+              <LinearGradient
+                colors={[
+                  'rgba(255,255,255,1)',
+                  'rgba(255,255,255,0.8)',
+                  '#FF295D',
+                  '#E31B95',
+                  '#C817AE',
+                ]}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 1}}
+                style={styles.gradientBorder}>
+                <View style={styles.innerCard}>
+                  <CardContent />
+                </View>
+              </LinearGradient>
+            ) : (
+              <CardContent />
+            )}
+          </TouchableOpacity>
+        );
+      }}
+    />
+  );
 };
 
 const styles = StyleSheet.create({
-    gradientBorder: {
-        padding: 0.8,
-        borderRadius: 12,
-    },
-    card: {
-        marginHorizontal: 5,
-        paddingHorizontal: 10,
-        height: 76,
-        width: 91,
-        backgroundColor: COLORS.backgroundLight,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: 8,
-    },
-    iconWrapper: {
-        height: 25,
-        width: 25,
-        backgroundColor: 'white',
-        borderRadius: 200,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    icon: {
-        height: 12,
-        width: 12,
-    },
-    cardText: {
-        textAlign: 'center',
-        fontSize: 10,
-        fontFamily: fontFamly.PlusJakartaSansSemiMedium,
-        marginTop: 4,
-    },
+  gradientBorder: {
+    padding: 1.5,
+    borderRadius: 12,
+  },
+  innerCard: {
+    backgroundColor: COLORS.backgroundLight,
+    borderRadius: 10.5,
+    margin: 0.8,
+    borderWidth: 4,
+    borderColor: 'white',
+  },
+  card: {
+    marginHorizontal: 5,
+    paddingHorizontal: 10,
+    height: 84,
+    width: 99,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: COLORS.backgroundLight,
+  },
+  iconWrapper: {
+    height: 32,
+    width: 32,
+    borderRadius: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.white,
+  },
+  activeIconWrapper: {
+    height: 32,
+    width: 32,
+    borderRadius: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  icon: {
+    height: 14,
+    width: 14,
+    resizeMode: 'contain',
+  },
+  cardText: {
+    textAlign: 'center',
+    fontSize: 10,
+    fontFamily: fontFamly.PlusJakartaSansSemiMedium,
+    marginTop: 6,
+    color: COLORS.textDark,
+  },
 });
 
 export default Categories;

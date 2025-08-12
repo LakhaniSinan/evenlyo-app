@@ -1,73 +1,67 @@
-import React from 'react'
-import { FlatList, Image, ScrollView, Text, View } from 'react-native'
-import GradientButton from '../../../components/button'
-import { ICONS, IMAGES } from '../../../assets'
-import { useDispatch } from 'react-redux'
-import { setUserData } from '../../../redux/slice/auth'
-import AppHeader from '../../../components/appHeader'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import Categories from '../../../components/categories'
-import SubCategories from '../../../components/subCategories'
-
-const data = ["", ""]
+import React, {useState} from 'react';
+import {ScrollView, View} from 'react-native';
+import {width} from 'react-native-dimension';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import AppHeader from '../../../components/appHeader';
+import Categories from '../../../components/categories';
+import EventCard from '../../../components/eventCard';
+import HeadingComponent from '../../../components/headingComponent';
+import HomeCard from '../../../components/homeCard';
+import FilterModal from '../../../components/modals/FilterModal';
+import PopularCard from '../../../components/popularCard';
+import SubCategories from '../../../components/subCategories';
 
 const Home = () => {
-    const dispatch = useDispatch()
-    return (
-        <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1 }}>
-            <ScrollView style={{}}>
-                <AppHeader />
-                <View style={{
-                    marginTop: 10
-                }}>
-                    <Categories />
-                </View>
-                <View style={{
-                    marginTop: 10
-                }}>
-                    <SubCategories />
-                </View>
-                <FlatList
-                    data={data}
-                    horizontal
-                    keyExtractor={(item, index) => index.toString()}
-                    contentContainerStyle={{ paddingHorizontal: 10 }}
-                    showsHorizontalScrollIndicator={false}
-                    renderItem={({ item, index }) => {
-                        return (
-                            <View style={{ marginTop: 10 }}>
-                                <View style={{ position: 'relative' }}>
-                                    <Image
-                                        resizeMode='contain'
-                                        style={{
-                                            width: 318,
-                                            height: 214,
-                                            marginHorizontal: 5,
-                                        }}
-                                        source={IMAGES.backgroundImage}
-                                    />
-                                    <Text
-                                        style={{
-                                            position: 'absolute',
-                                            bottom: 20, // adjust where you want it
-                                            left: 20,
-                                            color: 'white', // make sure it's visible
-                                            zIndex: 10,
-                                        }}
-                                    >
-                                        TEXT GOES HERE
-                                    </Text>
-                                </View>
-                            </View>
-                        );
-                    }}
-                />
+  const [isModalVisible, setModalVisible] = useState(false);
+  return (
+    <SafeAreaView edges={['top', 'left', 'right']} style={{flex: 1}}>
+      <ScrollView style={{flex: 1}} showsVerticalScrollIndicator={false}>
+        <AppHeader setModalVisible={setModalVisible} />
+        <View
+          style={{
+            marginTop: 10,
+          }}>
+          <Categories />
+        </View>
+        <View
+          style={{
+            marginTop: 10,
+          }}>
+          <SubCategories />
+        </View>
+        <View>
+          <HomeCard />
+        </View>
+        <View>
+          <HeadingComponent
+            heading={'Popular'}
+            gradientText={'Near You'}
+            rightArrow={true}
+            onPress={() => {}}
+          />
+        </View>
+        <View>
+          <PopularCard />
+        </View>
+        <View>
+          <HeadingComponent
+            heading={'Relevant'}
+            gradientText={'Vendors'}
+            rightArrow={true}
+            onPress={() => {}}
+          />
+        </View>
+        <View>
+          <EventCard />
+        </View>
+        <View style={{height: width(30)}} />
+      </ScrollView>
+      <FilterModal
+        isVisible={isModalVisible}
+        onClose={() => setModalVisible(false)}
+      />
+    </SafeAreaView>
+  );
+};
 
-
-            </ScrollView>
-        </SafeAreaView >
-
-    )
-}
-
-export default Home
+export default Home;

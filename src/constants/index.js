@@ -6,12 +6,13 @@ export const COLORS = {
   warning: '#FFE66D',
   error: '#FF6B6B',
   text: '#000000',
-  textLight: '#718096',
+  textLight: '#979797',
   background: '#FFFFFF',
   backgroundLight: '#F6F6F6',
   border: '#E2E8F0',
   white: '#FFFFFF',
   black: '#000000',
+  green: '#04C373',
 };
 
 export const SIZES = {
@@ -83,4 +84,4 @@ export const fontFamly = {
   PlusJakartaSansSemiBold: 'PlusJakartaSans-SemiBold',
   PlusJakartaSansSemiRegular: 'PlusJakartaSans-Regular',
   PlusJakartaSansSemiMedium: 'PlusJakartaSans-Medium',
-}
+};

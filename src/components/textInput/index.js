@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { fontFamly } from '../../constants';
+import {fontFamly} from '../../constants';
 
 const TextField = ({
   placeholder,
@@ -19,13 +19,14 @@ const TextField = ({
   bgColor,
   value,
   inputBorderColor,
-  isEditable,
   keyboardType,
   onEndIconPress,
   labelColor,
   secure,
   styleProps,
+  inputContainer,
   label,
+  editable,
 }) => {
   return (
     <>
@@ -43,6 +44,7 @@ const TextField = ({
         style={[
           styles.inputContainer,
           {
+            ...inputContainer,
             backgroundColor: bgColor ? bgColor : '#F6F6F6',
             borderWidth: 1,
             borderColor: inputBorderColor ? inputBorderColor : '#F6F6F6',
@@ -67,17 +69,24 @@ const TextField = ({
             {
               paddingLeft: startIcon ? 10 : 5,
               textAlignVertical: 'top',
+              backgroundColor: bgColor ? bgColor : '#F6F6F6',
+              borderColor: inputBorderColor ? inputBorderColor : '#F6F6F6',
               ...styleProps,
             },
           ]}
           multiline={multiline}
           numberOfLines={numberOfLines}
-          editable={isEditable}
+          editable={editable}
           onChangeText={onChangeText}
         />
         {endIcon && (
           <TouchableOpacity onPress={onEndIconPress}>
-            {endIcon}
+            <Image
+              resizeMode="contain"
+              source={endIcon}
+              color="#808080"
+              style={styles.icon}
+            />
           </TouchableOpacity>
         )}
       </View>
@@ -104,7 +113,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     paddingVertical: 10,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     color: '#000',
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
