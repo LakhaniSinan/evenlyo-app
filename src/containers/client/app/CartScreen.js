@@ -31,12 +31,12 @@ function CartScreen({navigation}) {
     // Add cancel booking logic here
   };
 
+  const variant = activeTab === 'addToCart' ? 'requested' : 'accepted';
   const renderCartItem = ({item}) => {
-    const variant = activeTab === 'addToCart' ? 'requested' : 'accepted';
     return (
       <CartCard
-        item={item}
         variant={variant}
+        item={item}
         onBookNow={handleBookNow}
         onCancelBooking={handleCancelBooking}
       />
@@ -105,7 +105,6 @@ function CartScreen({navigation}) {
             </TouchableOpacity>
           </LinearGradient>
         </View>
-
         {/* Cart Items List */}
         <FlatList
           data={getCurrentData()}
@@ -126,6 +125,51 @@ function CartScreen({navigation}) {
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
             />
           </View>
+        )}
+        {variant === 'accepted' && (
+          <>
+            <View
+              style={{
+                marginHorizontal: width(3),
+              }}>
+              <View style={styles.progressNotesCard}>
+                <View style={styles.itemsList}>
+                  <View style={styles.itemRow}>
+                    <Text style={styles.itemName}>DJ Ray Vib...</Text>
+                    <Text style={styles.itemPrice}>$300</Text>
+                  </View>
+                  <View style={styles.itemRow}>
+                    <Text style={styles.itemName}>DJ Ray Vib...</Text>
+                    <Text style={styles.itemPrice}>$300</Text>
+                  </View>
+                  <View style={styles.itemRow}>
+                    <Text style={styles.itemName}>Security Fee</Text>
+                    <Text style={styles.itemPrice}>$25</Text>
+                  </View>
+                  <View style={styles.itemRow}>
+                    <Text style={styles.itemName}>Kilometer</Text>
+                    <Text style={styles.itemPrice}>$5</Text>
+                  </View>
+                  <View style={[styles.itemRow, styles.subtotalRow]}>
+                    <Text style={styles.subtotalText}>Subtotal</Text>
+                    <Text style={styles.subtotalPrice}>$630</Text>
+                  </View>
+                  <View style={styles.itemRow}>
+                    <Text style={styles.totalText}>Total</Text>
+                    <Text style={styles.totalAmount}>$630</Text>
+                  </View>
+                  <Text style={styles.serviceCharges}>+ service charges</Text>
+                </View>
+              </View>
+            </View>
+            <View style={{margin: width(4)}}>
+              <GradientButton
+                text={t('Checkout')}
+                type="filled"
+                gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+              />
+            </View>
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -173,6 +217,91 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingBottom: width(5),
+  },
+  progressNotesCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: width(3),
+    padding: width(4),
+    marginTop: width(4),
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  progressNotesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: width(3),
+  },
+  progressNotesIcon: {
+    fontSize: 16,
+    marginRight: width(2),
+  },
+  progressNotesTitle: {
+    fontSize: 16,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textDark,
+  },
+  progressNotesSubtext: {
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: COLORS.textLight,
+    marginBottom: width(4),
+    lineHeight: 18,
+  },
+  itemsList: {
+    gap: width(3),
+    paddingBottom: width(3),
+  },
+  itemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  itemName: {
+    fontSize: 14,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: COLORS.textLight,
+    flex: 1,
+  },
+  itemPrice: {
+    fontSize: 14,
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+    color: COLORS.textDark,
+  },
+  subtotalRow: {
+    borderBottomWidth: 0,
+  },
+  subtotalText: {
+    fontSize: 14,
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+    color: COLORS.textDark,
+  },
+  subtotalPrice: {
+    fontSize: 14,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textDark,
+  },
+  totalText: {
+    fontSize: 18,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textDark,
+  },
+  serviceCharges: {
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: COLORS.textLight,
+  },
+  totalAmount: {
+    fontSize: 18,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textDark,
   },
 });
 
