@@ -64,6 +64,8 @@ export default {
   loginSuccessful: 'Inloggen succesvol',
   registrationSuccessful: 'Registratie succesvol',
   passwordResetSent: 'Wachtwoord reset link verzonden naar uw e-mail',
+  successfullyChanged: 'Succesvol Gewijzigd!',
+  passwordChangedSuccessfully: 'Wachtwoord succesvol gewijzigd',
 
   // Buttons
   login: 'Inloggen',
@@ -80,11 +82,75 @@ export default {
   search: 'Zoeken',
   dashboard: 'Dashboard',
   analytics: 'Analyses',
+  calendar: 'Kalender',
+  messages: 'Berichten',
 
   // Language selection
   selectLanguage: 'Selecteer Taal',
   enterCode: "Voer OTP-code in",
   resetPass: "Wachtwoord resetten",
   enterPasswrod: "Voer nieuw wachtwoord in",
-  reEnterPassword: "Voer wachtwoord opnieuw in"
+  reEnterPassword: "Voer wachtwoord opnieuw in",
+  confirmOTP: "Bevestig OTP",
+
+  // Home screen
+  popular: 'Populair',
+  nearYou: 'Bij jou in de buurt',
+  relevant: 'Relevante',
+  vendors: 'Leveranciers',
+  searchEvent: 'Zoek Evenement',
+  
+  // Home card
+  bookDJsFoodTrucks: 'Boek DJs, Food Trucks &',
+  venuesFastEasy: 'Locaties Snel, Gemakkelijk',
+  withoutHassle: '& Zonder Gedoe',
+  
+  // Popular card
+  perEvent: '/Per Evenement',
+  
+  // Event card
+  percentOff: '% Korting',
+  reviews: 'beoordelingen',
+  
+  // Reviews
+  reviewsAndRatings: 'Beoordelingen & Ratings',
+  seeWhatClientsSaying: 'Bekijk wat onze klanten zeggen',
+  overallRating: 'Algemene Beoordeling',
+  basedOnReviews: 'Gebaseerd op {count} beoordelingen',
+  
+  // Vendor Details
+  booking: 'Boeking',
+  followers: 'volgers',
+  employees: 'werknemers',
+  contactMe: 'Contacteer Mij',
+  call: 'Bellen',
+  email: 'E-mail',
+  description: 'Beschrijving',
+  whyChooseUs: 'Waarom Ons Kiezen',
+  categories: 'Categorieën',
+  aboutUs: 'Over Ons',
+  mostRecent: 'Meest Recent',
+  viewAll: 'Bekijk Alles',
+  mostPopularDJ: 'Meest Populaire DJ',
+  
+  // Filter Modal
+  filter: 'Filter',
+  searchLocation: 'Zoek Locatie',
+  searchYourLocation: 'Zoek uw locatie',
+  dateRange: 'Datum Bereik',
+  startDate: 'Startdatum',
+  endDate: 'Einddatum',
+  priceRange: 'Prijsbereik',
+  from: 'Van',
+  to: 'Tot',
+  applyFilters: 'Filters Toepassen',
+
+  // Cart Screen
+  'Add To Cart': 'Toevoegen Aan Winkelwagen',
+  'Request Add To Cart': 'Verzoek Toevoegen Aan Winkelwagen',
+  'Accepted': 'Geaccepteerd',
+  bookNow: 'Nu Boeken',
+  cancelBooking: 'Boeking Annuleren',
+  inStock: 'Op voorraad',
+  perEvent: 'Per Evenement'
 };

@@ -43,7 +43,8 @@ export default {
 
   // Forgot password screen
   resetPassword: 'Reset Password',
-  enterEmailToReset: 'Enter your email address to receive a password reset link',
+  enterEmailToReset:
+    'Enter your email address to receive a password reset link',
   sendResetLink: 'Send Reset Link',
   backToLogin: 'Back to Login',
   verification: 'Verification',
@@ -64,6 +65,8 @@ export default {
   loginSuccessful: 'Login successful',
   registrationSuccessful: 'Registration successful',
   passwordResetSent: 'Password reset link sent to your email',
+  successfullyChanged: 'Successfully Changed!',
+  passwordChangedSuccessfully: 'Password changed successfully',
 
   // Buttons
   login: 'Login',
@@ -80,11 +83,75 @@ export default {
   search: 'Search',
   dashboard: 'Dashboard',
   analytics: 'Analytics',
+  calendar: 'Calendar',
+  messages: 'Messages',
 
   // Language selection
   selectLanguage: 'Select Language',
-  enterCode: "Enter OTP Code",
-  resetPass: "Re-Set Password",
-  enterPasswrod: "Enter New Password",
-  reEnterPassword: "Re-Enter Password"
+  enterCode: 'Enter OTP Code',
+  resetPass: 'Re-Set Password',
+  enterPasswrod: 'Enter New Password',
+  reEnterPassword: 'Re-Enter Password',
+  confirmOTP: 'Confirm OTP',
+
+  // Home screen
+  popular: 'Popular',
+  nearYou: 'Near You',
+  relevant: 'Relevant',
+  vendors: 'Vendors',
+  searchEvent: 'Search Event',
+
+  // Home card
+  bookDJsFoodTrucks: 'Book DJs, Food Trucks &',
+  venuesFastEasy: 'Venues Fast, Easy',
+  withoutHassle: '& Without Hassle',
+
+  // Popular card
+  perEvent: '/Per Event',
+
+  // Event card
+  percentOff: '% Off',
+  reviews: 'reviews',
+
+  // Reviews
+  reviewsAndRatings: 'Reviews & Ratings',
+  seeWhatClientsSaying: 'See what our clients are saying',
+  overallRating: 'Overall Rating',
+  basedOnReviews: 'Based on {count} reviews',
+  
+  // Vendor Details
+  booking: 'Booking',
+  followers: 'followers',
+  employees: 'employees',
+  contactMe: 'Contact Me',
+  call: 'Call',
+  email: 'Email',
+  description: 'Description',
+  whyChooseUs: 'Why Choose Us',
+  categories: 'Categories',
+  aboutUs: 'About Us',
+  mostRecent: 'Most Recent',
+  viewAll: 'View All',
+  mostPopularDJ: 'Most Popular DJ',
+  
+  // Filter Modal
+  filter: 'Filter',
+  searchLocation: 'Search Location',
+  searchYourLocation: 'Search your location',
+  dateRange: 'Date Range',
+  startDate: 'Start date',
+  endDate: 'End date',
+  priceRange: 'Price Range',
+  from: 'From',
+  to: 'To',
+  applyFilters: 'Apply Filters',
+
+  // Cart Screen
+  'Add To Cart': 'Add To Cart',
+  'Request Add To Cart': 'Request Add To Cart',
+  'Accepted': 'Accepted',
+  bookNow: 'Book Now',
+  cancelBooking: 'Cancel Booking',
+  inStock: 'In stock',
+  perEvent: 'Per Event'
 };

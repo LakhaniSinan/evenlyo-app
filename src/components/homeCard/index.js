@@ -1,9 +1,10 @@
-import {BlurView} from '@react-native-community/blur';
 import {FlatList, Image, StyleSheet, Text, View} from 'react-native';
 import {IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import useTranslation from '../../hooks/useTranslation';
 
 const HomeCard = () => {
+  const {t} = useTranslation();
   const data = ['', ''];
   return (
     <FlatList
@@ -20,17 +21,15 @@ const HomeCard = () => {
               style={styles.image}
               source={IMAGES.backgroundImage}
             />
-            <BlurView
-              style={styles.blurContainer}
-              blurType="dark"
-              blurAmount={3}>
-              <View style={styles.tint} />
-              <Text style={styles.text}>Book DJs, Food Trucks &</Text>
-              <Text style={styles.text2}>
-                Venues Fast, Easy{' '}
-                <Text style={styles.text}>& Without Hassle </Text>
-              </Text>
-            </BlurView>
+            <View style={styles.blurContainer}>
+              <View style={styles.textContainer}>
+                <Text style={styles.text}>{t('bookDJsFoodTrucks')}</Text>
+                <Text style={styles.text2}>
+                  {t('venuesFastEasy')}{' '}
+                  <Text style={styles.text}>{t('withoutHassle')} </Text>
+                </Text>
+              </View>
+            </View>
           </View>
         );
       }}
@@ -57,16 +56,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     left: 16,
-    width: '90%',
+    right: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.39)',
     borderRadius: 15,
-    overflow: 'hidden',
     padding: 15,
     justifyContent: 'center',
-  },
-  tint: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.28)',
-    borderRadius: 16,
+    minHeight: 60,
   },
 
   text: {
@@ -75,6 +70,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     zIndex: 1,
     textAlign: 'left',
+    lineHeight: 18,
   },
   text2: {
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
@@ -82,6 +78,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     zIndex: 1,
     marginRight: 10,
+    lineHeight: 18,
+    marginTop: 2,
+  },
+  textContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    zIndex: 1,
   },
 });
 

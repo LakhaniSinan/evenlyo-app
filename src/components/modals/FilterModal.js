@@ -70,16 +70,16 @@ const FilterModal = ({isVisible, onClose}) => {
       propagateSwipe={true}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Filter</Text>
+          <Text style={styles.title}>{t('filter')}</Text>
           <TouchableOpacity onPress={onClose}>
             <Icon name="close" size={24} color="#333" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Search Location</Text>
+          <Text style={styles.label}>{t('searchLocation')}</Text>
           <TextField
-            placeholder={'Search your location'}
+            placeholder={t('searchYourLocation')}
             // value={email}
             // onChangeText={setEmail}
             keyboardType="email-address"
@@ -89,11 +89,11 @@ const FilterModal = ({isVisible, onClose}) => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Date Range</Text>
+          <Text style={styles.label}>{t('dateRange')}</Text>
           <View style={styles.dateContainer}>
             <View style={{width: width(40)}}>
               <TextField
-                placeholder={'Start date'}
+                placeholder={t('startDate')}
                 // value={email}
                 // onChangeText={setEmail}
                 keyboardType="date"
@@ -104,7 +104,7 @@ const FilterModal = ({isVisible, onClose}) => {
             </View>
             <View style={{width: width(40)}}>
               <TextField
-                placeholder={'Start End'}
+                placeholder={t('endDate')}
                 // value={email}
                 // onChangeText={setEmail}
                 keyboardType="date"
@@ -117,7 +117,7 @@ const FilterModal = ({isVisible, onClose}) => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Price Range</Text>
+          <Text style={styles.label}>{t('priceRange')}</Text>
 
           {/* Price labels above slider */}
           <View style={styles.priceLabelsContainer}>
@@ -146,13 +146,13 @@ const FilterModal = ({isVisible, onClose}) => {
           {/* From and To labels with values */}
           <View style={styles.fromToContainer}>
             <View style={styles.fromToItem}>
-              <Text style={styles.fromToLabel}>From</Text>
+              <Text style={styles.fromToLabel}>{t('from')}</Text>
               <View style={styles.fromToValueContainer}>
                 <Text style={styles.fromToValue}>${priceRange.min}</Text>
               </View>
             </View>
             <View style={styles.fromToItem}>
-              <Text style={styles.fromToLabel}>To</Text>
+              <Text style={styles.fromToLabel}>{t('to')}</Text>
               <View style={styles.fromToValueContainer}>
                 <Text style={styles.fromToValue}>${priceRange.max}</Text>
               </View>
@@ -172,7 +172,7 @@ const FilterModal = ({isVisible, onClose}) => {
           </View>
           <View style={{width: width(40)}}>
             <GradientButton
-              text={'Apply Filters'}
+              text={t('applyFilters')}
               textStyle={{
                 fontSize: 12,
                 fontFamily: fontFamly.PlusJakartaSansSemiRegular,

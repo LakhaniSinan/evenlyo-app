@@ -1,10 +1,11 @@
-import {BlurView} from '@react-native-community/blur';
 import {FlatList, Image, StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS, IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import useTranslation from '../../hooks/useTranslation';
 
 const PopularCard = () => {
+  const {t} = useTranslation();
   const data = ['', ''];
   return (
     <FlatList
@@ -21,24 +22,20 @@ const PopularCard = () => {
               style={styles.image}
               source={IMAGES.backgroundImage2}
             />
-            <BlurView
-              style={styles.blurContainer}
-              blurType="dark"
-              blurAmount={3}>
-              <View style={styles.tint} />
+            <View style={styles.blurContainer}>
               <View
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                 }}>
-                <View style={{}}>
+                <View style={{flex: 1}}>
                   <Text style={styles.text}>DJ Ray Vibes</Text>
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 4}}>
                     <Image
                       source={ICONS.locationWithoutBg}
                       resizeMode="contain"
-                      style={{height: 10.89, width: 8.91, marginTop: width(1)}}
+                      style={{height: 10.89, width: 8.91}}
                     />
                     <Text
                       style={{
@@ -46,26 +43,28 @@ const PopularCard = () => {
                         color: COLORS.white,
                         fontSize: 10,
                         marginLeft: 5,
+                        lineHeight: 12,
                       }}>
                       Los Angeles, CA
                     </Text>
                   </View>
                 </View>
 
-                <View>
+                <View style={{alignItems: 'flex-end'}}>
                   <Text style={styles.text}>$300</Text>
-                  <Text
-                    style={{
-                      fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                      color: COLORS.white,
-                      fontSize: 9,
-                      marginLeft: 5,
-                    }}>
-                    /Par Event
-                  </Text>
+                                      <Text
+                      style={{
+                        fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                        color: COLORS.white,
+                        fontSize: 9,
+                        lineHeight: 11,
+                        marginTop: 2,
+                      }}>
+                      {t('perEvent')}
+                    </Text>
                 </View>
               </View>
-            </BlurView>
+            </View>
           </View>
         );
       }}
@@ -92,16 +91,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     left: 16,
-    width: '90%',
+    right: 16,
+    backgroundColor: 'rgba(255, 245, 245, 0.35)',
     borderRadius: 15,
-    overflow: 'hidden',
     padding: 15,
     justifyContent: 'center',
-  },
-  tint: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.28)',
-    borderRadius: 16,
+    minHeight: 80,
   },
 
   text: {
@@ -110,6 +105,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     zIndex: 1,
     textAlign: 'left',
+    lineHeight: 20,
   },
   text2: {
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,

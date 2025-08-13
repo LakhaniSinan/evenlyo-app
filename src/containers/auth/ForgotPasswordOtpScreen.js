@@ -34,7 +34,7 @@ const ForgotPasswordOtpScreen = ({navigation}) => {
             <View style={{marginTop: width(4)}}>
               <GradientButton
                 onPress={() => navigation.navigate('ResetPasswordScreen')}
-                text={'Confirm OTP'}
+                text={t('confirmOTP')}
                 textStyle={{
                   fontSize: 12,
                   fontFamily: fontFamly.PlusJakartaSansSemiRegular,

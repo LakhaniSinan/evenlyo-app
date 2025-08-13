@@ -1,9 +1,9 @@
 import React from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity} from 'react-native';
+import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
 import {fontFamly} from '../../constants';
 import GradientText from '../gradiantText';
-import {width} from 'react-native-dimension';
 
 const GradientButton = ({
   text,
@@ -26,21 +26,14 @@ const GradientButton = ({
         <TouchableOpacity
           onPress={onPress}
           activeOpacity={0.8}
-          style={styles.buttonBase}>
-          {icon && (
-            <Image
-              source={icon}
-              style={{width: 24, height: 24}}
-              resizeMode="contain"
-            />
-          )}
+          style={[styles.buttonBase, {...styleProps}]}>
+          {icon && <Image source={icon} style={{width: 24, height: 24}} />}
           <Text style={textStyle ? textStyle : styles.filledText}>{text}</Text>
         </TouchableOpacity>
       </LinearGradient>
     );
   }
 
-  // Outline button
   return (
     <LinearGradient
       colors={gradientColors}
@@ -50,7 +43,7 @@ const GradientButton = ({
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.8}
-        style={[styles.outlineButton, styleProps]}>
+        style={[styles.outlineButton, {...outlineButtonStyle}]}>
         {icon && (
           <Image
             source={icon}
@@ -81,7 +74,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   buttonBase: {
-    paddingVertical: 14,
+    paddingVertical: width(3),
     paddingHorizontal: 24,
     borderRadius: 20,
     alignItems: 'center',
@@ -99,7 +92,7 @@ const styles = StyleSheet.create({
   outlineButton: {
     backgroundColor: '#fff',
     borderRadius: width(3.5),
-    paddingVertical: 16,
+    paddingVertical: width(3),
     paddingHorizontal: 24,
     flexDirection: 'row',
     alignItems: 'center',

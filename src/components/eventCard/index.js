@@ -1,13 +1,21 @@
 import React from 'react';
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
-import {AirbnbRating} from 'react-native-ratings';
+import {Rating} from 'react-native-ratings';
 import {IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import useTranslation from '../../hooks/useTranslation';
 
-const EventCard = ({}) => {
+const EventCard = ({navigation}) => {
+  const {t} = useTranslation();
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() =>
+        navigation.navigate('Calendar', {
+          screen: 'VendorDetails',
+        })
+      }>
       <View
         style={{
           height: width(30),
@@ -56,7 +64,7 @@ const EventCard = ({}) => {
                 paddingHorizontal: width(5),
                 paddingVertical: width(2),
               }}>
-              20% Off
+              20{t('percentOff')}
             </Text>
           </View>
         </View>
@@ -71,18 +79,30 @@ const EventCard = ({}) => {
         <View
           style={{
             flexDirection: 'row',
-            backgroundColor: '#FFF',
+            alignItems: 'center',
           }}>
-          <AirbnbRating
+          <Rating
             count={5}
-            defaultRating={5}
-            size={20}
-            showRating={false}
-            selectedColor={COLORS.green}
+            defaultRating={4}
+            imageSize={12}
+            selectedColor={'#FCAD38'}
+            isDisabled={true}
+            readonly={true}
+            style={{marginRight: 5, marginTop: 5}}
+            ratingContainerStyle={{marginRight: 5}}
           />
+          <Text
+            style={{
+              fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+              color: COLORS.textLight,
+              fontSize: 12,
+              marginLeft: 5,
+            }}>
+            4.5 (127 {t('reviews')})
+          </Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

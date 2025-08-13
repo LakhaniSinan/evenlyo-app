@@ -3,9 +3,22 @@ import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import useTranslation from '../../hooks/useTranslation';
 import TextField from '../textInput';
 
-const AppHeader = ({showSearch = true, setModalVisible}) => {
+const AppHeader = ({
+  showSearch,
+  setModalVisible,
+  showLocation,
+  leftIcon,
+  rightIcon,
+  headingText,
+  showNotifications,
+  onLeftIconPress,
+  onRightIconPress,
+  containerStyle,
+}) => {
+  const {t} = useTranslation();
   return (
     <View
       style={{
@@ -18,40 +31,75 @@ const AppHeader = ({showSearch = true, setModalVisible}) => {
       }}>
       <View
         style={{
+          ...containerStyle,
           marginHorizontal: 10,
           marginTop: width(4),
           flexDirection: 'row',
           alignItems: 'center',
+          justifyContent: 'space-between',
         }}>
-        <View style={{}}>
-          <Image
-            resizeMode="contain"
-            style={{width: 40, height: 40}}
-            source={ICONS.locationIcon}
-          />
-        </View>
-        <View style={{marginLeft: 10}}>
+        {leftIcon && (
+          <TouchableOpacity onPress={() => onLeftIconPress()}>
+            <Image
+              resizeMode="contain"
+              style={{width: 40, height: 40}}
+              source={leftIcon}
+            />
+          </TouchableOpacity>
+        )}
+        {headingText && (
           <Text
             style={{
-              fontSize: 12,
-              fontFamily: fontFamly.PlusJakartaSansSemiMedium,
+              fontSize: 16,
+              fontFamily: fontFamly.PlusJakartaSansBold,
             }}>
-            San Francisco, CA
+            {headingText}
           </Text>
-        </View>
-        <View
-          style={{
-            flexDirection: 'row',
-            marginRight: 10,
-            justifyContent: 'flex-end',
-            flex: 1,
-          }}>
-          <Image
-            resizeMode="contain"
-            style={{width: 40, height: 40}}
-            source={ICONS.notificationIcon}
-          />
-        </View>
+        )}
+        {rightIcon && (
+          <TouchableOpacity onPress={() => onRightIconPress()}>
+            <Image
+              resizeMode="contain"
+              style={{width: 40, height: 40}}
+              source={rightIcon}
+            />
+          </TouchableOpacity>
+        )}
+        {showLocation && (
+          <>
+            <View>
+              <Image
+                resizeMode="contain"
+                style={{width: 40, height: 40}}
+                source={ICONS.locationIcon}
+              />
+            </View>
+            <View style={{marginLeft: 10}}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontFamily: fontFamly.PlusJakartaSansSemiMedium,
+                }}>
+                San Francisco, CA
+              </Text>
+            </View>
+          </>
+        )}
+        {showNotifications && (
+          <View
+            style={{
+              flexDirection: 'row',
+              marginRight: 10,
+              justifyContent: 'flex-end',
+              flex: 1,
+            }}>
+            <Image
+              resizeMode="contain"
+              style={{width: 40, height: 40}}
+              source={ICONS.notificationIcon}
+            />
+          </View>
+        )}
       </View>
       {showSearch && (
         <View
@@ -63,7 +111,7 @@ const AppHeader = ({showSearch = true, setModalVisible}) => {
             marginVertical: 15,
           }}>
           <TextField
-            placeholder="Search Event"
+            placeholder={t('searchEvent')}
             placeholderTextColor="#aaa"
             bgColor={COLORS.white}
             startIcon={ICONS.search}

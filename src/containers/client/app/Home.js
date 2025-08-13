@@ -10,13 +10,23 @@ import HomeCard from '../../../components/homeCard';
 import FilterModal from '../../../components/modals/FilterModal';
 import PopularCard from '../../../components/popularCard';
 import SubCategories from '../../../components/subCategories';
+import {COLORS} from '../../../constants';
+import useTranslation from '../../../hooks/useTranslation';
 
-const Home = () => {
+const Home = ({navigation}) => {
   const [isModalVisible, setModalVisible] = useState(false);
+  const {t} = useTranslation();
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={{flex: 1}}>
+    <SafeAreaView
+      edges={['top', 'left', 'right']}
+      style={{flex: 1, backgroundColor: COLORS.white}}>
       <ScrollView style={{flex: 1}} showsVerticalScrollIndicator={false}>
-        <AppHeader setModalVisible={setModalVisible} />
+        <AppHeader
+          showSearch={true}
+          setModalVisible={setModalVisible}
+          showLocation={true}
+          showNotifications={true}
+        />
         <View
           style={{
             marginTop: 10,
@@ -34,8 +44,8 @@ const Home = () => {
         </View>
         <View>
           <HeadingComponent
-            heading={'Popular'}
-            gradientText={'Near You'}
+            heading={t('popular')}
+            gradientText={t('nearYou')}
             rightArrow={true}
             onPress={() => {}}
           />
@@ -45,16 +55,16 @@ const Home = () => {
         </View>
         <View>
           <HeadingComponent
-            heading={'Relevant'}
-            gradientText={'Vendors'}
+            heading={t('relevant')}
+            gradientText={t('vendors')}
             rightArrow={true}
             onPress={() => {}}
           />
         </View>
         <View>
-          <EventCard />
+          <EventCard navigation={navigation} />
         </View>
-        <View style={{height: width(30)}} />
+        <View style={{height: width(10)}} />
       </ScrollView>
       <FilterModal
         isVisible={isModalVisible}

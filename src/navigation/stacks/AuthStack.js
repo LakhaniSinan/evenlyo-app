@@ -1,17 +1,16 @@
-import React from 'react';
 import {
   createStackNavigator,
-  TransitionSpecs,
   HeaderStyleInterpolators,
+  TransitionSpecs,
 } from '@react-navigation/stack';
-
-// Import auth containers
+import React from 'react';
 import {
-  LoginScreen,
-  RegisterScreen,
   ForgotPasswordScreen,
+  LoginScreen,
   Onboarding,
+  RegisterScreen,
 } from '../../containers/auth';
+import AuthSuccess from '../../containers/auth/AuthSuccess';
 import ForgotPasswordOtpScreen from '../../containers/auth/ForgotPasswordOtpScreen';
 import ResetPasswordScreen from '../../containers/auth/ResetPasswordScreen';
 
@@ -23,7 +22,7 @@ export const MyTransition = {
     close: TransitionSpecs.TransitionIOSSpec,
   },
   headerStyleInterpolator: HeaderStyleInterpolators.forFade,
-  cardStyleInterpolator: ({ current, next, layouts }) => {
+  cardStyleInterpolator: ({current, next, layouts}) => {
     return {
       cardStyle: {
         transform: [
@@ -51,15 +50,22 @@ const AuthStack = () => {
       initialRouteName="Onboarding"
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: '#FFFFFF' },
+        cardStyle: {backgroundColor: '#FFFFFF'},
         ...MyTransition,
       }}>
       <Stack.Screen name="Onboarding" component={Onboarding} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen name="ForgotPasswordOtpScreen" component={ForgotPasswordOtpScreen} />
-      <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
+      <Stack.Screen
+        name="ForgotPasswordOtpScreen"
+        component={ForgotPasswordOtpScreen}
+      />
+      <Stack.Screen
+        name="ResetPasswordScreen"
+        component={ResetPasswordScreen}
+      />
+      <Stack.Screen name="AuthSuccess" component={AuthSuccess} />
     </Stack.Navigator>
   );
 };

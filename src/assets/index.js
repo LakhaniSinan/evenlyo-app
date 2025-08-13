@@ -13,11 +13,24 @@ export const ICONS = {
   locationWithoutBg: require('./icons/locationWithoutBg.png'),
   currentLoactionIcon: require('./icons/currentLoactionIcon.png'),
   calenderIcon: require('./icons/calenderIcon.png'),
+  checkIcon: require('./icons/checkIcon.png'),
+  leftArrowIcon: require('./icons/leftArrowIcon.png'),
+  chatIcon: require('./icons/chatIcon.png'),
+  menuIcon: require('./icons/menuIcon.png'),
 };
 
 export const IMAGES = {
   logo: require('./images/logoImage.png'),
   backgroundImage: require('./images/backgroundImage.png'),
   backgroundImage2: require('./images/backgroundImage2.png'),
+  bannerImage: require('./images/bannerImage.png'),
   coverImage1: require('./images/coverImage1.png'),
+  profilePhoto: require('./images/profilePhoto.png'),
+};
+
+export const TAB_BAR_ICONS = {
+  home: require('./tabBars/activeHome.png'),
+  calendar: require('./tabBars/activeCalender.png'),
+  messages: require('./tabBars/activeCart.png'),
+  profile: require('./tabBars/activeProfile.png'),
 };
