@@ -1,8 +1,17 @@
 import React from 'react';
-import TabsDemo from './TabsDemo';
+import {SafeAreaView, Text} from 'react-native';
+import {COLORS} from '../../../constants';
 
 const Calendar = () => {
-  return <TabsDemo />;
+  return (
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: COLORS.white,
+      }}>
+      <Text>Calendar</Text>
+    </SafeAreaView>
+  );
 };
 
 export default Calendar;

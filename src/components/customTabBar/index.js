@@ -1,6 +1,12 @@
 import React from 'react';
-import {Image, StyleSheet, TouchableOpacity, View} from 'react-native';
-import {width} from 'react-native-dimension';
+import {
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  Dimensions,
+} from 'react-native';
+import {width, height} from 'react-native-dimension';
 
 // Tab footer images - full footer images that change conditionally
 const tabFooterImages = {
@@ -11,6 +17,10 @@ const tabFooterImages = {
 };
 
 const CustomTabBar = ({state, descriptors, navigation}) => {
+  // Get screen dimensions for responsive design
+  const screenHeight = Dimensions.get('window').height;
+  const screenWidth = Dimensions.get('window').width;
+
   // Get the currently active tab
   const activeTabName = state.routes[state.index].name;
 
@@ -18,16 +28,20 @@ const CustomTabBar = ({state, descriptors, navigation}) => {
   const currentImage = tabFooterImages[activeTabName] || tabFooterImages.Home;
 
   return (
-    <View style={styles.tabBarWrapper}>
+    <View style={[styles.tabBarWrapper, {height: Math.max(height(12), 80)}]}>
       {/* Full footer image that changes based on active tab */}
       <Image
         source={currentImage}
-        style={styles.footerImage}
-        resizeMode="cover"
+        resizeMode="contain"
+        style={{
+          width: '100%',
+          height: '100%',
+          aspectRatio: screenWidth / Math.max(height(12), 80),
+        }}
       />
 
       {/* Invisible touchable areas for tab navigation */}
-      <View style={styles.touchableContainer}>
+      <View style={[styles.touchableContainer, {marginTop: -height(2)}]}>
         {state.routes.map((route, index) => {
           const {options} = descriptors[route.key];
           const isFocused = state.index === index;
@@ -72,14 +86,9 @@ const CustomTabBar = ({state, descriptors, navigation}) => {
 const styles = StyleSheet.create({
   tabBarWrapper: {
     position: 'relative',
-    bottom: -30,
     width: width(100),
-    height: width(20),
-  },
-  footerImage: {
-    width: 'auto',
-    height: width(46),
-    marginTop: -width(26.5),
+    alignSelf: 'center',
+    // Remove fixed positioning and height - now handled dynamically
   },
   touchableContainer: {
     position: 'absolute',
@@ -88,11 +97,13 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     flexDirection: 'row',
-    marginTop: -width(5),
+    // marginTop now handled dynamically based on screen size
   },
   tabButton: {
     flex: 1,
     height: '100%',
+    // Add minimum touch target size for accessibility
+    minHeight: 44,
   },
 });
 
