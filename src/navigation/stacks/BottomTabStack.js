@@ -1,4 +1,4 @@
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import CustomTabBar from '../../components/customTabBar';
 import HomeStack from './HomeStack';
@@ -19,30 +19,22 @@ const BottomTabStack = () => {
       <Tab.Screen
         name="Home"
         component={HomeStack}
-        options={{
-          tabBarLabel: 'Home',
-        }}
+        options={{ tabBarLabel: 'Home' }}
       />
       <Tab.Screen
         name="Calendar"
         component={CalendarStack}
-        options={{
-          tabBarLabel: 'Calendar',
-        }}
+        options={{ tabBarLabel: 'Calendar' }}
       />
       <Tab.Screen
         name="Messages"
         component={MessagesStack}
-        options={{
-          tabBarLabel: 'Messages',
-        }}
+        options={{ tabBarLabel: 'Messages' }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileStack}
-        options={{
-          tabBarLabel: 'Profile',
-        }}
+        options={{ tabBarLabel: 'Profile' }}
       />
     </Tab.Navigator>
   );

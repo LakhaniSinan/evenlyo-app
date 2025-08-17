@@ -17,6 +17,13 @@ export const ICONS = {
   leftArrowIcon: require('./icons/leftArrowIcon.png'),
   chatIcon: require('./icons/chatIcon.png'),
   menuIcon: require('./icons/menuIcon.png'),
+  security: require("./icons/security.png"),
+  settings: require("./icons/settings.png"),
+  userIcon: require("./icons/userIcon.png"),
+  wallet: require("./icons/wallet.png"),
+  helpSupport: require("./icons/helpSupport.png"),
+  logout: require("./icons/logout.png"),
+  arrowRight: require("./icons/rightArrow.png"),
 };
 
 export const IMAGES = {

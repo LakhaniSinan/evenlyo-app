@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import { useState } from 'react';
 import {
   FlatList,
   SafeAreaView,
@@ -8,17 +8,18 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {width} from 'react-native-dimension';
+import { width } from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
-import {ICONS} from '../../../assets';
+import { ICONS } from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
 import CartCard from '../../../components/cartCard';
-import {COLORS, fontFamly} from '../../../constants';
-import {useTranslation} from '../../../hooks';
-
-function CartScreen({navigation}) {
-  const {t} = useTranslation();
+import { COLORS, fontFamly } from '../../../constants';
+import { useTranslation } from '../../../hooks';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+function CartScreen({ navigation }) {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState('addToCart');
 
   const handleBookNow = item => {
@@ -32,7 +33,7 @@ function CartScreen({navigation}) {
   };
 
   const variant = activeTab === 'addToCart' ? 'requested' : 'accepted';
-  const renderCartItem = ({item}) => {
+  const renderCartItem = ({ item }) => {
     return (
       <CartCard
         variant={variant}
@@ -47,19 +48,23 @@ function CartScreen({navigation}) {
     return activeTab === 'addToCart' ? requested : accepted;
   };
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
+    <SafeAreaView
+      edges={['top', 'left', 'right']}
+      style={{ flex: 1, backgroundColor: COLORS.white }}>
       <AppHeader
         leftIcon={ICONS.leftArrowIcon}
         headingText={t('Add To Cart')}
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={() => navigation.goBack()}
-        setModalVisible={() => {}}
-        onRightIconPress={() => {}}
+        setModalVisible={() => { }}
+        onRightIconPress={() => { }}
         containerStyle={{
           marginVertical: 10,
         }}
       />
-      <ScrollView style={{flex: 1, backgroundColor: COLORS.white}}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: insets.bottom }}
+        style={{ flex: 1, backgroundColor: COLORS.white }}>
         <View style={styles.tabContainer}>
           <LinearGradient
             colors={
@@ -68,8 +73,8 @@ function CartScreen({navigation}) {
                 : ['#fff', '#fff', '#fff']
             }
             style={styles.tabGradient}
-            start={{x: 0, y: 0}}
-            end={{x: 0, y: 1}}>
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}>
             <TouchableOpacity
               style={styles.tab}
               onPress={() => setActiveTab('addToCart')}>
@@ -90,8 +95,8 @@ function CartScreen({navigation}) {
                 : ['#fff', '#fff', '#fff']
             }
             style={styles.tabGradient}
-            start={{x: 0, y: 0}}
-            end={{x: 0, y: 1}}>
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}>
             <TouchableOpacity
               style={styles.tab}
               onPress={() => setActiveTab('accepted')}>
@@ -162,7 +167,7 @@ function CartScreen({navigation}) {
                 </View>
               </View>
             </View>
-            <View style={{margin: width(4)}}>
+            <View style={{ margin: width(4) }}>
               <GradientButton
                 text={t('Checkout')}
                 type="filled"

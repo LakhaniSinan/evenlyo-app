@@ -1,11 +1,12 @@
 import React from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {width} from 'react-native-dimension';
-import {ICONS} from '../../assets';
-import {COLORS, fontFamly} from '../../constants';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { width } from 'react-native-dimension';
+import { ICONS } from '../../assets';
+import { COLORS, fontFamly } from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 import TextField from '../textInput';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 const AppHeader = ({
   showSearch,
   setModalVisible,
@@ -18,10 +19,13 @@ const AppHeader = ({
   onRightIconPress,
   containerStyle,
 }) => {
-  const {t} = useTranslation();
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets()
+  const navigation = useNavigation()
   return (
     <View
       style={{
+        paddingTop: insets.top,
         backgroundColor: COLORS.backgroundLight,
         borderBottomLeftRadius: width(10),
         borderBottomRightRadius: width(10),
@@ -42,7 +46,7 @@ const AppHeader = ({
           <TouchableOpacity onPress={() => onLeftIconPress()}>
             <Image
               resizeMode="contain"
-              style={{width: 40, height: 40}}
+              style={{ width: 40, height: 40 }}
               source={leftIcon}
             />
           </TouchableOpacity>
@@ -60,7 +64,7 @@ const AppHeader = ({
           <TouchableOpacity onPress={() => onRightIconPress()}>
             <Image
               resizeMode="contain"
-              style={{width: 40, height: 40}}
+              style={{ width: 40, height: 40 }}
               source={rightIcon}
             />
           </TouchableOpacity>
@@ -70,11 +74,11 @@ const AppHeader = ({
             <View>
               <Image
                 resizeMode="contain"
-                style={{width: 40, height: 40}}
+                style={{ width: 40, height: 40 }}
                 source={ICONS.locationIcon}
               />
             </View>
-            <View style={{marginLeft: 10}}>
+            <View style={{ marginLeft: 10 }}>
               <Text
                 style={{
                   fontSize: 12,
@@ -86,7 +90,8 @@ const AppHeader = ({
           </>
         )}
         {showNotifications && (
-          <View
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Notification")}
             style={{
               flexDirection: 'row',
               marginRight: 10,
@@ -95,10 +100,10 @@ const AppHeader = ({
             }}>
             <Image
               resizeMode="contain"
-              style={{width: 40, height: 40}}
+              style={{ width: 40, height: 40 }}
               source={ICONS.notificationIcon}
             />
-          </View>
+          </TouchableOpacity>
         )}
       </View>
       {showSearch && (
@@ -138,7 +143,7 @@ const AppHeader = ({
             }}>
             <Image
               resizeMode="contain"
-              style={{width: 40, height: 40}}
+              style={{ width: 40, height: 40 }}
               source={ICONS.filters}
             />
           </TouchableOpacity>

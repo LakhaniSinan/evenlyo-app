@@ -1,9 +1,10 @@
 import React from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {width} from 'react-native-dimension';
-import {COLORS, fontFamly} from '../../constants';
-import {useTranslation} from '../../hooks';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { width } from 'react-native-dimension';
+import { COLORS, fontFamly } from '../../constants';
+import { useTranslation } from '../../hooks';
 import GradientButton from '../button';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const CartCard = ({
   item,
@@ -11,7 +12,7 @@ const CartCard = ({
   onCancelBooking,
   variant = 'requested',
 }) => {
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   const renderActionButton = () => {
     if (variant === 'requested') {
@@ -20,8 +21,14 @@ const CartCard = ({
           text={t('bookNow')}
           onPress={() => onBookNow && onBookNow(item)}
           type="filled"
+          textStyle={{
+            fontSize: 10,
+            fontFamly: fontFamly.PlusJakartaSansMedium,
+            color: COLORS.white
+          }}
           styleProps={{
             paddingVertical: width(2),
+            height: width(7)
           }}
           outlineButtonStyle={{
             paddingVertical: width(2),
@@ -31,9 +38,14 @@ const CartCard = ({
     } else if (variant === 'accepted' && item.actionButton) {
       return (
         <GradientButton
+          textStyle={{
+            fontSize: 10,
+            fontFamly: fontFamly.PlusJakartaSansMedium,
+            color: COLORS.white
+          }}
           text={t('cancelBooking')}
           onPress={() => onCancelBooking && onCancelBooking(item)}
-          type={item.actionButton.variant === 'filled' ? 'filled' : 'outlined'}
+          // type={item.actionButton.variant === 'filled' ? 'filled' : 'outlined'}
           styleProps={{
             paddingVertical: width(2),
           }}
@@ -44,13 +56,14 @@ const CartCard = ({
   };
 
   return (
-    <View
+    
+    <SafeAreaView
       style={[styles.cardContainer, item.isSelected && styles.selectedCard]}>
       <View style={styles.imageContainer}>
         <Image
           source={
             item.image
-              ? {uri: item.image}
+              ? { uri: item.image }
               : require('../../assets/images/coverImage1.png')
           }
           style={styles.cardImage}
@@ -85,7 +98,7 @@ const CartCard = ({
           {variant === 'accepted' && item.artistAvatar && (
             <View style={styles.artistAvatarContainer}>
               <Image
-                source={{uri: item.artistAvatar}}
+                source={{ uri: item.artistAvatar }}
                 style={styles.artistAvatar}
                 resizeMode="cover"
               />
@@ -102,7 +115,7 @@ const CartCard = ({
           </View>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
