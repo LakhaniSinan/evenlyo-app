@@ -1,6 +1,7 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Profile from '../../containers/client/app/Profile';
+import PersonalInfo from '../../containers/client/app/personalInfo';
 
 const Stack = createStackNavigator();
 
@@ -10,11 +11,17 @@ const ProfileStack = () => {
       initialRouteName="ProfileScreen"
       screenOptions={{
         headerShown: false,
-        cardStyle: {backgroundColor: '#FFFFFF'},
       }}>
       <Stack.Screen 
         name="ProfileScreen" 
         component={Profile}
+        options={{
+          title: 'Profile',
+        }}
+      />
+      <Stack.Screen 
+        name="personalInfo" 
+        component={PersonalInfo}
         options={{
           title: 'Profile',
         }}

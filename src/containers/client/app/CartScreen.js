@@ -56,14 +56,14 @@ function CartScreen({ navigation }) {
         headingText={t('Add To Cart')}
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={() => navigation.goBack()}
-        setModalVisible={() => { }}
-        onRightIconPress={() => { }}
-        containerStyle={{
-          marginVertical: 10,
-        }}
+        // setModalVisible={() => { }}
+        // onRightIconPress={() => { }}
+        // containerStyle={{
+        //   marginVertical: 10,
+        // }}
       />
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom }}
+        // contentContainerStyle={{ paddingBottom: insets.bottom }}
         style={{ flex: 1, backgroundColor: COLORS.white }}>
         <View style={styles.tabContainer}>
           <LinearGradient

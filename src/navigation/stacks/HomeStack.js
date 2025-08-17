@@ -1,9 +1,6 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import Home from '../../containers/client/app/Home';
-import HomeTestScreen from '../../containers/client/app/HomeTestScreen';
-import LanguageDemo from '../../containers/client/app/LanguageDemo';
-import ReviewsDemo from '../../containers/client/app/ReviewsDemo';
 import Notification from '../../containers/client/app/Notification';
 
 const Stack = createStackNavigator();
@@ -30,27 +27,27 @@ const HomeStack = () => {
           title: 'Home',
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="LanguageDemo"
         component={LanguageDemo}
         options={{
           title: 'Language Demo',
         }}
-      />
-      <Stack.Screen
+      /> */}
+      {/* <Stack.Screen
         name="ReviewsDemo"
         component={ReviewsDemo}
         options={{
           title: 'Reviews Demo',
         }}
-      />
-      <Stack.Screen
+      /> */}
+      {/* <Stack.Screen
         name="HomeTestScreen"
         component={HomeTestScreen}
         options={{
           title: 'Home Test Screen',
         }}
-      />
+      /> */}
     </Stack.Navigator>
   );
 };

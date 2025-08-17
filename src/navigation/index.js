@@ -9,7 +9,6 @@ import AuthStack from './stacks/AuthStack';
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
-  // This would come from your Redux store
   const {user} = useSelector(state => state.LoginSlice);
   return (
     <NavigationContainer>

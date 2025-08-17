@@ -7,26 +7,27 @@ import LanguageSwitcher from '../../../components/languageSwitcher';
 import AppHeader from '../../../components/appHeader';
 import { ICONS, IMAGES } from '../../../assets';
 import { width } from 'react-native-dimension';
+import { useNavigation } from '@react-navigation/native';
 
 let data = [
   {
     name: 'Personal Info',
-    navigation: "personalInfo",
+    navigate: "personalInfo",
     icon: ICONS.userIcon
   },
   {
     name: 'Security Details',
-    navigation: "personalInfo",
+    navigate: "personalInfo",
     icon: ICONS.security
   },
   {
     name: 'Payment Method',
-    navigation: "personalInfo",
+    navigate: "personalInfo",
     icon: ICONS.wallet
   },
   {
     name: 'Settings',
-    navigation: "personalInfo",
+    navigate: "personalInfo",
     icon: ICONS.settings
   }
 ]
@@ -34,43 +35,55 @@ let data = [
 let data2 = [
   {
     name: 'Help & Support',
-    navigation: "personalInfo",
+    navigate: "personalInfo",
     icon: ICONS.helpSupport
   },
   {
     name: 'Log Out',
-    navigation: "personalInfo",
+    navigate: "personalInfo",
     icon: ICONS.logout
   },
 ]
 const Profile = () => {
   const { t } = useTranslation();
-
+  const navigation = useNavigation()
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-      >
-        <AppHeader
-          headingText={"Profile"}
+    <ScrollView style={styles.container}>
+      <AppHeader
+        // leftIcon={ICONS.leftArrowIcon}
+        headingText={t('Profile')}
+        // rightIcon={ICONS.chatIcon}
+        onLeftIconPress={() => navigation.goBack()}
+        setModalVisible={() => { }}
+        onRightIconPress={() => { }}
+        containerStyle={{
+          marginVertical: 10,
+        }}
+      />
+      <View style={{ alignItems: "center", marginTop: width(4) }}>
+        <Image
+          style={{
+            height: 100,
+            width: 100,
+            borderRadius: 200
+          }}
+          source={IMAGES.backgroundImage}
         />
-        <View style={{ marginTop: width(4), alignItems: "center", }}>
-          <Image
-            style={{ height: 100, width: 100, borderRadius: 200 }}
-            source={IMAGES.backgroundImage} />
-          <Text style={{ marginTop: 5, fontSize: 15, fontFamily: fontFamly.PlusJakartaSansSemiBold }}>Esther Howard</Text>
-          <Text style={{ marginTop: 5, color: "#BABABA", fontSize: 12, fontFamily: fontFamly.PlusJakartaSansSemiMedium }}>@estherhoward</Text>
-        </View>
-
-        <View style={{ marginTop: width(4), marginHorizontal: width(3) }}
-        >
-          <Text style={{
-            fontSize: 12,
-            fontFamily: fontFamly.PlusJakartaSansBold,
-            color: COLORS.black
-          }}>General</Text>
-          {data.map(item => {
-            return (
-              <TouchableOpacity style={{
+        <Text style={{ marginTop: 5, fontSize: 15, fontFamily: fontFamly.PlusJakartaSansSemiBold }}>Esther Howard</Text>
+        <Text style={{ marginTop: 5, color: "#BABABA", fontSize: 12, fontFamily: fontFamly.PlusJakartaSansSemiMedium }}>@estherhoward</Text>
+      </View>
+      <View style={{ marginTop: width(4), marginHorizontal: width(3) }}
+      >
+        <Text style={{
+          fontSize: 12,
+          fontFamily: fontFamly.PlusJakartaSansBold,
+          color: COLORS.black
+        }}>General</Text>
+        {data.map(item => {
+          return (
+            <TouchableOpacity
+              onPress={() => navigation.navigate(item.navigate)}
+              style={{
                 borderRadius: 10,
                 marginTop: width(4),
                 paddingHorizontal: 10,
@@ -79,85 +92,84 @@ const Profile = () => {
                 flexDirection: "row",
                 alignItems: "center",
               }}>
-                <Image
-                  resizeMode='contain'
-                  style={{ width: 16, height: 20 }} source={item.icon} />
-                <Text style={{
-                  fontSize: 13,
-                  fontFamily: fontFamly.PlusJakartaSansSemiBold,
-                  marginLeft: 15
-                }}>{item.name}</Text>
-                <View style={{
-                  justifyContent: "flex-end",
-                  alignItems: "flex-end",
-                  flex: 1
-                }}>
-                  <Image
-                    style={{
-                      width: width(3),
-                      height: width(3)
-                    }}
-                    resizeMode='contain'
-                    source={ICONS.arrowRight} />
-                </View>
-
-              </TouchableOpacity>
-            )
-          })}
-        </View>
-
-        <View style={{ marginTop: width(4), marginHorizontal: width(3) }}
-        >
-          <Text style={{
-            fontSize: 12,
-            fontFamily: fontFamly.PlusJakartaSansBold,
-            color: COLORS.black
-          }}>General</Text>
-          {data2.map(item => {
-            return (
-              <TouchableOpacity style={{
-                borderRadius: 10,
-                marginTop: width(4),
-                paddingHorizontal: 10,
-                backgroundColor: COLORS.backgroundLight,
-                paddingVertical: 15,
-                flexDirection: "row",
-                alignItems: "center",
+              <Image
+                resizeMode='contain'
+                style={{ width: 16, height: 20 }} source={item.icon} />
+              <Text style={{
+                fontSize: 13,
+                fontFamily: fontFamly.PlusJakartaSansSemiBold,
+                marginLeft: 15
+              }}>{item.name}</Text>
+              <View style={{
+                justifyContent: "flex-end",
+                alignItems: "flex-end",
+                flex: 1
               }}>
                 <Image
+                  style={{
+                    width: width(3),
+                    height: width(3)
+                  }}
                   resizeMode='contain'
-                  style={{ width: 16, height: 20 }} source={item.icon} />
-                <Text style={{
-                  fontSize: 13,
-                  fontFamily: fontFamly.PlusJakartaSansSemiBold,
-                  marginLeft: 15
-                }}>{item.name}</Text>
-                <View style={{
-                  justifyContent: "flex-end",
-                  alignItems: "flex-end",
-                  flex: 1
-                }}>
-                  <Image
-                    style={{
-                      width: width(3),
-                      height: width(3)
-                    }}
-                    resizeMode='contain'
-                    source={ICONS.arrowRight} />
-                </View>
-              </TouchableOpacity>
-            )
-          })}
-        </View>
-      </ScrollView>
-    </SafeAreaView >
+                  source={ICONS.arrowRight} />
+              </View>
+
+            </TouchableOpacity>
+          )
+        })}
+      </View>
+
+      <View style={{ marginTop: width(4), marginHorizontal: width(3), marginBottom: 10 }}
+      >
+        <Text style={{
+          fontSize: 12,
+          fontFamily: fontFamly.PlusJakartaSansBold,
+          color: COLORS.black
+        }}>General</Text>
+        {data2.map(item => {
+          return (
+            <TouchableOpacity style={{
+              borderRadius: 10,
+              marginTop: width(4),
+              paddingHorizontal: 10,
+              backgroundColor: COLORS.backgroundLight,
+              paddingVertical: 15,
+              flexDirection: "row",
+              alignItems: "center",
+            }}>
+              <Image
+                resizeMode='contain'
+                style={{ width: 16, height: 20 }} source={item.icon} />
+              <Text style={{
+                fontSize: 13,
+                fontFamily: fontFamly.PlusJakartaSansSemiBold,
+                marginLeft: 15
+              }}>{item.name}</Text>
+              <View style={{
+                justifyContent: "flex-end",
+                alignItems: "flex-end",
+                flex: 1
+              }}>
+                <Image
+                  style={{
+                    width: width(3),
+                    height: width(3)
+                  }}
+                  resizeMode='contain'
+                  source={ICONS.arrowRight} />
+              </View>
+            </TouchableOpacity>
+          )
+        })}
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: "white",
   },
   content: {
     flex: 1,
