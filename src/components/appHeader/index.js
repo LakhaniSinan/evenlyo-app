@@ -67,8 +67,6 @@
 //               {headingText}
 //             </Text>
 //           </View>
-
-
 //         )}
 //         {rightIcon && (
 //           <TouchableOpacity onPress={() => onRightIconPress()}>
@@ -185,59 +183,64 @@
 
 // export default AppHeader;
 
-import { View, Text, Image, TouchableOpacity } from "react-native"
-import { COLORS, fontFamly } from "../../constants"
-import { SafeAreaView } from "react-native-safe-area-context"
-import { width } from 'react-native-dimension';
+import {Image, Text, TouchableOpacity, View} from 'react-native';
+import {width} from 'react-native-dimension';
+import {COLORS, fontFamly} from '../../constants';
+import useTranslation from '../../hooks/useTranslation';
 
 const AppHeader = ({
   headingText,
   leftIcon,
   onLeftIconPress,
-  rightIcon
+  onRightIconPress,
+  rightIcon,
+  showHomeHeader,
+  setModalVisible,
+  showSearchbar,
 }) => {
+  const {t} = useTranslation();
   return (
-    <View style={{
-      paddingTop: width(10),
-      // backgroundColor:"pink"
-    }}>
-      <View style={{
-        backgroundColor: COLORS.backgroundLight,
-        height: 73,
-        borderBottomLeftRadius: 20,
-        borderBottomRightRadius: 20,
+    <View
+      style={{
+        paddingTop: width(10),
       }}>
+      <View
+        style={{
+          backgroundColor: COLORS.backgroundLight,
+          height: 73,
+          borderBottomLeftRadius: 20,
+          borderBottomRightRadius: 20,
+        }}>
         {leftIcon && (
           <TouchableOpacity
-            style={{ position: "absolute", left: width(3), top: width(4) }}
+            style={{position: 'absolute', left: width(3), top: width(4)}}
             onPress={() => onLeftIconPress()}>
             <Image
               resizeMode="contain"
-              style={{ width: 40, height: 40 }}
+              style={{width: 40, height: 40}}
               source={leftIcon}
             />
           </TouchableOpacity>
         )}
-        <View style={{ justifyContent: "center", flex: 1, alignItems: "center" }}>
-          <Text
-            style={{ fontFamily: fontFamly.PlusJakartaSansBold }}
-          >{headingText}</Text>
+        <View style={{justifyContent: 'center', flex: 1, alignItems: 'center'}}>
+          <Text style={{fontFamily: fontFamly.PlusJakartaSansBold}}>
+            {headingText}
+          </Text>
         </View>
         {rightIcon && (
           <TouchableOpacity
-            style={{ position: "absolute", right: width(3), top: width(4) }}
-            onPress={() => onLeftIconPress()}
-          >
+            style={{position: 'absolute', right: width(3), top: width(4)}}
+            onPress={() => onRightIconPress()}>
             <Image
               resizeMode="contain"
-              style={{ width: 40, height: 40 }}
+              style={{width: 40, height: 40}}
               source={rightIcon}
             />
           </TouchableOpacity>
         )}
       </View>
     </View>
-  )
-}
+  );
+};
 
-export default AppHeader
+export default AppHeader;

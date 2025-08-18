@@ -2,7 +2,7 @@
 
 export const formatDate = (date, format = 'short') => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
+
   switch (format) {
     case 'short':
       return dateObj.toLocaleDateString('en-US', {
@@ -35,34 +35,34 @@ export const formatCurrency = (amount, currency = 'USD') => {
   }).format(amount);
 };
 
-export const validateEmail = (email) => {
+export const validateEmail = email => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
-export const validatePassword = (password) => {
+export const validatePassword = password => {
   const errors = [];
-  
+
   if (password.length < 8) {
     errors.push('Password must be at least 8 characters long');
   }
-  
+
   if (!/(?=.*[a-z])/.test(password)) {
     errors.push('Password must contain at least one lowercase letter');
   }
-  
+
   if (!/(?=.*[A-Z])/.test(password)) {
     errors.push('Password must contain at least one uppercase letter');
   }
-  
+
   if (!/(?=.*\d)/.test(password)) {
     errors.push('Password must contain at least one number');
   }
-  
+
   if (!/(?=.*[@$!%*?&])/.test(password)) {
     errors.push('Password must contain at least one special character');
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors,
@@ -80,7 +80,7 @@ export const generateId = () => {
 
 export const debounce = (func, wait) => {
   let timeout;
-  
+
   return (...args) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
@@ -89,7 +89,7 @@ export const debounce = (func, wait) => {
 
 export const throttle = (func, limit) => {
   let inThrottle;
-  
+
   return (...args) => {
     if (!inThrottle) {
       func(...args);
@@ -99,15 +99,40 @@ export const throttle = (func, limit) => {
   };
 };
 
-export const capitalizeFirstLetter = (string) => {
+export const capitalizeFirstLetter = string => {
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
-export const getInitials = (name) => {
+export const getInitials = name => {
   return name
     .split(' ')
     .map(word => word.charAt(0))
     .join('')
     .toUpperCase()
     .substring(0, 2);
+};
+
+export const calculateTime = messageDate => {
+  const now = moment();
+  const messageTime = moment(messageDate, 'MM-DD-YYYY h:mm A');
+  const duration = moment.duration(now.diff(messageTime));
+  const secondsAgo = duration.asSeconds();
+  const minutesAgo = duration.asMinutes();
+  const hoursAgo = duration.asHours();
+
+  if (secondsAgo < 60) {
+    return 'Just now';
+  } else if (minutesAgo < 2) {
+    return '1 min ago';
+  } else if (minutesAgo < 60) {
+    return `${Math.floor(minutesAgo)} mins ago`;
+  } else if (hoursAgo < 24) {
+    return `${Math.floor(hoursAgo)} hours ago`;
+  } else if (hoursAgo < 48) {
+    return '1 day ago';
+  } else if (hoursAgo < 72) {
+    return '2 days ago';
+  } else {
+    return messageTime.format('DD/MM/YYYY');
+  }
 };

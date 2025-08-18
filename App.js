@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
-import { StatusBar } from 'react-native';
-import { Provider, useDispatch } from 'react-redux';
+import React, {useEffect} from 'react';
+import {StatusBar} from 'react-native';
+import {Provider, useDispatch} from 'react-redux';
 import store from './src/redux';
 import AppNavigator from './src/navigation';
 import './src/services/i18n'; // Initialize i18n
-import { initializeLanguageFromStorage } from './src/redux/slice/language';
+import {initializeLanguageFromStorage} from './src/redux/slice/language';
 
 const AppContent = () => {
   const dispatch = useDispatch();
@@ -14,7 +14,7 @@ const AppContent = () => {
   }, [dispatch]);
   return (
     <>
-      {/* <StatusBar barStyle="dark-content" translucent={false} /> */}
+      <StatusBar barStyle="dark-content" translucent={true} />
       <AppNavigator />
     </>
   );

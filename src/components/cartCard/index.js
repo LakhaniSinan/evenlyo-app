@@ -1,10 +1,10 @@
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { width } from 'react-native-dimension';
-import { COLORS, fontFamly } from '../../constants';
-import { useTranslation } from '../../hooks';
+import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {width} from 'react-native-dimension';
+import {ICONS} from '../../assets';
+import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 const CartCard = ({
   item,
@@ -12,7 +12,7 @@ const CartCard = ({
   onCancelBooking,
   variant = 'requested',
 }) => {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const renderActionButton = () => {
     if (variant === 'requested') {
@@ -24,11 +24,11 @@ const CartCard = ({
           textStyle={{
             fontSize: 10,
             fontFamly: fontFamly.PlusJakartaSansMedium,
-            color: COLORS.white
+            color: COLORS.white,
           }}
           styleProps={{
             paddingVertical: width(2),
-            height: width(7)
+            height: width(7),
           }}
           outlineButtonStyle={{
             paddingVertical: width(2),
@@ -41,11 +41,10 @@ const CartCard = ({
           textStyle={{
             fontSize: 10,
             fontFamly: fontFamly.PlusJakartaSansMedium,
-            color: COLORS.white
+            color: COLORS.white,
           }}
           text={t('cancelBooking')}
-          onPress={() => onCancelBooking && onCancelBooking(item)}
-          // type={item.actionButton.variant === 'filled' ? 'filled' : 'outlined'}
+          onPress={() => onCancelBooking && onCancelBooking()}
           styleProps={{
             paddingVertical: width(2),
           }}
@@ -56,14 +55,12 @@ const CartCard = ({
   };
 
   return (
-    
-    <SafeAreaView
-      style={[styles.cardContainer, item.isSelected && styles.selectedCard]}>
+    <View style={styles.cardContainer}>
       <View style={styles.imageContainer}>
         <Image
           source={
             item.image
-              ? { uri: item.image }
+              ? {uri: item.image}
               : require('../../assets/images/coverImage1.png')
           }
           style={styles.cardImage}
@@ -71,7 +68,7 @@ const CartCard = ({
         />
         {item.isBookmarked && (
           <View style={styles.bookmarkContainer}>
-            <View style={styles.bookmark} />
+            <Image source={ICONS.favouriteIcon} style={styles.bookmarkIcon} />
           </View>
         )}
       </View>
@@ -83,14 +80,15 @@ const CartCard = ({
             <View style={styles.statusRow}>
               <Text style={styles.status}>{t('inStock')}</Text>
               {item.verified && (
-                <View style={styles.verifiedBadge}>
-                  <Text style={styles.verifiedText}>✓</Text>
-                </View>
+                <Image
+                  source={ICONS.verifyedIcon}
+                  style={styles.verifiedIcon}
+                />
               )}
             </View>
           </View>
           <TouchableOpacity style={styles.shareButton}>
-            <Text style={styles.shareIcon}>⤴</Text>
+            <Image source={ICONS.editIcon} style={styles.editIcon} />
           </TouchableOpacity>
         </View>
 
@@ -98,7 +96,7 @@ const CartCard = ({
           {variant === 'accepted' && item.artistAvatar && (
             <View style={styles.artistAvatarContainer}>
               <Image
-                source={{ uri: item.artistAvatar }}
+                source={{uri: item.artistAvatar}}
                 style={styles.artistAvatar}
                 resizeMode="cover"
               />
@@ -115,47 +113,40 @@ const CartCard = ({
           </View>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   cardContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.backgroundLight,
     borderRadius: width(4),
-    marginHorizontal: width(4),
-    marginVertical: width(2),
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    flexDirection: 'row', // Horizontal layout like in the image
-    padding: width(4),
-    minHeight: width(32),
+    marginHorizontal: width(3.5),
+    marginTop: width(3),
+    flexDirection: 'row',
+    paddingHorizontal: width(4),
+    paddingVertical: width(4),
   },
   imageContainer: {
-    position: 'relative',
-    marginRight: width(4),
+    marginRight: width(2),
+    height: width(30),
+    width: width(30),
+    borderRadius: width(4),
+    overflow: 'hidden',
   },
   cardImage: {
-    width: width(24),
-    height: width(24),
-    borderRadius: width(3),
+    width: '100%',
+    height: '100%',
+    borderRadius: width(4),
   },
   bookmarkContainer: {
     position: 'absolute',
     top: width(2),
     right: width(2),
   },
-  bookmark: {
-    width: width(4),
-    height: width(4),
-    backgroundColor: '#FF1744',
-    borderRadius: width(2),
+  bookmarkIcon: {
+    width: width(5),
+    height: width(5),
   },
   cardContent: {
     flex: 1,
@@ -198,18 +189,21 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
+  verifiedIcon: {
+    width: width(4.5),
+    height: width(4.5),
+  },
   shareButton: {
     padding: width(1),
   },
-  shareIcon: {
-    fontSize: 16,
-    color: COLORS.textLight,
+  editIcon: {
+    width: width(4),
+    height: width(4),
   },
   artistRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: width(2),
-    marginVertical: width(2),
   },
   artistAvatarContainer: {
     width: width(6),
@@ -232,7 +226,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionButton: {
-    paddingHorizontal: width(4),
+    paddingHorizontal: width(2),
     borderRadius: width(2),
   },
   actionButtonText: {

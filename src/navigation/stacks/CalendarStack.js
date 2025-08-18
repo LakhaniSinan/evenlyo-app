@@ -1,7 +1,9 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
-import Calendar from '../../containers/client/app/Calendar';
+import BooKings from '../../containers/client/app/Calendar';
 import VendorDetails from '../../containers/client/app/VendorDetails';
+import Messages from '../../containers/client/app/Messages';
+import ChatDetail from '../../containers/client/app/ChatDetail';
 
 const Stack = createStackNavigator();
 
@@ -15,9 +17,23 @@ const CalendarStack = () => {
       }}>
       <Stack.Screen
         name="CalendarScreen"
-        component={Calendar}
+        component={BooKings}
         options={{
           title: 'Calendar',
+        }}
+      />
+      <Stack.Screen
+        name="Messages"
+        component={Messages}
+        options={{
+          title: 'Messages',
+        }}
+      />
+      <Stack.Screen
+        name="ChatDetail"
+        component={ChatDetail}
+        options={{
+          title: 'Chat',
         }}
       />
       <Stack.Screen

@@ -87,6 +87,39 @@ export default {
 
   // Language selection
   selectLanguage: 'Selecteer Taal',
+  changeLanguage: 'Taal Wijzigen',
+  Settings: 'Instellingen',
+  
+  // Notification Settings
+  'Notification Settings': 'Notificatie Instellingen',
+  'Notification Details': 'Notificatie Details',
+  'Email Notification': 'E-mail Notificatie',
+  'Push notification': 'Push Notificatie',
+  'Get notified when orders are completed': 'Ontvang meldingen wanneer bestellingen zijn voltooid',
+  'Notifications for new user registrations': 'Meldingen voor nieuwe gebruikersregistraties',
+  
+  // Help & Support
+  'Help & Support': 'Hulp & Ondersteuning',
+  'Frequently Asked Questions': 'Veelgestelde Vragen',
+  'Find answers to common questions below': 'Vind antwoorden op veelgestelde vragen hieronder',
+  'Still need help?': 'Nog steeds hulp nodig?',
+  'Contact our support team for personalized assistance': 'Neem contact op met ons ondersteuningsteam voor persoonlijke hulp',
+  'Contact Support': 'Contact Ondersteuning',
+  'Customer Support': 'Klantenservice',
+  'Support': 'Ondersteuning',
+  'Your email': 'Uw E-mail',
+  'Your message': 'Uw Bericht',
+  'Send': 'Verzenden',
+  "Questions? We're Happy to Answer!": "Vragen? We beantwoorden ze graag!",
+  'Have Questions?': 'Heeft u vragen?',
+  'Check out our comprehensive FAQ section or contact our support team.': 'Bekijk ons uitgebreide FAQ-gedeelte of neem contact op met ons ondersteuningsteam.',
+  
+  // Messages & Chat
+  'Messages': 'Berichten',
+  'Search': 'Zoeken',
+  'Online': 'Online',
+  'Offline': 'Offline',
+  'Reply to johnam here...': 'Antwoord hier aan johnam...',
   enterCode: "Voer OTP-code in",
   resetPass: "Wachtwoord resetten",
   enterPasswrod: "Voer nieuw wachtwoord in",

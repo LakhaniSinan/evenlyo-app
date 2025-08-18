@@ -2,12 +2,13 @@ import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import PhoneInput from 'react-native-phone-number-input';
-import {COLORS, fontFamly} from '../../constants';
+import {fontFamly} from '../../constants';
 
 const ContactNumberInput = ({
   labelColor,
   phoneNumber,
   ref,
+  containerStyle,
   onChange,
   labelText,
 }) => {
@@ -30,7 +31,7 @@ const ContactNumberInput = ({
         withDarkTheme={false}
         placeholder="0000******"
         onChangeFormattedText={text => onChange(text)}
-        containerStyle={styles.phoneContainer}
+        containerStyle={[styles.phoneContainer, {...containerStyle}]}
         textContainerStyle={styles.textInput}
         textInputStyle={styles.textInputStyle}
         codeTextStyle={styles.codeTextStyle}
@@ -57,7 +58,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 55,
     borderRadius: 15,
-    backgroundColor: COLORS.white,
     paddingLeft: 5,
     alignItems: 'center',
     flexDirection: 'row',

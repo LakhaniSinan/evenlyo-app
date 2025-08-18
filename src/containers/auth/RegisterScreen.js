@@ -1,6 +1,7 @@
 import React, {useRef, useState} from 'react';
 import {
   Alert,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -72,86 +73,92 @@ const RegisterScreen = ({navigation}) => {
   };
 
   return (
-    <Background>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}>
-        <Header languageModal={true} />
-        <Text style={globalStyles.title}>{t('registerToAccount')}</Text>
+    <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
+      <Background>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}>
+          <Header languageModal={true} />
+          <Text style={globalStyles.title}>{t('registerToAccount')}</Text>
 
-        <View style={styles.form}>
-          <TextField
-            label={t('firstName')}
-            placeholder={t('firstNamePlaceholder')}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+          <View style={styles.form}>
+            <TextField
+              label={t('firstName')}
+              placeholder={t('firstNamePlaceholder')}
+              // value={email}
+              // onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
 
-          <View style={{height: 10}} />
-          <TextField
-            label={t('lastName')}
-            placeholder={t('lastNamePlaceholder')}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+            <View style={{height: 10}} />
+            <TextField
+              label={t('lastName')}
+              placeholder={t('lastNamePlaceholder')}
+              // value={email}
+              // onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
 
-          <View style={{height: 10}} />
-          <TextField
-            label={t('emailAddress')}
-            placeholder={t('emailPlaceholder')}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <View style={{height: 10}} />
-          <ContactNumberInput
-            labelColor={'#000'}
-            phoneNumber={formData.contact}
-            onChange={value => handleInputChange('contact', value)}
-            ref={phoneInput}
-          />
+            <View style={{height: 10}} />
+            <TextField
+              label={t('emailAddress')}
+              placeholder={t('emailPlaceholder')}
+              // value={email}
+              // onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <View style={{height: 10}} />
+            <ContactNumberInput
+              labelText={t('contactNumber')}
+              labelColor={'#000'}
+              phoneNumber={formData.contact}
+              onChange={value => handleInputChange('contact', value)}
+              ref={phoneInput}
+              containerStyle={{
+                backgroundColor: COLORS.backgroundLight,
+              }}
+            />
 
-          <View style={{height: 10}} />
-          <TextField
-            label={t('password')}
-            placeholder={t('passwordPlaceholder')}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <View style={{height: 10}} />
+            <View style={{height: 10}} />
+            <TextField
+              label={t('password')}
+              placeholder={t('passwordPlaceholder')}
+              // value={email}
+              // onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <View style={{height: 10}} />
 
-          <TextField
-            label={t('confirmPassword')}
-            placeholder={t('confirmPasswordPlaceholder')}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <View style={{height: 25}} />
-          <GradientButton
-            text={t('register')}
-            onPress={() => navigation.navigate('Home')}
-            type="filled"
-            gradientColors={['#FF295D', '#E31B95', '#C817AE']}
-          />
-        </View>
-        <View style={{height: 10}} />
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>{t('alreadyHaveAccount')}</Text>
-          <TouchableOpacity onPress={navigateToLogin}>
-            <GradientText text={t('login')} />
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </Background>
+            <TextField
+              label={t('confirmPassword')}
+              placeholder={t('confirmPasswordPlaceholder')}
+              // value={email}
+              // onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <View style={{height: 25}} />
+            <GradientButton
+              text={t('register')}
+              onPress={() => navigation.navigate('Home')}
+              type="filled"
+              gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+            />
+          </View>
+          <View style={{height: 10}} />
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>{t('alreadyHaveAccount')}</Text>
+            <TouchableOpacity onPress={navigateToLogin}>
+              <GradientText text={t('login')} />
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </Background>
+    </SafeAreaView>
   );
 };
 

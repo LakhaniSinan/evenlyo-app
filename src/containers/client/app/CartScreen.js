@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import {useState} from 'react';
 import {
   FlatList,
   SafeAreaView,
@@ -8,32 +8,47 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { width } from 'react-native-dimension';
+import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
-import { ICONS } from '../../../assets';
+import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
 import CartCard from '../../../components/cartCard';
-import { COLORS, fontFamly } from '../../../constants';
-import { useTranslation } from '../../../hooks';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-function CartScreen({ navigation }) {
-  const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
+import CancellationConfirm from '../../../components/modals/CancellationConfirm';
+import CancelBookingModal from '../../../components/modals/CancellationModal';
+import {COLORS, fontFamly} from '../../../constants';
+import {useTranslation} from '../../../hooks';
+function CartScreen({navigation}) {
+  const {t} = useTranslation();
+  const [cancelConfirmation, setCancelConfirmation] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('addToCart');
-
-  const handleBookNow = item => {
-    console.log('Book now pressed for:', item.name);
-    // Add booking logic here
-  };
+  const variant = activeTab === 'addToCart' ? 'requested' : 'accepted';
 
   const handleCancelBooking = item => {
-    console.log('Cancel booking pressed for:', item.name);
-    // Add cancel booking logic here
+    setModalVisible(true);
   };
 
-  const variant = activeTab === 'addToCart' ? 'requested' : 'accepted';
-  const renderCartItem = ({ item }) => {
+  const getCurrentData = () => {
+    return activeTab === 'addToCart' ? requested : accepted;
+  };
+
+  const handleConfirmCancel = () => {
+    setTimeout(() => {
+      setModalVisible(false);
+    }, 500);
+    setTimeout(() => {
+      setCancelConfirmation(true);
+    }, 1000);
+    setTimeout(() => {
+      setCancelConfirmation(false);
+    }, 3000);
+  };
+  const handleBookNow = item => {
+    console.log('Book now pressed for:', item.name);
+  };
+
+  const renderCartItem = ({item}) => {
     return (
       <CartCard
         variant={variant}
@@ -44,27 +59,16 @@ function CartScreen({ navigation }) {
     );
   };
 
-  const getCurrentData = () => {
-    return activeTab === 'addToCart' ? requested : accepted;
-  };
   return (
-    <SafeAreaView
-      edges={['top', 'left', 'right']}
-      style={{ flex: 1, backgroundColor: COLORS.white }}>
+    <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <AppHeader
         leftIcon={ICONS.leftArrowIcon}
         headingText={t('Add To Cart')}
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={() => navigation.goBack()}
-        // setModalVisible={() => { }}
-        // onRightIconPress={() => { }}
-        // containerStyle={{
-        //   marginVertical: 10,
-        // }}
+        onRightIconPress={() => navigation.navigate('Messages')}
       />
-      <ScrollView
-        // contentContainerStyle={{ paddingBottom: insets.bottom }}
-        style={{ flex: 1, backgroundColor: COLORS.white }}>
+      <ScrollView style={{flex: 1, backgroundColor: COLORS.white}}>
         <View style={styles.tabContainer}>
           <LinearGradient
             colors={
@@ -73,8 +77,8 @@ function CartScreen({ navigation }) {
                 : ['#fff', '#fff', '#fff']
             }
             style={styles.tabGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}>
+            start={{x: 0, y: 0}}
+            end={{x: 0, y: 1}}>
             <TouchableOpacity
               style={styles.tab}
               onPress={() => setActiveTab('addToCart')}>
@@ -95,8 +99,8 @@ function CartScreen({ navigation }) {
                 : ['#fff', '#fff', '#fff']
             }
             style={styles.tabGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}>
+            start={{x: 0, y: 0}}
+            end={{x: 0, y: 1}}>
             <TouchableOpacity
               style={styles.tab}
               onPress={() => setActiveTab('accepted')}>
@@ -110,7 +114,7 @@ function CartScreen({ navigation }) {
             </TouchableOpacity>
           </LinearGradient>
         </View>
-        {/* Cart Items List */}
+
         <FlatList
           data={getCurrentData()}
           keyExtractor={item => item.id}
@@ -118,6 +122,7 @@ function CartScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
         />
+
         {activeTab === 'addToCart' && (
           <View
             style={{
@@ -131,6 +136,7 @@ function CartScreen({ navigation }) {
             />
           </View>
         )}
+
         {variant === 'accepted' && (
           <>
             <View
@@ -167,16 +173,23 @@ function CartScreen({ navigation }) {
                 </View>
               </View>
             </View>
-            <View style={{ margin: width(4) }}>
+            <View style={{margin: width(4)}}>
               <GradientButton
                 text={t('Checkout')}
                 type="filled"
                 gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+                onPress={() => navigation.navigate('')}
               />
             </View>
           </>
         )}
       </ScrollView>
+      <CancelBookingModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onConfirm={() => handleConfirmCancel()}
+      />
+      <CancellationConfirm visible={cancelConfirmation} />
     </SafeAreaView>
   );
 }

@@ -88,6 +88,39 @@ export default {
 
   // Language selection
   selectLanguage: 'Select Language',
+  changeLanguage: 'Change Language',
+  Settings: 'Settings',
+  
+  // Notification Settings
+  'Notification Settings': 'Notification Settings',
+  'Notification Details': 'Notification Details',
+  'Email Notification': 'Email Notification',
+  'Push notification': 'Push Notification',
+  'Get notified when orders are completed': 'Get notified when orders are completed',
+  'Notifications for new user registrations': 'Notifications for new user registrations',
+  
+  // Help & Support
+  'Help & Support': 'Help & Support',
+  'Frequently Asked Questions': 'Frequently Asked Questions',
+  'Find answers to common questions below': 'Find answers to common questions below',
+  'Still need help?': 'Still need help?',
+  'Contact our support team for personalized assistance': 'Contact our support team for personalized assistance',
+  'Contact Support': 'Contact Support',
+  'Customer Support': 'Customer Support',
+  'Support': 'Support',
+  'Your email': 'Your Email',
+  'Your message': 'Your Message',
+  'Send': 'Send',
+  "Questions? We're Happy to Answer!": "Questions? We're Happy to Answer!",
+  'Have Questions?': 'Have Questions?',
+  'Check out our comprehensive FAQ section or contact our support team.': 'Check out our comprehensive FAQ section or contact our support team.',
+  
+  // Messages & Chat
+  'Messages': 'Messages',
+  'Search': 'Search',
+  'Online': 'Online',
+  'Offline': 'Offline',
+  'Reply to johnam here...': 'Reply to johnam here...',
   enterCode: 'Enter OTP Code',
   resetPass: 'Re-Set Password',
   enterPasswrod: 'Enter New Password',

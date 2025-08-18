@@ -1,7 +1,9 @@
-import { createStackNavigator } from '@react-navigation/stack';
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Home from '../../containers/client/app/Home';
 import Notification from '../../containers/client/app/Notification';
+import Messages from '../../containers/client/app/Messages';
+import ChatDetail from '../../containers/client/app/ChatDetail';
 
 const Stack = createStackNavigator();
 
@@ -11,7 +13,7 @@ const HomeStack = () => {
       initialRouteName="HomeScreen"
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: '#FFFFFF' },
+        cardStyle: {backgroundColor: '#FFFFFF'},
       }}>
       <Stack.Screen
         name="HomeScreen"
@@ -24,30 +26,23 @@ const HomeStack = () => {
         name="Notification"
         component={Notification}
         options={{
-          title: 'Home',
+          title: 'Notification',
         }}
       />
-      {/* <Stack.Screen
-        name="LanguageDemo"
-        component={LanguageDemo}
+      <Stack.Screen
+        name="Messages"
+        component={Messages}
         options={{
-          title: 'Language Demo',
+          title: 'Messages',
         }}
-      /> */}
-      {/* <Stack.Screen
-        name="ReviewsDemo"
-        component={ReviewsDemo}
+      />
+      <Stack.Screen
+        name="ChatDetail"
+        component={ChatDetail}
         options={{
-          title: 'Reviews Demo',
+          title: 'Chat',
         }}
-      /> */}
-      {/* <Stack.Screen
-        name="HomeTestScreen"
-        component={HomeTestScreen}
-        options={{
-          title: 'Home Test Screen',
-        }}
-      /> */}
+      />
     </Stack.Navigator>
   );
 };

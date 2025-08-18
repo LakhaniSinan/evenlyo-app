@@ -6,6 +6,7 @@ export const COLORS = {
   warning: '#FFE66D',
   error: '#FF6B6B',
   text: '#000000',
+  textDark: '#333333',
   textLight: '#979797',
   background: '#FFFFFF',
   backgroundLight: '#F6F6F6',

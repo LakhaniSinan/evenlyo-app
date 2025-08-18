@@ -1,84 +1,98 @@
+import {useNavigation} from '@react-navigation/native';
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, fontFamly } from '../../../constants';
-import useTranslation from '../../../hooks/useTranslation';
-import LanguageSwitcher from '../../../components/languageSwitcher';
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {width} from 'react-native-dimension';
+import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
-import { ICONS, IMAGES } from '../../../assets';
-import { width } from 'react-native-dimension';
-import { useNavigation } from '@react-navigation/native';
+import {COLORS, fontFamly} from '../../../constants';
+import useTranslation from '../../../hooks/useTranslation';
 
 let data = [
   {
     name: 'Personal Info',
-    navigate: "personalInfo",
-    icon: ICONS.userIcon
+    navigate: 'personalInfo',
+    icon: ICONS.userIcon,
   },
   {
     name: 'Security Details',
-    navigate: "personalInfo",
-    icon: ICONS.security
+    navigate: 'personalInfo',
+    icon: ICONS.security,
   },
   {
     name: 'Payment Method',
-    navigate: "personalInfo",
-    icon: ICONS.wallet
+    navigate: 'personalInfo',
+    icon: ICONS.wallet,
   },
   {
     name: 'Settings',
-    navigate: "personalInfo",
-    icon: ICONS.settings
-  }
-]
+    navigate: 'Settings',
+    icon: ICONS.settings,
+  },
+];
 
 let data2 = [
   {
     name: 'Help & Support',
-    navigate: "personalInfo",
-    icon: ICONS.helpSupport
+    navigate: 'HelpAndSupport',
+    icon: ICONS.helpSupport,
   },
   {
-    name: 'Log Out',
-    navigate: "personalInfo",
-    icon: ICONS.logout
+    name: 'Logout',
+    navigate: 'Logout',
+    icon: ICONS.logout,
   },
-]
+];
+
 const Profile = () => {
-  const { t } = useTranslation();
-  const navigation = useNavigation()
+  const {t} = useTranslation();
+  const navigation = useNavigation();
   return (
     <ScrollView style={styles.container}>
-      <AppHeader
-        // leftIcon={ICONS.leftArrowIcon}
-        headingText={t('Profile')}
-        // rightIcon={ICONS.chatIcon}
-        onLeftIconPress={() => navigation.goBack()}
-        setModalVisible={() => { }}
-        onRightIconPress={() => { }}
-        containerStyle={{
-          marginVertical: 10,
-        }}
-      />
-      <View style={{ alignItems: "center", marginTop: width(4) }}>
+      <AppHeader headingText={t('Profile')} />
+      <View style={{alignItems: 'center', marginTop: width(4)}}>
         <Image
           style={{
             height: 100,
             width: 100,
-            borderRadius: 200
+            borderRadius: 200,
           }}
           source={IMAGES.backgroundImage}
         />
-        <Text style={{ marginTop: 5, fontSize: 15, fontFamily: fontFamly.PlusJakartaSansSemiBold }}>Esther Howard</Text>
-        <Text style={{ marginTop: 5, color: "#BABABA", fontSize: 12, fontFamily: fontFamly.PlusJakartaSansSemiMedium }}>@estherhoward</Text>
+        <Text
+          style={{
+            marginTop: 5,
+            fontSize: 15,
+            fontFamily: fontFamly.PlusJakartaSansSemiBold,
+          }}>
+          Esther Howard
+        </Text>
+        <Text
+          style={{
+            marginTop: 5,
+            color: '#BABABA',
+            fontSize: 12,
+            fontFamily: fontFamly.PlusJakartaSansSemiMedium,
+          }}>
+          @estherhoward
+        </Text>
       </View>
-      <View style={{ marginTop: width(4), marginHorizontal: width(3) }}
-      >
-        <Text style={{
-          fontSize: 12,
-          fontFamily: fontFamly.PlusJakartaSansBold,
-          color: COLORS.black
-        }}>General</Text>
+
+      <View style={{marginTop: width(4), marginHorizontal: width(3)}}>
+        <Text
+          style={{
+            fontSize: 12,
+            fontFamily: fontFamly.PlusJakartaSansBold,
+            color: COLORS.black,
+          }}>
+          General
+        </Text>
         {data.map(item => {
           return (
             <TouchableOpacity
@@ -89,77 +103,99 @@ const Profile = () => {
                 paddingHorizontal: 10,
                 backgroundColor: COLORS.backgroundLight,
                 paddingVertical: 15,
-                flexDirection: "row",
-                alignItems: "center",
+                flexDirection: 'row',
+                alignItems: 'center',
               }}>
               <Image
-                resizeMode='contain'
-                style={{ width: 16, height: 20 }} source={item.icon} />
-              <Text style={{
-                fontSize: 13,
-                fontFamily: fontFamly.PlusJakartaSansSemiBold,
-                marginLeft: 15
-              }}>{item.name}</Text>
-              <View style={{
-                justifyContent: "flex-end",
-                alignItems: "flex-end",
-                flex: 1
-              }}>
+                resizeMode="contain"
+                style={{width: 16, height: 20}}
+                source={item.icon}
+              />
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontFamily: fontFamly.PlusJakartaSansSemiBold,
+                  marginLeft: 15,
+                }}>
+                {item.name}
+              </Text>
+              <View
+                style={{
+                  justifyContent: 'flex-end',
+                  alignItems: 'flex-end',
+                  flex: 1,
+                }}>
                 <Image
                   style={{
                     width: width(3),
-                    height: width(3)
+                    height: width(3),
                   }}
-                  resizeMode='contain'
-                  source={ICONS.arrowRight} />
+                  resizeMode="contain"
+                  source={ICONS.arrowRight}
+                />
               </View>
-
             </TouchableOpacity>
-          )
+          );
         })}
       </View>
 
-      <View style={{ marginTop: width(4), marginHorizontal: width(3), marginBottom: 10 }}
-      >
-        <Text style={{
-          fontSize: 12,
-          fontFamily: fontFamly.PlusJakartaSansBold,
-          color: COLORS.black
-        }}>General</Text>
+      <View
+        style={{
+          marginTop: width(4),
+          marginHorizontal: width(3),
+          marginBottom: 10,
+        }}>
+        <Text
+          style={{
+            fontSize: 12,
+            fontFamily: fontFamly.PlusJakartaSansBold,
+            color: COLORS.black,
+          }}>
+          Help & Support
+        </Text>
         {data2.map(item => {
           return (
-            <TouchableOpacity style={{
-              borderRadius: 10,
-              marginTop: width(4),
-              paddingHorizontal: 10,
-              backgroundColor: COLORS.backgroundLight,
-              paddingVertical: 15,
-              flexDirection: "row",
-              alignItems: "center",
-            }}>
-              <Image
-                resizeMode='contain'
-                style={{ width: 16, height: 20 }} source={item.icon} />
-              <Text style={{
-                fontSize: 13,
-                fontFamily: fontFamly.PlusJakartaSansSemiBold,
-                marginLeft: 15
-              }}>{item.name}</Text>
-              <View style={{
-                justifyContent: "flex-end",
-                alignItems: "flex-end",
-                flex: 1
+            <TouchableOpacity
+              onPress={() => navigation.navigate(item.navigate)}
+              style={{
+                borderRadius: 10,
+                marginTop: width(4),
+                paddingHorizontal: 10,
+                backgroundColor: COLORS.backgroundLight,
+                paddingVertical: 15,
+                flexDirection: 'row',
+                alignItems: 'center',
               }}>
+              <Image
+                resizeMode="contain"
+                style={{width: 16, height: 20}}
+                source={item.icon}
+              />
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontFamily: fontFamly.PlusJakartaSansSemiBold,
+                  marginLeft: 15,
+                }}>
+                {item.name}
+              </Text>
+              <View
+                style={{
+                  justifyContent: 'flex-end',
+                  alignItems: 'flex-end',
+                  flex: 1,
+                }}>
                 <Image
                   style={{
                     width: width(3),
-                    height: width(3)
+                    height: width(3),
                   }}
-                  resizeMode='contain'
-                  source={ICONS.arrowRight} />
+                  resizeMode="contain"
+                  source={ICONS.arrowRight}
+                />
               </View>
             </TouchableOpacity>
-          )
+          );
         })}
       </View>
     </ScrollView>
@@ -169,7 +205,7 @@ const Profile = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   content: {
     flex: 1,

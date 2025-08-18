@@ -67,6 +67,7 @@ const TextField = ({
           style={[
             styles.textInput,
             {
+              height: multiline ? 200 : 40,
               paddingLeft: startIcon ? 10 : 5,
               textAlignVertical: 'top',
               backgroundColor: bgColor ? bgColor : '#F6F6F6',
