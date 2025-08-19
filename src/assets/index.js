@@ -31,6 +31,7 @@ export const ICONS = {
   bellIcon: require('./icons/bellIcon.png'),
   globeIcon: require('./icons/globeIcon.png'),
   sendIcon: require('./icons/sendIcon.png'),
+  arrowIcon: require("./icons/arrow.png")
 };
 
 export const IMAGES = {
