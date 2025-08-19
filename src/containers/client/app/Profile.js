@@ -14,37 +14,37 @@ import AppHeader from '../../../components/appHeader';
 import {COLORS, fontFamly} from '../../../constants';
 import useTranslation from '../../../hooks/useTranslation';
 
-let data = [
+const getProfileMenuData = t => [
   {
-    name: 'Personal Info',
+    name: t('Personal Info'),
     navigate: 'personalInfo',
     icon: ICONS.userIcon,
   },
   {
-    name: 'Security Details',
-    navigate: 'personalInfo',
+    name: t('Security Details'),
+    navigate: 'ResetPassword',
     icon: ICONS.security,
   },
+  // {
+  //   name: t('Payment Method'),
+  //   navigate: 'personalInfo',
+  //   icon: ICONS.wallet,
+  // },
   {
-    name: 'Payment Method',
-    navigate: 'personalInfo',
-    icon: ICONS.wallet,
-  },
-  {
-    name: 'Settings',
+    name: t('Settings'),
     navigate: 'Settings',
     icon: ICONS.settings,
   },
 ];
 
-let data2 = [
+const getHelpSupportMenuData = t => [
   {
-    name: 'Help & Support',
+    name: t('Help & Support'),
     navigate: 'HelpAndSupport',
     icon: ICONS.helpSupport,
   },
   {
-    name: 'Logout',
+    name: t('Logout'),
     navigate: 'Logout',
     icon: ICONS.logout,
   },
@@ -53,6 +53,10 @@ let data2 = [
 const Profile = () => {
   const {t} = useTranslation();
   const navigation = useNavigation();
+
+  const data = getProfileMenuData(t);
+  const data2 = getHelpSupportMenuData(t);
+
   return (
     <ScrollView style={styles.container}>
       <AppHeader headingText={t('Profile')} />
@@ -91,7 +95,7 @@ const Profile = () => {
             fontFamily: fontFamly.PlusJakartaSansBold,
             color: COLORS.black,
           }}>
-          General
+          {t('General')}
         </Text>
         {data.map(item => {
           return (
@@ -151,7 +155,7 @@ const Profile = () => {
             fontFamily: fontFamly.PlusJakartaSansBold,
             color: COLORS.black,
           }}>
-          Help & Support
+          {t('Help & Support')}
         </Text>
         {data2.map(item => {
           return (

@@ -8,6 +8,7 @@ export const COLORS = {
   text: '#000000',
   textDark: '#333333',
   textLight: '#979797',
+  semiLightText: '#DADADA',
   background: '#FFFFFF',
   backgroundLight: '#F6F6F6',
   border: '#E2E8F0',

@@ -1,6 +1,13 @@
-import React from 'react';
-import {FlatList, Image, Text, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import React from 'react';
+import {
+  FlatList,
+  Image,
+  SafeAreaView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import {fontFamly} from '../../../constants';
@@ -40,9 +47,11 @@ const data = [
 
 const Notification = () => {
   const navigation = useNavigation();
+
   const renderItem = ({item}) => {
     return (
-      <View
+      <TouchableOpacity
+        onPress={() => navigation.navigate('NotificationDetails')}
         style={{
           flexDirection: 'row',
           marginTop: 20,
@@ -67,18 +76,23 @@ const Notification = () => {
             {item.subHeading}
           </Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
+
   return (
-    <View style={{backgroundColor: 'white'}}>
+    <SafeAreaView style={{backgroundColor: 'white', flex: 1}}>
       <AppHeader
         leftIcon={ICONS.leftArrowIcon}
         headingText={'Notifications'}
         onLeftIconPress={() => navigation.goBack()}
       />
-      <FlatList data={data} renderItem={renderItem} />
-    </View>
+      <FlatList
+        data={data}
+        renderItem={renderItem}
+        contentContainerStyle={{paddingBottom: 10}}
+      />
+    </SafeAreaView>
   );
 };
 

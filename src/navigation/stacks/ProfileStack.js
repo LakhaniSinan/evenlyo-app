@@ -4,6 +4,7 @@ import PersonalInfo from '../../containers/client/app/personalInfo';
 import Profile from '../../containers/client/app/Profile';
 import Settings from '../../containers/client/app/Settings';
 import HelpAndSupport from '../../containers/client/app/HellpAndSupport';
+import ResetPassword from '../../containers/client/app/ResetPasswordScreen';
 
 const Stack = createStackNavigator();
 
@@ -40,6 +41,13 @@ const ProfileStack = () => {
         component={HelpAndSupport}
         options={{
           title: 'Help & Support',
+        }}
+      />
+      <Stack.Screen
+        name="ResetPassword"
+        component={ResetPassword}
+        options={{
+          title: 'Reset Password',
         }}
       />
     </Stack.Navigator>

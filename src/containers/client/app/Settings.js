@@ -19,11 +19,6 @@ const getSettingsData = t => [
     navigate: 'Language',
     icon: ICONS.globeIcon,
   },
-  {
-    name: t('Help & Support') || 'Help & Support',
-    navigate: 'HelpAndSupport',
-    icon: ICONS.helpSupport,
-  },
 ];
 
 const Settings = ({navigation}) => {

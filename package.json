@@ -31,6 +31,7 @@
     "react-native-linear-gradient": "^2.8.3",
     "react-native-loading-spinner-overlay": "^3.0.1",
     "react-native-localize": "^3.5.1",
+    "react-native-maps": "^1.25.3",
     "react-native-modal": "^14.0.0-rc.1",
     "react-native-otp-entry": "^1.8.5",
     "react-native-phone-number-input": "^2.1.0",
@@ -38,6 +39,7 @@
     "react-native-reanimated": "^3.18.0",
     "react-native-safe-area-context": "^5.4.1",
     "react-native-screens": "4.11.1",
+    "react-native-snap-carousel": "4.0.0-beta.6",
     "react-native-step-indicator": "^1.0.3",
     "react-native-switch": "^1.5.1",
     "react-native-vector-icons": "^10.3.0",
@@ -51,7 +53,7 @@
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
     "@babel/runtime": "^7.25.0",
-    "@react-native-community/cli": "18.0.0",
+    "@react-native-community/cli": "^20.0.0",
     "@react-native-community/cli-platform-android": "18.0.0",
     "@react-native-community/cli-platform-ios": "18.0.0",
     "@react-native/babel-preset": "0.79.5",
@@ -69,5 +71,6 @@
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "packageManager": "yarn@3.6.4+sha512.e70835d4d6d62c07be76b3c1529cb640c7443f0fe434ef4b6478a5a399218cbaf1511b396b3c56eb03bc86424cff2320f6167ad2fde273aa0df6e60b7754029f"
 }

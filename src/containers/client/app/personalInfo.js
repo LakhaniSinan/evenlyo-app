@@ -77,6 +77,15 @@ const PersonalInfo = ({navigation}) => {
           // onChange={value => handleInputChange('contact', value)}
           // ref={phoneInput}
         />
+        <View style={{height: 10}} />
+        <TextField
+          label={t('Address')}
+          placeholder={t('estherhoward@gmail.com')}
+          // value={email}
+          // onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
       </View>
       <View
         style={{

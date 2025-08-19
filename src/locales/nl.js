@@ -178,6 +178,26 @@ export default {
   to: 'Tot',
   applyFilters: 'Filters Toepassen',
 
+  // Reset Password Screen
+  resetPasswordTitle: 'Wachtwoord Resetten',
+  currentPassword: 'Huidig Wachtwoord',
+  currentPasswordPlaceholder: 'Voer uw huidige wachtwoord in',
+  newPassword: 'Nieuw Wachtwoord',
+  newPasswordPlaceholder: 'Voer uw nieuwe wachtwoord in',
+  confirmPassword: 'Bevestig Wachtwoord',
+  confirmPasswordPlaceholder: 'Bevestig uw nieuwe wachtwoord',
+  resetPasswordButton: 'Wachtwoord Resetten',
+
+  // Profile Screen
+  Profile: 'Profiel',
+  General: 'Algemeen',
+  'Personal Info': 'Persoonlijke Informatie',
+  'Security Details': 'Beveiligingsdetails',
+  'Payment Method': 'Betaalmethode',
+  Settings: 'Instellingen',
+  'Help & Support': 'Hulp & Ondersteuning',
+  Logout: 'Uitloggen',
+
   // Cart Screen
   'Add To Cart': 'Toevoegen Aan Winkelwagen',
   'Request Add To Cart': 'Verzoek Toevoegen Aan Winkelwagen',

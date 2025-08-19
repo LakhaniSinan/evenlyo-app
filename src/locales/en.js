@@ -179,6 +179,26 @@ export default {
   to: 'To',
   applyFilters: 'Apply Filters',
 
+  // Reset Password Screen
+  resetPasswordTitle: 'Reset Password',
+  currentPassword: 'Current Password',
+  currentPasswordPlaceholder: 'Enter your current password',
+  newPassword: 'New Password',
+  newPasswordPlaceholder: 'Enter your new password',
+  confirmPassword: 'Confirm Password',
+  confirmPasswordPlaceholder: 'Confirm your new password',
+  resetPasswordButton: 'Reset Password',
+
+  // Profile Screen
+  Profile: 'Profile',
+  General: 'General',
+  'Personal Info': 'Personal Info',
+  'Security Details': 'Security Details',
+  'Payment Method': 'Payment Method',
+  Settings: 'Settings',
+  'Help & Support': 'Help & Support',
+  Logout: 'Logout',
+
   // Cart Screen
   'Add To Cart': 'Add To Cart',
   'Request Add To Cart': 'Request Add To Cart',
