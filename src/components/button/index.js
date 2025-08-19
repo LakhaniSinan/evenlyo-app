@@ -83,8 +83,8 @@ const styles = StyleSheet.create({
   },
   filledText: {
     color: '#fff',
-    fontSize: 15,
-    fontFamily: fontFamly.PlusJakartaSansMedium,
+    fontSize: 13,
+    fontFamily: fontFamly.PlusJakartaSansBold,
   },
   outlineBorder: {
     borderRadius: width(4),

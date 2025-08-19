@@ -2,7 +2,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import React from 'react';
 import CustomTabBar from '../../components/customTabBar';
 import HomeStack from './HomeStack';
-import CalendarStack from './CalendarStack';
+import CalendarStack from './BookingStack';
 import MessagesStack from './CartStack';
 import ProfileStack from './ProfileStack';
 

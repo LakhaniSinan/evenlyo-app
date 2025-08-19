@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {width} from 'react-native-dimension';
-import {COLORS, fontFamly} from '../../constants';
+import { width } from 'react-native-dimension';
+import { COLORS, fontFamly } from '../../constants';
+import { useNavigation } from '@react-navigation/native';
 
 const bookingsData = [
   {
@@ -93,10 +94,14 @@ const getStatusTextColor = status => {
   }
 };
 
-const BookingCard = ({item}) => {
+const BookingCard = ({ item }) => {
+  const navigation = useNavigation();
+
   return (
-    <TouchableOpacity style={styles.card}>
-      <Image source={{uri: item.image}} style={styles.image} />
+    <TouchableOpacity
+      onPress={() => navigation.navigate('BookingDetails', { booking: item })}
+      style={styles.card}>
+      <Image source={{ uri: item.image }} style={styles.image} />
       <View style={styles.infoContainer}>
         <View style={styles.topSection}>
           <View style={styles.headerRow}>
@@ -104,12 +109,12 @@ const BookingCard = ({item}) => {
             <View
               style={[
                 styles.statusBadge,
-                {backgroundColor: getStatusColor(item.status)},
+                { backgroundColor: getStatusColor(item.status) },
               ]}>
               <Text
                 style={[
                   styles.statusText,
-                  {color: getStatusTextColor(item.status)},
+                  { color: getStatusTextColor(item.status) },
                 ]}>
                 {item.status}
               </Text>
@@ -136,7 +141,7 @@ const BookingCard = ({item}) => {
   );
 };
 
-const BookingList = ({activeTab}) => {
+const BookingList = ({ activeTab }) => {
   // Filter data based on active tab
   const getFilteredData = () => {
     if (activeTab === 'All Order') {
@@ -155,8 +160,8 @@ const BookingList = ({activeTab}) => {
     <FlatList
       data={filteredData}
       keyExtractor={item => item.id}
-      renderItem={({item}) => <BookingCard item={item} />}
-      contentContainerStyle={{padding: 16}}
+      renderItem={({ item }) => <BookingCard item={item} />}
+      contentContainerStyle={{ padding: 16 }}
       showsVerticalScrollIndicator={false}
     />
   );

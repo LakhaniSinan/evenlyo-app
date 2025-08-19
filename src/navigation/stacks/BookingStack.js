@@ -1,9 +1,10 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
-import BooKings from '../../containers/client/app/Calendar';
+import Bookings from '../../containers/client/app/Booking';
 import VendorDetails from '../../containers/client/app/VendorDetails';
 import Messages from '../../containers/client/app/Messages';
 import ChatDetail from '../../containers/client/app/ChatDetail';
+import BookingDetails from '../../containers/client/app/BookingDetails';
 
 const Stack = createStackNavigator();
 
@@ -17,7 +18,14 @@ const CalendarStack = () => {
       }}>
       <Stack.Screen
         name="CalendarScreen"
-        component={BooKings}
+        component={Bookings}
+        options={{
+          title: 'Calendar',
+        }}
+      />
+      <Stack.Screen
+        name="BookingDetails"
+        component={BookingDetails}
         options={{
           title: 'Calendar',
         }}
