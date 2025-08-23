@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Image, ScrollView, Text, TouchableOpacity, View} from 'react-native';
+import {Image, FlatList, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {ICONS} from '../../../assets';
@@ -22,138 +22,169 @@ const Home = ({navigation}) => {
       <SafeAreaView
         edges={['top', 'left', 'right']}
         style={{flex: 1, backgroundColor: COLORS.white}}>
-        <ScrollView style={{flex: 1}} showsVerticalScrollIndicator={false}>
-          <View
-            style={{
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              backgroundColor: COLORS.backgroundLight,
-              borderBottomRightRadius: 20,
-              borderBottomLeftRadius: 20,
-            }}>
-            <View
-              style={{
-                paddingVertical: width(2),
-                paddingHorizontal: width(2),
-                width: '100%',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
-              <View
-                style={{
-                  marginLeft: 10,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}>
-                <View>
-                  <Image
-                    resizeMode="contain"
-                    style={{width: 40, height: 40}}
-                    source={ICONS.locationIcon}
-                  />
-                </View>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    marginLeft: width(3),
-                    fontFamily: fontFamly.PlusJakartaSansSemiMedium,
+        <FlatList
+          style={{flex: 1}}
+          showsVerticalScrollIndicator={false}
+          data={[
+            { type: 'header' },
+            { type: 'categories' },
+            { type: 'subcategories' },
+            { type: 'homecard' },
+            { type: 'popular' },
+            { type: 'popularCard' },
+            { type: 'relevant' },
+            { type: 'eventCard' }
+          ]}
+          renderItem={({item}) => {
+            switch(item.type) {
+              case 'header':
+                return (
+                  <View style={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    backgroundColor: COLORS.backgroundLight,
+                    borderBottomRightRadius: 20,
+                    borderBottomLeftRadius: 20,
                   }}>
-                  San Francisco, CA
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={{borderRadius: 20}}
-                onPress={() => navigation.navigate('Notification')}>
-                <Image
-                  resizeMode="contain"
-                  style={{width: 40, height: 40}}
-                  source={ICONS.notificationIcon}
-                />
-              </TouchableOpacity>
-            </View>
-            <View
-              style={{
-                flex: 1,
-                width: '100%',
-                paddingLeft: width(4),
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginVertical: width(3),
-                justifyContent: 'space-between',
-              }}>
-              <TextField
-                placeholder={t('searchEvent')}
-                placeholderTextColor="#aaa"
-                bgColor={COLORS.white}
-                startIcon={ICONS.search}
-                inputContainer={{
-                  paddingVertical: 0,
-                  paddingHorizontal: 10,
-                  height: 45,
-                  width: '80%',
-                  marginTop: 0,
-                }}
-                styleProps={{
-                  fontSize: 14,
-                  color: '#000',
-                }}
-              />
-
-              <TouchableOpacity
-                onPress={() => setModalVisible(true)}
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                  marginRight: 10,
-                }}>
-                <Image
-                  resizeMode="contain"
-                  style={{width: 40, height: 40}}
-                  source={ICONS.filters}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View
-            style={{
-              marginTop: 10,
-            }}>
-            <Categories />
-          </View>
-          <View
-            style={{
-              marginTop: 10,
-            }}>
-            <SubCategories />
-          </View>
-          <View>
-            <HomeCard />
-          </View>
-          <View>
-            <HeadingComponent
-              heading={t('popular')}
-              gradientText={t('nearYou')}
-              rightArrow={true}
-              onPress={() => {}}
-            />
-          </View>
-          <View>
-            <PopularCard />
-          </View>
-          <View>
-            <HeadingComponent
-              heading={t('relevant')}
-              gradientText={t('vendors')}
-              rightArrow={true}
-              onPress={() => {}}
-            />
-          </View>
-          <View>
-            <EventCard navigation={navigation} />
-          </View>
-          <View style={{height: width(10)}} />
-        </ScrollView>
+                    <View style={{
+                      paddingVertical: width(2),
+                      paddingHorizontal: width(2),
+                      width: '100%',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}>
+                      <View style={{
+                        marginLeft: 10,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                      }}>
+                        <View>
+                          <Image
+                            resizeMode="contain"
+                            style={{width: 40, height: 40}}
+                            source={ICONS.locationIcon}
+                          />
+                        </View>
+                        <Text style={{
+                          fontSize: 12,
+                          marginLeft: width(3),
+                          fontFamily: fontFamly.PlusJakartaSansSemiMedium,
+                        }}>
+                          San Francisco, CA
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        style={{borderRadius: 20}}
+                        onPress={() => navigation.navigate('Notification')}>
+                        <Image
+                          resizeMode="contain"
+                          style={{width: 40, height: 40}}
+                          source={ICONS.notificationIcon}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    <View style={{
+                      flex: 1,
+                      width: '100%',
+                      paddingLeft: width(4),
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginVertical: width(3),
+                      justifyContent: 'space-between',
+                    }}>
+                      <TextField
+                        placeholder={t('searchEvent')}
+                        placeholderTextColor="#aaa"
+                        bgColor={COLORS.white}
+                        startIcon={ICONS.search}
+                        inputContainer={{
+                          paddingVertical: 0,
+                          paddingHorizontal: 10,
+                          height: 45,
+                          width: '80%',
+                          marginTop: 0,
+                        }}
+                        styleProps={{
+                          fontSize: 14,
+                          color: '#000',
+                        }}
+                      />
+                      <TouchableOpacity
+                        onPress={() => setModalVisible(true)}
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'flex-end',
+                          marginRight: 10,
+                        }}>
+                        <Image
+                          resizeMode="contain"
+                          style={{width: 40, height: 40}}
+                          source={ICONS.filters}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              case 'categories':
+                return (
+                  <View style={{ marginTop: 10 }}>
+                    <Categories />
+                  </View>
+                );
+              case 'subcategories':
+                return (
+                  <View style={{ marginTop: 10 }}>
+                    <SubCategories />
+                  </View>
+                );
+              case 'homecard':
+                return (
+                  <View>
+                    <HomeCard />
+                  </View>
+                );
+              case 'popular':
+                return (
+                  <View>
+                    <HeadingComponent
+                      heading={t('popular')}
+                      gradientText={t('nearYou')}
+                      rightArrow={true}
+                      onPress={() => {}}
+                    />
+                  </View>
+                );
+              case 'popularCard':
+                return (
+                  <View>
+                    <PopularCard />
+                  </View>
+                );
+              case 'relevant':
+                return (
+                  <View>
+                    <HeadingComponent
+                      heading={t('relevant')}
+                      gradientText={t('vendors')}
+                      rightArrow={true}
+                      onPress={() => {}}
+                    />
+                  </View>
+                );
+              case 'eventCard':
+                return (
+                  <>
+                    <View>
+                      <EventCard navigation={navigation} />
+                    </View>
+                    <View style={{height: width(10)}} />
+                  </>
+                );
+            }
+          }}
+          keyExtractor={(item, index) => index.toString()}
+        />
         <FilterModal
           isVisible={isModalVisible}
           onClose={() => setModalVisible(false)}

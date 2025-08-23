@@ -64,7 +64,7 @@ const EventCard = ({navigation}) => {
                 paddingHorizontal: width(5),
                 paddingVertical: width(2),
               }}>
-              20{t('percentOff')}
+              20%{t('Off')}
             </Text>
           </View>
         </View>

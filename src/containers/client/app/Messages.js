@@ -3,21 +3,18 @@ import {
   Dimensions,
   FlatList,
   Image,
-  SafeAreaView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {height, width} from 'react-native-dimension';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
+import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
-import TextField from '../../../components/textInput';
 
-// Dummy chat data
 const chatData = [
   {
     id: '2',
@@ -106,7 +103,7 @@ const Messages = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={{flex: 1, backgroundColor: COLORS.white}}>
       <View
         style={{
           backgroundColor: COLORS.backgroundLight,
@@ -120,7 +117,6 @@ const Messages = ({navigation}) => {
           showSearchbar={true}
         />
 
-        {/* Search Bar */}
         <View style={styles.searchContainer}>
           <TextField
             startIcon={ICONS.search}
@@ -132,8 +128,6 @@ const Messages = ({navigation}) => {
           />
         </View>
       </View>
-
-      {/* Chat List */}
       <FlatList
         data={chatData}
         renderItem={renderChatItem}
@@ -141,7 +135,7 @@ const Messages = ({navigation}) => {
         style={styles.chatList}
         showsVerticalScrollIndicator={false}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

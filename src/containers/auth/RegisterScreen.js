@@ -41,17 +41,17 @@ const RegisterScreen = ({navigation}) => {
 
     // Validation
     if (!name || !email || !contact || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill all fields');
+      Alert.alert(t('Error'), t('Please fill all fields'));
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert(t('Error'), t('Passwords do not match'));
       return;
     }
 
     if (!selectedRole) {
-      Alert.alert('Error', 'Please select your role');
+      Alert.alert(t('Error'), t('Please select your role'));
       return;
     }
 

@@ -1,43 +1,98 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
-  FlatList,
-  Image,
-  Modal,
-  StyleSheet,
+  View,
   Text,
   TouchableOpacity,
-  View,
+  FlatList,
+  Image,
+  StyleSheet,
+  Modal,
+  Animated,
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
-import {COLORS, fontFamly} from '../../constants';
-import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 import GradientText from '../gradiantText';
+import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 
 const CancelBookingModal = ({visible, onClose, onConfirm}) => {
-  const [selectedReason, setSelectedReason] = useState('');
   const {t} = useTranslation();
+  const [selectedReason, setSelectedReason] = useState('');
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [scaleAnim] = useState(new Animated.Value(0.8));
 
   const reasons = [
-    'Change of Plans',
-    'Found Another Vendor/Event',
-    'Vendor Not Responding',
-    'Incorrect Booking Details',
-    'Emergency or Health Issue',
+    'Change of plans',
+    'Found better option',
+    'Budget constraints',
+    'Date conflict',
+    'Other reason',
   ];
+
+  useEffect(() => {
+    if (visible) {
+      // Animate in
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      // Animate out
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 0.8,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [visible]);
 
   const handleSelect = reason => {
     setSelectedReason(reason);
   };
 
+  const handleConfirm = () => {
+    if (selectedReason) {
+      onConfirm();
+    }
+  };
+
   return (
-    <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.overlay}>
-        <View style={styles.container}>
+    <Modal visible={visible} transparent animationType="none">
+      <Animated.View 
+        style={[
+          styles.overlay,
+          { opacity: fadeAnim }
+        ]}
+      >
+        <Animated.View 
+          style={[
+            styles.container,
+            { 
+              transform: [{ scale: scaleAnim }],
+              opacity: fadeAnim 
+            }
+          ]}
+        >
           <View style={styles.header}>
             <Text style={styles.title}>{t('Cancel Booking')}</Text>
-            <TouchableOpacity onPress={onClose}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <GradientText
                 text="✕"
                 customStyles={{fontFamily: fontFamly.PlusJakartaSansBold}}
@@ -87,14 +142,15 @@ const CancelBookingModal = ({visible, onClose, onConfirm}) => {
             <View style={{width: width(44), marginLeft: width(2)}}>
               <GradientButton
                 text={t('Confirm Cancel')}
-                onPress={onConfirm}
+                onPress={handleConfirm}
                 type="filled"
                 textStyle={{fontSize: 14, color: COLORS.white}}
+                disabled={!selectedReason}
               />
             </View>
           </View>
-        </View>
-      </View>
+        </Animated.View>
+      </Animated.View>
     </Modal>
   );
 };
@@ -111,6 +167,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: width(6),
     padding: width(4),
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
   },
   header: {
     flexDirection: 'row',
@@ -125,9 +189,8 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
   },
-  closeBtn: {
-    fontSize: width(4.5),
-    color: COLORS.textDark,
+  closeButton: {
+    padding: 5,
   },
   subtitle: {
     fontSize: 12,

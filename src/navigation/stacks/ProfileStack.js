@@ -1,10 +1,10 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
+import HelpAndSupport from '../../containers/client/app/HellpAndSupport';
 import PersonalInfo from '../../containers/client/app/personalInfo';
 import Profile from '../../containers/client/app/Profile';
-import Settings from '../../containers/client/app/Settings';
-import HelpAndSupport from '../../containers/client/app/HellpAndSupport';
 import ResetPassword from '../../containers/client/app/ResetPasswordScreen';
+import Settings from '../../containers/client/app/Settings';
 
 const Stack = createStackNavigator();
 

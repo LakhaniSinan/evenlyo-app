@@ -5,6 +5,7 @@ import {
 } from '@react-navigation/stack';
 import React from 'react';
 import BottomTabStack from './BottomTabStack';
+import ChatDetail from '../../containers/client/app/ChatDetail';
 
 const Stack = createStackNavigator();
 export const MyTransition = {
@@ -14,7 +15,7 @@ export const MyTransition = {
     close: TransitionSpecs.TransitionIOSSpec,
   },
   headerStyleInterpolator: HeaderStyleInterpolators.forFade,
-  cardStyleInterpolator: ({ current, next, layouts }) => {
+  cardStyleInterpolator: ({current, next, layouts}) => {
     return {
       cardStyle: {
         transform: [
@@ -42,11 +43,11 @@ const AppStack = () => {
       initialRouteName="MainTabs"
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: '#FFFFFF' },
+        cardStyle: {backgroundColor: '#FFFFFF'},
         ...MyTransition,
-      }}
-    >
+      }}>
       <Stack.Screen name="MainTabs" component={BottomTabStack} />
+      <Stack.Screen name="ChatDetail" component={ChatDetail} />
     </Stack.Navigator>
   );
 };

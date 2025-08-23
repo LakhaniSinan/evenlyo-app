@@ -136,3 +136,25 @@ export const calculateTime = messageDate => {
     return messageTime.format('DD/MM/YYYY');
   }
 };
+
+export const findMajorityRating = reviews => {
+  let highestRating = 0;
+
+  reviews?.forEach(review => {
+    const rating = review.rating;
+    if (rating > highestRating) {
+      highestRating = rating;
+    }
+  });
+
+  return highestRating;
+};
+
+export const calculateRatingsPercentage = (reviews, star) => {
+  const totalReviews = reviews.length;
+  const starCount = reviews.filter(
+    review => Math.floor(review.rating) === star,
+  ).length;
+  const percentage = (starCount / totalReviews) * 100;
+  return {starCount, percentage};
+};

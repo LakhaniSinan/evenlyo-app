@@ -7,9 +7,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { width } from 'react-native-dimension';
-import { COLORS, fontFamly } from '../../constants';
-import { useNavigation } from '@react-navigation/native';
+import {width} from 'react-native-dimension';
+import {COLORS, fontFamly} from '../../constants';
+import {useNavigation} from '@react-navigation/native';
+import {ICONS, IMAGES} from '../../assets';
 
 const bookingsData = [
   {
@@ -18,7 +19,7 @@ const bookingsData = [
     location: 'Los Angeles, CA',
     price: '$300',
     status: 'Completed',
-    image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d',
+    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d',
     category: 'DJ',
   },
   {
@@ -27,7 +28,7 @@ const bookingsData = [
     location: 'Los Angeles, CA',
     price: '$300',
     status: 'New Request',
-    image: 'https://images.unsplash.com/photo-1502767089025-6572583495b0',
+    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1502767089025-6572583495b0',
     category: 'DJ',
   },
   {
@@ -36,7 +37,7 @@ const bookingsData = [
     location: 'Los Angeles, CA',
     price: '$300',
     status: 'In Progress',
-    image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
+    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
     category: 'DJ',
   },
   {
@@ -45,7 +46,7 @@ const bookingsData = [
     location: 'San Francisco, CA',
     price: '$450',
     status: 'Completed',
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b',
+    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b',
     category: 'Food',
   },
   {
@@ -54,7 +55,7 @@ const bookingsData = [
     location: 'New York, NY',
     price: '$200',
     status: 'New Request',
-    image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d',
+    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d',
     category: 'Event',
   },
   {
@@ -63,7 +64,7 @@ const bookingsData = [
     location: 'Chicago, IL',
     price: '$500',
     status: 'In Progress',
-    image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f',
+    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f',
     category: 'Music',
   },
 ];
@@ -94,14 +95,14 @@ const getStatusTextColor = status => {
   }
 };
 
-const BookingCard = ({ item }) => {
+const BookingCard = ({item}) => {
   const navigation = useNavigation();
 
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate('BookingDetails', { booking: item })}
+      onPress={() => navigation.navigate('BookingDetails', {booking: item})}
       style={styles.card}>
-      <Image source={{ uri: item.image }} style={styles.image} />
+      <Image source={item.image} style={styles.image} />
       <View style={styles.infoContainer}>
         <View style={styles.topSection}>
           <View style={styles.headerRow}>
@@ -109,12 +110,12 @@ const BookingCard = ({ item }) => {
             <View
               style={[
                 styles.statusBadge,
-                { backgroundColor: getStatusColor(item.status) },
+                {backgroundColor: getStatusColor(item.status)},
               ]}>
               <Text
                 style={[
                   styles.statusText,
-                  { color: getStatusTextColor(item.status) },
+                  {color: getStatusTextColor(item.status)},
                 ]}>
                 {item.status}
               </Text>
@@ -141,7 +142,7 @@ const BookingCard = ({ item }) => {
   );
 };
 
-const BookingList = ({ activeTab }) => {
+const BookingList = ({activeTab}) => {
   // Filter data based on active tab
   const getFilteredData = () => {
     if (activeTab === 'All Order') {
@@ -160,8 +161,8 @@ const BookingList = ({ activeTab }) => {
     <FlatList
       data={filteredData}
       keyExtractor={item => item.id}
-      renderItem={({ item }) => <BookingCard item={item} />}
-      contentContainerStyle={{ padding: 16 }}
+      renderItem={({item}) => <BookingCard item={item} />}
+      contentContainerStyle={{padding: 16}}
       showsVerticalScrollIndicator={false}
     />
   );
@@ -179,6 +180,7 @@ const styles = StyleSheet.create({
     minHeight: 160,
   },
   image: {
+    height: 150,
     width: 150,
     borderRadius: width(5),
     backgroundColor: COLORS.backgroundLight,

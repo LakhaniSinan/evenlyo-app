@@ -31,7 +31,20 @@ export const ICONS = {
   bellIcon: require('./icons/bellIcon.png'),
   globeIcon: require('./icons/globeIcon.png'),
   sendIcon: require('./icons/sendIcon.png'),
-  arrowIcon: require("./icons/arrow.png")
+  arrowIcon: require('./icons/arrow.png'),
+  gridientLocationIcon: require('./icons/gridientLocationIcon.png'),
+  chatIconfilled: require('./icons/chatIconfilled.png'),
+  cartIcon: require('./icons/cartIcon.png'),
+  galleryIconActive: require('./icons/galleryIconActive.png'),
+  galleryIconInActive: require('./icons/galleryIconInActive.png'),
+  starIconActive: require('./icons/starIconActive.png'),
+  starIconInActive: require('./icons/starIconInActive.png'),
+  infoIconActive: require('./icons/infoIconActive.png'),
+  infoIconInActive: require('./icons/infoIconInActive.png'),
+  arrowDown: require('./icons/arrowDown.png'),
+  copyIcon: require('./icons/copyIcon.png'),
+  attachmentIcon: require('./icons/attachmentIcon.png'),
+  downloadIcon: require('./icons/downloadIcon.png'),
 };
 
 export const IMAGES = {
@@ -48,4 +61,8 @@ export const TAB_BAR_ICONS = {
   calendar: require('./tabBars/activeCalender.png'),
   messages: require('./tabBars/activeCart.png'),
   profile: require('./tabBars/activeProfile.png'),
+  inActiveHome: require('./tabBars/inActiveHome.png'),
+  inActiveCalendar: require('./tabBars/inActiveCalender.png'),
+  inActiveCessages: require('./tabBars/inActiveCart.png'),
+  inActiveProfile: require('./tabBars/inActiveProfile.png'),
 };

@@ -28,7 +28,7 @@ function VendorDetails({navigation}) {
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={() => navigation.goBack()}
         setModalVisible={() => {}}
-        onRightIconPress={() => {}}
+        onRightIconPress={() => navigation.navigate('Chat')}
         containerStyle={{
           marginVertical: 10,
         }}
@@ -113,7 +113,7 @@ function VendorDetails({navigation}) {
             marginTop: width(7),
             marginHorizontal: width(5),
           }}>
-          <View style={{width: width(70)}}>
+          <View style={{width: width(75)}}>
             <GradientButton
               text={t('contactMe')}
               onPress={() => {}}
@@ -123,17 +123,16 @@ function VendorDetails({navigation}) {
           </View>
           <TouchableOpacity
             style={{
-              height: width(15),
-              width: width(15),
+              height: width(13),
+              width: width(13),
               borderRadius: width(3),
-              backgroundColor: COLORS.backgroundLight,
               justifyContent: 'center',
               alignItems: 'center',
             }}>
             <Image
               source={ICONS.menuIcon}
               resizeMode="contain"
-              style={{height: width(5), width: width(5)}}
+              style={{height: '100%', width: '100%'}}
             />
           </TouchableOpacity>
         </View>

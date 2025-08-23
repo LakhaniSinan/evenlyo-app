@@ -27,7 +27,12 @@ const GradientButton = ({
           onPress={onPress}
           activeOpacity={0.8}
           style={[styles.buttonBase, {...styleProps}]}>
-          {icon && <Image source={icon} style={{width: 24, height: 24}} />}
+          {icon && (
+            <Image
+              source={icon}
+              style={{width: 19, height: 19, marginRight: width(2)}}
+            />
+          )}
           <Text style={textStyle ? textStyle : styles.filledText}>{text}</Text>
         </TouchableOpacity>
       </LinearGradient>

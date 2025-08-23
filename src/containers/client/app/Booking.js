@@ -23,11 +23,9 @@ const BooKings = () => {
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <AppHeader
-        leftIcon={ICONS.leftArrowIcon}
         headingText={'Booking'}
         rightIcon={ICONS.chatIcon}
         onRightIconPress={() => navigation.navigate('Messages')}
-        onLeftIconPress={() => navigation.goBack()}
       />
 
       <View style={styles.tabContainer}>

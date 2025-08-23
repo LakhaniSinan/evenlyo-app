@@ -1,6 +1,14 @@
 // FilterModal.js
+import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Keyboard, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -9,14 +17,33 @@ import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
+import CustomPicker from '../customPicker';
+import DateSelector from '../dateSelector';
+import GradientText from '../gradiantText';
 import TextField from '../textInput';
 
-const FilterModal = ({isVisible, onClose}) => {
+const FilterModal = ({isVisible, onClose, nestedFilter}) => {
   const {t} = useTranslation();
-  const [priceRange, setPriceRange] = useState({min: 0, max: 300});
+  const [priceRange, setPriceRange] = useState({min: 0, max: 500});
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-  const lastValuesRef = useRef({min: 0, max: 300});
+  const lastValuesRef = useRef({min: 0, max: 500});
+  const navigation = useNavigation();
+  const mainCategory = useRef(null);
+  const subCategory = useRef(null);
+  const [filterStartDate, setFilterStartDate] = useState(null);
+  const [filterEndDate, setFilterEndDate] = useState(null);
+  const [inputVal, setInputVal] = useState({
+    mainCategory: '',
+    subCategory: '',
+    holderType: '',
+    priceRange: '',
+    location: '',
+    dateRange: '',
+    timeRange: '',
+  });
 
+  console.log(filterStartDate, 'filterStartDate');
+  console.log(filterEndDate, 'filterEndDate');
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
@@ -38,28 +65,56 @@ const FilterModal = ({isVisible, onClose}) => {
   }, []);
 
   const handlePriceRangeChange = useCallback((low, high) => {
-    // Only update if values actually changed
     if (
       lastValuesRef.current.min !== low ||
       lastValuesRef.current.max !== high
     ) {
-      console.log('Range changed:', low, high); // Debug log
+      console.log('Range changed:', low, high);
       lastValuesRef.current = {min: low, max: high};
       setPriceRange({min: low, max: high});
     }
   }, []);
 
-  // Add renderLabel and renderNotch for floatingLabel compatibility
-  const renderLabel = useCallback(
-    value => (
-      <View style={styles.labelContainer}>
-        <Text style={styles.labelText}>${value}</Text>
-      </View>
-    ),
-    [],
-  );
+  const handleOpenMainCategory = params => {
+    console.log('handleOpenMainCategory called with:', params);
+    if (mainCategory?.current) {
+      mainCategory.current.show(params);
+    } else {
+      console.warn('main Category ref is not available');
+    }
+  };
+  const handleOpenSubCategory = params => {
+    console.log('handleOpenMainCategory called with:', params);
+    if (subCategory?.current) {
+      subCategory.current.show(params);
+    } else {
+      console.warn('main Category ref is not available');
+    }
+  };
 
-  const renderNotch = useCallback(() => <View style={styles.notch} />, []);
+  const handleSelectValue = (name, value) => {
+    console.log('handleSelectValue called:', name, value);
+    if (setInputVal && typeof setInputVal === 'function') {
+      setInputVal(prevState => ({
+        ...prevState,
+        [name]: value?.name || value,
+      }));
+    }
+  };
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    console.log('Date range changed:', startDate, endDate);
+    setFilterStartDate(startDate);
+    setFilterEndDate(endDate);
+    if (setInputVal && typeof setInputVal === 'function') {
+      setInputVal(prevState => ({
+        ...prevState,
+        startDate: startDate,
+        endDate: endDate,
+      }));
+    }
+  };
+
   return (
     <Modal
       isVisible={isVisible}
@@ -75,113 +130,200 @@ const FilterModal = ({isVisible, onClose}) => {
             <Icon name="close" size={24} color="#333" />
           </TouchableOpacity>
         </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>{t('searchLocation')}</Text>
-          <TextField
-            placeholder={t('searchYourLocation')}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            endIcon={ICONS.currentLoactionIcon}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>{t('dateRange')}</Text>
-          <View style={styles.dateContainer}>
-            <View style={{width: width(40)}}>
-              <TextField
-                placeholder={t('startDate')}
-                // value={email}
-                // onChangeText={setEmail}
-                keyboardType="date"
-                autoCapitalize="none"
-                endIcon={ICONS.calenderIcon}
-                editable={false}
+        <ScrollView style={{flex: 1}}>
+          {nestedFilter && (
+            <>
+              <CustomPicker
+                ref={mainCategory}
+                label="Main_Category"
+                labelll="Main Category"
+                handleOpenModal={handleOpenMainCategory}
+                value={inputVal?.mainCategory || ''}
+                listData={[
+                  {name: 'Entertainment & Attractions'},
+                  {name: 'Food & Drinks'},
+                  {name: 'Decoration & Styling'},
+                  {name: 'Locations & Party Tents'},
+                  {name: 'Staff & Services'},
+                ]}
+                name="mainCategory"
+                handleSelectValue={handleSelectValue}
               />
-            </View>
-            <View style={{width: width(40)}}>
-              <TextField
-                placeholder={t('endDate')}
-                // value={email}
-                // onChangeText={setEmail}
-                keyboardType="date"
-                autoCapitalize="none"
-                endIcon={ICONS.calenderIcon}
-                editable={false}
+              <CustomPicker
+                ref={subCategory}
+                label="Sub_Category"
+                labelll="Sub Category"
+                handleOpenModal={handleOpenSubCategory}
+                value={inputVal?.subCategory || ''}
+                listData={[
+                  {name: 'DJ'},
+                  {name: 'Live Band'},
+                  {name: 'Photo Booth'},
+                ]}
+                name="subCategory"
+                handleSelectValue={handleSelectValue}
               />
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>{t('priceRange')}</Text>
-
-          {/* Price labels above slider */}
-          <View style={styles.priceLabelsContainer}>
-            <Text style={styles.priceLabel}>$0</Text>
-            <Text style={styles.priceLabel}>$500</Text>
-          </View>
-
-          <View style={styles.sliderContainer} pointerEvents="auto">
-            <RangeSlider
-              style={styles.slider}
-              min={0}
-              max={500}
-              step={10}
-              low={priceRange.min}
-              high={priceRange.max}
-              floatingLabel
-              renderThumb={() => <View style={styles.thumb} />}
-              renderRail={() => <View style={styles.rail} />}
-              renderRailSelected={() => <View style={styles.railSelected} />}
-              renderLabel={renderLabel}
-              renderNotch={renderNotch}
-              onValueChanged={handlePriceRangeChange}
+              <View style={{height: 15}} />
+            </>
+          )}
+          <View style={styles.section}>
+            <Text style={styles.label}>{t('searchLocation')}</Text>
+            <TextField
+              placeholder={t('searchYourLocation')}
+              // value={email}
+              // onChangeText={setEmail}
+              autoCapitalize="none"
+              endIcon={ICONS.currentLoactionIcon}
             />
           </View>
 
-          {/* From and To labels with values */}
-          <View style={styles.fromToContainer}>
-            <View style={styles.fromToItem}>
-              <Text style={styles.fromToLabel}>{t('from')}</Text>
-              <View style={styles.fromToValueContainer}>
-                <Text style={styles.fromToValue}>${priceRange.min}</Text>
-              </View>
-            </View>
-            <View style={styles.fromToItem}>
-              <Text style={styles.fromToLabel}>{t('to')}</Text>
-              <View style={styles.fromToValueContainer}>
-                <Text style={styles.fromToValue}>${priceRange.max}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </View>
-      {!isKeyboardVisible && (
-        <View style={styles.buttonRow}>
-          <View style={{width: width(40)}}>
-            <TouchableOpacity
-              onPress={() => onClose()}
-              style={styles.cancelButton}
-              activeOpacity={0.7}>
-              <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={{width: width(40)}}>
-            <GradientButton
-              text={t('applyFilters')}
-              textStyle={{
-                fontSize: 12,
-                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                color: 'white',
+          <View style={styles.section}>
+            <Text style={styles.label}>{t('dateRange')}</Text>
+            <DateSelector
+              startDate={filterStartDate}
+              endDate={filterEndDate}
+              onStartDateChange={date => {
+                console.log('Start date selected:', date);
+                setFilterStartDate(date);
+                if (setInputVal && typeof setInputVal === 'function') {
+                  setInputVal(prev => ({...prev, startDate: date}));
+                }
               }}
+              onEndDateChange={date => {
+                console.log('End date selected:', date);
+                setFilterEndDate(date);
+                if (setInputVal && typeof setInputVal === 'function') {
+                  setInputVal(prev => ({...prev, endDate: date}));
+                }
+              }}
+              mode="range"
             />
           </View>
-        </View>
-      )}
+
+          <View style={styles.section}>
+            <Text style={styles.label}>{t('priceRange')}</Text>
+
+            <View style={styles.priceLabelsContainer}>
+              <Text style={styles.priceLabel}>$0</Text>
+              <Text style={styles.priceLabel}>$500</Text>
+            </View>
+
+            <View style={styles.sliderContainer} pointerEvents="auto">
+              <RangeSlider
+                style={styles.slider}
+                min={0}
+                max={500}
+                step={10}
+                low={priceRange.min}
+                high={priceRange.max}
+                floatingLabel
+                renderThumb={() => <View style={styles.thumb} />}
+                renderRail={() => <View style={styles.rail} />}
+                renderRailSelected={() => <View style={styles.railSelected} />}
+                onValueChanged={handlePriceRangeChange}
+              />
+            </View>
+
+            {/* From and To labels with values */}
+            <View style={styles.fromToContainer}>
+              <View style={styles.fromToItem}>
+                <Text style={styles.fromToLabel}>{t('from')}</Text>
+                <View style={styles.fromToValueContainer}>
+                  <Text style={styles.fromToValue}>${priceRange.min}</Text>
+                </View>
+              </View>
+              <View style={styles.fromToItem}>
+                <Text style={styles.fromToLabel}>{t('to')}</Text>
+                <View style={styles.fromToValueContainer}>
+                  <Text style={styles.fromToValue}>${priceRange.max}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+          {!isKeyboardVisible && nestedFilter && (
+            <View style={styles.buttonRowtext}>
+              {!nestedFilter && (
+                <View style={{width: width(40)}}>
+                  <TouchableOpacity
+                    onPress={() => onClose()}
+                    style={styles.cancelButton}
+                    activeOpacity={0.7}>
+                    <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {nestedFilter && (
+                <View style={{width: width(40)}}>
+                  <TouchableOpacity
+                    onPress={() => onClose()}
+                    style={styles.cancelButton}
+                    activeOpacity={0.7}>
+                    <GradientText text={'Reset Filter'} />
+                  </TouchableOpacity>
+                </View>
+              )}
+              <View style={{width: width(40)}}>
+                <GradientButton
+                  text={t('applyFilters')}
+                  onPress={() => {
+                    onClose();
+                    setTimeout(() => {
+                      navigation.navigate('EventListingScreen');
+                    }, 500);
+                  }}
+                  type="filled"
+                  textStyle={{
+                    fontSize: 12,
+                    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                    color: 'white',
+                  }}
+                />
+              </View>
+            </View>
+          )}
+        </ScrollView>
+        {!isKeyboardVisible && !nestedFilter && (
+          <View style={styles.buttonRow}>
+            {!nestedFilter && (
+              <View style={{width: width(40)}}>
+                <TouchableOpacity
+                  onPress={() => onClose()}
+                  style={styles.cancelButton}
+                  activeOpacity={0.7}>
+                  <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            {nestedFilter && (
+              <View style={{width: width(40)}}>
+                <TouchableOpacity
+                  onPress={() => onClose()}
+                  style={styles.cancelButton}
+                  activeOpacity={0.7}>
+                  <GradientText text={'Reset Filter'} />
+                </TouchableOpacity>
+              </View>
+            )}
+            <View style={{width: width(40)}}>
+              <GradientButton
+                text={t('applyFilters')}
+                onPress={() => {
+                  onClose();
+                  setTimeout(() => {
+                    navigation.navigate('EventListingScreen');
+                  }, 500);
+                }}
+                type="filled"
+                textStyle={{
+                  fontSize: 12,
+                  fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                  color: 'white',
+                }}
+              />
+            </View>
+          </View>
+        )}
+      </View>
     </Modal>
   );
 };
@@ -234,6 +376,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+
   dateInput: {
     flex: 1,
     borderRadius: 10,
@@ -321,29 +464,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: '#333',
   },
-  labelContainer: {
-    padding: 4,
-    backgroundColor: '#FF295D',
-    borderRadius: 4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 3,
-  },
-  labelText: {
-    color: '#fff',
-    fontSize: 12,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-  },
-  notch: {
-    width: 8,
-    height: 8,
-    backgroundColor: '#FF295D',
-  },
+
   buttonRow: {
     position: 'absolute',
     bottom: 10,
@@ -386,6 +507,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: '#666',
+  },
+  buttonRowtext: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-around',
   },
 });
 

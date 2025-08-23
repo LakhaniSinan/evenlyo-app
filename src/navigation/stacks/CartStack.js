@@ -1,7 +1,6 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import CartScreen from '../../containers/client/app/CartScreen';
-import ChatDetail from '../../containers/client/app/ChatDetail';
 import Messages from '../../containers/client/app/Messages';
 
 const Stack = createStackNavigator();
@@ -22,17 +21,10 @@ const MessagesStack = () => {
         }}
       />
       <Stack.Screen
-        name="Messages"
+        name="MessagesScreen"
         component={Messages}
         options={{
           title: 'Messages',
-        }}
-      />
-      <Stack.Screen
-        name="ChatDetail"
-        component={ChatDetail}
-        options={{
-          title: 'Chat',
         }}
       />
     </Stack.Navigator>

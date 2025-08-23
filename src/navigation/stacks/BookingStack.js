@@ -1,10 +1,10 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Bookings from '../../containers/client/app/Booking';
-import VendorDetails from '../../containers/client/app/VendorDetails';
-import Messages from '../../containers/client/app/Messages';
-import ChatDetail from '../../containers/client/app/ChatDetail';
 import BookingDetails from '../../containers/client/app/BookingDetails';
+import Messages from '../../containers/client/app/Messages';
+import TrackDirections from '../../containers/client/app/TrackDirections';
+import VendorDetails from '../../containers/client/app/VendorDetails';
 
 const Stack = createStackNavigator();
 
@@ -24,6 +24,13 @@ const CalendarStack = () => {
         }}
       />
       <Stack.Screen
+        name="TrackDirections"
+        component={TrackDirections}
+        options={{
+          title: 'Calendar',
+        }}
+      />
+      <Stack.Screen
         name="BookingDetails"
         component={BookingDetails}
         options={{
@@ -31,19 +38,13 @@ const CalendarStack = () => {
         }}
       />
       <Stack.Screen
-        name="Messages"
+        name="MessagesScreen"
         component={Messages}
         options={{
           title: 'Messages',
         }}
       />
-      <Stack.Screen
-        name="ChatDetail"
-        component={ChatDetail}
-        options={{
-          title: 'Chat',
-        }}
-      />
+
       <Stack.Screen
         name="VendorDetails"
         component={VendorDetails}

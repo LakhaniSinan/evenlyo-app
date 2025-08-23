@@ -9,10 +9,12 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
+import {useDispatch} from 'react-redux';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import {COLORS, fontFamly} from '../../../constants';
 import useTranslation from '../../../hooks/useTranslation';
+import {setUserData} from '../../../redux/slice/auth';
 
 const getProfileMenuData = t => [
   {
@@ -53,9 +55,16 @@ const getHelpSupportMenuData = t => [
 const Profile = () => {
   const {t} = useTranslation();
   const navigation = useNavigation();
-
+  const dispatch = useDispatch();
   const data = getProfileMenuData(t);
   const data2 = getHelpSupportMenuData(t);
+  const handleNavigate = navigate => {
+    if (navigate === 'Logout') {
+      dispatch(setUserData(null));
+    } else {
+      navigation.navigate(navigate);
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -160,7 +169,7 @@ const Profile = () => {
         {data2.map(item => {
           return (
             <TouchableOpacity
-              onPress={() => navigation.navigate(item.navigate)}
+              onPress={() => handleNavigate(item.navigate)}
               style={{
                 borderRadius: 10,
                 marginTop: width(4),

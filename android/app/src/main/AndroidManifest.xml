@@ -10,6 +10,11 @@
       android:allowBackup="false"
       android:theme="@style/AppTheme"
       android:supportsRtl="true">
+      
+      <!-- Google Maps API Key -->
+      <meta-data
+        android:name="com.google.android.geo.API_KEY"
+        android:value="AIzaSyAvPVhgFVY2qv4c6kvukvIP2krPJe9dZGA" />
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"

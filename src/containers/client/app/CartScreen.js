@@ -62,11 +62,11 @@ function CartScreen({navigation}) {
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <AppHeader
-        leftIcon={ICONS.leftArrowIcon}
+        // leftIcon={ICONS.leftArrowIcon}
         headingText={t('Add To Cart')}
         rightIcon={ICONS.chatIcon}
-        onLeftIconPress={() => navigation.goBack()}
-        onRightIconPress={() => navigation.navigate('Messages')}
+        // onLeftIconPress={() => navigation.goBack()}
+        onRightIconPress={() => navigation.navigate('MessagesScreen')}
       />
       <ScrollView style={{flex: 1, backgroundColor: COLORS.white}}>
         <View style={styles.tabContainer}>
@@ -130,7 +130,7 @@ function CartScreen({navigation}) {
             }}>
             <GradientButton
               text={t('Add New Request')}
-              onPress={() => navigation.navigate('Login')}
+              onPress={() => {}}
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
             />
@@ -178,7 +178,7 @@ function CartScreen({navigation}) {
                 text={t('Checkout')}
                 type="filled"
                 gradientColors={['#FF295D', '#E31B95', '#C817AE']}
-                onPress={() => navigation.navigate('')}
+                onPress={() => {}}
               />
             </View>
           </>

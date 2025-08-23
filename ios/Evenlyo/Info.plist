@@ -64,5 +64,12 @@
 		<string>PlusJakartaSans-SemiBold.ttf</string>
 		<string>PlusJakartaSans-SemiBoldItalic.ttf</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location when in use to show maps.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs access to location to show maps.</string>
+	<!-- Google Maps API Key -->
+	<key>GMSApiKey</key>
+	<string>AIzaSyAvPVhgFVY2qv4c6kvukvIP2krPJe9dZGA</string>
 </dict>
 </plist>
