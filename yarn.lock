@@ -3121,6 +3121,7 @@ __metadata:
     eslint: ^8.19.0
     i18next: ^25.3.2
     jest: ^29.6.3
+    lucide-react-native: ^0.541.0
     moment: ^2.30.1
     prettier: 2.8.8
     react: 19.0.0
@@ -3139,6 +3140,7 @@ __metadata:
     react-native-modal: ^14.0.0-rc.1
     react-native-otp-entry: ^1.8.5
     react-native-phone-number-input: ^2.1.0
+    react-native-progress-steps: ^2.0.3
     react-native-ratings: ^8.1.0
     react-native-reanimated: ^3.18.0
     react-native-safe-area-context: ^5.4.1
@@ -7108,6 +7110,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lucide-react-native@npm:^0.541.0":
+  version: 0.541.0
+  resolution: "lucide-react-native@npm:0.541.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-native: "*"
+    react-native-svg: ^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0
+  checksum: a16d7ccb5d2e99bc7bbbc9bf00216c9fe242234611d642a136d2fbb5594c495179c573802335b325b4a73bba5795393fd199dba458a5ac6a6d1de1615174a2c3
+  languageName: node
+  linkType: hard
+
 "make-dir@npm:^4.0.0":
   version: 4.0.0
   resolution: "make-dir@npm:4.0.0"
@@ -8622,6 +8635,19 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 562ce88e149cab49c5196c8233e5b2223f56942e143660ac70c6d57b0b1f0bc901be11c55ea02167c14bd092773c7c6cafcac4970f8986fc0ae26d4768de3859
+  languageName: node
+  linkType: hard
+
+"react-native-progress-steps@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "react-native-progress-steps@npm:2.0.3"
+  dependencies:
+    lodash: ^4.17.21
+  peerDependencies:
+    lucide-react-native: ">=0.475.0"
+    react: ">=16.8.0"
+    react-native: ">=0.59.0"
+  checksum: 9e6d8c62fe1be5aa2e1e0b8c8dd6de5bf725871b245e8c315b4a6d5d9aa1d26e58ccf06932ed0e274e694c5379b260c1f3c26c4a0d65ac3aaf98c6563fb5d031
   languageName: node
   linkType: hard
 

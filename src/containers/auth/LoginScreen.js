@@ -19,12 +19,14 @@ import useTranslation from '../../hooks/useTranslation';
 import {setUserData} from '../../redux/slice/auth';
 import {globalStyles} from '../../styles/globalStyle';
 
-const LoginScreen = ({navigation}) => {
+const LoginScreen = ({navigation, route}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const {t} = useTranslation();
+  const {type} = route.params;
+  console.log(type, 'typetypetype');
 
   const navigateToRegister = () => {
     navigation.navigate('Register');
@@ -34,6 +36,8 @@ const LoginScreen = ({navigation}) => {
     dispatch(
       setUserData({
         name: 'Sinan',
+        type: type,
+        vendorDetails: null,
       }),
     );
   };

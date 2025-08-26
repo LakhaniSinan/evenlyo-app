@@ -4,7 +4,6 @@ import {
   TransitionSpecs,
 } from '@react-navigation/stack';
 import React from 'react';
-import BottomTabStack from './BottomTabStack';
 import ChatDetail from '../../containers/client/app/ChatDetail';
 
 const Stack = createStackNavigator();
@@ -37,7 +36,7 @@ export const MyTransition = {
   },
 };
 
-const AppStack = () => {
+const VendorAppStack = () => {
   return (
     <Stack.Navigator
       initialRouteName="MainTabs"
@@ -46,10 +45,10 @@ const AppStack = () => {
         cardStyle: {backgroundColor: '#FFFFFF'},
         ...MyTransition,
       }}>
-      <Stack.Screen name="MainTabs" component={BottomTabStack} />
+      {/* <Stack.Screen name="MainTabs" component={BottomTabStack} /> */}
       <Stack.Screen name="ChatDetail" component={ChatDetail} />
     </Stack.Navigator>
   );
 };
 
-export default AppStack;
+export default VendorAppStack;

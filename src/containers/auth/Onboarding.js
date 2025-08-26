@@ -4,7 +4,7 @@ import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
-import {fontFamly} from '../../constants';
+import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
 const Onboarding = ({navigation}) => {
@@ -26,14 +26,14 @@ const Onboarding = ({navigation}) => {
         <View style={styles.buttonContainer}>
           <GradientButton
             text={t('continueAsClient')}
-            onPress={() => navigation.navigate('Login')}
+            onPress={() => navigation.navigate('Login', {type: 'client'})}
             type="filled"
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}
           />
 
           <GradientButton
             text={t('continueAsVendor')}
-            onPress={() => navigation.navigate('Login')}
+            onPress={() => navigation.navigate('Login', {type: 'vendor'})}
             type="outline"
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}
           />
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     // fontWeight: '700',
     fontFamily: fontFamly.PlusJakartaSansBold,
-    color: '#000',
+    color: COLORS.black,
   },
   buttonContainer: {width: width(90), alignSelf: 'center', gap: 10},
   gradientWrapper: {
