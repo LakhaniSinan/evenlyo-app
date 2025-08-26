@@ -45,6 +45,8 @@ export const ICONS = {
   copyIcon: require('./icons/copyIcon.png'),
   attachmentIcon: require('./icons/attachmentIcon.png'),
   downloadIcon: require('./icons/downloadIcon.png'),
+  personalIcon: require('./icons/personalIcon.png'),
+  businessIcon: require('./icons/businessIcon.png'),
 };
 
 export const IMAGES = {

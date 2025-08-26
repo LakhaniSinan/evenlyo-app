@@ -4,7 +4,6 @@ import Bookings from '../../containers/client/app/Booking';
 import BookingDetails from '../../containers/client/app/BookingDetails';
 import Messages from '../../containers/client/app/Messages';
 import TrackDirections from '../../containers/client/app/TrackDirections';
-import VendorDetails from '../../containers/client/app/VendorDetails';
 
 const Stack = createStackNavigator();
 
@@ -42,14 +41,6 @@ const CalendarStack = () => {
         component={Messages}
         options={{
           title: 'Messages',
-        }}
-      />
-
-      <Stack.Screen
-        name="VendorDetails"
-        component={VendorDetails}
-        options={{
-          title: 'Vendor Details',
         }}
       />
     </Stack.Navigator>

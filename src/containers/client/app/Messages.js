@@ -3,6 +3,7 @@ import {
   Dimensions,
   FlatList,
   Image,
+  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -103,7 +104,7 @@ const Messages = ({navigation}) => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: COLORS.white}}>
+    <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <View
         style={{
           backgroundColor: COLORS.backgroundLight,
@@ -135,7 +136,7 @@ const Messages = ({navigation}) => {
         style={styles.chatList}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

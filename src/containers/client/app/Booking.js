@@ -25,7 +25,7 @@ const BooKings = () => {
       <AppHeader
         headingText={'Booking'}
         rightIcon={ICONS.chatIcon}
-        onRightIconPress={() => navigation.navigate('Messages')}
+        onRightIconPress={() => navigation.navigate('MessagesScreen')}
       />
 
       <View style={styles.tabContainer}>

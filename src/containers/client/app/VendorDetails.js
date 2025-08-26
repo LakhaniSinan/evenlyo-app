@@ -28,7 +28,7 @@ function VendorDetails({navigation}) {
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={() => navigation.goBack()}
         setModalVisible={() => {}}
-        onRightIconPress={() => navigation.navigate('Chat')}
+        onRightIconPress={() => navigation.navigate('MessagesScreen')}
         containerStyle={{
           marginVertical: 10,
         }}

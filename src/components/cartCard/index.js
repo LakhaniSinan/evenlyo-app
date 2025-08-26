@@ -18,11 +18,11 @@ const CartCard = ({
     if (variant === 'requested') {
       return (
         <GradientButton
-          text={t('bookNow')}
+          text={t('Book Now')}
           onPress={() => onBookNow && onBookNow(item)}
           type="filled"
           textStyle={{
-            fontSize: 10,
+            fontSize: 9,
             fontFamly: fontFamly.PlusJakartaSansMedium,
             color: COLORS.white,
           }}
@@ -43,7 +43,7 @@ const CartCard = ({
             fontFamly: fontFamly.PlusJakartaSansMedium,
             color: COLORS.white,
           }}
-          text={t('cancelBooking')}
+          text={t('Cancel Booking')}
           onPress={() => onCancelBooking && onCancelBooking()}
           styleProps={{
             paddingVertical: width(2),

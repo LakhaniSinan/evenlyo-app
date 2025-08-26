@@ -8,6 +8,7 @@ import Notification from '../../containers/client/app/Notification';
 import NotificationDetails from '../../containers/client/app/NotificationDetails';
 import TrackDirections from '../../containers/client/app/TrackDirections';
 import TrackingDetails from '../../containers/client/app/TrackingDetails';
+import VendorDetails from '../../containers/client/app/VendorDetails';
 
 const Stack = createStackNavigator();
 
@@ -40,13 +41,6 @@ const HomeStack = () => {
           title: 'Notification Details',
         }}
       />
-      <Stack.Screen
-        name="Messages"
-        component={Messages}
-        options={{
-          title: 'Messages',
-        }}
-      />
 
       <Stack.Screen
         name="EventListingScreen"
@@ -74,6 +68,20 @@ const HomeStack = () => {
         component={TrackDirections}
         options={{
           title: 'Track Directions',
+        }}
+      />
+      <Stack.Screen
+        name="VendorDetails"
+        component={VendorDetails}
+        options={{
+          title: 'Vendor Details',
+        }}
+      />
+      <Stack.Screen
+        name="MessagesScreen"
+        component={Messages}
+        options={{
+          title: 'Messages',
         }}
       />
     </Stack.Navigator>

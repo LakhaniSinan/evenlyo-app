@@ -1,6 +1,7 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import React from 'react';
-import CustomTabBar from '../../components/customTabBar';
+import {Image} from 'react-native';
+import {TAB_BAR_ICONS} from '../../assets';
 import CalendarStack from './BookingStack';
 import MessagesStack from './CartStack';
 import HomeStack from './HomeStack';
@@ -13,35 +14,89 @@ const BottomTabStack = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          paddingBottom: 10,
+          paddingTop: 10,
+          backgroundColor: '#FFFFFF',
+        },
       }}
-      tabBar={props => <CustomTabBar {...props} />}
       initialRouteName="Home">
       <Tab.Screen
         name="Home"
         component={HomeStack}
         options={{
-          tabBarLabel: 'Home',
+          tabBarIcon: ({focused}) => (
+            <Image
+              source={focused ? TAB_BAR_ICONS.home : TAB_BAR_ICONS.inActiveHome}
+              style={{
+                width: 27,
+                height: 27,
+                resizeMode: 'contain',
+              }}
+            />
+          ),
         }}
       />
+
       <Tab.Screen
         name="Calendar"
         component={CalendarStack}
         options={{
-          tabBarLabel: 'Calendar',
+          tabBarIcon: ({focused}) => (
+            <Image
+              source={
+                focused
+                  ? TAB_BAR_ICONS.calendar
+                  : TAB_BAR_ICONS.inActiveCalendar
+              }
+              style={{
+                width: 27,
+                height: 27,
+                resizeMode: 'contain',
+              }}
+            />
+          ),
         }}
       />
+
       <Tab.Screen
         name="Messages"
         component={MessagesStack}
         options={{
-          tabBarLabel: 'Cart',
+          tabBarIcon: ({focused}) => (
+            <Image
+              source={
+                focused
+                  ? TAB_BAR_ICONS.messages
+                  : TAB_BAR_ICONS.inActiveCessages
+              }
+              style={{
+                width: 27,
+                height: 27,
+                resizeMode: 'contain',
+              }}
+            />
+          ),
         }}
       />
+
       <Tab.Screen
         name="Profile"
         component={ProfileStack}
         options={{
-          tabBarLabel: 'Profile',
+          tabBarIcon: ({focused}) => (
+            <Image
+              source={
+                focused ? TAB_BAR_ICONS.profile : TAB_BAR_ICONS.inActiveProfile
+              }
+              style={{
+                width: 27,
+                height: 27,
+                resizeMode: 'contain',
+              }}
+            />
+          ),
         }}
       />
     </Tab.Navigator>

@@ -1,78 +1,91 @@
-import React from 'react';
-import {SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
+import React, {useState} from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {width} from 'react-native-dimension';
 import {ProgressStep, ProgressSteps} from 'react-native-progress-steps';
 import Background from '../../../components/background';
 import Header from '../../../components/header';
-import {COLORS, fontFamly} from '../../../constants';
+import {COLORS} from '../../../constants';
+import PersonalInfo from './PrsonalInfo';
 import VendorTypeScreen from './VendorTypeScreen';
 
 const VendorPersonalDetails = ({navigation}) => {
+  const [activeStep, setActiveStep] = useState(0);
+  const [selectedType, setSelectedType] = useState('');
+
+  const handleNextStep = type => {
+    setSelectedType(type);
+    setActiveStep(prev => prev + 1);
+    console.log(activeStep, 'activeStepactiveStepactiveStep');
+  };
+
   return (
-    <SafeAreaView style={{flex: 1}}>
-      <Background>
-        <ScrollView style={{flex: 1, width: width(90)}}>
-          <View style={{flex: 1}}>
-            <Header languageModal={false} />
-            <View
-              style={{
-                width: width(90),
-                backgroundColor: COLORS.error,
-                borderRadius: width(5),
-              }}>
-              <ProgressSteps>
-                <ProgressStep>
-                  <VendorTypeScreen />
-                </ProgressStep>
-                <ProgressStep></ProgressStep>
-                <ProgressStep></ProgressStep>
-              </ProgressSteps>
-            </View>
+    <Background>
+      <ScrollView style={{flex: 1}} showsVerticalScrollIndicator={false}>
+        <View
+          style={{flex: 1, paddingTop: width(10), paddingBottom: width(20)}}>
+          <Header languageModal={false} />
+          <View
+            style={{
+              backgroundColor: COLORS.backgroundLight,
+              borderRadius: width(5),
+              paddingBottom: width(4),
+              shadowColor: '#000',
+              shadowOffset: {
+                width: 0,
+                height: 1,
+              },
+              shadowOpacity: 0.18,
+              shadowRadius: 1.0,
+              elevation: 1,
+            }}>
+            <ProgressSteps
+              activeStep={activeStep}
+              completedStepIconColor="#FF2B7A"
+              completedProgressBarColor="#FF2B7A"
+              activeStepIconBorderColor="#FF2B7A"
+              activeLabelColor="#FF2B7A"
+              labelColor="#d3d3d3">
+              <ProgressStep removeBtnRow>
+                <VendorTypeScreen onSelectType={handleNextStep} />
+              </ProgressStep>
+
+              <ProgressStep removeBtnRow>
+                <PersonalInfo
+                  onPressBack={() => setActiveStep(0)}
+                  handleNextStep={() => setActiveStep(pre => pre + 1)}
+                />
+              </ProgressStep>
+
+              <ProgressStep removeBtnRow>
+                <TouchableOpacity
+                  style={styles.center}
+                  onPress={() => setActiveStep(0)}>
+                  <Text>Step 3 Content</Text>
+                </TouchableOpacity>
+              </ProgressStep>
+
+              <ProgressStep removeBtnRow>
+                <TouchableOpacity
+                  style={styles.center}
+                  onPress={() => setActiveStep(0)}>
+                  <Text>Step 4 Content</Text>
+                </TouchableOpacity>
+              </ProgressStep>
+            </ProgressSteps>
           </View>
-        </ScrollView>
-      </Background>
-    </SafeAreaView>
+        </View>
+      </ScrollView>
+    </Background>
   );
 };
 
 const styles = StyleSheet.create({
-  tabContainer: {
-    flexDirection: 'row',
-    borderRadius: width(5),
-    padding: width(1),
-    marginVertical: width(3),
-    backgroundColor: COLORS.white,
-    gap: width(1),
-  },
-  tabGradient: {
-    flex: 1,
-    borderRadius: width(3),
-  },
-  tab: {
-    paddingHorizontal: width(3),
-    paddingVertical: width(3.5),
-    borderRadius: width(3),
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: width(12),
-  },
-  tabText: {
-    fontSize: 12,
-    fontFamily: fontFamly.PlusJakartaSansMedium,
-    color: COLORS.textLight,
-    textAlign: 'center',
-  },
-  activeTabText: {
-    color: COLORS.white,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: width(10),
-    gap: 10,
-    justifyContent: 'flex-end',
-  },
   center: {
     alignItems: 'center',
     justifyContent: 'center',

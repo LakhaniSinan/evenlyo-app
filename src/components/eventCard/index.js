@@ -11,11 +11,7 @@ const EventCard = ({navigation}) => {
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() =>
-        navigation.navigate('Calendar', {
-          screen: 'VendorDetails',
-        })
-      }>
+      onPress={() => navigation.navigate('VendorDetails')}>
       <View
         style={{
           height: width(30),
