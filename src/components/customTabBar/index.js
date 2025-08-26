@@ -1,207 +1,69 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {
-  Animated,
-  Dimensions,
-  Image,
-  Keyboard,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
-import {TAB_BAR_ICONS} from '../../assets';
-import {COLORS} from '../../constants';
+import React, { useReducer } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
+import Animated, { useAnimatedStyle, withTiming, useDerivedValue } from 'react-native-reanimated';
 
-const {width} = Dimensions.get('window');
+import TabBarComponent from '../../navigation/bottom/tabBarComponent';
 
-export default function CustomTabBar({state, descriptors, navigation}) {
-  const insets = useSafeAreaInsets();
-  const tabWidth = width / state.routes.length;
+const AnimatedSvg = Animated.createAnimatedComponent(Svg);
 
-  const translateX = useRef(new Animated.Value(state.index * tabWidth)).current;
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [slideAnim] = useState(new Animated.Value(0));
+const AnimatedTabBar = ({ state: { index: activeIndex, routes }, navigation, descriptors }) => {
+  const { bottom } = useSafeAreaInsets();
 
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      () => {
-        setIsKeyboardVisible(true);
-        Animated.timing(slideAnim, {
-          toValue: 100,
-          duration: 250,
-          useNativeDriver: true,
-        }).start();
-      },
-    );
+  const reducer = (state, action) => [...state, { x: action.x, index: action.index }];
+  const [layout, dispatch] = useReducer(reducer, []);
 
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setIsKeyboardVisible(false);
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 250,
-          useNativeDriver: true,
-        }).start();
-      },
-    );
+  const handleLayout = (event, index) => {
+    dispatch({ x: event.nativeEvent.layout.x, index });
+  };
 
-    return () => {
-      keyboardDidShowListener?.remove();
-      keyboardDidHideListener?.remove();
-    };
-  }, []);
+  const xOffset = useDerivedValue(() => {
+    if (layout.length !== routes.length) return 0;
+    return [...layout].find(({ index }) => index === activeIndex).x - 25;
+  }, [activeIndex, layout]);
 
-  useEffect(() => {
-    Animated.spring(translateX, {
-      toValue: state.index * tabWidth,
-      useNativeDriver: true,
-      tension: 100,
-      friction: 8,
-    }).start();
-  }, [state.index]);
-
-  // Don't render if keyboard is visible
-  if (isKeyboardVisible) {
-    return null;
-  }
+  const animatedStyles = useAnimatedStyle(() => ({
+    transform: [{ translateX: withTiming(xOffset.value, { duration: 250 }) }],
+  }));
 
   return (
-    <SafeAreaView
-      edges={['bottom']}
-      style={{backgroundColor: 'transparent', overflow: 'hidden'}}>
-      <Animated.View
-        style={[
-          styles.container,
-          {
-            paddingBottom: Math.max(insets.bottom, 10),
-            height: 90 + insets.bottom,
-            transform: [{translateY: slideAnim}],
-          },
-        ]}>
-        <View style={styles.tabBar}>
-          <Animated.View
-            style={[
-              styles.activeIndicator,
-              {
-                width: tabWidth,
-                transform: [
-                  {translateX: Animated.add(translateX, (tabWidth - 409) / 2)},
-                ],
-              },
-            ]}>
-            <View style={styles.curve}>
-              <View style={styles.dot} />
-            </View>
-          </Animated.View>
+    <View style={[styles.tabBar, { paddingBottom: bottom }]}>
+      <AnimatedSvg
+        width={110}
+        height={60}
+        viewBox="0 0 110 60"
+        style={[styles.activeBackground, animatedStyles]}
+      >
+        <Path
+          fill="#604AE6"
+          d="M20 0H0c11.046 0 20 8.953 20 20v5c0 19.33 15.67 35 35 35s35-15.67 35-35v-5c0-11.045 8.954-20 20-20H20z"
+        />
+      </AnimatedSvg>
+      <View style={styles.tabBarContainer}>
+        {routes.map((route, index) => {
+          const active = index === activeIndex;
+          const { options } = descriptors[route.key];
 
-          {state.routes.map((route, index) => {
-            const isFocused = state.index === index;
-
-            const onPress = () => {
-              const event = navigation.emit({
-                type: 'tabPress',
-                target: route.key,
-                canPreventDefault: true,
-              });
-
-              if (!isFocused && !event.defaultPrevented) {
-                navigation.navigate(route.name);
-              }
-            };
-
-            // Icons mapping
-            let icon;
-            switch (route.name) {
-              case 'Home':
-                icon = isFocused
-                  ? TAB_BAR_ICONS.home
-                  : TAB_BAR_ICONS.inActiveHome;
-                break;
-              case 'Calendar':
-                icon = isFocused
-                  ? TAB_BAR_ICONS.calendar
-                  : TAB_BAR_ICONS.inActiveCalendar;
-                break;
-              case 'Messages':
-                icon = isFocused
-                  ? TAB_BAR_ICONS.messages
-                  : TAB_BAR_ICONS.inActiveCessages;
-                break;
-              case 'Profile':
-                icon = isFocused
-                  ? TAB_BAR_ICONS.profile
-                  : TAB_BAR_ICONS.inActiveProfile;
-                break;
-              default:
-                icon = TAB_BAR_ICONS.inActiveHome;
-            }
-
-            return (
-              <TouchableOpacity
-                key={route.key}
-                onPress={onPress}
-                style={styles.tab}
-                activeOpacity={1}>
-                <Image source={icon} style={styles.tabIcon} />
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </Animated.View>
-    </SafeAreaView>
+          return (
+            <TabBarComponent
+              key={route.key}
+              active={active}
+              options={options}
+              onLayout={(e) => handleLayout(e, index)}
+              onPress={() => navigation.navigate(route.name)}
+            />
+          );
+        })}
+      </View>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    position: 'relative',
-  },
-  tabBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    height: '100%',
-    position: 'relative',
-    // marginTop: 10,
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-  },
-  tabIcon: {
-    width: 26,
-    height: 26,
-    resizeMode: 'contain',
-  },
-  activeIndicator: {
-    position: 'absolute',
-    top: -25,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    zIndex: 1,
-  },
-  curve: {
-    width: 40,
-    height: 40,
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: 20,
-    top: 8,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingBottom: 5,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 100,
-    backgroundColor: COLORS.primary,
-  },
+  tabBar: { backgroundColor: 'white' },
+  activeBackground: { position: 'absolute' },
+  tabBarContainer: { flexDirection: 'row', justifyContent: 'space-evenly' },
 });
+
+export default AnimatedTabBar;
