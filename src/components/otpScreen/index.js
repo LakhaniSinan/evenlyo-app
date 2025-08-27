@@ -31,6 +31,7 @@ export default function OTPInputScreen() {
       />
       <Text style={styles.timerText}>{timer} Sec</Text>
       {timer == 0 && <Text style={styles.timerText2}>Resend Code</Text>}
+      {timer == 0 && <Text style={styles.timerText2}>Call Request</Text>}
     </View>
   );
 }

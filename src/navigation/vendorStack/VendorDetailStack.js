@@ -4,6 +4,8 @@ import {
   TransitionSpecs,
 } from '@react-navigation/stack';
 import React from 'react';
+import OtpVerifySuccess from '../../containers/vendor/vendorDetails/OtpVerifySuccess';
+import VendorOtpVerifications from '../../containers/vendor/vendorDetails/vendorOtpVerification';
 import VendorPersonalDetails from '../../containers/vendor/vendorDetails/VendroPersonalDetails';
 
 const Stack = createStackNavigator();
@@ -49,6 +51,11 @@ const VendorDetailStack = () => {
         name="VendorPersonalDetails"
         component={VendorPersonalDetails}
       />
+      <Stack.Screen
+        name="VendorOtpVerifications"
+        component={VendorOtpVerifications}
+      />
+      <Stack.Screen name="OtpVerifySuccess" component={OtpVerifySuccess} />
     </Stack.Navigator>
   );
 };

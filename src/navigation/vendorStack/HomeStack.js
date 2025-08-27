@@ -1,20 +1,26 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
-import VendorBottomTabStack from './BottomTabStack';
+import Dashboard from '../../containers/vendor/app/Dashboard';
 
 const Stack = createStackNavigator();
 
-const VendorAppStack = () => {
+const HomeStack = () => {
   return (
     <Stack.Navigator
-      initialRouteName="MainTabs"
+      initialRouteName="Dashboard"
       screenOptions={{
         headerShown: false,
         cardStyle: {backgroundColor: '#FFFFFF'},
       }}>
-      <Stack.Screen name="MainTabs" component={VendorBottomTabStack} />
+      <Stack.Screen
+        name="Dashboard"
+        component={Dashboard}
+        options={{
+          title: 'Dashboard',
+        }}
+      />
     </Stack.Navigator>
   );
 };
 
-export default VendorAppStack;
+export default HomeStack;

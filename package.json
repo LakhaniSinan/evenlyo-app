@@ -32,6 +32,7 @@
     "react-native-date-picker": "^5.0.13",
     "react-native-dimension": "^1.0.6",
     "react-native-gesture-handler": "^2.18.1",
+    "react-native-image-picker": "^8.2.1",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-loading-spinner-overlay": "^3.0.1",
     "react-native-localize": "^3.5.1",
@@ -49,10 +50,12 @@
     "react-native-svg": "^15.12.1",
     "react-native-switch": "^1.5.1",
     "react-native-vector-icons": "^10.3.0",
+    "react-native-video": "^6.16.1",
     "react-redux": "^9.2.0",
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
     "redux-thunk": "^3.1.0",
+    "rn-fetch-blob": "^0.12.0",
     "rn-range-slider": "^2.2.2"
   },
   "devDependencies": {

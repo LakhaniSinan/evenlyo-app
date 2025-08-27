@@ -47,6 +47,23 @@ export const ICONS = {
   downloadIcon: require('./icons/downloadIcon.png'),
   personalIcon: require('./icons/personalIcon.png'),
   businessIcon: require('./icons/businessIcon.png'),
+  decoration1: require('./icons/decoration1.png'),
+  decoration2: require('./icons/decoration2.png'),
+  decoration3: require('./icons/decoration3.png'),
+  decoration4: require('./icons/decoration4.png'),
+  decoration5: require('./icons/decoration5.png'),
+  decoration6: require('./icons/decoration6.png'),
+  decoration7: require('./icons/decoration7.png'),
+  entertintmentIcon: require('./icons/entertintmentIcon.png'),
+  staffServices: require('./icons/staffServices.png'),
+  foodIcon: require('./icons/foodIcon.png'),
+  tentIcon: require('./icons/tentIcon.png'),
+  uploadIcon: require('./icons/uploadIcon.png'),
+  decorIcon: require('./icons/decorIcon.png'),
+  drawerIcon: require('./icons/drawerIcon.png'),
+  earningIcon: require('./icons/earningIcon.png'),
+  groupIcon: require('./icons/groupIcon.png'),
+  whiteCartIcon: require('./icons/whiteCartIcon.png'),
 };
 
 export const IMAGES = {

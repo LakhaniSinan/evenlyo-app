@@ -1,15 +1,15 @@
 import React from 'react';
 import {ScrollView, Text, View} from 'react-native';
-import Background from '../../components/background';
-import Header from '../../components/header';
-import {COLORS, fontFamly} from '../../constants';
 import {width} from 'react-native-dimension';
-import {useTranslation} from '../../hooks';
-import {globalStyles} from '../../styles/globalStyle';
-import OTPInputScreen from '../../components/otpScreen';
-import GradientButton from '../../components/button';
+import Background from '../../../components/background';
+import GradientButton from '../../../components/button';
+import Header from '../../../components/header';
+import OTPInputScreen from '../../../components/otpScreen';
+import {COLORS, fontFamly} from '../../../constants';
+import {useTranslation} from '../../../hooks';
+import {globalStyles} from '../../../styles/globalStyle';
 
-const ForgotPasswordOtpScreen = ({navigation}) => {
+const VendorOtpVerifications = ({navigation}) => {
   const {t} = useTranslation();
   return (
     <Background>
@@ -33,7 +33,7 @@ const ForgotPasswordOtpScreen = ({navigation}) => {
             <OTPInputScreen />
             <View style={{marginTop: width(4)}}>
               <GradientButton
-                onPress={() => navigation.navigate('ResetPasswordScreen')}
+                onPress={() => navigation.navigate('OtpVerifySuccess')}
                 text={t('Verify OTP')}
                 textStyle={{
                   fontSize: 12,
@@ -49,4 +49,4 @@ const ForgotPasswordOtpScreen = ({navigation}) => {
   );
 };
 
-export default ForgotPasswordOtpScreen;
+export default VendorOtpVerifications;

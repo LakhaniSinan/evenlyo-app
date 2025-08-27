@@ -1,18 +1,18 @@
 import React, {useState} from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {ScrollView, StyleSheet, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {ProgressStep, ProgressSteps} from 'react-native-progress-steps';
 import Background from '../../../components/background';
 import Header from '../../../components/header';
 import {COLORS} from '../../../constants';
+import BusinessPersonalInfo from './BusinessPresonalDetails';
+import Categories from './Categories';
+import MultipleMediaUpload from './GalleryForBusiness';
 import PersonalInfo from './PrsonalInfo';
+import SecurityTab from './SecurityTab';
+import SubCategories from './SubCategories';
 import VendorTypeScreen from './VendorTypeScreen';
+import VerifyTab from './VerifyTab';
 
 const VendorPersonalDetails = ({navigation}) => {
   const [activeStep, setActiveStep] = useState(0);
@@ -20,8 +20,8 @@ const VendorPersonalDetails = ({navigation}) => {
 
   const handleNextStep = type => {
     setSelectedType(type);
+    console.log(type, 'typetypetypetype');
     setActiveStep(prev => prev + 1);
-    console.log(activeStep, 'activeStepactiveStepactiveStep');
   };
 
   return (
@@ -55,27 +55,55 @@ const VendorPersonalDetails = ({navigation}) => {
                 <VendorTypeScreen onSelectType={handleNextStep} />
               </ProgressStep>
 
+              {selectedType === 'personal' ? (
+                <ProgressStep removeBtnRow>
+                  <PersonalInfo
+                    onPressBack={() => setActiveStep(pre => pre - 1)}
+                    handleNextStep={() => setActiveStep(pre => pre + 1)}
+                  />
+                </ProgressStep>
+              ) : (
+                <ProgressStep removeBtnRow>
+                  <BusinessPersonalInfo
+                    onPressBack={() => setActiveStep(pre => pre - 1)}
+                    handleNextStep={() => setActiveStep(pre => pre + 1)}
+                  />
+                </ProgressStep>
+              )}
               <ProgressStep removeBtnRow>
-                <PersonalInfo
-                  onPressBack={() => setActiveStep(0)}
+                <Categories
+                  onPressBack={() => setActiveStep(pre => pre - 1)}
+                  handleNextStep={() => setActiveStep(pre => pre + 1)}
+                />
+              </ProgressStep>
+
+              {selectedType === 'personal' ? (
+                <ProgressStep removeBtnRow>
+                  <SubCategories
+                    onPressBack={() => setActiveStep(pre => pre - 1)}
+                    handleNextStep={() => setActiveStep(pre => pre + 1)}
+                  />
+                </ProgressStep>
+              ) : (
+                <ProgressStep removeBtnRow>
+                  <MultipleMediaUpload
+                    onPressBack={() => setActiveStep(pre => pre - 1)}
+                    handleNextStep={() => setActiveStep(pre => pre + 1)}
+                  />
+                </ProgressStep>
+              )}
+              <ProgressStep removeBtnRow>
+                <SecurityTab
+                  onPressBack={() => setActiveStep(pre => pre - 1)}
                   handleNextStep={() => setActiveStep(pre => pre + 1)}
                 />
               </ProgressStep>
 
               <ProgressStep removeBtnRow>
-                <TouchableOpacity
-                  style={styles.center}
-                  onPress={() => setActiveStep(0)}>
-                  <Text>Step 3 Content</Text>
-                </TouchableOpacity>
-              </ProgressStep>
-
-              <ProgressStep removeBtnRow>
-                <TouchableOpacity
-                  style={styles.center}
-                  onPress={() => setActiveStep(0)}>
-                  <Text>Step 4 Content</Text>
-                </TouchableOpacity>
+                <VerifyTab
+                  onPressBack={() => setActiveStep(pre => pre - 1)}
+                  handleNextStep={() => setActiveStep(pre => pre + 1)}
+                />
               </ProgressStep>
             </ProgressSteps>
           </View>

@@ -1,51 +1,42 @@
-// import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-// import React from 'react';
-// import CustomTabBar from '../../components/customTabBar';
-// import CalendarStack from './BookingStack';
-// import MessagesStack from './CartStack';
-// import HomeStack from './HomeStack';
-// import ProfileStack from './ProfileStack';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import React from 'react';
+import {Image} from 'react-native';
+import {TAB_BAR_ICONS} from '../../assets';
+import HomeStack from './HomeStack';
 
-// const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator();
 
-// const BottomTabStack = () => {
-//   return (
-//     <Tab.Navigator
-//       screenOptions={{
-//         headerShown: false,
-//       }}
-//       tabBar={props => <CustomTabBar {...props} />}
-//       initialRouteName="Home">
-//       <Tab.Screen
-//         name="Home"
-//         component={HomeStack}
-//         options={{
-//           tabBarLabel: 'Home',
-//         }}
-//       />
-//       <Tab.Screen
-//         name="Calendar"
-//         component={CalendarStack}
-//         options={{
-//           tabBarLabel: 'Calendar',
-//         }}
-//       />
-//       <Tab.Screen
-//         name="Messages"
-//         component={MessagesStack}
-//         options={{
-//           tabBarLabel: 'Cart',
-//         }}
-//       />
-//       <Tab.Screen
-//         name="Profile"
-//         component={ProfileStack}
-//         options={{
-//           tabBarLabel: 'Profile',
-//         }}
-//       />
-//     </Tab.Navigator>
-//   );
-// };
+const VendorBottomTabStack = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          paddingBottom: 10,
+          paddingTop: 10,
+          backgroundColor: '#FFFFFF',
+        },
+      }}
+      initialRouteName="Home">
+      <Tab.Screen
+        name="Home"
+        component={HomeStack}
+        options={{
+          tabBarIcon: ({focused}) => (
+            <Image
+              source={focused ? TAB_BAR_ICONS.home : TAB_BAR_ICONS.inActiveHome}
+              style={{
+                width: 27,
+                height: 27,
+                resizeMode: 'contain',
+              }}
+            />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
 
-// export default BottomTabStack;
+export default VendorBottomTabStack;

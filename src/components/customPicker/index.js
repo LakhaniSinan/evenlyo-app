@@ -20,6 +20,7 @@ const CustomPicker = React.forwardRef(
       type,
       handleOpenModal,
       hideEndIcon,
+      dropdownContainerStyle,
     },
     ref,
   ) => {
@@ -63,7 +64,13 @@ const CustomPicker = React.forwardRef(
               setModalVisibility(true);
             }
           }}
-          style={[styles.dropdown, {marginVertical: marginVertical || 0}]}>
+          style={[
+            styles.dropdown,
+            {
+              ...dropdownContainerStyle,
+              marginVertical: marginVertical || 0,
+            },
+          ]}>
           <Text
             style={[
               styles.dropdownText,
