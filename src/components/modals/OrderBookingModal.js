@@ -110,17 +110,6 @@ const OrderBooking = ({
     const kmCost = kmValue * kmRate;
     const total = subtotal + securityFee + kmCost;
 
-    console.log('Calculation details:', {
-      duration,
-      ratePerHour,
-      subtotal,
-      securityFee,
-      kmValue,
-      kmRate,
-      kmCost,
-      total,
-    });
-
     return {
       duration,
       ratePerHour,

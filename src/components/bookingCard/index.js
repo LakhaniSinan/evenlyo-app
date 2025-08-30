@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import {
   FlatList,
@@ -8,9 +9,8 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
+import {IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
-import {useNavigation} from '@react-navigation/native';
-import {ICONS, IMAGES} from '../../assets';
 
 const bookingsData = [
   {

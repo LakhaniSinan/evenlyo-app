@@ -15,6 +15,8 @@ export const COLORS = {
   white: '#FFFFFF',
   black: '#000000',
   green: '#04C373',
+  navyBlue: '#2563EB',
+  yellow: '#EAB308',
 };
 
 export const SIZES = {

@@ -32,7 +32,7 @@ const CustomCalendar = ({
   const generateCalendarDays = () => {
     const startOfMonth = currentMonth.clone().startOf('month');
     const endOfMonth = currentMonth.clone().endOf('month');
-    const startOfWeek = startOfMonth.clone().startOf('week').add(1, 'day'); // Start from Monday
+    const startOfWeek = startOfMonth.clone().startOf('week').add(1, 'day');
     const endOfWeek = endOfMonth.clone().endOf('week').add(1, 'day');
 
     const days = [];
@@ -60,7 +60,6 @@ const CustomCalendar = ({
   };
 
   const handleDatePress = date => {
-    // Immediately select date and close modal
     if (onDateSelect) {
       onDateSelect(date);
     }

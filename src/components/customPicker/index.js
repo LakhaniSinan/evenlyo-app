@@ -46,15 +46,17 @@ const CustomPicker = React.forwardRef(
 
     return (
       <>
-        <Text
-          style={{
-            color: COLORS.textDark,
-            fontFamily: fontFamly.PlusJakartaSansBold,
-            fontSize: 12,
-            marginVertical: width(3),
-          }}>
-          {label}
-        </Text>
+        {label && (
+          <Text
+            style={{
+              color: COLORS.textDark,
+              fontFamily: fontFamly.PlusJakartaSansBold,
+              fontSize: 12,
+              marginVertical: width(3),
+            }}>
+            {label}
+          </Text>
+        )}
         <TouchableOpacity
           activeOpacity={0.6}
           onPress={() => {

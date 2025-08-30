@@ -120,8 +120,8 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginLeft: 10,
-    height: 24,
-    width: 24,
+    height: 20,
+    width: 20,
     objectFit: 'contain',
   },
 });

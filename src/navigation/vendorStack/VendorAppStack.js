@@ -1,6 +1,7 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
-import VendorBottomTabStack from './BottomTabStack';
+import ChatDetail from '../../containers/client/app/ChatDetail';
+import CustomerDrawer from './drawer';
 
 const Stack = createStackNavigator();
 
@@ -12,7 +13,8 @@ const VendorAppStack = () => {
         headerShown: false,
         cardStyle: {backgroundColor: '#FFFFFF'},
       }}>
-      <Stack.Screen name="MainTabs" component={VendorBottomTabStack} />
+      <Stack.Screen name="MainTabs" component={CustomerDrawer} />
+      <Stack.Screen name="ChatDetail" component={ChatDetail} />
     </Stack.Navigator>
   );
 };

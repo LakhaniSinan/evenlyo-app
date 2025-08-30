@@ -2,7 +2,10 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import React from 'react';
 import {Image} from 'react-native';
 import {TAB_BAR_ICONS} from '../../assets';
+import AllBookingStack from './AllBookingStack';
+import EventListStack from './EventListStack';
 import HomeStack from './HomeStack';
+import ProfileStack from './ProfileStack';
 
 const Tab = createBottomTabNavigator();
 
@@ -26,6 +29,64 @@ const VendorBottomTabStack = () => {
           tabBarIcon: ({focused}) => (
             <Image
               source={focused ? TAB_BAR_ICONS.home : TAB_BAR_ICONS.inActiveHome}
+              style={{
+                width: 27,
+                height: 27,
+                resizeMode: 'contain',
+              }}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="EventList"
+        component={EventListStack}
+        options={{
+          tabBarIcon: ({focused}) => (
+            <Image
+              source={
+                focused
+                  ? TAB_BAR_ICONS.activeListIcon
+                  : TAB_BAR_ICONS.inActiveListIcon
+              }
+              style={{
+                width: 27,
+                height: 27,
+                resizeMode: 'contain',
+              }}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="AllBookingStack"
+        component={AllBookingStack}
+        options={{
+          tabBarIcon: ({focused}) => (
+            <Image
+              source={
+                focused
+                  ? TAB_BAR_ICONS.calendar
+                  : TAB_BAR_ICONS.inActiveCalendar
+              }
+              style={{
+                width: 27,
+                height: 27,
+                resizeMode: 'contain',
+              }}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileStack}
+        options={{
+          tabBarIcon: ({focused}) => (
+            <Image
+              source={
+                focused ? TAB_BAR_ICONS.profile : TAB_BAR_ICONS.inActiveProfile
+              }
               style={{
                 width: 27,
                 height: 27,

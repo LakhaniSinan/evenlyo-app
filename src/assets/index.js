@@ -64,6 +64,17 @@ export const ICONS = {
   earningIcon: require('./icons/earningIcon.png'),
   groupIcon: require('./icons/groupIcon.png'),
   whiteCartIcon: require('./icons/whiteCartIcon.png'),
+  plusIcon: require('./icons/plusIcon.png'),
+  gridientMenuIcon: require('./icons/gridientMenuIcon.png'),
+  viewIcon: require('./icons/viewIcon.png'),
+  editGridientIcon: require('./icons/editGridientIcon.png'),
+  deleteIcon: require('./icons/deleteIcon.png'),
+  filterIcon: require('./icons/filterIcon.png'),
+  clockIcon: require('./icons/clockIcon.png'),
+  dollerSignIcon: require('./icons/dollerSignIcon.png'),
+  incrimentIcon: require('./icons/incrimentIcon.png'),
+  ticketIcon: require('./icons/ticketIcon.png'),
+  blackDownloadIcon: require('./icons/blackDownloadIcon.png'),
 };
 
 export const IMAGES = {
@@ -84,4 +95,6 @@ export const TAB_BAR_ICONS = {
   inActiveCalendar: require('./tabBars/inActiveCalender.png'),
   inActiveCessages: require('./tabBars/inActiveCart.png'),
   inActiveProfile: require('./tabBars/inActiveProfile.png'),
+  activeListIcon: require('./tabBars/activeListIcon.png'),
+  inActiveListIcon: require('./tabBars/inActiveListIcon.png'),
 };

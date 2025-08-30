@@ -11,6 +11,7 @@ const ContactNumberInput = ({
   containerStyle,
   onChange,
   labelText,
+  endIcon,
 }) => {
   return (
     <View style={styles.container}>
@@ -40,6 +41,7 @@ const ContactNumberInput = ({
           placeholderTextColor: '#aaa',
         }}
       />
+      {endIcon && <View>{endIcon}</View>}
     </View>
   );
 };

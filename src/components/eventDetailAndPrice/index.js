@@ -1,10 +1,11 @@
-import React from 'react';
-import {View, Text, Image} from 'react-native';
+import React, {useState} from 'react';
+import {Image, StyleSheet, Switch, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
-import {COLORS, fontFamly} from '../../constants';
-import {ICONS} from '../../assets';
 import {Rating} from 'react-native-ratings';
-const EventAndPriceDetails = ({showrating, showDiscount}) => {
+import {ICONS} from '../../assets';
+import {COLORS, fontFamly} from '../../constants';
+const EventAndPriceDetails = ({showrating, showDiscount, showSwitch}) => {
+  const [emailNotification, setEmailNotification] = useState(false);
   return (
     <View
       style={{
@@ -86,6 +87,35 @@ const EventAndPriceDetails = ({showrating, showDiscount}) => {
             </Text>
           </View>
         )}
+        {showSwitch && (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: width(2),
+            }}>
+            <Text
+              style={{
+                fontFamily: fontFamly.PlusJakartaSansBold,
+                color: COLORS.green,
+                fontSize: 12,
+              }}>
+              Live
+            </Text>
+
+            <Switch
+              value={emailNotification}
+              onValueChange={value => setEmailNotification(value)}
+              trackColor={{
+                false: '#E5E5E5',
+                true: COLORS.primary,
+              }}
+              thumbColor={emailNotification ? '#FFFFFF' : '#FFFFFF'}
+              ios_backgroundColor="#E5E5E5"
+              style={styles.switch}
+            />
+          </View>
+        )}
         <Text
           style={{
             fontFamily: fontFamly.PlusJakartaSansBold,
@@ -108,3 +138,9 @@ const EventAndPriceDetails = ({showrating, showDiscount}) => {
 };
 
 export default EventAndPriceDetails;
+
+const styles = StyleSheet.create({
+  switch: {
+    transform: [{scaleX: 1.1}, {scaleY: 1.1}],
+  },
+});

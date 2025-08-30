@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {SafeAreaView, StatusBar} from 'react-native';
 import {Provider, useDispatch} from 'react-redux';
+import {Provider as PaperProvider} from 'react-native-paper';
 import store from './src/redux';
 import AppNavigator from './src/navigation';
 import './src/services/i18n'; // Initialize i18n
@@ -23,7 +24,9 @@ const AppContent = () => {
 const App = () => {
   return (
     <Provider store={store}>
-      <AppContent />
+      <PaperProvider>
+        <AppContent />
+      </PaperProvider>
     </Provider>
   );
 };

@@ -42,8 +42,6 @@ const FilterModal = ({isVisible, onClose, nestedFilter}) => {
     timeRange: '',
   });
 
-  console.log(filterStartDate, 'filterStartDate');
-  console.log(filterEndDate, 'filterEndDate');
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
@@ -98,19 +96,6 @@ const FilterModal = ({isVisible, onClose, nestedFilter}) => {
       setInputVal(prevState => ({
         ...prevState,
         [name]: value?.name || value,
-      }));
-    }
-  };
-
-  const handleDateRangeChange = (startDate, endDate) => {
-    console.log('Date range changed:', startDate, endDate);
-    setFilterStartDate(startDate);
-    setFilterEndDate(endDate);
-    if (setInputVal && typeof setInputVal === 'function') {
-      setInputVal(prevState => ({
-        ...prevState,
-        startDate: startDate,
-        endDate: endDate,
       }));
     }
   };
