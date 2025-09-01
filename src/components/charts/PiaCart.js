@@ -1,57 +1,22 @@
 import React, {useRef, useState} from 'react';
-import {Text, View} from 'react-native';
+import {Dimensions, StyleSheet, Text, View} from 'react-native';
 import {PieChart} from 'react-native-chart-kit';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
 import CustomPicker from '../customPicker';
 
-const PieChartComponent = () => {
+const screenWidth = Dimensions.get('window').width;
+
+const PieChartComponent = ({labelll = 'Orders Overview'}) => {
   const selectSizeRef = useRef();
   const [filterType, setFilterType] = useState(null);
 
+  // Updated values for better visual variation
   const data = [
-    {
-      name: 'Jan',
-      population: 20,
-      color: '#FF295D',
-      legendFontColor: '#333',
-      legendFontSize: 12,
-    },
-    {
-      name: 'Feb',
-      population: 45,
-      color: '#4CAF50',
-      legendFontColor: '#333',
-      legendFontSize: 12,
-    },
-    {
-      name: 'Mar',
-      population: 28,
-      color: '#2196F3',
-      legendFontColor: '#333',
-      legendFontSize: 12,
-    },
-    {
-      name: 'Apr',
-      population: 80,
-      color: '#FFC107',
-      legendFontColor: '#333',
-      legendFontSize: 12,
-    },
-    {
-      name: 'May',
-      population: 99,
-      color: '#9C27B0',
-      legendFontColor: '#333',
-      legendFontSize: 12,
-    },
-    {
-      name: 'Jun',
-      population: 43,
-      color: '#00BCD4',
-      legendFontColor: '#333',
-      legendFontSize: 12,
-    },
+    {name: 'DJ', population: 3500, color: '#FF2D87'}, // Pink
+    {name: 'Live Band', population: 4500, color: '#3B82F6'}, // Blue
+    {name: 'Photo Booth', population: 2000, color: '#F59E0B'}, // Orange
+    {name: 'Catering', population: 3000, color: '#FBBF24'}, // Yellow
   ];
 
   const handleSelectValue = (name, value) => {
@@ -59,25 +24,10 @@ const PieChartComponent = () => {
   };
 
   return (
-    <View
-      style={{
-        paddingHorizontal: width(2.5),
-      }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: width(4),
-        }}>
-        <Text
-          style={{
-            fontSize: 12,
-            fontFamily: fontFamly.PlusJakartaSansBold,
-          }}>
-          Orders Overview
-        </Text>
-
+    <View style={{paddingHorizontal: width(2.5)}}>
+      {/* Header */}
+      <View style={styles.headerRow}>
+        <Text style={styles.headerText}>{labelll}</Text>
         <View style={{width: width(40)}}>
           <CustomPicker
             ref={selectSizeRef}
@@ -101,23 +51,85 @@ const PieChartComponent = () => {
         </View>
       </View>
 
-      <PieChart
-        data={data}
-        width={width(89)}
-        height={250}
-        chartConfig={{
-          color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-        }}
-        accessor="population"
-        backgroundColor="transparent"
-        paddingLeft="15"
-        absolute
-        style={{
-          borderRadius: 16,
-        }}
-      />
+      <View style={styles.chartContainer}>
+        <View style={styles.legendContainer}>
+          {data.map((item, index) => (
+            <View key={index} style={styles.legendRow}>
+              <View style={[styles.legendDot, {backgroundColor: item.color}]} />
+              <Text style={styles.legendText}>{item.name}</Text>
+              <Text style={styles.legendValue}>${item.population}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.pieWrapper}>
+          <PieChart
+            data={data}
+            width={screenWidth * 0.5} // Half of screen width for chart
+            height={220}
+            chartConfig={{
+              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            }}
+            accessor="population"
+            backgroundColor="transparent"
+            paddingLeft="50"
+            center={[10, 0]} // small shift if needed
+            absolute
+            hasLegend={false} // hide default legends
+            style={{borderRadius: 16}}
+          />
+        </View>
+      </View>
     </View>
   );
 };
 
 export default PieChartComponent;
+
+const styles = StyleSheet.create({
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: width(4),
+  },
+  headerText: {
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  chartContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  legendContainer: {
+    width: width(40),
+    justifyContent: 'center',
+  },
+  pieWrapper: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  legendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: width(2.5),
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  legendText: {
+    flex: 1,
+    fontSize: 12,
+    color: '#333',
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+  },
+  legendValue: {
+    fontSize: 12,
+    color: '#000',
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+});

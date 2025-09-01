@@ -4,7 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {COLORS, fontFamly} from '../../constants';
 
 const DashboardCard = ({item}) => {
-  const isGradient = item?.title === 'Last Week Earning';
+  const isGradient = item?.title === 'Total Items';
   const gradientColors = ['#FF295D', '#E31B95', '#C817AE'];
 
   return (
@@ -77,9 +77,7 @@ const CardContent = ({item, isDark = false}) => {
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor:
-              item?.title === 'Last Week Earning'
-                ? 'transparent'
-                : COLORS.white,
+              item?.title === 'Total Items' ? 'transparent' : COLORS.white,
           }}>
           <Image
             source={item.icon}

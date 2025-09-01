@@ -18,9 +18,7 @@ const Home = ({navigation}) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const {t} = useTranslation();
   return (
-    <SafeAreaView
-      edges={['top', 'left', 'right']}
-      style={{flex: 1, backgroundColor: COLORS.white}}>
+    <>
       <FlatList
         style={{flex: 1}}
         showsVerticalScrollIndicator={false}
@@ -193,7 +191,7 @@ const Home = ({navigation}) => {
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
       />
-    </SafeAreaView>
+    </>
   );
 };
 

@@ -4,6 +4,8 @@ import Bookings from '../../containers/client/app/Booking';
 import BookingDetails from '../../containers/client/app/BookingDetails';
 import Messages from '../../containers/client/app/Messages';
 import TrackDirections from '../../containers/client/app/TrackDirections';
+import Notification from '../../containers/client/app/Notification';
+import NotificationDetails from '../../containers/client/app/NotificationDetails';
 
 const Stack = createStackNavigator();
 
@@ -41,6 +43,20 @@ const CalendarStack = () => {
         component={Messages}
         options={{
           title: 'Messages',
+        }}
+      />
+      <Stack.Screen
+        name="Notifications"
+        component={Notification}
+        options={{
+          title: 'Notifications',
+        }}
+      />
+      <Stack.Screen
+        name="NotificationDetails"
+        component={NotificationDetails}
+        options={{
+          title: 'NotificationDetails',
         }}
       />
     </Stack.Navigator>

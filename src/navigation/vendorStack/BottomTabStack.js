@@ -19,6 +19,7 @@ const VendorBottomTabStack = () => {
           paddingBottom: 10,
           paddingTop: 10,
           backgroundColor: '#FFFFFF',
+          elevation:0
         },
       }}
       initialRouteName="Home">

@@ -7,28 +7,31 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
-import InvoiceModal from '../modals/InvoiceModal';
-import {runOnJS} from 'react-native-reanimated';
+import ReportingModal from '../modals/ReportingModal';
 
-const BookingTable = ({data}) => {
+const BookingTable = ({data, canDownload}) => {
   const [modalVisible, setModalVisible] = useState(false);
+
   const renderItem = ({item}) => (
     <View style={styles.row}>
       <Text style={styles.cell}>{item.bookingId}</Text>
       <Text style={styles.cell}>{item.bookingItem}</Text>
       <Text style={styles.cell}>{item.totalCost}</Text>
       <Text style={[styles.cell, styles.earning]}>{item.earning}</Text>
-      <TouchableOpacity
-        style={styles.cell}
-        onPress={() => setModalVisible(true)}>
-        <Image
-          source={ICONS.downloadIcon}
-          style={{height: 10, width: 10}}
-          tintColor={COLORS.textLight}
-        />
-      </TouchableOpacity>
+      {canDownload && (
+        <TouchableOpacity
+          style={styles.cell}
+          onPress={() => setModalVisible(true)}>
+          <Image
+            source={ICONS.downloadIcon}
+            style={{height: 10, width: 10}}
+            tintColor={COLORS.textLight}
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -41,16 +44,22 @@ const BookingTable = ({data}) => {
           <Text style={styles.headerCell}>Booking Item</Text>
           <Text style={styles.headerCell}>Total Cost</Text>
           <Text style={styles.headerCell}>Earning</Text>
-          <Text style={styles.headerCell}></Text>
+          {canDownload && <Text style={styles.headerCell}></Text>}
         </View>
 
-        <FlatList
-          data={data}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={renderItem}
-        />
+        {/* Scrollable Table Body */}
+        <View style={styles.scrollContainer}>
+          <FlatList
+            data={data}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={renderItem}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
       </View>
-      <InvoiceModal
+
+      {/* Modal */}
+      <ReportingModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
       />
@@ -63,13 +72,15 @@ export default BookingTable;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    // padding: 10,
   },
   table: {
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 12,
     overflow: 'hidden',
+  },
+  scrollContainer: {
   },
   row: {
     flexDirection: 'row',

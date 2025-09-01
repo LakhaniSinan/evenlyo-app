@@ -16,9 +16,9 @@ import AppHeader from '../../../components/appHeader';
 import BookingTable from '../../../components/bookingTable/index.js';
 import LineChartComponent from '../../../components/charts/LineChart.js';
 import PieChartComponent from '../../../components/charts/PiaCart.js';
+import AnalyticsFilter from '../../../components/modals/AnalyticsFilter.js';
 import AnalyticsCard from '../../../components/reportAndAnalyticsCard/index.js';
 import {COLORS, fontFamly} from '../../../constants';
-import ReportingModal from '../../../components/modals/ReportingModal.js';
 
 const renderTabs = ['Booking Items', 'Sale Items'];
 
@@ -64,20 +64,21 @@ const tableData = [
   },
 ];
 
-const AnalyticsReport = ({route}) => {
-  const data = route.params;
-  const [modalVisible, setModalVisible] = useState(true);
+const AnalyticsReport = () => {
   const navigation = useNavigation();
+  const [modalVisible, setModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('Booking Items');
 
-  const onPressBtn = () => {};
+  const onPressBtn = buttonText => {
+    if (buttonText == 'Filter') setModalVisible(true);
+  };
   const handleDownload = () => {
     setModalVisible(true);
   };
   const renderFilterButton = (buttonIcon, buttonText) => {
     return (
       <TouchableOpacity
-        onPress={onPressBtn}
+        onPress={() => onPressBtn(buttonText)}
         style={{
           width: width(30),
           borderWidth: 1,
@@ -118,6 +119,7 @@ const AnalyticsReport = ({route}) => {
           navigation.navigate('Notifications');
         }}
       />
+
       <ScrollView style={{flex: 1}}>
         <View style={styles.tabContainer}>
           {renderTabs.map(tab => (
@@ -232,8 +234,15 @@ const AnalyticsReport = ({route}) => {
             borderRadius: 12,
             paddingVertical: width(4),
           }}>
-          <LineChartComponent />
+          <LineChartComponent
+            labelll={
+              activeTab == 'Booking Items'
+                ? 'Booking Earnings'
+                : 'Sale Earnings'
+            }
+          />
         </View>
+
         <View
           style={{
             backgroundColor: COLORS.backgroundLight,
@@ -242,10 +251,24 @@ const AnalyticsReport = ({route}) => {
             borderRadius: 12,
             paddingVertical: width(4),
           }}>
-          <PieChartComponent />
+          <PieChartComponent
+            labelll={
+              activeTab == 'Booking Items'
+                ? 'Booking Earnings'
+                : 'Sale Earnings'
+            }
+          />
         </View>
-        <BookingTable data={tableData} canDownload={handleDownload} />
+
+        <View style={{padding: width(3)}}>
+          <BookingTable data={tableData} canDownload={handleDownload} />
+        </View>
       </ScrollView>
+
+      <AnalyticsFilter
+        isVisible={modalVisible}
+        onClose={() => setModalVisible(false)}
+      />
     </SafeAreaView>
   );
 };

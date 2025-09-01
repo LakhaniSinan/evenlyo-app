@@ -1,60 +1,61 @@
-import React, {useState} from 'react';
-import {Modal, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React from 'react';
+import {
+  FlatList,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {width} from 'react-native-dimension';
-import {useTranslation} from '../../hooks';
-import {COLORS, fontFamly} from '../../constants';
-import GradientText from '../gradiantText';
-import SubscriptionTable from '../subscriptionTabel';
-import GradientButton from '../button';
 import {ICONS} from '../../assets';
+import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
+import BookingTable from '../bookingTable';
+import GradientButton from '../button';
+import GradientText from '../gradiantText';
 
 const ReportingModal = ({visible, onClose}) => {
   const {t} = useTranslation();
-  const [paymentType, setPaymentType] = useState('');
-  const [cardDetails, setCardDetails] = useState(null);
-  const dummyData = [
+
+  const tableData = [
     {
-      billingId: 'INV-001',
-      date: '6/15/2024',
-      plan: 'Basic',
-      amount: 0,
-      status: 'Paid',
+      bookingId: 'ITM001',
+      bookingItem: 'DJ',
+      totalCost: '$1,195',
+      earning: '$359',
     },
     {
-      billingId: 'INV-002',
-      date: '6/18/2024',
-      plan: 'Premium',
-      amount: 20,
-      status: 'Left',
+      bookingId: 'ITM002',
+      bookingItem: 'DJ',
+      totalCost: '$1,195',
+      earning: '$359',
+    },
+    {
+      bookingId: 'ITM003',
+      bookingItem: 'DJ',
+      totalCost: '$1,195',
+      earning: '$359',
+    },
+    {
+      bookingId: 'ITM004',
+      bookingItem: 'DJ',
+      totalCost: '$1,195',
+      earning: '$359',
     },
   ];
 
-  const renderCardData = (left, center, right) => (
-    <View style={[styles.cardRow, {borderWidth: 0, paddingVertical: width(0)}]}>
-      <View style={{flexDirection: 'row', alignItems: 'center'}}>
-        <Text
-          style={[
-            styles.leftText,
-            {
-              fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-              fontSize: 10,
-              color: COLORS.textDark,
-            },
-          ]}>
-          {left}
-        </Text>
-        {center && (
-          <Text
-            style={{
-              fontFamily: fontFamly.PlusJakartaSansBold,
-              color: COLORS.black,
-              marginLeft: width(2),
-            }}>
-            {center}
-          </Text>
-        )}
-      </View>
-      {right && <Text style={styles.rightText}>{right}</Text>}
+  const earningsData = [
+    {label: 'Report Date:', value: '1/15/2024'},
+    {label: 'Today Earning:', value: '$2,450'},
+    {label: 'Last Week Earning:', value: '$18,500'},
+    {label: 'Total Earning:', value: '$125,000'},
+  ];
+
+  const renderEarningItem = ({item}) => (
+    <View style={styles.earningRow}>
+      <Text style={styles.earningLabel}>{item.label}</Text>
+      <Text style={styles.earningValue}>{item.value}</Text>
     </View>
   );
 
@@ -69,181 +70,35 @@ const ReportingModal = ({visible, onClose}) => {
         activeOpacity={1}
         onPress={onClose}>
         <View style={styles.modalContainer}>
+          {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>{t('Invoice INV-2024-001')}</Text>
+            <Text style={styles.title}>{t('Analytics & Report')}</Text>
             <TouchableOpacity onPress={onClose}>
-              <GradientText text={'✕'} />
+              <GradientText text="✕" />
             </TouchableOpacity>
           </View>
 
+          {/* Body */}
           <View style={styles.body}>
+            {/* Earnings Info */}
             <View style={styles.cardRow}>
-              <View style={{}}>
-                <Text style={styles.leftText}>Invoice</Text>
-                <Text style={styles.centerText}>Invoice #INV-2024-001</Text>
-              </View>
-
-              <View style={{}}>
-                <Text style={[styles.leftText, {fontSize: 10}]}>
-                  Your Company Name
-                </Text>
-                <Text
-                  style={[
-                    styles.centerText,
-                    {
-                      fontSize: 11,
-                      color: COLORS.textLight,
-                      width: width(36),
-                    },
-                  ]}>
-                  123 Business Street City, State 12345
-                </Text>
-                <Text
-                  style={[
-                    styles.centerText,
-                    {
-                      fontSize: 11,
-                      color: COLORS.textLight,
-                      width: width(36),
-                    },
-                  ]}>
-                  contact@company.com
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.cardRow}>
-              <View style={{}}>
-                <Text style={styles.leftText}>Bill To:</Text>
-                <Text style={styles.centerText}>Customer Name</Text>
-                <Text style={styles.centerText}>customer@email.com</Text>
-                <Text style={styles.centerText}>Customer Address</Text>
-              </View>
-
-              <View style={{}}>
-                <Text style={[styles.leftText, {fontSize: 10}]}>
-                  Invoice Details:
-                </Text>
-                <View
-                  style={{
-                    width: width(36),
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}>
-                  <Text
-                    style={[
-                      styles.centerText,
-                      {
-                        fontSize: 11,
-                        color: COLORS.textLight,
-                      },
-                    ]}>
-                    Date:
-                  </Text>
-                  <Text
-                    style={[
-                      styles.centerText,
-                      {
-                        fontSize: 11,
-                        color: COLORS.textLight,
-                      },
-                    ]}>
-                    1/15/2024
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    width: width(36),
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}>
-                  <Text
-                    style={[
-                      styles.centerText,
-                      {
-                        fontSize: 11,
-                        color: COLORS.textLight,
-                      },
-                    ]}>
-                    Due Date:
-                  </Text>
-                  <Text
-                    style={[
-                      styles.centerText,
-                      {
-                        fontSize: 11,
-                        color: COLORS.textLight,
-                      },
-                    ]}>
-                    2/14/2024
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    width: width(36),
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}>
-                  <Text
-                    style={[
-                      styles.centerText,
-                      {
-                        fontSize: 11,
-                        color: COLORS.textLight,
-                      },
-                    ]}>
-                    Status:
-                  </Text>
-                  <Text
-                    style={[
-                      styles.centerText,
-                      {
-                        fontSize: 11,
-                        color: COLORS.textLight,
-                      },
-                    ]}>
-                    Paid
-                  </Text>
-                </View>
-              </View>
-            </View>
-            <SubscriptionTable
-              data={dummyData}
-              onFilterPress={() => {}}
-              onExportPress={() => {}}
-              //   handlPayAmount={() => setModalVisible(true)}
-            />
-            <View
-              style={[
-                styles.cardContainer,
-                {
-                  marginTop: width(2),
-                },
-              ]}>
-              {renderCardData('Subtotal:', '', '$99.99')}
-              {renderCardData('Tax (0%):', '', '$0.00')}
-              {renderCardData('Security Fee:', '', '$25.00')}
-              {renderCardData('Kilometer:', '10km', '$2')}
-              <View
-                style={{
-                  borderBottomColor: COLORS.border,
-                  borderBottomWidth: 1,
-                }}
+              <FlatList
+                data={earningsData}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={renderEarningItem}
               />
-              {renderCardData('Total:', '', '$126.99')}
             </View>
+
+            {/* Booking Table */}
+            <View style={{minHeight: width(60)}}>
+              <BookingTable data={tableData} canDownload={false} />
+            </View>
+
             <GradientButton
               icon={ICONS.downloadIcon}
               text="Export PDF"
+              textStyle={styles.buttonText}
               // onPress={handleDownloadPDF}
-              textStyle={{
-                fontSize: 12,
-                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                color: 'white',
-              }}
             />
           </View>
         </View>
@@ -285,68 +140,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
-    marginTop: width(2),
   },
   body: {
     paddingHorizontal: width(4),
-  },
-  cardContainer: {
-    borderRadius: width(4),
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    marginBottom: width(5),
+    marginTop: width(3),
   },
   cardRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 6,
-    paddingHorizontal: width(3),
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 12,
-    marginVertical: width(2),
+    padding: width(3),
+    marginBottom: width(5),
   },
-  leftText: {
-    fontSize: 14,
-    fontFamily: fontFamly.PlusJakartaSansBold,
+  earningRow: {
+    flexDirection: 'row',
+    marginBottom: width(1.5),
   },
-  centerText: {
+  earningLabel: {
+    fontSize: 11,
     color: COLORS.textLight,
-    fontSize: 8,
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
-  rightText: {
-    fontSize: 12,
+  earningValue: {
+    fontSize: 11,
+    color: COLORS.black,
+    marginLeft: width(2),
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
-  cardFieldContainer: {
-    height: 50,
-    marginVertical: 20,
-  },
-  cardField: {
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: 12,
-    textColor: '#000000',
-    fontSize: 14,
-    placeholderColor: COLORS.textLight,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: width(4),
-  },
-  cancelButton: {
-    backgroundColor: COLORS.backgroundLight,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: width(40),
-  },
-  payButtonText: {
+  buttonText: {
     fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-    color: 'white',
+    color: COLORS.white,
   },
 });

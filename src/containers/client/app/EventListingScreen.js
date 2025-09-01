@@ -76,7 +76,6 @@ const EventListingScreen = ({navigation}) => {
             backgroundColor: COLORS.backgroundLight,
             borderBottomRightRadius: 20,
             borderBottomLeftRadius: 20,
-            paddingTop: width(10),
           }}>
           <View
             style={{

@@ -60,7 +60,7 @@ const EventDetails = ({navigation}) => {
           leftIcon={ICONS.leftArrowIcon}
           headingText={'Details'}
           rightIcon={ICONS.notificationIcon}
-          onRightIconPress={() => navigation.navigate('Notification')}
+          onRightIconPress={() => navigation.navigate('Notifications')}
           onLeftIconPress={() => navigation.goBack()}
         />
 

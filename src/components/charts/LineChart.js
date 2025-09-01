@@ -5,7 +5,7 @@ import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
 import CustomPicker from '../customPicker';
 
-const LineChartComponent = () => {
+const LineChartComponent = ({labelll = 'Orders Overview'}) => {
   const selectSizeRef = useRef();
   const [filterType, setFilterType] = useState(null);
 
@@ -59,7 +59,7 @@ const LineChartComponent = () => {
             fontSize: 12,
             fontFamily: fontFamly.PlusJakartaSansBold,
           }}>
-          Orders Overview
+          {labelll}
         </Text>
 
         <View style={{width: width(40)}}>

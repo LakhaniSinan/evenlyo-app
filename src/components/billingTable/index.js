@@ -15,6 +15,7 @@ import TextField from '../textInput';
 const BillingTable = ({
   data,
   onFilterPress,
+  onExportPress,
   handleDownload,
   handlPayAmount,
 }) => {
@@ -130,7 +131,7 @@ const BillingTable = ({
               Filter by date
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.filterButton} onPress={onFilterPress}>
+          <TouchableOpacity style={styles.filterButton} onPress={onExportPress}>
             <Image
               source={ICONS.downloadIcon}
               resizeMode="contain"

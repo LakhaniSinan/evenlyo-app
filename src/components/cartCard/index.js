@@ -1,7 +1,7 @@
 import React from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
-import {ICONS} from '../../assets';
+import {ICONS, IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
@@ -58,11 +58,7 @@ const CartCard = ({
     <View style={styles.cardContainer}>
       <View style={styles.imageContainer}>
         <Image
-          source={
-            item.image
-              ? {uri: item.image}
-              : require('../../assets/images/coverImage1.png')
-          }
+          source={IMAGES.backgroundImage2}
           style={styles.cardImage}
           resizeMode="cover"
         />

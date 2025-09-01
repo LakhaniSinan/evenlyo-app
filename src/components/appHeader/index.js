@@ -78,9 +78,11 @@ const AppHeader = ({
 
   return (
     <View
-      style={{
-        paddingTop: width(10),
-      }}>
+      style={
+        {
+          // paddingTop: width(10),
+        }
+      }>
       <View
         style={{
           backgroundColor: COLORS.backgroundLight,
@@ -90,7 +92,12 @@ const AppHeader = ({
         }}>
         {leftIcon && (
           <TouchableOpacity
-            style={{position: 'absolute', left: width(3), top: width(4)}}
+            style={{
+              position: 'absolute',
+              left: width(3),
+              top: width(4),
+              zIndex: 999,
+            }}
             onPress={() => onLeftIconPress()}>
             <Image
               resizeMode="contain"

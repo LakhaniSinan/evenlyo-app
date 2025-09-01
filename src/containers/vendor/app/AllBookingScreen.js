@@ -135,7 +135,7 @@ function AllBookingScreen() {
         leftIcon={ICONS.drawerIcon}
         rightIcon={ICONS.notificationIcon}
         onLeftIconPress={() => {
-          // navigation.openDrawer();
+          navigation.openDrawer();
         }}
         onRightIconPress={() => {
           navigation.navigate('Notifications');
@@ -188,6 +188,7 @@ function AllBookingScreen() {
             />
           </View>
           <TouchableOpacity
+            onPress={() => setModalVisible(true)}
             style={{
               width: width(30),
               borderWidth: 1,

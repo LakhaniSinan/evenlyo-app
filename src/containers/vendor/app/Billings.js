@@ -31,7 +31,7 @@ const BillingManagement = () => {
 
   const handleFilter = () => {
     console.log('Filter by date clicked');
-    setInvoiceModal(true);
+    setModalVisible(true);
   };
 
   const handleExport = () => {
@@ -48,7 +48,7 @@ const BillingManagement = () => {
           navigation.goBack();
         }}
         onRightIconPress={() => {
-          // navigation.navigate('Notifications');
+          navigation.navigate('Notification');
         }}
       />
       <BillingTable

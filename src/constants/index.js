@@ -1,6 +1,6 @@
 // App constants
 export const COLORS = {
-  primary: '#E31B95',
+  primary: '#e31b964b',
   secondary: '#FF6B6B',
   success: '#4ECDC4',
   warning: '#FFE66D',

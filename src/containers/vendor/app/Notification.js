@@ -75,9 +75,7 @@ const Notification = ({navigation}) => {
     );
   };
   return (
-    <SafeAreaView
-      edges={['top', 'left', 'right']}
-      style={{flex: 1, backgroundColor: COLORS.white}}>
+    <>
       <FlatList
         ListHeaderComponent={
           <View
@@ -147,7 +145,7 @@ const Notification = ({navigation}) => {
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
       />
-    </SafeAreaView>
+    </>
   );
 };
 

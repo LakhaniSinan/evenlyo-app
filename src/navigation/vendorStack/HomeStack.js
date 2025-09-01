@@ -2,8 +2,10 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Dashboard from '../../containers/vendor/app/Dashboard';
 import Notification from '../../containers/vendor/app/Notification';
-import NotificationDetails from '../../containers/client/app/NotificationDetails';
 import AnalyticsReport from '../../containers/vendor/app/AnalyticsScreen';
+import Messages from '../../containers/vendor/app/Messages';
+import NotificationDetails from '../../containers/vendor/app/NotificationDetails';
+import ChatDetails from '../../containers/vendor/app/ChatDetails';
 
 const Stack = createStackNavigator();
 
@@ -30,10 +32,24 @@ const HomeStack = () => {
         }}
       />
       <Stack.Screen
+        name="NotificationDetails"
+        component={NotificationDetails}
+        options={{
+          title: 'NotificationDetails',
+        }}
+      />
+      <Stack.Screen
         name="AnalyticsReport"
         component={AnalyticsReport}
         options={{
           title: 'AnalyticsReport',
+        }}
+      />
+      <Stack.Screen
+        name="Messages"
+        component={Messages}
+        options={{
+          title: 'Messages',
         }}
       />
     </Stack.Navigator>

@@ -8,6 +8,9 @@ import ResetPassword from '../../containers/vendor/app/ResetPasswordScreen';
 import Settings from '../../containers/vendor/app/Settings';
 import Notification from '../../containers/vendor/app/Notification';
 import NotificationDetails from '../../containers/vendor/app/NotificationDetails';
+import Messages from '../../containers/vendor/app/Messages';
+import ChatDetails from '../../containers/vendor/app/ChatDetails';
+import AnalyticsReport from '../../containers/vendor/app/AnalyticsScreen';
 
 const Stack = createStackNavigator();
 
@@ -73,6 +76,21 @@ const ProfileStack = () => {
         component={NotificationDetails}
         options={{
           title: 'NotificationDetails',
+        }}
+      />
+      <Stack.Screen
+        name="Messages"
+        component={Messages}
+        options={{
+          title: 'Messages',
+        }}
+      />
+
+      <Stack.Screen
+        name="AnalyticsReport"
+        component={AnalyticsReport}
+        options={{
+          title: 'AnalyticsReport',
         }}
       />
     </Stack.Navigator>

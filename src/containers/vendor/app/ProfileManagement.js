@@ -140,11 +140,11 @@ function ProfileManagement({navigation}) {
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <AppHeader
         leftIcon={ICONS.leftArrowIcon}
-        headingText={t('booking')}
+        headingText={t('Profile Management')}
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={() => navigation.goBack()}
         setModalVisible={() => {}}
-        onRightIconPress={() => navigation.navigate('MessagesScreen')}
+        onRightIconPress={() => navigation.navigate('Messages')}
         containerStyle={{
           marginVertical: 10,
         }}

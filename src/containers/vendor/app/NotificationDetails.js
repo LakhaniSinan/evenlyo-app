@@ -13,8 +13,6 @@ import GradientButton from '../../../components/button';
 const NotificationDetails = () => {
   const navigation = useNavigation();
   const data = [1, 2, 3, 4, 5];
-  const [activeSlide, setActiveSlide] = useState(0);
-  console.log(activeSlide, 'activeSlideactiveSlideactiveSlide');
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>

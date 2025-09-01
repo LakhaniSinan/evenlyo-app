@@ -28,7 +28,7 @@ const HomeStack = () => {
         }}
       />
       <Stack.Screen
-        name="Notification"
+        name="Notifications"
         component={Notification}
         options={{
           title: 'Notification',

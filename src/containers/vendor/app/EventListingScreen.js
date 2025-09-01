@@ -1,19 +1,25 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   FlatList,
   Image,
   SafeAreaView,
   ScrollView,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS, IMAGES} from '../../../assets';
 import EventListingCard from '../../../components/eventListingCards';
+import AddMoreCategory from '../../../components/modals/AddMoreCategory';
+import AddNewDataModal from '../../../components/modals/AddNewDataModal';
+import SubCategoriesModal from '../../../components/modals/AddSubCategories';
+import CategoryEditSuccess from '../../../components/modals/CategoryEditSuccess';
 import EventFilterModal from '../../../components/modals/EventFilter';
 import TextField from '../../../components/textInput';
-import {COLORS} from '../../../constants';
+import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import EventListingModal from '../../../components/modals/AddEventListing';
 const bookingsData = [
   {
     id: '1',
@@ -73,7 +79,62 @@ const bookingsData = [
 
 const EventListingScreen = ({navigation}) => {
   const {t} = useTranslation();
+  const [showSucessModal, setShowSuccessModal] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [showAddNew, setShowAddNew] = useState(false);
+  const [showMoreCategory, setShowMoreCategory] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [showSubCategory, setShowSubCategory] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState([]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setShowSuccessModal(false);
+    }, 2000);
+  }, [showSubCategory]);
+
+  const handleSelect = type => {
+    setTimeout(() => {
+      setShowAddNew(false);
+      setShowMoreCategory(false);
+      setShowSubCategory(false);
+      setShowSuccessModal(false);
+    }, 300);
+
+    if (type == 1) {
+      setTimeout(() => {
+        setShowMoreCategory(true);
+      }, 500);
+    } else if (type == 2) {
+      setTimeout(() => {
+        setShowMoreCategory(true);
+      }, 500);
+    } else if (type == 4) {
+      setTimeout(() => {
+        setShowSubCategory(true);
+      }, 500);
+    } else if (type == 5) {
+      setTimeout(() => {
+        setShowSuccessModal(true);
+      }, 500);
+    } else {
+      setTimeout(() => {
+        setShowMoreCategory(true);
+      }, 500);
+    }
+  };
+
+  const handleSelectCategory = id => {
+    setSelectedCategory(prev => {
+      if (prev.includes(id)) {
+        // agar already select hai to remove kardo
+        return prev.filter(item => item !== id);
+      } else {
+        // otherwise add kardo
+        return [...prev, id];
+      }
+    });
+  };
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
@@ -85,7 +146,6 @@ const EventListingScreen = ({navigation}) => {
             backgroundColor: COLORS.backgroundLight,
             borderBottomRightRadius: 20,
             borderBottomLeftRadius: 20,
-            paddingTop: width(10),
           }}>
           <View
             style={{
@@ -96,14 +156,26 @@ const EventListingScreen = ({navigation}) => {
               paddingVertical: width(2),
               paddingHorizontal: width(2),
             }}>
-            <TouchableOpacity style={{marginLeft: width(2)}} onPress={() => {}}>
+            <TouchableOpacity
+              style={{marginLeft: width(2)}}
+              onPress={() => navigation.openDrawer()}>
               <Image
                 resizeMode="contain"
                 style={{width: 40, height: 40}}
                 source={ICONS.drawerIcon}
               />
             </TouchableOpacity>
-            <TouchableOpacity style={{borderRadius: 20}} onPress={() => {}}>
+            <Text
+              style={{
+                color: COLORS.textDark,
+                fontFamily: fontFamly.PlusJakartaSansBold,
+                fontSize: 14,
+              }}>
+              All Listings
+            </Text>
+            <TouchableOpacity
+              style={{borderRadius: 20}}
+              onPress={() => setShowAddNew(true)}>
               <Image
                 resizeMode="contain"
                 style={{width: 40, height: 40}}
@@ -165,6 +237,27 @@ const EventListingScreen = ({navigation}) => {
         isVisible={modalVisible}
         onClose={() => setModalVisible(false)}
       />
+      <AddNewDataModal
+        isVisible={showAddNew}
+        selectedOption={selectedOption}
+        onClose={() => setShowAddNew(false)}
+        handleSelect={handleSelect}
+      />
+      <AddMoreCategory
+        isVisible={showMoreCategory}
+        onClose={() => setShowMoreCategory(false)}
+        selectedOption={selectedCategory}
+        handleSelect={handleSelectCategory}
+        handleNext={handleSelect}
+      />
+      <SubCategoriesModal
+        isVisible={showSubCategory}
+        onClose={() => setShowSubCategory(false)}
+        onPressBack={() => console.log('Back pressed')}
+        handleNextStep={handleSelect}
+      />
+      <EventListingModal isVisible={false} />
+      <CategoryEditSuccess visible={showSucessModal} />
     </SafeAreaView>
   );
 };

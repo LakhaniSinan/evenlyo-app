@@ -35,7 +35,7 @@ const TrackDirections = ({navigation}) => {
           leftIcon={ICONS.leftArrowIcon}
           headingText={'Track Detail'}
           rightIcon={ICONS.notificationIcon}
-          onRightIconPress={() => navigation.navigate('Notification')}
+          onRightIconPress={() => navigation.navigate('Notifications')}
           onLeftIconPress={() => navigation.goBack()}
         />
       </View>

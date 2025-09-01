@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import {FlatList, Image, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {ICONS, IMAGES} from '../../../assets';
 import FilterModal from '../../../components/modals/FilterModal';
 import TextField from '../../../components/textInput';
@@ -75,9 +74,7 @@ const Notification = ({navigation}) => {
     );
   };
   return (
-    <SafeAreaView
-      edges={['top', 'left', 'right']}
-      style={{flex: 1, backgroundColor: COLORS.white}}>
+    <>
       <FlatList
         ListHeaderComponent={
           <View
@@ -105,7 +102,7 @@ const Notification = ({navigation}) => {
                 />
               </TouchableOpacity>
               <Text style={{fontFamily: fontFamly.PlusJakartaSansBold}}>
-                {t('notifications')}
+                {t('Notifications')}
               </Text>
               <View style={{width: 40}} />
             </View>
@@ -147,7 +144,7 @@ const Notification = ({navigation}) => {
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
       />
-    </SafeAreaView>
+    </>
   );
 };
 

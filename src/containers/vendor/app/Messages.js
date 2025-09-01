@@ -77,7 +77,7 @@ const Messages = ({navigation}) => {
     return (
       <TouchableOpacity
         style={styles.chatItem}
-        onPress={() => navigation.navigate('ChatDetail', {chat: item})}>
+        onPress={() => navigation.navigate('ChatDetails', {clientName: item.name, chat: item})}>
         <View style={styles.avatarContainer}>
           <Image source={{uri: item.avatar}} style={styles.avatar} />
           {item.isOnline && <View style={styles.onlineIndicator} />}
