@@ -38,7 +38,7 @@ const AnalyticsFilter = ({isVisible, onClose}) => {
               fontSize: 12,
               color: COLORS.black,
             }}>
-            Start Date
+{t('Start Date')}
           </Text>
           <TouchableOpacity
             onPress={() => setShowCalendar(true)}
@@ -59,7 +59,7 @@ const AnalyticsFilter = ({isVisible, onClose}) => {
                 fontFamily: fontFamly.PlusJakartaSansSemiRegular,
                 color: COLORS.textLight,
               }}>
-              DD/MM/YYYY
+{t('DD/MM/YYYY')}
             </Text>
             <Image
               source={ICONS.calenderIcon}
@@ -75,7 +75,7 @@ const AnalyticsFilter = ({isVisible, onClose}) => {
               fontSize: 12,
               color: COLORS.black,
             }}>
-            End Date
+{t('End Date')}
           </Text>
           <TouchableOpacity
             onPress={() => setShowCalendar(true)}
@@ -96,7 +96,7 @@ const AnalyticsFilter = ({isVisible, onClose}) => {
                 fontFamily: fontFamly.PlusJakartaSansSemiRegular,
                 color: COLORS.textLight,
               }}>
-              DD/MM/YYYY
+{t('DD/MM/YYYY')}
             </Text>
             <Image
               source={ICONS.calenderIcon}
@@ -126,7 +126,7 @@ const AnalyticsFilter = ({isVisible, onClose}) => {
                 justifyContent: 'center',
               }}
               activeOpacity={0.7}>
-              <GradientText text={'Reset All'} />
+              <GradientText text={t('Reset All')} />
             </TouchableOpacity>
           </View>
           <View style={{width: width(40)}}>

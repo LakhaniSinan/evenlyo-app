@@ -5,33 +5,35 @@ import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import TabItem from '../../../components/tabsComponent';
 import {COLORS} from '../../../constants';
+import {useTranslation} from '../../../hooks';
 import DetailsContent from './EventDetailContent';
 import AllReviews from './ReviewScreen';
 
 const data = [1, 2, 3, 4, 5];
 
-const tabsData = [
+const getTabsData = (t) => [
   {
     id: 'details',
-    title: 'Details',
+    title: t('Details'),
     activeIcon: ICONS.infoIconActive,
     inactiveIcon: ICONS.infoIconInActive,
   },
   {
     id: 'gallery',
-    title: 'Gallery',
+    title: t('Gallery'),
     activeIcon: ICONS.galleryIconActive,
     inactiveIcon: ICONS.galleryIconInActive,
   },
   {
     id: 'reviews',
-    title: 'Reviews',
+    title: t('Reviews'),
     activeIcon: ICONS.starIconActive,
     inactiveIcon: ICONS.starIconInActive,
   },
 ];
 
 const EventDetails = ({navigation}) => {
+  const {t} = useTranslation();
   const [selectedTab, setSelectedTab] = useState('details');
   const Tabs = ({tabsData, selectedTab, onPress}) => {
     return (
@@ -65,7 +67,7 @@ const EventDetails = ({navigation}) => {
         />
 
         <Tabs
-          tabsData={tabsData}
+          tabsData={getTabsData(t)}
           selectedTab={selectedTab}
           onPress={setSelectedTab}
         />

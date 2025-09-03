@@ -50,7 +50,7 @@ const BillingTable = ({
       <Text style={styles.cellBadge}>{item.plan}</Text>
       <Text style={styles.cell}>${item.amount}</Text>
       <View style={styles.statusWrapper}>
-        {item?.status == 'Paid' ? (
+        {item?.status === 'Paid' ? (
           <Text
             style={[
               styles.status,
@@ -59,7 +59,7 @@ const BillingTable = ({
                 color: item.status === 'Paid' ? '#4CAF50' : '#F44336',
               },
             ]}>
-            {item.status}
+            {t(item.status)}
           </Text>
         ) : (
           <TouchableOpacity onPress={handlPayAmount}>
@@ -72,7 +72,7 @@ const BillingTable = ({
                   color: item.status === 'Paid' ? '#4CAF50' : '#F44336',
                 },
               ]}>
-              {item.status}
+              {t(item.status)}
             </Text>
           </TouchableOpacity>
         )}
@@ -128,7 +128,7 @@ const BillingTable = ({
                 fontSize: 12,
                 marginLeft: 5,
               }}>
-              Filter by date
+{t('Filter by date')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.filterButton} onPress={onExportPress}>
@@ -145,7 +145,7 @@ const BillingTable = ({
                 fontSize: 12,
                 marginLeft: 5,
               }}>
-              Export
+{t('Export')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -154,12 +154,12 @@ const BillingTable = ({
       <View
         style={{borderWidth: 1, borderColor: COLORS.border, borderRadius: 8}}>
         <View style={[styles.row, styles.header]}>
-          <Text style={styles.headerCell}>Billing ID</Text>
-          <Text style={styles.headerCell}>Date</Text>
-          <Text style={styles.headerCell}>Plan</Text>
-          <Text style={styles.headerCell}>Amount</Text>
-          <Text style={styles.headerCell}>Status</Text>
-          <Text style={styles.headerCell}>Actions</Text>
+          <Text style={styles.headerCell}>{t('Billing ID')}</Text>
+          <Text style={styles.headerCell}>{t('Date')}</Text>
+          <Text style={styles.headerCell}>{t('Plan')}</Text>
+          <Text style={styles.headerCell}>{t('Amount')}</Text>
+          <Text style={styles.headerCell}>{t('Status')}</Text>
+          <Text style={styles.headerCell}>{t('Actions')}</Text>
         </View>
 
         {/* Table Data */}

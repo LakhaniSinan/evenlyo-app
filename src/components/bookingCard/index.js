@@ -11,6 +11,7 @@ import {
 import {width} from 'react-native-dimension';
 import {IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 
 const bookingsData = [
   {
@@ -69,26 +70,26 @@ const bookingsData = [
   },
 ];
 
-const getStatusColor = status => {
+const getStatusColor = (status, t) => {
   switch (status) {
-    case 'Completed':
+    case t('Completed'):
       return '#E8F5E8';
-    case 'New Request':
+    case t('New Request'):
       return '#FFE8F0';
-    case 'In Progress':
+    case t('In Progress'):
       return '#FFF3E0';
     default:
       return '#F5F5F5';
   }
 };
 
-const getStatusTextColor = status => {
+const getStatusTextColor = (status, t) => {
   switch (status) {
-    case 'Completed':
+    case t('Completed'):
       return '#2E7D32';
-    case 'New Request':
+    case t('New Request'):
       return '#E91E63';
-    case 'In Progress':
+    case t('In Progress'):
       return '#FF9800';
     default:
       return '#666666';
@@ -97,6 +98,7 @@ const getStatusTextColor = status => {
 
 const BookingCard = ({item}) => {
   const navigation = useNavigation();
+  const {t} = useTranslation();
 
   return (
     <TouchableOpacity
@@ -110,14 +112,14 @@ const BookingCard = ({item}) => {
             <View
               style={[
                 styles.statusBadge,
-                {backgroundColor: getStatusColor(item.status)},
+                {backgroundColor: getStatusColor(item.status, t)},
               ]}>
               <Text
                 style={[
                   styles.statusText,
-                  {color: getStatusTextColor(item.status)},
+                  {color: getStatusTextColor(item.status, t)},
                 ]}>
-                {item.status}
+                {t(item.status)}
               </Text>
             </View>
           </View>
@@ -130,11 +132,11 @@ const BookingCard = ({item}) => {
         </View>
         <View style={styles.footer}>
           <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>View Details</Text>
+            <Text style={styles.buttonText}>{t('View Details')}</Text>
           </TouchableOpacity>
           <View style={styles.priceContainer}>
             <Text style={styles.price}>{item.price}</Text>
-            <Text style={styles.perEvent}>/Per Event</Text>
+            <Text style={styles.perEvent}>{t('/Per Event')}</Text>
           </View>
         </View>
       </View>
@@ -143,14 +145,15 @@ const BookingCard = ({item}) => {
 };
 
 const BookingList = ({activeTab}) => {
+  const {t} = useTranslation();
   // Filter data based on active tab
   const getFilteredData = () => {
-    if (activeTab === 'All Order') {
+    if (activeTab === t('All Order')) {
       return bookingsData;
-    } else if (activeTab === 'New Requests') {
-      return bookingsData.filter(item => item.status === 'New Request');
-    } else if (activeTab === 'In Progress') {
-      return bookingsData.filter(item => item.status === 'In Progress');
+    } else if (activeTab === t('New Requests')) {
+      return bookingsData.filter(item => item.status === t('New Request'));
+    } else if (activeTab === t('In Progress')) {
+      return bookingsData.filter(item => item.status === t('In Progress'));
     }
     return bookingsData;
   };

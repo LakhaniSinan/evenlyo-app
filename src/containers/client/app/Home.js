@@ -77,7 +77,7 @@ const Home = ({navigation}) => {
                     </View>
                     <TouchableOpacity
                       style={{borderRadius: 20}}
-                      onPress={() => navigation.navigate('Notification')}>
+                      onPress={() => navigation.navigate('Notifications')}>
                       <Image
                         resizeMode="contain"
                         style={{width: 40, height: 40}}

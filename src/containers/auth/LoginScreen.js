@@ -112,7 +112,7 @@ const LoginScreen = ({navigation, route}) => {
         <View style={{height: 25}} />
         <GradientButton
           text={t('continueWithGoogle')}
-          onPress={() => navigation.navigate('Home')}
+          onPress={() => {}}
           type="outline"
           styleProps={{backgroundColor: COLORS.backgroundLight}}
           icon={ICONS.googleIcon}
@@ -121,7 +121,7 @@ const LoginScreen = ({navigation, route}) => {
         <View style={{height: 10}} />
         <GradientButton
           text={t('continueWithLinkedin')}
-          onPress={() => navigation.navigate('Home')}
+          onPress={() => {}}
           type="outline"
           styleProps={{backgroundColor: COLORS.backgroundLight}}
           icon={ICONS.linkedInIcon}

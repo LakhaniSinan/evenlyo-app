@@ -6,8 +6,10 @@ import AppHeader from '../../../components/appHeader';
 import BillingTable from '../../../components/billingTable';
 import AnalyticsReport from '../../../components/modals/AnalyticsReport';
 import InvoiceModal from '../../../components/modals/InvoiceModal';
+import {useTranslation} from '../../../hooks';
 
 const BillingManagement = () => {
+  const {t} = useTranslation();
   const dummyData = [
     {
       billingId: 'INV-001',
@@ -41,9 +43,9 @@ const BillingManagement = () => {
   return (
     <SafeAreaView style={{flex: 1}}>
       <AppHeader
-        headingText={'Booking Details'}
+        headingText={t('Billing')}
         leftIcon={ICONS.leftArrowIcon}
-        rightIcon={ICONS.chatIcon}
+        rightIcon={ICONS.notificationIcon}
         onLeftIconPress={() => {
           navigation.goBack();
         }}

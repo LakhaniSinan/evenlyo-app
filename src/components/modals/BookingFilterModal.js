@@ -194,9 +194,6 @@ const BookingFilterModal = ({isVisible, onClose, nestedFilter}) => {
                 text={t('applyFilters')}
                 onPress={() => {
                   onClose();
-                  setTimeout(() => {
-                    navigation.navigate('EventListingScreen');
-                  }, 500);
                 }}
                 type="filled"
                 textStyle={{

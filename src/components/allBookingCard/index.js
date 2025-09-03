@@ -2,9 +2,11 @@ import {Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 
 const AllBookingCard = ({item}) => {
-  const isGradient = item?.title === 'Total Items';
+  const {t} = useTranslation();
+  const isGradient = item?.title === t('Total Items');
   const gradientColors = ['#FF295D', '#E31B95', '#C817AE'];
 
   return (
@@ -50,6 +52,7 @@ const AllBookingCard = ({item}) => {
 };
 
 const CardContent = ({item, isDark = false}) => {
+  const {t} = useTranslation();
   return (
     <>
       <View
@@ -75,11 +78,11 @@ const CardContent = ({item, isDark = false}) => {
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor:
-              item?.title === 'Total Bookings'
+              item?.title === t('Total Bookings')
                 ? COLORS.navyBlue
-                : item?.title == 'Request Bookings'
+                : item?.title == t('Request Bookings')
                 ? COLORS.green
-                : item?.title == 'In Process'
+                : item?.title == t('In Process')
                 ? COLORS.yellow
                 : COLORS.white,
           }}
@@ -90,11 +93,11 @@ const CardContent = ({item, isDark = false}) => {
           fontFamily: fontFamly.PlusJakartaSansBold,
           fontSize: 16,
           color:
-            item?.title === 'Total Bookings'
+            item?.title === t('Total Bookings')
               ? COLORS.navyBlue
-              : item?.title == 'Request Bookings'
+              : item?.title == t('Request Bookings')
               ? COLORS.green
-              : item?.title == 'In Process'
+              : item?.title == t('In Process')
               ? COLORS.yellow
               : COLORS.white,
         }}>
@@ -106,7 +109,7 @@ const CardContent = ({item, isDark = false}) => {
           fontSize: 10,
           color: isDark ? COLORS.white : COLORS.textDark,
         }}>
-        {`+${item?.percentage}% from last month`}
+        {t(`+${item?.percentage}% from last month`, {value: item?.percentage})}
       </Text>
     </>
   );

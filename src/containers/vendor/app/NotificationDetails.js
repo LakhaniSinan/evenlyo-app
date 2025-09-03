@@ -9,16 +9,18 @@ import {COLORS, fontFamly} from '../../../constants';
 import GradientText from '../../../components/gradiantText';
 import CarouselComponent from '../../../components/carousel';
 import GradientButton from '../../../components/button';
+import {useTranslation} from '../../../hooks';
 
 const NotificationDetails = () => {
   const navigation = useNavigation();
+  const {t} = useTranslation();
   const data = [1, 2, 3, 4, 5];
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <AppHeader
         leftIcon={ICONS.leftArrowIcon}
-        headingText={'Notifications'}
+        headingText={t('Notifications')}
         onLeftIconPress={() => navigation.goBack()}
       />
       <CarouselComponent data={data} />
@@ -36,7 +38,7 @@ const NotificationDetails = () => {
               color: COLORS.semiLightText,
               fontSize: 12,
             }}>
-            Newyork, USA
+{t('Newyork, USA')}
           </Text>
           <Text
             style={{
@@ -44,7 +46,7 @@ const NotificationDetails = () => {
               color: COLORS.textDark,
               fontSize: 15,
             }}>
-            Morning Date at a Hidden Art Gallery
+{t('Morning Date at a Hidden Art Gallery')}
           </Text>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
             <Image

@@ -19,28 +19,29 @@ import CustomPicker from '../../../components/customPicker';
 import BookingFilterModal from '../../../components/modals/BookingFilterModal';
 import DailyCalendar from '../../../components/timeChart';
 import {COLORS, fontFamly} from '../../../constants';
+import {useTranslation} from '../../../hooks';
 
-const dashboardData = [
+const getDashboardData = (t) => [
   {
-    title: 'Total Bookings',
+    title: t('Total Bookings'),
     icon: ICONS.groupIcon,
     value: 10,
     percentage: 12,
   },
   {
-    title: 'Total Items',
+    title: t('Total Items'),
     icon: ICONS.whiteCartIcon,
     value: 3,
     percentage: 10,
   },
   {
-    title: 'Request Bookings',
+    title: t('Request Bookings'),
     icon: ICONS.checkIcon,
     value: 7,
     percentage: 10,
   },
   {
-    title: 'In Process',
+    title: t('In Process'),
     icon: ICONS.earningIcon,
     value: 10,
     percentage: 10,
@@ -105,6 +106,7 @@ export const ViewMoreButton = ({onPress, heading}) => {
 
 function AllBookingScreen() {
   const navigation = useNavigation();
+  const {t} = useTranslation();
   const selectSizeRef = useRef();
   const [filterType, setFilterType] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -153,7 +155,7 @@ function AllBookingScreen() {
             justifyContent: 'space-between',
             paddingHorizontal: width(8),
           }}>
-          {dashboardData.map(item => {
+          {getDashboardData(t).map(item => {
             return <AllBookingCard item={item} key={item.title} />;
           })}
         </View>

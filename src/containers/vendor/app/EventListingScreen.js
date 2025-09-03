@@ -171,7 +171,7 @@ const EventListingScreen = ({navigation}) => {
                 fontFamily: fontFamly.PlusJakartaSansBold,
                 fontSize: 14,
               }}>
-              All Listings
+{t('All Listings')}
             </Text>
             <TouchableOpacity
               style={{borderRadius: 20}}

@@ -3,9 +3,11 @@ import React from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 
 const EventListingCard = ({item}) => {
   const navigation = useNavigation();
+  const {t} = useTranslation();
 
   return (
     <TouchableOpacity
@@ -29,7 +31,7 @@ const EventListingCard = ({item}) => {
         </View>
         <View style={styles.footer}>
           <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>View Details</Text>
+            <Text style={styles.buttonText}>{t('View Details')}</Text>
           </TouchableOpacity>
           <View style={styles.priceContainer}>
             <Text style={styles.price}>{item.price}</Text>

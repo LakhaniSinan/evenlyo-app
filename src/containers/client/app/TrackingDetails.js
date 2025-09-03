@@ -110,7 +110,7 @@ const TrackingDetails = ({navigation}) => {
         leftIcon={ICONS.leftArrowIcon}
         rightIcon={ICONS.notificationIcon}
         onLeftIconPress={() => navigation.goBack()}
-        onRightIconPress={() => navigation.navigate('Notification')}
+        onRightIconPress={() => navigation.navigate('Notifications')}
       />
 
       <View
