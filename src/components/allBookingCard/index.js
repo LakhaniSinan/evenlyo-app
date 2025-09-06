@@ -12,12 +12,13 @@ const AllBookingCard = ({item}) => {
   return (
     <View
       style={{
-        width: 162,
+        width: width(45),
         height: 83,
         borderRadius: width(3),
-        overflow: 'hidden', // important for rounded corners
-        backgroundColor: '#fff', // needed for shadow
+        overflow: 'hidden',
+        backgroundColor: '#fff',
         shadowColor: '#000',
+        marginTop: width(3),
         shadowOffset: {
           width: 0,
           height: 2,

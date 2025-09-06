@@ -1,6 +1,6 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import React from 'react';
-import {Image} from 'react-native';
+import {Easing, Image} from 'react-native';
 import {TAB_BAR_ICONS} from '../../assets';
 import AllBookingStack from './AllBookingStack';
 import EventListStack from './EventListStack';
@@ -16,10 +16,11 @@ const VendorBottomTabStack = () => {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
+          height: 50,
           paddingBottom: 10,
           paddingTop: 10,
-          backgroundColor: '#FFFFFF',
-          elevation:0
+          backgroundColor: '#FFF',
+          elevation: 0,
         },
       }}
       initialRouteName="Home">
@@ -27,6 +28,13 @@ const VendorBottomTabStack = () => {
         name="Home"
         component={HomeStack}
         options={{
+          transitionSpec: {
+            animation: 'timing',
+            config: {
+              duration: 150,
+              easing: Easing.inOut(Easing.ease),
+            },
+          },
           tabBarIcon: ({focused}) => (
             <Image
               source={focused ? TAB_BAR_ICONS.home : TAB_BAR_ICONS.inActiveHome}

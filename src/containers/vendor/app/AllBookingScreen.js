@@ -2,6 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 import React, {useRef, useState} from 'react';
 import {
+  FlatList,
   Image,
   SafeAreaView,
   ScrollView,
@@ -21,7 +22,7 @@ import DailyCalendar from '../../../components/timeChart';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 
-const getDashboardData = (t) => [
+const getDashboardData = t => [
   {
     title: t('Total Bookings'),
     icon: ICONS.groupIcon,
@@ -144,21 +145,20 @@ function AllBookingScreen() {
         }}
       />
       <ScrollView style={{flex: 1}} showsVerticalScrollIndicator={false}>
-        {/* Dashboard Cards */}
-        <View
-          style={{
-            marginTop: width(4),
-            gap: width(4),
-            flexWrap: 'wrap',
-            flexDirection: 'row',
-            alignItems: 'center',
+        <FlatList
+          data={getDashboardData(t)}
+          numColumns={2}
+          renderItem={({item, index}) => {
+            return <AllBookingCard item={item} />;
+          }}
+          contentContainerStyle={{
+            padding: width(3),
+          }}
+          columnWrapperStyle={{
             justifyContent: 'space-between',
-            paddingHorizontal: width(8),
-          }}>
-          {getDashboardData(t).map(item => {
-            return <AllBookingCard item={item} key={item.title} />;
-          })}
-        </View>
+            alignItems: 'center',
+          }}
+        />
 
         <View
           style={{

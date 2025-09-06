@@ -6,12 +6,12 @@ import {COLORS, fontFamly} from '../../constants';
 const DashboardCard = ({item}) => {
   const isGradient = item?.title === 'Total Items';
   const gradientColors = ['#FF295D', '#E31B95', '#C817AE'];
-
   return (
     <View
       style={{
-        width: 162,
+        width: width(45),
         height: 83,
+        marginTop: width(3),
         borderRadius: width(3),
         overflow: 'hidden',
         backgroundColor: '#fff',

@@ -93,7 +93,7 @@ function Dashboard() {
         }}
       />
       <ScrollView style={{flex: 1}} showsVerticalScrollIndicator={false}>
-        <View style={{flex: 1, padding: width(4)}}>
+        <View style={{flex: 1, padding: width(4), paddingBottom: 0}}>
           <Text
             style={{
               fontSize: 15,
@@ -110,23 +110,24 @@ function Dashboard() {
             Role: Vendor • Here's an overview of your business performance
           </Text>
         </View>
-        <View
-          style={{
-            gap: width(4),
-            flexWrap: 'wrap',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: width(8),
-          }}>
-          {dashboardData.map(item => {
+
+        <FlatList
+          data={dashboardData}
+          numColumns={2}
+          renderItem={({item, index}) => {
             return <DashboardCard item={item} />;
-          })}
-        </View>
+          }}
+          contentContainerStyle={{
+            padding: width(3),
+          }}
+          columnWrapperStyle={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        />
         <View
           style={{
             backgroundColor: COLORS.backgroundLight,
-            marginTop: width(3),
             marginHorizontal: width(3),
             borderRadius: 12,
             paddingVertical: width(4),

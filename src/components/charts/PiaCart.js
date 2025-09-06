@@ -62,23 +62,22 @@ const PieChartComponent = ({labelll = 'Orders Overview'}) => {
           ))}
         </View>
 
-        <View style={styles.pieWrapper}>
-          <PieChart
-            data={data}
-            width={screenWidth * 0.5} // Half of screen width for chart
-            height={220}
-            chartConfig={{
-              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-            }}
-            accessor="population"
-            backgroundColor="transparent"
-            paddingLeft="50"
-            center={[10, 0]} // small shift if needed
-            absolute
-            hasLegend={false} // hide default legends
-            style={{borderRadius: 16}}
-          />
-        </View>
+        <PieChart
+          data={data}
+          width={screenWidth * 0.5}
+          height={200}
+          chartConfig={{
+            color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+          }}
+          accessor="population"
+          backgroundColor="transparent"
+          paddingLeft="40"
+          center={[0, 0]}
+          hasLegend={false}
+          style={{
+            borderRadius: 16,
+          }}
+        />
       </View>
     </View>
   );
@@ -102,18 +101,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  legendContainer: {
-    width: width(40),
-    justifyContent: 'center',
-  },
+  legendContainer: {flex: 1},
   pieWrapper: {
-    flex: 1,
-    alignItems: 'flex-end',
+    alignSelf: 'center',
   },
   legendRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: width(2.5),
+    marginVertical: width(2),
+    paddingRight: width(3),
   },
   legendDot: {
     width: 12,
@@ -123,7 +119,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 10,
     color: '#333',
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },

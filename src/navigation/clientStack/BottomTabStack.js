@@ -16,6 +16,7 @@ const BottomTabStack = () => {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
+          height: 50,
           paddingBottom: 10,
           paddingTop: 10,
           backgroundColor: '#FFFFFF',

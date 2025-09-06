@@ -13,6 +13,7 @@ const GradientButton = ({
   icon,
   styleProps,
   outlineButtonStyle,
+  iconTintColor,
   useGradient,
   textStyle,
 }) => {
@@ -29,6 +30,7 @@ const GradientButton = ({
           style={[styles.buttonBase, {...styleProps}]}>
           {icon && (
             <Image
+              tintColor={iconTintColor ? iconTintColor : null}
               source={icon}
               style={{width: 19, height: 19, marginRight: width(2)}}
             />

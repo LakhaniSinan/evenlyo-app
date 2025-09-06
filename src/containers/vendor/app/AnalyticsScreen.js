@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
+import {FlatList} from 'react-native-gesture-handler';
 import LinearGradient from 'react-native-linear-gradient';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
@@ -140,27 +141,27 @@ const AnalyticsReport = () => {
             </TouchableOpacity>
           ))}
         </View>
-        <View
-          style={{
-            gap: width(4),
-            flexWrap: 'wrap',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: width(8),
-            marginTop: width(2),
-          }}>
-          {dashboardData.map(item => {
+
+        <FlatList
+          data={dashboardData}
+          numColumns={2}
+          renderItem={({item, index}) => {
             return <AnalyticsCard item={item} />;
-          })}
-        </View>
+          }}
+          contentContainerStyle={{
+            padding: width(3),
+          }}
+          columnWrapperStyle={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        />
 
         <View
           style={{
             padding: width(4),
             backgroundColor: COLORS.backgroundLight,
-            marginHorizontal: width(7),
-            marginTop: width(2),
+            marginHorizontal: width(3.5),
             height: 95,
             borderRadius: width(3),
             overflow: 'hidden',

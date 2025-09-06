@@ -10,7 +10,7 @@ const AnalyticsCard = ({item}) => {
   return (
     <View
       style={{
-        width: 162,
+        width: width(45),
         height: 83,
         borderRadius: width(3),
         overflow: 'hidden',

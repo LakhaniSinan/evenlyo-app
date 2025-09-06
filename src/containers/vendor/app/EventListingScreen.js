@@ -11,6 +11,7 @@ import {
 import {width} from 'react-native-dimension';
 import {ICONS, IMAGES} from '../../../assets';
 import EventListingCard from '../../../components/eventListingCards';
+import EventListingModal from '../../../components/modals/AddEventListing';
 import AddMoreCategory from '../../../components/modals/AddMoreCategory';
 import AddNewDataModal from '../../../components/modals/AddNewDataModal';
 import SubCategoriesModal from '../../../components/modals/AddSubCategories';
@@ -19,7 +20,6 @@ import EventFilterModal from '../../../components/modals/EventFilter';
 import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
-import EventListingModal from '../../../components/modals/AddEventListing';
 const bookingsData = [
   {
     id: '1',
@@ -86,6 +86,7 @@ const EventListingScreen = ({navigation}) => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [showSubCategory, setShowSubCategory] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState([]);
+  const [eventModal, setEventModal] = useState(false);
 
   useEffect(() => {
     setTimeout(() => {
@@ -94,11 +95,14 @@ const EventListingScreen = ({navigation}) => {
   }, [showSubCategory]);
 
   const handleSelect = type => {
+    console.log(type, 'typetypetypetypetype');
+
     setTimeout(() => {
       setShowAddNew(false);
       setShowMoreCategory(false);
       setShowSubCategory(false);
       setShowSuccessModal(false);
+      setEventModal(false);
     }, 300);
 
     if (type == 1) {
@@ -108,6 +112,10 @@ const EventListingScreen = ({navigation}) => {
     } else if (type == 2) {
       setTimeout(() => {
         setShowMoreCategory(true);
+      }, 500);
+    } else if (type == 3) {
+      setTimeout(() => {
+        setEventModal(true);
       }, 500);
     } else if (type == 4) {
       setTimeout(() => {
@@ -171,7 +179,7 @@ const EventListingScreen = ({navigation}) => {
                 fontFamily: fontFamly.PlusJakartaSansBold,
                 fontSize: 14,
               }}>
-{t('All Listings')}
+              {t('All Listings')}
             </Text>
             <TouchableOpacity
               style={{borderRadius: 20}}
@@ -256,7 +264,10 @@ const EventListingScreen = ({navigation}) => {
         onPressBack={() => console.log('Back pressed')}
         handleNextStep={handleSelect}
       />
-      <EventListingModal isVisible={false} />
+      <EventListingModal
+        isVisible={eventModal}
+        onClose={() => setEventModal(!eventModal)}
+      />
       <CategoryEditSuccess visible={showSucessModal} />
     </SafeAreaView>
   );
