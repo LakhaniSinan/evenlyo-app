@@ -1,6 +1,6 @@
-import {FlatList, Image, StyleSheet, Text, View} from 'react-native';
-import {IMAGES} from '../../assets';
-import {COLORS, fontFamly} from '../../constants';
+import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { IMAGES } from '../../assets';
+import { COLORS, fontFamly } from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
 const HomeCard = () => {
@@ -23,10 +23,10 @@ const HomeCard = () => {
             />
             <View style={styles.blurContainer}>
               <View style={styles.textContainer}>
-                <Text style={styles.text}>{t('bookDJsFoodTrucks')}</Text>
+                <Text style={styles.text}>{t('Book DJs Food Trucks')}</Text>
                 <Text style={styles.text2}>
-                  {t('venuesFastEasy')}{' '}
-                  <Text style={styles.text}>{t('withoutHassle')} </Text>
+                  {t('Venues Fast Easy')}{' '}
+                  <Text style={styles.text}>{t('With Out Hassle')} </Text>
                 </Text>
               </View>
             </View>
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   text: {
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.white,
-    fontSize: 14,
+    fontSize: 12,
     zIndex: 1,
     textAlign: 'left',
     lineHeight: 18,
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   text2: {
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
     color: COLORS.white,
-    fontSize: 14,
+    fontSize: 12,
     zIndex: 1,
     marginRight: 10,
     lineHeight: 18,

@@ -26,9 +26,12 @@ const Home = ({navigation}) => {
           {type: 'header'},
           {type: 'categories'},
           {type: 'subcategories'},
-          {type: 'homecard'},
           {type: 'popular'},
           {type: 'popularCard'},
+          {type: 'bookingItem'},
+          {type: 'homecard'},
+          {type: 'saleItem'},
+          {type: 'homecard'},
           {type: 'relevant'},
           {type: 'eventCard'},
         ]}
@@ -141,11 +144,7 @@ const Home = ({navigation}) => {
                 </View>
               );
             case 'homecard':
-              return (
-                <View>
-                  <HomeCard />
-                </View>
-              );
+              return <HomeCard />;
             case 'popular':
               return (
                 <View>
@@ -161,6 +160,28 @@ const Home = ({navigation}) => {
               return (
                 <View>
                   <PopularCard />
+                </View>
+              );
+            case 'bookingItem':
+              return (
+                <View>
+                  <HeadingComponent
+                    heading={t('Booking')}
+                    gradientText={t('Items')}
+                    rightArrow={true}
+                    onPress={() => {}}
+                  />
+                </View>
+              );
+            case 'saleItem':
+              return (
+                <View>
+                  <HeadingComponent
+                    heading={t('Sale')}
+                    gradientText={t('Items')}
+                    rightArrow={true}
+                    onPress={() => {}}
+                  />
                 </View>
               );
             case 'relevant':
