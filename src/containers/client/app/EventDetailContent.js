@@ -1,8 +1,9 @@
 import React, {useState} from 'react';
-import {Text, TouchableOpacity, View} from 'react-native';
+import {Image, Text, TouchableOpacity, View} from 'react-native';
 import {Calendar} from 'react-native-calendars';
 import {width} from 'react-native-dimension';
 import MapView, {Marker} from 'react-native-maps';
+import {ICONS, IMAGES} from '../../../assets';
 import GradientButton from '../../../components/button';
 import CarouselComponent from '../../../components/carousel';
 import EventAndPriceDetails from '../../../components/eventDetailAndPrice';
@@ -46,6 +47,38 @@ const DetailsContent = ({data, selectedTab, handleDaySelect, navigation}) => {
       )}
       <View style={{marginHorizontal: 10, marginTop: width(3)}}>
         <EventAndPriceDetails showrating={true} showDiscount={false} />
+      </View>
+      <View
+        style={{
+          backgroundColor: COLORS.backgroundLight,
+          marginHorizontal: 20,
+          marginTop: 10,
+          padding: 10,
+          borderRadius: 10,
+          flexDirection: 'row',
+        }}>
+        <Image style={{width: 55, height: 55}} source={IMAGES.profilePhoto} />
+        <View style={{marginLeft: 10, justifyContent: 'center'}}>
+          <Text
+            style={{
+              fontSize: 15,
+              fontFamily: fontFamly.PlusJakartaSansSemiBold,
+            }}>
+            Asima Khan
+          </Text>
+          <Text
+            style={{
+              fontSize: 10,
+              fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+            }}>
+            Coach Organization Name
+          </Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('ChatDetail')}
+          style={{flex: 1, justifyContent: 'center', alignItems: 'flex-end'}}>
+          <Image style={{width: 32, height: 32}} source={ICONS.chatIcon} />
+        </TouchableOpacity>
       </View>
 
       <View style={{paddingVertical: width(3), marginHorizontal: 20}}>
@@ -101,6 +134,7 @@ const DetailsContent = ({data, selectedTab, handleDaySelect, navigation}) => {
               marginTop: width(3),
             }}>
             <TouchableOpacity
+              onPress={() => navigation.navigate('Messages')}
               style={{
                 width: width(45),
                 backgroundColor: COLORS.backgroundLight,
@@ -109,7 +143,7 @@ const DetailsContent = ({data, selectedTab, handleDaySelect, navigation}) => {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-              <GradientText text={'Add to Cart'} />
+              <GradientText text={'Add To Wishlist'} />
             </TouchableOpacity>
             <View style={{width: width(42)}}>
               <GradientButton

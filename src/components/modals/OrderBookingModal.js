@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {
+  Image,
   Keyboard,
   ScrollView,
   StyleSheet,
@@ -25,6 +26,7 @@ const OrderBooking = ({
   handleSendBookingRequest,
 }) => {
   const {t} = useTranslation();
+  const [isChecked, setIsChecked] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const navigation = useNavigation();
   const [selectedDate, setSelectedDate] = useState('Friday, July 11, 2025');
@@ -218,6 +220,45 @@ const OrderBooking = ({
             />
           </View>
 
+          <View
+            style={{
+              flexDirection: 'row',
+              marginBottom: width(5),
+              alignItems: 'center',
+            }}>
+            {!isChecked ? (
+              <TouchableOpacity
+                onPress={() => setIsChecked(!isChecked)}
+                style={{
+                  height: width(6),
+                  width: width(6),
+                  borderRadius: 5,
+                  borderWidth: 1,
+                  borderColor: COLORS.primary,
+                }}></TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => setIsChecked(!isChecked)}
+                style={{
+                  borderColor: COLORS.primary,
+                }}>
+                <Image
+                  source={ICONS.cheackIcon}
+                  style={{height: width(6), width: width(6)}}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            )}
+            <Text
+              style={{
+                fontFamily: fontFamly.PlusJakartaSansBold,
+                marginBottom: 3,
+                marginLeft: width(3),
+              }}>
+              {t('Enable Evenlyo Protect (+25)')}
+            </Text>
+          </View>
+
           <View style={styles.pricingSection}>
             <Text style={styles.pricingTitle}>Pricing Summary</Text>
             <View style={styles.pricingRow}>
@@ -299,7 +340,7 @@ const OrderBooking = ({
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-              <GradientText text={'Add to Cart'} />
+              <GradientText text={'Add To Wishlist'} />
             </TouchableOpacity>
             <View style={{width: width(50)}}>
               <GradientButton

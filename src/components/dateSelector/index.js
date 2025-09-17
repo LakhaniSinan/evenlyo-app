@@ -19,7 +19,7 @@ const DateSelector = ({
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarMode, setCalendarMode] = useState('start'); // 'start' or 'end'
 
-  const formatDate = (date) => {
+  const formatDate = date => {
     if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
       return null;
     }
@@ -76,7 +76,7 @@ const DateSelector = ({
           selectedStartDate={startDate}
           selectedEndDate={null}
           mode="single"
-          title={t('selectDate') || 'Select Date'}
+          title={t('Select Date') || 'Select Date'}
         />
       </View>
     );
@@ -87,11 +87,11 @@ const DateSelector = ({
       <View style={styles.dateRow}>
         {/* Start Date */}
         <View style={styles.dateSection}>
-          <Text style={styles.label}>{t('startDate') || 'Start Date'}</Text>
+          <Text style={styles.label}>{t('Start Date') || 'Start Date'}</Text>
           <TouchableOpacity
             style={[
               styles.dateButton,
-              showCalendar && calendarMode === 'end' && styles.disabledButton
+              showCalendar && calendarMode === 'end' && styles.disabledButton,
             ]}
             disabled={showCalendar && calendarMode === 'end'}
             onPress={openCalendarForStart}>
@@ -100,18 +100,18 @@ const DateSelector = ({
                 styles.dateText,
                 {color: startDate ? COLORS.textDark : COLORS.textLight},
               ]}>
-              {formatDate(startDate) || t('selectDate') || 'Select Date'}
+              {formatDate(startDate) || t('Select Date') || 'Select Date'}
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* End Date */}
         <View style={styles.dateSection}>
-          <Text style={styles.label}>{t('endDate') || 'End Date'}</Text>
+          <Text style={styles.label}>{t('End Date') || 'End Date'}</Text>
           <TouchableOpacity
             style={[
               styles.dateButton,
-              showCalendar && calendarMode === 'start' && styles.disabledButton
+              showCalendar && calendarMode === 'start' && styles.disabledButton,
             ]}
             disabled={showCalendar && calendarMode === 'start'}
             onPress={openCalendarForEnd}>
@@ -120,7 +120,7 @@ const DateSelector = ({
                 styles.dateText,
                 {color: endDate ? COLORS.textDark : COLORS.textLight},
               ]}>
-              {formatDate(endDate) || t('selectDate') || 'Select Date'}
+              {formatDate(endDate) || t('Select Date') || 'Select Date'}
             </Text>
           </TouchableOpacity>
         </View>

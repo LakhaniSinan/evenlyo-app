@@ -75,6 +75,8 @@ export const ICONS = {
   incrimentIcon: require('./icons/incrimentIcon.png'),
   ticketIcon: require('./icons/ticketIcon.png'),
   blackDownloadIcon: require('./icons/blackDownloadIcon.png'),
+  activeHeartIocn: require('./icons/activeHeartIocn.png'),
+  inactiveHeartIcon: require('./icons/inactiveHeartIcon.png'),
 };
 
 export const IMAGES = {
@@ -84,6 +86,7 @@ export const IMAGES = {
   bannerImage: require('./images/bannerImage.png'),
   coverImage1: require('./images/coverImage1.png'),
   profilePhoto: require('./images/profilePhoto.png'),
+  vase: require('./images/vase.png'),
 };
 
 export const TAB_BAR_ICONS = {

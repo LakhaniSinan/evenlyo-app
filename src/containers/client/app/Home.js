@@ -1,8 +1,7 @@
 import React, {useState} from 'react';
 import {FlatList, Image, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {ICONS} from '../../../assets';
+import {ICONS, IMAGES} from '../../../assets';
 import Categories from '../../../components/categories';
 import EventCard from '../../../components/eventCard';
 import HeadingComponent from '../../../components/headingComponent';
@@ -17,6 +16,12 @@ import useTranslation from '../../../hooks/useTranslation';
 const Home = ({navigation}) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const {t} = useTranslation();
+  const data1 = [
+    {image: IMAGES.backgroundImage2},
+    {image: IMAGES.backgroundImage2},
+  ];
+  const data = [{image: IMAGES.vase}, {image: IMAGES.vase}];
+
   return (
     <>
       <FlatList
@@ -31,7 +36,6 @@ const Home = ({navigation}) => {
           {type: 'bookingItem'},
           {type: 'homecard'},
           {type: 'saleItem'},
-          {type: 'homecard'},
           {type: 'relevant'},
           {type: 'eventCard'},
         ]}
@@ -159,7 +163,7 @@ const Home = ({navigation}) => {
             case 'popularCard':
               return (
                 <View>
-                  <PopularCard />
+                  <PopularCard data={data1} />
                 </View>
               );
             case 'bookingItem':
@@ -169,7 +173,7 @@ const Home = ({navigation}) => {
                     heading={t('Booking')}
                     gradientText={t('Items')}
                     rightArrow={true}
-                    onPress={() => {}}
+                    onPress={() => navigation.navigate('EventListingScreen')}
                   />
                 </View>
               );
@@ -180,8 +184,9 @@ const Home = ({navigation}) => {
                     heading={t('Sale')}
                     gradientText={t('Items')}
                     rightArrow={true}
-                    onPress={() => {}}
+                    onPress={() => navigation.navigate('SalesItems')}
                   />
+                  <PopularCard data={data} />
                 </View>
               );
             case 'relevant':

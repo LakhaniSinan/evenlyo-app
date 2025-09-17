@@ -5,18 +5,23 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import MapView, {Marker} from 'react-native-maps';
 import {ICONS, IMAGES} from '../../../assets';
+import GradientText from '../../../components/gradiantText';
 import ListingCard from '../../../components/listingCard';
 import FilterModal from '../../../components/modals/FilterModal';
 import TextField from '../../../components/textInput';
-import {COLORS} from '../../../constants';
+import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 
+const data = [1, 2, 3, 4, 5];
+
+// San Francisco dummy coordinates
 const sanFranciscoLocation = {
   latitude: 37.7749,
   longitude: -122.4194,
@@ -24,14 +29,42 @@ const sanFranciscoLocation = {
   longitudeDelta: 0.01,
 };
 
-const EventListingScreen = ({navigation}) => {
+const renderCards = type => {
+  return (
+    <View
+      style={{
+        borderRadius: 10,
+        height: 79,
+        width: 140,
+        backgroundColor: 'white',
+        elevation: 10,
+        paddingLeft: 10,
+      }}>
+      <GradientText
+        customStyles={{
+          textAlign: 'left',
+        }}
+        text={type}
+      />
+      <Text
+        style={{
+          fontSize: 16,
+          fontFamily: fontFamly.PlusJakartaSansBold,
+        }}>
+        12 May, 2025
+      </Text>
+      <Text style={{color: COLORS.textLight, fontSize: 12}}>12: 00 pm</Text>
+    </View>
+  );
+};
+
+const SalesItems = ({navigation}) => {
   const {t} = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
 
   const renderCartItem = ({item}) => {
     return <ListingCard item={item} navigation={navigation} />;
   };
-
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <ScrollView>
@@ -143,7 +176,7 @@ const EventListingScreen = ({navigation}) => {
         <FlatList
           data={requested}
           keyExtractor={item => item.id}
-          renderItem={({item}) => renderCartItem({item})}
+          renderItem={({item}) => renderCartItem({item, navigation})}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
         />
@@ -157,7 +190,8 @@ const EventListingScreen = ({navigation}) => {
   );
 };
 
-export default EventListingScreen;
+export default SalesItems;
+
 const styles = StyleSheet.create({
   listContainer: {
     paddingBottom: width(5),
@@ -172,8 +206,8 @@ export const requested = [
     verified: true,
     artistName: 'Jaydeep',
     price: 300,
-    priceUnit: 'Per Event',
-    image: IMAGES.backgroundImage2,
+    priceUnit: '',
+    image: IMAGES.vase,
     isBookmarked: true,
     isSelected: false,
   },
@@ -184,8 +218,8 @@ export const requested = [
     verified: true,
     artistName: 'Jaydeep',
     price: 300,
-    priceUnit: 'Per Event',
-    image: IMAGES.backgroundImage2,
+    priceUnit: '',
+    image: IMAGES.vase,
     isBookmarked: true,
     isSelected: true,
   },
@@ -196,8 +230,8 @@ export const requested = [
     verified: true,
     artistName: 'Jaydeep',
     price: 300,
-    priceUnit: 'Per Event',
-    image: IMAGES.backgroundImage2,
+    priceUnit: '',
+    image: IMAGES.vase,
     isBookmarked: false,
     isSelected: false,
   },
@@ -208,8 +242,8 @@ export const requested = [
     verified: true,
     artistName: 'Jaydeep',
     price: 300,
-    priceUnit: 'Per Event',
-    image: IMAGES.backgroundImage2,
+    priceUnit: '',
+    image: IMAGES.vase,
     isBookmarked: false,
     isSelected: false,
   },
@@ -220,8 +254,8 @@ export const requested = [
     verified: true,
     artistName: 'Jaydeep',
     price: 300,
-    priceUnit: 'Per Event',
-    image: IMAGES.backgroundImage2,
+    priceUnit: '',
+    image: IMAGES.vase,
     isBookmarked: true,
     isSelected: false,
   },

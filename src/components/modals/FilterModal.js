@@ -2,6 +2,7 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
+  Image,
   Keyboard,
   ScrollView,
   StyleSheet,
@@ -22,9 +23,10 @@ import DateSelector from '../dateSelector';
 import GradientText from '../gradiantText';
 import TextField from '../textInput';
 
-const FilterModal = ({isVisible, onClose, nestedFilter}) => {
+const FilterModal = ({isVisible, onClose, nestedFilter, showOtherCheckBox}) => {
   const {t} = useTranslation();
   const [priceRange, setPriceRange] = useState({min: 0, max: 500});
+  const [isChecked, setIsChecked] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const lastValuesRef = useRef({min: 0, max: 500});
   const navigation = useNavigation();
@@ -110,7 +112,7 @@ const FilterModal = ({isVisible, onClose, nestedFilter}) => {
       propagateSwipe={true}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>{t('filter')}</Text>
+          <Text style={styles.title}>{t('Filter')}</Text>
           <TouchableOpacity onPress={onClose}>
             <Icon name="close" size={24} color="#333" />
           </TouchableOpacity>
@@ -149,12 +151,51 @@ const FilterModal = ({isVisible, onClose, nestedFilter}) => {
                 handleSelectValue={handleSelectValue}
               />
               <View style={{height: 15}} />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  marginBottom: width(5),
+                  alignItems: 'center',
+                }}>
+                {!isChecked ? (
+                  <TouchableOpacity
+                    onPress={() => setIsChecked(!isChecked)}
+                    style={{
+                      height: width(6),
+                      width: width(6),
+                      borderRadius: 5,
+                      borderWidth: 1,
+                      borderColor: COLORS.primary,
+                    }}></TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => setIsChecked(!isChecked)}
+                    style={{
+                      borderColor: COLORS.primary,
+                    }}>
+                    <Image
+                      source={ICONS.cheackIcon}
+                      style={{height: width(6), width: width(6)}}
+                      resizeMode="contain"
+                    />
+                  </TouchableOpacity>
+                )}
+                <Text
+                  style={{
+                    fontFamily: fontFamly.PlusJakartaSansBold,
+                    marginBottom: 3,
+                    marginLeft: width(3),
+                  }}>
+                  {t('Other Category')}
+                </Text>
+              </View>
             </>
           )}
+
           <View style={styles.section}>
-            <Text style={styles.label}>{t('searchLocation')}</Text>
+            <Text style={styles.label}>{t('Search Location')}</Text>
             <TextField
-              placeholder={t('searchYourLocation')}
+              placeholder={t('Search Your Location')}
               // value={email}
               // onChangeText={setEmail}
               autoCapitalize="none"
@@ -163,7 +204,7 @@ const FilterModal = ({isVisible, onClose, nestedFilter}) => {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.label}>{t('dateRange')}</Text>
+            <Text style={styles.label}>{t('Date Range')}</Text>
             <DateSelector
               startDate={filterStartDate}
               endDate={filterEndDate}
@@ -186,7 +227,7 @@ const FilterModal = ({isVisible, onClose, nestedFilter}) => {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.label}>{t('priceRange')}</Text>
+            <Text style={styles.label}>{t('Price Range')}</Text>
 
             <View style={styles.priceLabelsContainer}>
               <Text style={styles.priceLabel}>$0</Text>
@@ -249,7 +290,7 @@ const FilterModal = ({isVisible, onClose, nestedFilter}) => {
               )}
               <View style={{width: width(40)}}>
                 <GradientButton
-                  text={t('applyFilters')}
+                  text={t('Apply Filters')}
                   onPress={() => {
                     onClose();
                     setTimeout(() => {
@@ -291,7 +332,7 @@ const FilterModal = ({isVisible, onClose, nestedFilter}) => {
             )}
             <View style={{width: width(40)}}>
               <GradientButton
-                text={t('applyFilters')}
+                text={t('Apply Filters')}
                 onPress={() => {
                   onClose();
                   setTimeout(() => {
@@ -454,7 +495,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 10,
     flexDirection: 'row',
-    width: '100%',
+    width: width(100),
     justifyContent: 'space-around',
   },
   btnWhite: {

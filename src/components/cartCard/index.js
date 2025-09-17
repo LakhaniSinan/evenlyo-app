@@ -6,16 +6,11 @@ import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 
-const CartCard = ({
-  item,
-  onBookNow,
-  onCancelBooking,
-  variant = 'requested',
-}) => {
+const CartCard = ({item, onBookNow, onCancelBooking}) => {
   const {t} = useTranslation();
 
   const renderActionButton = () => {
-    if (variant === 'requested') {
+    if (item?.variant === 'requested') {
       return (
         <GradientButton
           text={t('Book Now')}
@@ -27,17 +22,18 @@ const CartCard = ({
             color: COLORS.white,
           }}
           styleProps={{
-            paddingVertical: width(2),
-            height: width(7),
+            paddingVertical: width(1.5),
+            height: width(6),
           }}
-          outlineButtonStyle={{
-            paddingVertical: width(2),
+          styleContainer={{
+            borderRadius: 10,
           }}
         />
       );
-    } else if (variant === 'accepted' && item.actionButton) {
+    } else if (item?.variant === 'accepted' && item.actionButton) {
       return (
         <GradientButton
+          styleContainer={{borderRadius: 10, height: width(8)}}
           textStyle={{
             fontSize: 10,
             fontFamly: fontFamly.PlusJakartaSansMedium,
@@ -46,7 +42,7 @@ const CartCard = ({
           text={t('Cancel Booking')}
           onPress={() => onCancelBooking && onCancelBooking()}
           styleProps={{
-            paddingVertical: width(2),
+            paddingVertical: width(1.5),
           }}
         />
       );
@@ -56,59 +52,84 @@ const CartCard = ({
 
   return (
     <View style={styles.cardContainer}>
-      <View style={styles.imageContainer}>
-        <Image
-          source={IMAGES.backgroundImage2}
-          style={styles.cardImage}
-          resizeMode="cover"
-        />
-        {item.isBookmarked && (
-          <View style={styles.bookmarkContainer}>
-            <Image source={ICONS.favouriteIcon} style={styles.bookmarkIcon} />
-          </View>
-        )}
-      </View>
-
-      <View style={styles.cardContent}>
-        <View style={styles.headerRow}>
-          <View style={styles.titleSection}>
-            <Text style={styles.title}>{item.name}</Text>
-            <View style={styles.statusRow}>
-              <Text style={styles.status}>{t('inStock')}</Text>
-              {item.verified && (
-                <Image
-                  source={ICONS.verifyedIcon}
-                  style={styles.verifiedIcon}
-                />
-              )}
-            </View>
-          </View>
-          <TouchableOpacity style={styles.shareButton}>
-            <Image source={ICONS.editIcon} style={styles.editIcon} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.artistRow}>
-          {variant === 'accepted' && item.artistAvatar && (
-            <View style={styles.artistAvatarContainer}>
-              <Image
-                source={{uri: item.artistAvatar}}
-                style={styles.artistAvatar}
-                resizeMode="cover"
-              />
+      <View style={{flexDirection: 'row'}}>
+        <View style={styles.imageContainer}>
+          <Image
+            source={item?.image}
+            style={styles.cardImage}
+            resizeMode="cover"
+          />
+          {item.isBookmarked && (
+            <View style={styles.bookmarkContainer}>
+              <Image source={ICONS.favouriteIcon} style={styles.bookmarkIcon} />
             </View>
           )}
-          <Text style={styles.artistName}>{item.artistName}</Text>
         </View>
 
-        <View style={styles.bottomRow}>
-          {renderActionButton()}
-          <View style={styles.priceContainer}>
-            <Text style={styles.price}>${item.price}</Text>
-            <Text style={styles.priceUnit}>/{t('perEvent')}</Text>
+        <View style={styles.cardContent}>
+          <View style={styles.headerRow}>
+            <View style={styles.titleSection}>
+              <Text style={styles.title}>{item.name}</Text>
+              <View style={styles.statusRow}>
+                <Text style={styles.status}>{t('inStock')}</Text>
+                {item.verified && (
+                  <Image
+                    source={ICONS.verifyedIcon}
+                    style={styles.verifiedIcon}
+                  />
+                )}
+              </View>
+            </View>
+            <TouchableOpacity style={styles.shareButton}>
+              <Image source={ICONS.editIcon} style={styles.editIcon} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.artistRow}>
+            {item?.variant === 'accepted' && item.artistAvatar && (
+              <View style={styles.artistAvatarContainer}>
+                <Image
+                  source={{uri: item.artistAvatar}}
+                  style={styles.artistAvatar}
+                  resizeMode="cover"
+                />
+              </View>
+            )}
+            <Text style={styles.artistName}>{item.artistName}</Text>
+          </View>
+
+          <View style={styles.bottomRow}>
+            {renderActionButton()}
+            <View style={styles.priceContainer}>
+              <Text style={styles.price}>${item.price}</Text>
+              <Text style={styles.priceUnit}>/{t('Per Event')}</Text>
+            </View>
           </View>
         </View>
       </View>
+      {item?.isProtected && (
+        <View
+          style={{
+            height: width(10),
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}>
+          <Image
+            source={ICONS.cheackIcon}
+            style={{height: width(4), width: width(4)}}
+            resizeMode="contain"
+          />
+          <Text
+            style={{
+              fontFamily: fontFamly.PlusJakartaSansSemiBold,
+              fontSize: 10,
+              color: COLORS.black,
+              marginLeft: width(2),
+            }}>
+            Enable Evenlyo Protect (+25)
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -119,7 +140,7 @@ const styles = StyleSheet.create({
     borderRadius: width(4),
     marginHorizontal: width(3.5),
     marginTop: width(3),
-    flexDirection: 'row',
+    // flexDirection: 'row',
     paddingHorizontal: width(4),
     paddingVertical: width(4),
   },

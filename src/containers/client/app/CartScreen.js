@@ -10,172 +10,191 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
-import {ICONS} from '../../../assets';
+import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
 import CartCard from '../../../components/cartCard';
 import CancellationConfirm from '../../../components/modals/CancellationConfirm';
 import CancelBookingModal from '../../../components/modals/CancellationModal';
+import InfoModal from '../../../components/modals/InfoModal';
+import ShippingFromModal from '../../../components/modals/ShippingFormModal';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+
 function CartScreen({navigation}) {
   const {t} = useTranslation();
   const [cancelConfirmation, setCancelConfirmation] = useState(false);
+  const [shippingForm, setshippingForm] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState('addToCart');
-  const variant = activeTab === 'addToCart' ? 'requested' : 'accepted';
-
-  const handleCancelBooking = item => {
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('bookingItem');
+  const handleCancelBooking = () => {
     setModalVisible(true);
   };
 
-  const getCurrentData = () => {
-    return activeTab === 'addToCart' ? requested : accepted;
+  const handleConfirmCancel = () => {
+    setModalVisible(false);
+    setCancelConfirmation(true);
+    setTimeout(() => setCancelConfirmation(false), 2000);
   };
 
-  const handleConfirmCancel = () => {
-    setTimeout(() => {
-      setModalVisible(false);
-    }, 500);
-    setTimeout(() => {
-      setCancelConfirmation(true);
-    }, 1000);
-    setTimeout(() => {
-      setCancelConfirmation(false);
-    }, 3000);
-  };
   const handleBookNow = item => {
+    setshippingForm(true);
     console.log('Book now pressed for:', item.name);
   };
 
-  const renderCartItem = ({item}) => {
+  const renderCartItem = ({item}) => (
+    <CartCard
+      item={item}
+      onBookNow={handleBookNow}
+      onCancelBooking={handleCancelBooking}
+    />
+  );
+
+  const renderSection = (title, data) => {
+    if (!data?.length) return null;
     return (
-      <CartCard
-        variant={variant}
-        item={item}
-        onBookNow={handleBookNow}
-        onCancelBooking={handleCancelBooking}
-      />
-    );
-  };
-
-  return (
-    <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
-      <AppHeader
-        // leftIcon={ICONS.leftArrowIcon}
-        headingText={t('Add To Cart')}
-        rightIcon={ICONS.chatIcon}
-        // onLeftIconPress={() => navigation.goBack()}
-        onRightIconPress={() => navigation.navigate('MessagesScreen')}
-      />
-      <ScrollView style={{flex: 1, backgroundColor: COLORS.white}}>
-        <View style={styles.tabContainer}>
-          <LinearGradient
-            colors={
-              activeTab == 'addToCart'
-                ? ['#FF295D', '#E31B95', '#C817AE']
-                : ['#fff', '#fff', '#fff']
-            }
-            style={styles.tabGradient}
-            start={{x: 0, y: 0}}
-            end={{x: 0, y: 1}}>
-            <TouchableOpacity
-              style={styles.tab}
-              onPress={() => setActiveTab('addToCart')}>
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'addToCart' && styles.activeTabText,
-                ]}>
-                {t('Request Add To Cart')}
-              </Text>
-            </TouchableOpacity>
-          </LinearGradient>
-
-          <LinearGradient
-            colors={
-              activeTab == 'accepted'
-                ? ['#FF295D', '#E31B95', '#C817AE']
-                : ['#fff', '#fff', '#fff']
-            }
-            style={styles.tabGradient}
-            start={{x: 0, y: 0}}
-            end={{x: 0, y: 1}}>
-            <TouchableOpacity
-              style={styles.tab}
-              onPress={() => setActiveTab('accepted')}>
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'accepted' && styles.activeTabText,
-                ]}>
-                {t('Accepted')}
-              </Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        </View>
-
+      <View style={{marginBottom: width(4)}}>
+        <Text style={styles.sectionTitle}>{t(title)}</Text>
         <FlatList
-          data={getCurrentData()}
+          data={data}
           keyExtractor={item => item.id}
           renderItem={renderCartItem}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
         />
+      </View>
+    );
+  };
 
-        {activeTab === 'addToCart' && (
-          <View
-            style={{
-              marginHorizontal: width(3),
-            }}>
-            <GradientButton
-              text={t('Add New Request')}
-              onPress={() => {}}
-              type="filled"
-              gradientColors={['#FF295D', '#E31B95', '#C817AE']}
-            />
-          </View>
-        )}
+  const getBookingTabData = () => {
+    const requestData =
+      requested.find(r => r.requestType === 'Request Add To Cart')?.requests ||
+      [];
+    const acceptedData =
+      requested.find(r => r.requestType === 'Accepted Order')?.requests || [];
+    return {requestData, acceptedData};
+  };
 
-        {variant === 'accepted' && (
+  const {requestData, acceptedData} = getBookingTabData();
+
+  const onContinueToShipping = async () => {
+    setModalVisible(false);
+    setshippingForm(false);
+    setTimeout(() => {
+      setShowInfoModal(true);
+    }, 500);
+  };
+
+  return (
+    <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
+      <AppHeader
+        headingText={t('Add To Wishlist')}
+        rightIcon={ICONS.chatIcon}
+        onRightIconPress={() => navigation.navigate('MessagesScreen')}
+      />
+      <ScrollView style={{flexGrow: 1}}>
+        <View style={styles.tabContainer}>
+          {['bookingItem', 'saleItem'].map(tab => (
+            <LinearGradient
+              key={tab}
+              colors={
+                activeTab === tab
+                  ? ['#FF295D', '#E31B95', '#C817AE']
+                  : ['#fff', '#fff', '#fff']
+              }
+              style={styles.tabGradient}
+              start={{x: 0, y: 0}}
+              end={{x: 0, y: 1}}>
+              <TouchableOpacity
+                style={styles.tab}
+                onPress={() => setActiveTab(tab)}>
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === tab && styles.activeTabText,
+                  ]}>
+                  {t(tab === 'bookingItem' ? 'Booking Items' : 'Sale Items')}
+                </Text>
+              </TouchableOpacity>
+            </LinearGradient>
+          ))}
+        </View>
+
+        {/* Sections */}
+        {activeTab === 'bookingItem' ? (
           <>
-            <View
-              style={{
-                marginHorizontal: width(3),
-              }}>
-              <View style={styles.progressNotesCard}>
-                <View style={styles.itemsList}>
-                  <View style={styles.itemRow}>
-                    <Text style={styles.itemName}>DJ Ray Vib...</Text>
-                    <Text style={styles.itemPrice}>$300</Text>
-                  </View>
-                  <View style={styles.itemRow}>
-                    <Text style={styles.itemName}>DJ Ray Vib...</Text>
-                    <Text style={styles.itemPrice}>$300</Text>
-                  </View>
-                  <View style={styles.itemRow}>
-                    <Text style={styles.itemName}>Security Fee</Text>
-                    <Text style={styles.itemPrice}>$25</Text>
-                  </View>
-                  <View style={styles.itemRow}>
-                    <Text style={styles.itemName}>Kilometer</Text>
-                    <Text style={styles.itemPrice}>$5</Text>
-                  </View>
-                  <View style={[styles.itemRow, styles.subtotalRow]}>
-                    <Text style={styles.subtotalText}>Subtotal</Text>
-                    <Text style={styles.subtotalPrice}>$630</Text>
-                  </View>
-                  <View style={styles.itemRow}>
-                    <Text style={styles.totalText}>Total</Text>
-                    <Text style={styles.totalAmount}>$630</Text>
-                  </View>
-                  <Text style={styles.serviceCharges}>+ service charges</Text>
+            {renderSection('Request Add To Cart', requestData)}
+            {renderSection('Accepted Order', acceptedData)}
+            <View style={styles.progressNotesCard}>
+              <View style={styles.itemsList}>
+                <View style={styles.itemRow}>
+                  <Text style={styles.itemName}>Subtotal</Text>
+                  <Text style={styles.itemPrice}>$600</Text>
+                </View>
+                <View style={styles.itemRow}>
+                  <Text style={styles.itemName}>Security Fee</Text>
+                  <Text style={styles.itemPrice}>$25</Text>
+                </View>
+                <View style={styles.itemRow}>
+                  <Text style={styles.itemName}>Kilometre Fee</Text>
+                  <Text style={styles.itemPrice}>$5</Text>
+                </View>
+                <View style={styles.itemRow}>
+                  <Text style={styles.itemName}>Service Charges</Text>
+                  <Text style={styles.itemPrice}>$60</Text>
+                </View>
+                <View style={styles.itemRow}>
+                  <Text style={styles.itemName}>Evenlyo Protect</Text>
+                  <Text style={styles.itemPrice}>$25</Text>
+                </View>
+                <View
+                  style={[styles.itemRow, {borderBottomColor: COLORS.white}]}>
+                  <Text style={styles.totalText}>Total</Text>
+                  <Text style={styles.totalAmount}>$690</Text>
+                </View>
+              </View>
+            </View>
+            <View style={{margin: width(3)}}>
+              <GradientButton
+                text={t('Process to Checkout')}
+                onPress={() => {}}
+                type="filled"
+                gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+              />
+            </View>
+          </>
+        ) : (
+          <>
+            {renderSection('', saleItem)}
+            <View style={styles.progressNotesCard}>
+              <View style={styles.itemsList}>
+                <View style={styles.itemRow}>
+                  <Text style={styles.itemName}>Subtotal</Text>
+                  <Text style={styles.itemPrice}>$600</Text>
+                </View>
+                <View style={styles.itemRow}>
+                  <Text style={styles.itemName}>Security Fee</Text>
+                  <Text style={styles.itemPrice}>$25</Text>
+                </View>
+                <View style={styles.itemRow}>
+                  <Text style={styles.itemName}>Kilometre Fee</Text>
+                  <Text style={styles.itemPrice}>$5</Text>
+                </View>
+                <View style={styles.itemRow}>
+                  <Text style={styles.itemName}>Service Charges</Text>
+                  <Text style={styles.itemPrice}>$60</Text>
+                </View>
+                <View
+                  style={[styles.itemRow, {borderBottomColor: COLORS.white}]}>
+                  <Text style={styles.totalText}>Total</Text>
+                  <Text style={styles.totalAmount}>$690</Text>
                 </View>
               </View>
             </View>
             <View style={{margin: width(4)}}>
               <GradientButton
-                text={t('Checkout')}
+                text={t('Pay Now')}
                 type="filled"
                 gradientColors={['#FF295D', '#E31B95', '#C817AE']}
                 onPress={() => {}}
@@ -184,15 +203,34 @@ function CartScreen({navigation}) {
           </>
         )}
       </ScrollView>
+
+      {/* Modals */}
       <CancelBookingModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
-        onConfirm={() => handleConfirmCancel()}
+        onConfirm={handleConfirmCancel}
       />
       <CancellationConfirm visible={cancelConfirmation} />
+      <ShippingFromModal
+        isVisible={shippingForm}
+        onClose={() => setshippingForm(false)}
+        nestedFilter={true}
+        onContinueToShipping={onContinueToShipping}
+      />
+      <InfoModal
+        isVisible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+        nestedFilter={true}
+        onContinueToShipping={() => {
+          setshippingForm(false);
+          setModalVisible(false);
+          setShowInfoModal(false);
+        }}
+      />
     </SafeAreaView>
   );
 }
+
 export default CartScreen;
 
 const styles = StyleSheet.create({
@@ -226,21 +264,21 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: width(10),
-    gap: 10,
-    justifyContent: 'flex-end',
-  },
   listContainer: {
-    paddingBottom: width(5),
+    paddingBottom: width(2),
+  },
+  sectionTitle: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.black,
+    fontSize: 14,
+    paddingHorizontal: width(5),
+    marginBottom: width(2),
   },
   progressNotesCard: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.backgroundLight,
     borderRadius: width(3),
     padding: width(4),
-    marginTop: width(4),
+    margin: width(4),
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -250,30 +288,9 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  progressNotesHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: width(3),
-  },
-  progressNotesIcon: {
-    fontSize: 16,
-    marginRight: width(2),
-  },
-  progressNotesTitle: {
-    fontSize: 16,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    color: COLORS.textDark,
-  },
-  progressNotesSubtext: {
-    fontSize: 12,
-    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-    color: COLORS.textLight,
-    marginBottom: width(4),
-    lineHeight: 18,
-  },
   itemsList: {
     gap: width(3),
-    paddingBottom: width(3),
+    // paddingBottom: width(3),
   },
   itemRow: {
     flexDirection: 'row',
@@ -281,6 +298,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
+    paddingVertical: width(1),
   },
   itemName: {
     fontSize: 14,
@@ -311,11 +329,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
   },
-  serviceCharges: {
-    fontSize: 12,
-    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-    color: COLORS.textLight,
-  },
+
   totalAmount: {
     fontSize: 18,
     fontFamily: fontFamly.PlusJakartaSansBold,
@@ -325,6 +339,84 @@ const styles = StyleSheet.create({
 
 export const requested = [
   {
+    requestType: 'Request Add To Cart',
+    requests: [
+      {
+        id: 'dj_01',
+        name: 'DJ Ray Vibes',
+        status: 'In stock',
+        verified: true,
+        artistName: 'Jaydeep',
+        price: 300,
+        priceUnit: 'Per Event',
+        image: IMAGES.backgroundImage2,
+        isBookmarked: true,
+        isProtected: true,
+        isSelected: false,
+        variant: 'requested',
+      },
+      {
+        id: 'dj_02',
+        name: 'DJ Ray Vibes',
+        status: 'In stock',
+        verified: true,
+        artistName: 'Jaydeep',
+        price: 300,
+        priceUnit: 'Per Event',
+        image: IMAGES.backgroundImage2,
+        isBookmarked: true,
+        isSelected: true,
+        variant: 'requested',
+      },
+    ],
+  },
+  {
+    requestType: 'Accepted Order',
+    requests: [
+      {
+        id: 'dj_03',
+        name: 'DJ Ray Vibes',
+        status: 'In stock',
+        verified: true,
+        artistName: 'Jaydeep',
+        artistAvatar:
+          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+        price: 300,
+        priceUnit: 'Per Event',
+        image: IMAGES.backgroundImage2,
+        isBookmarked: true,
+        isSelected: true,
+        variant: 'accepted',
+        actionButton: {
+          label: 'Cancel Booking',
+          variant: 'outlined',
+        },
+      },
+      {
+        id: 'dj_04',
+        name: 'DJ Ray Vibes',
+        status: 'In stock',
+        verified: true,
+        artistName: 'Jaydeep',
+        artistAvatar:
+          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+        price: 300,
+        priceUnit: 'Per Event',
+        image: IMAGES.backgroundImage2,
+        isBookmarked: true,
+        isSelected: false,
+        variant: 'accepted',
+        actionButton: {
+          label: 'Cancel Booking',
+          variant: 'filled',
+        },
+      },
+    ],
+  },
+];
+
+export const saleItem = [
+  {
     id: 'dj_01',
     name: 'DJ Ray Vibes',
     status: 'In stock',
@@ -332,8 +424,8 @@ export const requested = [
     artistName: 'Jaydeep',
     price: 300,
     priceUnit: 'Per Event',
-    image:
-      'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop',
+    image: IMAGES.vase,
+    variant: 'requested',
     isBookmarked: true,
     isSelected: false,
   },
@@ -345,49 +437,9 @@ export const requested = [
     artistName: 'Jaydeep',
     price: 300,
     priceUnit: 'Per Event',
-    image:
-      'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop',
+    image: IMAGES.vase,
     isBookmarked: true,
+    variant: 'requested',
     isSelected: true,
-  },
-];
-export const accepted = [
-  {
-    id: 'dj_03',
-    name: 'DJ Ray Vibes',
-    status: 'In stock',
-    verified: true,
-    artistName: 'Jaydeep',
-    artistAvatar:
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-    price: 300,
-    priceUnit: 'Per Event',
-    image:
-      'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop',
-    isBookmarked: true,
-    isSelected: true,
-    actionButton: {
-      label: 'Cancel Booking',
-      variant: 'outlined',
-    },
-  },
-  {
-    id: 'dj_04',
-    name: 'DJ Ray Vibes',
-    status: 'In stock',
-    verified: true,
-    artistName: 'Jaydeep',
-    artistAvatar:
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-    price: 300,
-    priceUnit: 'Per Event',
-    image:
-      'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop',
-    isBookmarked: true,
-    isSelected: false,
-    actionButton: {
-      label: 'Cancel Booking',
-      variant: 'filled',
-    },
   },
 ];

@@ -11,7 +11,7 @@ import AllReviews from './ReviewScreen';
 
 const data = [1, 2, 3, 4, 5];
 
-const getTabsData = (t) => [
+const getTabsData = t => [
   {
     id: 'details',
     title: t('Details'),
@@ -73,7 +73,11 @@ const EventDetails = ({navigation}) => {
         />
 
         {selectedTab === 'details' && (
-          <DetailsContent data={data} selectedTab={selectedTab} />
+          <DetailsContent
+            data={data}
+            selectedTab={selectedTab}
+            navigation={navigation}
+          />
         )}
         {selectedTab === 'gallery' && (
           <DetailsContent data={data} selectedTab={selectedTab} />

@@ -9,6 +9,7 @@ import NotificationDetails from '../../containers/client/app/NotificationDetails
 import TrackDirections from '../../containers/client/app/TrackDirections';
 import TrackingDetails from '../../containers/client/app/TrackingDetails';
 import VendorDetails from '../../containers/client/app/VendorDetails';
+import SalesItems from '../../containers/client/app/SalesItem';
 
 const Stack = createStackNavigator();
 
@@ -32,6 +33,13 @@ const HomeStack = () => {
         component={Notification}
         options={{
           title: 'Notification',
+        }}
+      />
+      <Stack.Screen
+        name="SalesItems"
+        component={SalesItems}
+        options={{
+          title: 'SalesItems',
         }}
       />
       <Stack.Screen

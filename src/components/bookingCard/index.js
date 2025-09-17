@@ -20,7 +20,7 @@ const bookingsData = [
     location: 'Los Angeles, CA',
     price: '$300',
     status: 'Completed',
-    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d',
+    image: IMAGES.backgroundImage,
     category: 'DJ',
   },
   {
@@ -29,7 +29,7 @@ const bookingsData = [
     location: 'Los Angeles, CA',
     price: '$300',
     status: 'New Request',
-    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1502767089025-6572583495b0',
+    image: IMAGES.backgroundImage,
     category: 'DJ',
   },
   {
@@ -38,7 +38,7 @@ const bookingsData = [
     location: 'Los Angeles, CA',
     price: '$300',
     status: 'In Progress',
-    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
+    image: IMAGES.backgroundImage,
     category: 'DJ',
   },
   {
@@ -47,7 +47,7 @@ const bookingsData = [
     location: 'San Francisco, CA',
     price: '$450',
     status: 'Completed',
-    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b',
+    image: IMAGES.backgroundImage,
     category: 'Food',
   },
   {
@@ -55,8 +55,8 @@ const bookingsData = [
     name: 'Party Planner Pro',
     location: 'New York, NY',
     price: '$200',
-    status: 'New Request',
-    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d',
+    status: 'Rejected',
+    image: IMAGES.backgroundImage,
     category: 'Event',
   },
   {
@@ -65,7 +65,7 @@ const bookingsData = [
     location: 'Chicago, IL',
     price: '$500',
     status: 'In Progress',
-    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f',
+    image: IMAGES.backgroundImage,
     category: 'Music',
   },
 ];
@@ -78,6 +78,8 @@ const getStatusColor = (status, t) => {
       return '#FFE8F0';
     case t('In Progress'):
       return '#FFF3E0';
+    case t('Rejected'):
+      return '#FFEBEE';
     default:
       return '#F5F5F5';
   }
@@ -91,6 +93,8 @@ const getStatusTextColor = (status, t) => {
       return '#E91E63';
     case t('In Progress'):
       return '#FF9800';
+    case t('Rejected'):
+      return '#D32F2F';
     default:
       return '#666666';
   }
@@ -101,9 +105,7 @@ const BookingCard = ({item}) => {
   const {t} = useTranslation();
 
   return (
-    <TouchableOpacity
-      onPress={() => navigation.navigate('BookingDetails', {booking: item})}
-      style={styles.card}>
+    <View style={styles.card}>
       <Image source={item.image} style={styles.image} />
       <View style={styles.infoContainer}>
         <View style={styles.topSection}>
@@ -131,7 +133,11 @@ const BookingCard = ({item}) => {
           </Text>
         </View>
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('BookingDetails', {booking: item})
+            }
+            style={styles.button}>
             <Text style={styles.buttonText}>{t('View Details')}</Text>
           </TouchableOpacity>
           <View style={styles.priceContainer}>
@@ -140,13 +146,13 @@ const BookingCard = ({item}) => {
           </View>
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
 const BookingList = ({activeTab}) => {
   const {t} = useTranslation();
-  // Filter data based on active tab
+
   const getFilteredData = () => {
     if (activeTab === t('All Order')) {
       return bookingsData;
@@ -154,6 +160,10 @@ const BookingList = ({activeTab}) => {
       return bookingsData.filter(item => item.status === t('New Request'));
     } else if (activeTab === t('In Progress')) {
       return bookingsData.filter(item => item.status === t('In Progress'));
+    } else if (activeTab === t('Completed')) {
+      return bookingsData.filter(item => item.status === t('Completed'));
+    } else if (activeTab === t('Rejected')) {
+      return bookingsData.filter(item => item.status === t('Rejected'));
     }
     return bookingsData;
   };

@@ -10,17 +10,17 @@ const AppNavigator = () => {
   const {user} = useSelector(state => state.LoginSlice);
   return (
     <NavigationContainer>
-      {/* {!user ? (
+      {!user ? (
         <AuthStack />
       ) : user?.type == 'client' ? (
         <ClientAppStack />
-        ) : user?.type == 'vendor' && user?.vendorDetails !== null ? (
-          ) : user?.type == 'vendor' && user?.vendorDetails === null ? (
-            <VendorDetailStack />
-            ) : (
-              <AuthStack />
-              )} */}
-      <ClientAppStack />
+      ) : user?.type == 'vendor' && user?.vendorDetails !== null ? (
+        <VendorAppStack />
+      ) : user?.type == 'vendor' && user?.vendorDetails === null ? (
+        <VendorDetailStack />
+      ) : (
+        <AuthStack />
+      )}
     </NavigationContainer>
   );
 };

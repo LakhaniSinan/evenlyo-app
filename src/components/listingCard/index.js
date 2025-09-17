@@ -1,7 +1,7 @@
 import {Image, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
-import {ICONS, IMAGES} from '../../assets';
+import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 
 const ListingCard = ({item, navigation}) => {
@@ -26,7 +26,7 @@ const ListingCard = ({item, navigation}) => {
           backgroundColor: COLORS.white,
         }}>
         <Image
-          source={IMAGES.coverImage1}
+          source={item?.image}
           resizeMode="cover"
           style={{width: '100%', height: '100%'}}
         />
@@ -158,14 +158,16 @@ const ListingCard = ({item, navigation}) => {
               }}>
               $300
             </Text>
-            <Text
-              style={{
-                fontSize: 9,
-                color: COLORS.textLight,
-                fontFamily: fontFamly.PlusJakartaSansBold,
-              }}>
-              /Par Event
-            </Text>
+            {item?.priceUnit && (
+              <Text
+                style={{
+                  fontSize: 9,
+                  color: COLORS.textLight,
+                  fontFamily: fontFamly.PlusJakartaSansBold,
+                }}>
+                /{item?.priceUnit}
+              </Text>
+            )}
           </View>
         </View>
       </View>

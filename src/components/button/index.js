@@ -16,6 +16,7 @@ const GradientButton = ({
   iconTintColor,
   useGradient,
   textStyle,
+  styleContainer,
 }) => {
   if (type === 'filled') {
     return (
@@ -23,7 +24,7 @@ const GradientButton = ({
         colors={gradientColors}
         start={{x: 0, y: 0}}
         end={{x: 0, y: 1}}
-        style={styles.gradientContainer}>
+        style={[styles.gradientContainer, {...styleContainer}]}>
         <TouchableOpacity
           onPress={onPress}
           activeOpacity={0.8}
