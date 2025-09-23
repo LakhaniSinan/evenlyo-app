@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, {useRef, useState} from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -11,35 +12,72 @@ import {useDispatch} from 'react-redux';
 import {ICONS} from '../../assets';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
+import CommonAlert from '../../components/commanAlert';
 import GradientText from '../../components/gradiantText';
 import Header from '../../components/header';
+import Loader from '../../components/loder';
 import TextField from '../../components/textInput';
 import {COLORS, fontFamly, SIZES} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 import {setUserData} from '../../redux/slice/auth';
+import {loginUser} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
 
 const LoginScreen = ({navigation, route}) => {
+  const {type} = route.params;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const {t} = useTranslation();
-  const {type} = route.params;
   console.log(type, 'typetypetype');
 
   const navigateToRegister = () => {
     navigation.navigate('Register');
   };
 
-  const navigateToHome = () => {
-    dispatch(
-      setUserData({
-        name: 'Sinan',
-        type: type,
-        vendorDetails: null,
-      }),
-    );
+  const navigateToHome = async () => {
+    console.log(email, password, 'isVisibleisVisible');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email.trim() === '') {
+      modalRef.current.show({
+        status: 'error',
+        message: 'Please enter your email.',
+      });
+    } else if (!emailRegex.test(email)) {
+      modalRef.current.show({
+        status: 'error',
+        message: 'Please enter a valid email address.',
+      });
+    } else if (password.trim() === '') {
+      modalRef.current.show({
+        status: 'error',
+        message: 'Please enter your password.',
+      });
+    } else if (password.length < 8) {
+      modalRef.current.show({
+        status: 'error',
+        message: 'Password must be at least 8 characters long.',
+      });
+    } else {
+      try {
+        let payload = {
+          email: email,
+          password: password,
+        };
+        setIsLoading(true);
+        const response = await loginUser(payload);
+        setIsLoading(false);
+        let data = response?.data?.user;
+        dispatch(setUserData(data));
+        AsyncStorage.setItem('userData', JSON.stringify(data));
+      } catch (error) {
+        console.log(error, 'errorerrorerrorerror123');
+        setIsLoading(false);
+      }
+    }
   };
 
   return (
@@ -64,6 +102,9 @@ const LoginScreen = ({navigation, route}) => {
             onChangeText={setPassword}
             keyboardType="default"
             autoCapitalize="none"
+            secure={showPassword}
+            endIcon={ICONS.eyeIcon}
+            onEndIconPress={() => setShowPassword(!showPassword)}
           />
           <View style={{height: 10}} />
           <TouchableOpacity
@@ -135,6 +176,8 @@ const LoginScreen = ({navigation, route}) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <CommonAlert ref={modalRef} />
+      <Loader isLoading={isLoading} />
     </Background>
   );
 };

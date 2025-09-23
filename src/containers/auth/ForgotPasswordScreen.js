@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -11,43 +11,65 @@ import LinearGradient from 'react-native-linear-gradient';
 import {ICONS} from '../../assets';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
+import CommonAlert from '../../components/commanAlert';
 import GradientText from '../../components/gradiantText';
 import Header from '../../components/header';
+import Loader from '../../components/loder';
 import ContactNumberInput from '../../components/phoneInput';
 import TextField from '../../components/textInput';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {forgotUser} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
 
 const ForgotPasswordScreen = ({route, navigation}) => {
   const {type} = route.params;
-
+  const [isLoading, setIsLoading] = useState(false);
+  const modalRef = useRef(null);
   const [activeTab, setActiveTab] = useState('phone'); // 'phone' or 'email'
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('dummy1@gmail.com');
   const {t} = useTranslation();
 
   const handleBack = () => {
     navigation.goBack();
   };
 
-  const handleContinue = () => {
-    navigation.navigate('ForgotPasswordOtpScreen', {type: type});
-    // if (activeTab === 'phone') {
-    //   if (!phoneNumber) {
-    //     // Show alert using snackbar component as per user preference
-    //     return;
-    //   }
-    //   // Navigate to OTP verification for phone
-    //   navigation.navigate('PhoneOTPVerification', {phoneNumber});
-    // } else {
-    //   if (!email) {
-    //     // Show alert using snackbar component as per user preference
-    //     return;
-    //   }
-    //   // Navigate to email verification
-    //   navigation.navigate('EmailVerification', {email});
-    // }
+  const handleContinue = async () => {
+    if (activeTab === 'phone') {
+      if (!phoneNumber) {
+        return modalRef.current.show({
+          status: 'error',
+          message: 'Please enter phone number first.',
+        });
+      }
+    } else {
+      if (!email) {
+        return modalRef.current.show({
+          status: 'error',
+          message: 'Please enter email first.',
+        });
+      }
+    }
+    try {
+      let params = {
+        email: email,
+      };
+      setIsLoading(true);
+      const response = await forgotUser(params);
+      setIsLoading(false);
+      modalRef.current.show({
+        status: 'ok',
+        message: response.data.message,
+        handlePressOk: () => {
+          // navigation.navigate('ForgotPasswordOtpScreen', {});
+        },
+      });
+      setIsLoading(false);
+    } catch (error) {
+      setIsLoading(false);
+      console.log(error, 'errorerrorerrorerror3463');
+    }
   };
 
   return (
@@ -164,6 +186,8 @@ const ForgotPasswordScreen = ({route, navigation}) => {
           </View>
         </View>
       </ScrollView>
+      <CommonAlert ref={modalRef} />
+      <Loader isLoading={isLoading} />
     </Background>
   );
 };

@@ -8,15 +8,17 @@ import VendorDetailStack from './vendorStack/VendorDetailStack';
 
 const AppNavigator = () => {
   const {user} = useSelector(state => state.LoginSlice);
+  console.log(user, 'useruseruseruseruseruser');
+
   return (
     <NavigationContainer>
       {!user ? (
         <AuthStack />
-      ) : user?.type == 'client' ? (
+      ) : user?.userType == 'client' ? (
         <ClientAppStack />
-      ) : user?.type == 'vendor' && user?.vendorDetails !== null ? (
+      ) : user?.userType == 'vendor' && user?.vendorDetails !== null ? (
         <VendorAppStack />
-      ) : user?.type == 'vendor' && user?.vendorDetails === null ? (
+      ) : user?.userType == 'vendor' && user?.vendorDetails === null ? (
         <VendorDetailStack />
       ) : (
         <AuthStack />
