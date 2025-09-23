@@ -69,7 +69,7 @@ const RegisterScreen = ({navigation}) => {
   };
 
   const navigateToLogin = () => {
-    navigation.navigate('Login');
+    navigation.goBack();
   };
 
   return (

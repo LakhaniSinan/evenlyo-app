@@ -159,7 +159,18 @@ const EventFilterModal = ({isVisible, onClose, nestedFilter}) => {
             name="subCategory"
             handleSelectValue={handleSelectValue}
           />
+          <CustomPicker
+            ref={subCategory}
+            label="Status"
+            labelll="Select Status"
+            handleOpenModal={handleOpenSubCategory}
+            value={inputVal?.subCategory || ''}
+            listData={[{name: 'Pending'}, {name: 'Rejected'}]}
+            name="subCategory"
+            handleSelectValue={handleSelectValue}
+          />
           <View style={{height: 15}} />
+
           <View style={styles.section}>
             <TextField
               label={'Date'}
@@ -170,22 +181,6 @@ const EventFilterModal = ({isVisible, onClose, nestedFilter}) => {
               endIcon={ICONS.calenderIcon}
             />
           </View>
-          <CustomPicker
-            ref={subCategory}
-            label="Event Type"
-            labelll="Select Event Type"
-            handleOpenModal={handleOpenSubCategory}
-            value={inputVal?.subCategory || ''}
-            listData={[
-              {name: 'Entertainment & Attractions'},
-              {name: 'Food & Drinks'},
-              {name: 'Decoration & Styling'},
-              {name: 'Locations & Party Tents'},
-              {name: 'Staff & Services'},
-            ]}
-            name="subCategory"
-            handleSelectValue={handleSelectValue}
-          />
         </ScrollView>
         {!isKeyboardVisible && (
           <View style={styles.buttonRow}>

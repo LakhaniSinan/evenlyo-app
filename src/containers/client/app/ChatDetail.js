@@ -267,6 +267,7 @@ const ChatDetail = ({navigation}) => {
       <NewRequestModal
         isVisible={showRequestModal}
         onClose={() => setShowRequestModal(!showRequestModal)}
+        navigation={navigation}
       />
     </View>
   );

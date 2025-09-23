@@ -263,13 +263,16 @@ function AllBookingScreen() {
           <DailyCalendar
             goBack={() => setSelectedDate('')}
             selectedDate={selectedDate}
-            onEventPress={event => navigation.navigate('BookingHistory', event)}
+            onEventPress={event =>
+              navigation.navigate('BookingsByStatus', event)
+            }
           />
         )}
 
         {statusData.map((item, index) => {
           return (
             <TouchableOpacity
+              onPress={() => navigation.navigate('BookingsByStatus', item)}
               key={index}
               style={{
                 flexDirection: 'row',
@@ -326,36 +329,3 @@ function AllBookingScreen() {
 }
 
 export default AllBookingScreen;
-
-const data = [
-  {
-    id: 1,
-    name: 'Sarah Johnson',
-    initials: 'SJ',
-    status: 'New',
-    statusColor: '#FFB6C1',
-    service: 'Camera Equipment',
-    location: 'Downtown',
-    time: '2 hours ago',
-  },
-  {
-    id: 2,
-    name: 'Mike Chen',
-    initials: 'MC',
-    status: 'Confirmed',
-    statusColor: '#90EE90',
-    service: 'Sound System',
-    location: 'Downtown',
-    time: '2 hours ago',
-  },
-  {
-    id: 3,
-    name: 'Chen',
-    initials: 'MC',
-    status: 'Confirmed',
-    statusColor: '#FFB6C1',
-    service: 'Sound System',
-    location: 'Downtown',
-    time: '2 hours ago',
-  },
-];

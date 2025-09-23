@@ -10,7 +10,8 @@ import OTPInputScreen from '../../components/otpScreen';
 import GradientButton from '../../components/button';
 import TextField from '../../components/textInput';
 
-const ResetPasswordScreen = ({navigation}) => {
+const ResetPasswordScreen = ({route, navigation}) => {
+  const {type} = route.params;
   const {t} = useTranslation();
   return (
     <Background>
@@ -50,7 +51,7 @@ const ResetPasswordScreen = ({navigation}) => {
             <View style={{marginTop: width(4)}}>
               <GradientButton
                 text={t('continue')}
-                onPress={() => navigation.navigate('AuthSuccess')}
+                onPress={() => navigation.navigate('AuthSuccess', {type: type})}
                 textStyle={{
                   fontSize: 12,
                   fontFamily: fontFamly.PlusJakartaSansSemiRegular,

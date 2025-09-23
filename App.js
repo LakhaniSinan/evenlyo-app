@@ -6,13 +6,12 @@ import {Provider, useDispatch} from 'react-redux';
 import AppNavigator from './src/navigation';
 import store from './src/redux';
 import {initializeLanguageFromStorage} from './src/redux/slice/language';
-import './src/services/i18n'; // Initialize i18n
+import './src/services/i18n';
 
 const AppContent = () => {
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   useEffect(() => {
-    // Initialize language from storage when app starts
     dispatch(initializeLanguageFromStorage());
   }, [dispatch]);
   return (

@@ -67,7 +67,7 @@ const LoginScreen = ({navigation, route}) => {
           />
           <View style={{height: 10}} />
           <TouchableOpacity
-            onPress={() => navigation.navigate('ForgotPassword')}>
+            onPress={() => navigation.navigate('ForgotPassword', {type: type})}>
             <GradientText
               customStyles={{
                 fontSize: 12,

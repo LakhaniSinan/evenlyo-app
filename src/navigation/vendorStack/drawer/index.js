@@ -8,6 +8,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import CustomDrawer from './CustomDrawer';
 import ChatDetail from '../../../containers/vendor/app/ChatDetails';
+import CreateCustomOffer from '../../../containers/vendor/app/CreateCustomOffre';
+import BookingItems from '../../../containers/vendor/app/BookingItems';
 
 const Drawer = createDrawerNavigator();
 
@@ -110,6 +112,8 @@ function CustomerDrawer() {
       }}>
       <Drawer.Screen name="Dashboard" component={ScreenWithAnimation} />
       <Drawer.Screen name="ChatDetails" component={ChatDetail} />
+      <Drawer.Screen name="CreateCustomOffer" component={CreateCustomOffer} />
+      <Drawer.Screen name="BookingItems" component={BookingItems} />
     </Drawer.Navigator>
   );
 }

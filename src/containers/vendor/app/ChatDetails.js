@@ -41,127 +41,12 @@ const messagesData = [
     avatar:
       'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
   },
-  {
-    id: '4',
-    text: 'I think we can meet tomorrow at 2 PM. Does that work for you?',
-    isMe: true,
-    time: '10:37 AM',
-  },
-  {
-    id: '5',
-    text: "Perfect! Tomorrow at 2 PM works great for me. I'll send you a calendar invite.",
-    isMe: false,
-    time: '10:40 AM',
-    avatar:
-      'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
-  },
-  {
-    id: '6',
-    text: 'Great! Also, I wanted to discuss the budget allocation for the new features.',
-    isMe: true,
-    time: '10:42 AM',
-  },
-  {
-    id: '7',
-    text: "Yes, that's important. I have some cost estimates ready. Should we go through them in the meeting?",
-    isMe: false,
-    time: '10:45 AM',
-    avatar:
-      'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
-  },
-  {
-    id: '8',
-    text: "Absolutely! That would be perfect. I'll prepare a presentation with all the details.",
-    isMe: true,
-    time: '10:47 AM',
-  },
-  {
-    id: '9',
-    text: 'Looking forward to it! By the way, have you reviewed the latest design mockups?',
-    isMe: false,
-    time: '10:50 AM',
-    avatar:
-      'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
-  },
-  {
-    id: '10',
-    text: 'Yes, I have! They look amazing. The new UI is much more intuitive.',
-    isMe: true,
-    time: '10:52 AM',
-  },
-  {
-    id: '11',
-    text: "I'm glad you like them! Our design team worked really hard on this.",
-    isMe: false,
-    time: '10:55 AM',
-    avatar:
-      'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
-  },
-  {
-    id: '12',
-    text: 'They deserve all the credit. The user experience is going to be fantastic.',
-    isMe: true,
-    time: '10:57 AM',
-  },
-  {
-    id: '13',
-    text: "Thank you! We're also planning to add some new animations. Should I show you a preview?",
-    isMe: false,
-    time: '11:00 AM',
-    avatar:
-      'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
-  },
-  {
-    id: '14',
-    text: 'That would be awesome! I love seeing new features in development.',
-    isMe: true,
-    time: '11:02 AM',
-  },
-  {
-    id: '10',
-    text: "Perfect! I'll prepare a demo for tomorrow's meeting.",
-    isMe: false,
-    time: '11:05 AM',
-    avatar:
-      'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
-  },
-  {
-    id: '16',
-    text: "Can't wait! This project is really coming together nicely.",
-    isMe: true,
-    time: '11:08 AM',
-  },
-  {
-    id: '17',
-    text: 'It really is! The team is super excited about the progress.',
-    isMe: false,
-    time: '11:10 AM',
-    avatar:
-      'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
-  },
-  {
-    id: '18',
-    text: 'Well, I better get back to work. See you tomorrow at 2 PM!',
-    isMe: true,
-    time: '11:12 AM',
-  },
-  {
-    id: '19',
-    text: 'See you then! Have a great rest of your day! 👋',
-    isMe: false,
-    time: '11:15 AM',
-    avatar:
-      'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
-  },
-  {
-    id: '20',
-    text: 'You too! Looking forward to our meeting tomorrow.',
-    isMe: true,
-    time: '11:17 AM',
-  },
 ];
 
 const ChatDetail = ({navigation, route}) => {
+  const data = route.params;
+  console.log(data, 'datadatadatadatadata');
+
   const {t} = useTranslation();
   const [messageText, setMessageText] = useState('');
   const [messages, setMessages] = useState(messagesData);
@@ -223,7 +108,7 @@ const ChatDetail = ({navigation, route}) => {
 
   const renderMessage = ({item}) => {
     return (
-      <>
+      <View key={item?.id}>
         <View
           style={[
             styles.messageContainer,
@@ -256,7 +141,7 @@ const ChatDetail = ({navigation, route}) => {
           ]}>
           {item.time}
         </Text>
-      </>
+      </View>
     );
   };
 
@@ -275,7 +160,7 @@ const ChatDetail = ({navigation, route}) => {
           }}
         />
         <FlatList
-          data={messages}
+          data={messagesData}
           renderItem={renderMessage}
           keyExtractor={item => item.id}
           style={styles.messagesList}
@@ -285,7 +170,85 @@ const ChatDetail = ({navigation, route}) => {
           initialNumToRender={20}
           maxToRenderPerBatch={10}
           windowSize={10}
+          ListFooterComponent={
+            data?.offreShow && (
+              <View
+                style={{
+                  padding: width(4),
+                  backgroundColor: COLORS.backgroundLight,
+                  shadowColor: '#000',
+                  margin: width(3),
+                  borderRadius: 14,
+                  shadowOffset: {
+                    width: 0,
+                    height: 2,
+                  },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3.84,
+
+                  elevation: 5,
+                }}>
+                <Text
+                  style={{
+                    fontFamily: fontFamly.PlusJakartaSansBold,
+                    fontSize: 12,
+                    color: COLORS.textDark,
+                  }}>
+                  New Offer Send
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: fontFamly.PlusJakartaSansBold,
+                    fontSize: 10,
+                    color: COLORS.textLight,
+                    marginTop: width(1),
+                  }}>
+                  With over 7 years of event experience, DJ Ray...
+                </Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginTop: width(1),
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontFamily: fontFamly.PlusJakartaSansBold,
+                      color: COLORS.textDark,
+                    }}>
+                    $300
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                      color: COLORS.textDark,
+                    }}>
+                    /Day
+                  </Text>
+                </View>
+              </View>
+            )
+          }
         />
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate('CreateCustomOffer')}
+          style={{
+            height: width(10),
+            width: width(10),
+            borderRadius: 12,
+            position: 'absolute',
+            bottom: width(18),
+            right: width(3),
+          }}>
+          <Image
+            source={ICONS.plusIcon}
+            resizeMode="contain"
+            style={{height: '100%', width: '100%'}}
+          />
+        </TouchableOpacity>
         <View style={styles.inputWrapper}>
           <TouchableOpacity style={styles.emojiButton}>
             <Text style={styles.emojiText}>😀</Text>

@@ -9,6 +9,7 @@ import NotificationDetails from '../../containers/vendor/app/NotificationDetails
 import TrackingBookingDetails from '../../containers/vendor/app/TrackBooking';
 import ChatDetails from '../../containers/vendor/app/ChatDetails';
 import AnalyticsReport from '../../containers/vendor/app/AnalyticsScreen';
+import BookingsByStatus from '../../containers/vendor/app/BookingsByStatus';
 
 const Stack = createStackNavigator();
 
@@ -25,6 +26,13 @@ const AllBookingStack = () => {
         component={AllBookingScreen}
         options={{
           title: 'AllBookingScreen',
+        }}
+      />
+      <Stack.Screen
+        name="BookingsByStatus"
+        component={BookingsByStatus}
+        options={{
+          title: 'BookingsByStatus',
         }}
       />
       <Stack.Screen

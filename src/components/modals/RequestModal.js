@@ -19,7 +19,7 @@ import GradientButton from '../button';
 import GradientText from '../gradiantText';
 import NewRequestCard from '../newRequestCard';
 
-const NewRequestModal = ({isVisible, onClose, onContinueToShipping}) => {
+const NewRequestModal = ({isVisible, onClose, type, navigation}) => {
   const {t} = useTranslation();
 
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
@@ -207,26 +207,65 @@ const NewRequestModal = ({isVisible, onClose, onContinueToShipping}) => {
               </View>
             </View>
           </View>
-          <View style={{padding: width(3)}}></View>
+          <View
+            style={{
+              padding: width(3),
+              backgroundColor: COLORS.backgroundLight,
+              borderRadius: width(3),
+              marginBottom: width(2),
+            }}>
+            <Text
+              style={[
+                styles.totalText,
+                {fontSize: 12, marginBottom: width(2)},
+              ]}>
+              Notes/Terms
+            </Text>
+            <Text
+              style={[
+                styles.itemName,
+                {color: COLORS.textLight, fontSize: 10},
+              ]}>
+              With over 7 years of event experience, DJ Ray With over 7 years of
+              event experience, DJ Ray With over 7 years of event experience, DJ
+              Ray With over 7 years of event experience, DJ Ray...
+            </Text>
+          </View>
         </ScrollView>
 
-        {/* Footer */}
-        {!isKeyboardVisible && (
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              onPress={onClose}
-              style={styles.addToWishlistButton}>
-              <GradientText text="Reject Offer" />
-            </TouchableOpacity>
-            <View style={{width: width(50)}}>
-              <GradientButton
-                styleContainer={{height: width(12.5)}}
-                text="Accept Offer"
-                onPress={() => onClose()}
-                type="filled"
-                textStyle={styles.sendRequestText}
-              />
-            </View>
+        {type !== 'vendor' ? (
+          <>
+            {!isKeyboardVisible && (
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  onPress={onClose}
+                  style={styles.addToWishlistButton}>
+                  <GradientText text="Reject Offer" />
+                </TouchableOpacity>
+                <View style={{width: width(50)}}>
+                  <GradientButton
+                    styleContainer={{height: width(12.5)}}
+                    text="Accept Offer"
+                    onPress={() => onClose()}
+                    type="filled"
+                    textStyle={styles.sendRequestText}
+                  />
+                </View>
+              </View>
+            )}
+          </>
+        ) : (
+          <View style={{width: width(90)}}>
+            <GradientButton
+              styleContainer={{height: width(12.5)}}
+              text="Send Offer"
+              onPress={() => {
+                onClose();
+                navigation.navigate('ChatDetails', {offreShow: true});
+              }}
+              type="filled"
+              textStyle={styles.sendRequestText}
+            />
           </View>
         )}
       </View>

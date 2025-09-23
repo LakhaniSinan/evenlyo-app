@@ -176,6 +176,7 @@ export const requested = [
     image: IMAGES.backgroundImage2,
     isBookmarked: true,
     isSelected: false,
+    category: 'DJ',
   },
   {
     id: 'dj_02',
@@ -200,6 +201,7 @@ export const requested = [
     image: IMAGES.backgroundImage2,
     isBookmarked: false,
     isSelected: false,
+    category: 'DJ',
   },
   {
     id: 'dj_04',
@@ -212,6 +214,7 @@ export const requested = [
     image: IMAGES.backgroundImage2,
     isBookmarked: false,
     isSelected: false,
+    category: 'DJ',
   },
   {
     id: 'dj_05',
@@ -224,5 +227,6 @@ export const requested = [
     image: IMAGES.backgroundImage2,
     isBookmarked: true,
     isSelected: false,
+    category: 'DJ',
   },
 ];

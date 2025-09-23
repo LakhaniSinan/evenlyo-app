@@ -15,13 +15,16 @@ const AppHeader = ({
   onRightIconPress,
   chatHeaderData,
   isShowMenuIcon,
+  setCommentType,
+  commentType,
 }) => {
   const {t} = useTranslation();
   const [openMenu, setOpenMenu] = useState(false);
   const [showCommentMenu] = useState(true);
-  const [commentType, setCommentType] = useState('public');
 
   const handleCloseMenu = useCallback(type => {
+    console.log(type, 'typetypetypetype');
+
     setOpenMenu(false);
     setCommentType(type);
   }, []);

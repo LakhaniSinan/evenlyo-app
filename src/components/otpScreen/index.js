@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {OtpInput} from 'react-native-otp-entry';
 import {fontFamly} from '../../constants';
 
@@ -30,8 +30,16 @@ export default function OTPInputScreen() {
         }}
       />
       <Text style={styles.timerText}>{timer} Sec</Text>
-      {timer == 0 && <Text style={styles.timerText2}>Resend Code</Text>}
-      {timer == 0 && <Text style={styles.timerText2}>Call Request</Text>}
+      {timer == 0 && (
+        <TouchableOpacity>
+          <Text style={styles.timerText2}>Resend Code</Text>
+        </TouchableOpacity>
+      )}
+      {timer == 0 && (
+        <TouchableOpacity>
+          <Text style={styles.timerText2}>Call Request</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

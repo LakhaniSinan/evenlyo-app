@@ -17,7 +17,7 @@ const EventListingCard = ({item}) => {
       <View style={styles.infoContainer}>
         <View style={styles.topSection}>
           <View style={styles.headerRow}>
-            <Text style={styles.tag}>• {item.category}</Text>
+            {item.category && <Text style={styles.tag}>• {item.category}</Text>}
             <View style={styles.statusBadge}>
               <Text style={styles.statusText}>2024-06-24</Text>
             </View>

@@ -1,13 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useState} from 'react';
-import {
-  Image,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {Image, SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
@@ -202,97 +195,100 @@ function BookingDetails({route}) {
             </Text>
           </View>
         </View>
-        <Text
-          style={{
-            fontSize: 12,
-            marginTop: width(3),
-            color: COLORS.textDark,
-            fontFamily: fontFamly.PlusJakartaSansMedium,
-          }}>
-          Seller Details
-        </Text>
+        {data?.type !== 'Booking' && (
+          <>
+            <Text
+              style={{
+                fontSize: 12,
+                marginTop: width(3),
+                color: COLORS.textDark,
+                fontFamily: fontFamly.PlusJakartaSansMedium,
+              }}>
+              Seller Details
+            </Text>
+            <View
+              style={{
+                paddingVertical: width(3),
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+              <Image
+                source={IMAGES.profilePhoto}
+                resizeMode="contain"
+                style={{height: width(10), width: width(10)}}
+              />
+              <View style={{marginLeft: width(3)}}>
+                <Text
+                  style={{
+                    fontFamily: fontFamly.PlusJakartaSansMedium,
+                    fontSize: 12,
+                    color: COLORS.textDark,
+                  }}>
+                  Tech Solutions Ltd
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: fontFamly.PlusJakartaSansMedium,
+                    fontSize: 10,
+                    color: COLORS.textLight,
+                  }}>
+                  New York, NY
+                </Text>
+              </View>
+            </View>
+          </>
+        )}
+      </View>
+
+      {data?.type == 'Booking' && (
         <View
           style={{
-            paddingVertical: width(3),
             flexDirection: 'row',
-            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingLeft: width(4),
+            paddingRight: width(1),
           }}>
-          <Image
-            source={IMAGES.profilePhoto}
-            resizeMode="contain"
-            style={{height: width(10), width: width(10)}}
-          />
-          <View style={{marginLeft: width(3)}}>
-            <Text
-              style={{
-                fontFamily: fontFamly.PlusJakartaSansMedium,
-                fontSize: 12,
-                color: COLORS.textDark,
-              }}>
-              Tech Solutions Ltd
-            </Text>
-            <Text
-              style={{
-                fontFamily: fontFamly.PlusJakartaSansMedium,
-                fontSize: 10,
-                color: COLORS.textLight,
-              }}>
-              New York, NY
-            </Text>
+          <View style={{width: width(44), marginRight: width(2)}}>
+            <GradientButton
+              text={'Accept'}
+              // onPress={onClose}
+              type="outline"
+              useGradient={true}
+            />
+          </View>
+          <View style={{width: width(44), marginRight: width(2)}}>
+            <GradientButton
+              textStyle={{
+                fontSize: 13,
+                fontFamly: fontFamly.PlusJakartaSansMedium,
+                color: COLORS.white,
+              }}
+              text={'Reject'}
+              onPress={() => setModalVisible(true)}
+              styleProps={{
+                paddingVertical: width(3),
+              }}
+            />
           </View>
         </View>
-      </View>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          paddingLeft: width(4),
-          paddingRight: width(1),
-        }}>
-        <View style={{width: width(44), marginRight: width(2)}}>
-          <GradientButton
-            text={'Accept'}
-            // onPress={onClose}
-            type="outline"
-            useGradient={true}
-          />
-        </View>
-        <View style={{width: width(44), marginRight: width(2)}}>
+      )}
+      {data?.type !== 'Booking' && (
+        <View style={{paddingHorizontal: width(4), marginTop: width(3)}}>
           <GradientButton
             textStyle={{
               fontSize: 13,
               fontFamly: fontFamly.PlusJakartaSansMedium,
               color: COLORS.white,
             }}
-            text={'Reject'}
-            onPress={() => setModalVisible(true)}
+            text={'Track Now'}
+            onPress={() => navigation.navigate('TrackingBookingDetails')}
             styleProps={{
               paddingVertical: width(3),
             }}
           />
         </View>
-      </View>
-      <TouchableOpacity
-        onPress={() => navigation.navigate('TrackingBookingDetails')}
-        style={{
-          marginHorizontal: width(4),
-          paddingVertical: width(3),
-          marginTop: width(3),
-          borderRadius: width(4),
-          borderWidth: 1,
-          borderColor: COLORS.border,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-        <Text
-          style={{
-            fontSize: 13,
-            fontFamily: fontFamly.PlusJakartaSansBold,
-            color: COLORS.black,
-          }}>
-          Track Now
-        </Text>
-      </TouchableOpacity>
+      )}
+
       <RejectRequestModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}

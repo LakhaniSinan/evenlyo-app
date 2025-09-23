@@ -4,12 +4,14 @@ import {
   Image,
   SafeAreaView,
   ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
-import {ICONS, IMAGES} from '../../../assets';
+import LinearGradient from 'react-native-linear-gradient';
+import {ICONS} from '../../../assets';
 import EventListingCard from '../../../components/eventListingCards';
 import EventListingModal from '../../../components/modals/AddEventListing';
 import AddMoreCategory from '../../../components/modals/AddMoreCategory';
@@ -20,65 +22,12 @@ import EventFilterModal from '../../../components/modals/EventFilter';
 import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
-const bookingsData = [
-  {
-    id: '1',
-    name: 'DJ Ray Vibes',
-    location: 'Los Angeles, CA',
-    price: '$300',
-    status: 'Completed',
-    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d',
-    category: 'DJ',
-  },
-  {
-    id: '2',
-    name: 'DJ Ray Vibes',
-    location: 'Los Angeles, CA',
-    price: '$300',
-    status: 'New Request',
-    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1502767089025-6572583495b0',
-    category: 'DJ',
-  },
-  {
-    id: '3',
-    name: 'DJ Ray Vibes',
-    location: 'Los Angeles, CA',
-    price: '$300',
-    status: 'In Progress',
-    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
-    category: 'DJ',
-  },
-  {
-    id: '4',
-    name: 'Food Truck Express',
-    location: 'San Francisco, CA',
-    price: '$450',
-    status: 'Completed',
-    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b',
-    category: 'Food',
-  },
-  {
-    id: '5',
-    name: 'Party Planner Pro',
-    location: 'New York, NY',
-    price: '$200',
-    status: 'New Request',
-    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d',
-    category: 'Event',
-  },
-  {
-    id: '6',
-    name: 'Live Band Rock',
-    location: 'Chicago, IL',
-    price: '$500',
-    status: 'In Progress',
-    image: IMAGES.backgroundImage, // 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f',
-    category: 'Music',
-  },
-];
+import {requested} from '../../client/app/EventListingScreen';
+import {saleItem} from '../../client/app/CartScreen';
 
 const EventListingScreen = ({navigation}) => {
   const {t} = useTranslation();
+  const [activeTab, setActiveTab] = useState('Booking Items');
   const [showSucessModal, setShowSuccessModal] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [showAddNew, setShowAddNew] = useState(false);
@@ -144,6 +93,8 @@ const EventListingScreen = ({navigation}) => {
     });
   };
 
+  const renderTabs = ['Booking Items', 'Sale Items'];
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <ScrollView>
@@ -191,6 +142,25 @@ const EventListingScreen = ({navigation}) => {
               />
             </TouchableOpacity>
           </View>
+          <View style={styles.tabContainer}>
+            {renderTabs.map(tab => (
+              <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
+                {activeTab === tab ? (
+                  <LinearGradient
+                    colors={['#FF295D', '#E31B95', '#C817AE']}
+                    start={{x: 0, y: 0}}
+                    end={{x: 0, y: 1}}
+                    style={styles.activeTab}>
+                    <Text style={styles.activeText}>{tab}</Text>
+                  </LinearGradient>
+                ) : (
+                  <View style={styles.inactiveTab}>
+                    <Text style={styles.inactiveText}>{tab}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
           <View
             style={{
               flex: 1,
@@ -234,7 +204,7 @@ const EventListingScreen = ({navigation}) => {
           </View>
         </View>
         <FlatList
-          data={bookingsData}
+          data={activeTab == 'Booking Items' ? requested : saleItem || []}
           keyExtractor={item => item.id}
           renderItem={({item}) => <EventListingCard item={item} />}
           contentContainerStyle={{padding: 16}}
@@ -274,3 +244,42 @@ const EventListingScreen = ({navigation}) => {
 };
 
 export default EventListingScreen;
+
+const styles = StyleSheet.create({
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: width(1),
+    alignItems: 'center',
+    marginHorizontal: width(3),
+    backgroundColor: COLORS.white,
+    padding: width(1),
+    borderRadius: width(4),
+    marginTop: width(2),
+  },
+  activeTab: {
+    paddingVertical: 16,
+    width: width(44.5),
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  inactiveTab: {
+    paddingVertical: 16,
+    width: width(44.5),
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  activeText: {
+    color: COLORS.white,
+    fontSize: 13,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  inactiveText: {
+    color: '#333',
+    fontSize: 13,
+    textAlign: 'center',
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+});

@@ -9,7 +9,8 @@ import {globalStyles} from '../../styles/globalStyle';
 import OTPInputScreen from '../../components/otpScreen';
 import GradientButton from '../../components/button';
 
-const ForgotPasswordOtpScreen = ({navigation}) => {
+const ForgotPasswordOtpScreen = ({route, navigation}) => {
+  const {type} = route.params;
   const {t} = useTranslation();
   return (
     <Background>
@@ -33,7 +34,9 @@ const ForgotPasswordOtpScreen = ({navigation}) => {
             <OTPInputScreen />
             <View style={{marginTop: width(4)}}>
               <GradientButton
-                onPress={() => navigation.navigate('ResetPasswordScreen')}
+                onPress={() =>
+                  navigation.navigate('ResetPasswordScreen', {type: type})
+                }
                 text={t('Verify OTP')}
                 textStyle={{
                   fontSize: 12,

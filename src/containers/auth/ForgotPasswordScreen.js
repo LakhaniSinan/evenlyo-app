@@ -19,7 +19,9 @@ import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import {globalStyles} from '../../styles/globalStyle';
 
-const ForgotPasswordScreen = ({navigation}) => {
+const ForgotPasswordScreen = ({route, navigation}) => {
+  const {type} = route.params;
+
   const [activeTab, setActiveTab] = useState('phone'); // 'phone' or 'email'
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
@@ -30,7 +32,7 @@ const ForgotPasswordScreen = ({navigation}) => {
   };
 
   const handleContinue = () => {
-    navigation.navigate('ForgotPasswordOtpScreen');
+    navigation.navigate('ForgotPasswordOtpScreen', {type: type});
     // if (activeTab === 'phone') {
     //   if (!phoneNumber) {
     //     // Show alert using snackbar component as per user preference

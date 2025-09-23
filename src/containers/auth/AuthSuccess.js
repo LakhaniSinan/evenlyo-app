@@ -8,16 +8,23 @@ import {COLORS} from '../../constants';
 import {useTranslation} from '../../hooks';
 import {globalStyles} from '../../styles/globalStyle';
 
-const AuthSuccess = ({navigation}) => {
+const AuthSuccess = ({route, navigation}) => {
+  const {type} = route.params;
   const {t} = useTranslation();
   useEffect(() => {
     setTimeout(() => {
       navigation.reset({
         index: 0,
-        routes: [{name: 'Login'}],
+        routes: [
+          {
+            name: 'Login',
+            params: {type: type},
+          },
+        ],
       });
     }, 3000);
   }, []);
+
   return (
     <Background>
       <ScrollView style={{flex: 1, width: width(90)}}>

@@ -1,10 +1,12 @@
-import React, {memo, useCallback, useState} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {SafeAreaView, ScrollView, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import CarouselComponent from '../../../components/carousel';
 import EventAndPriceDetails from '../../../components/eventDetailAndPrice';
+import CategoryEditSuccess from '../../../components/modals/CategoryEditSuccess';
+import DeleteRequestModal from '../../../components/modals/DeleteRequestModal';
 import OrderBooking from '../../../components/modals/OrderBookingModal';
 import RequestConfirmation from '../../../components/modals/RequestConfirmation';
 import {COLORS, fontFamly} from '../../../constants';
@@ -12,6 +14,8 @@ import {COLORS, fontFamly} from '../../../constants';
 function EventDetailsScreen({navigation}) {
   const [modalVisible, setModalVisible] = useState(false);
   const [resuestModalVisible, setResuestModalVisible] = useState(false);
+  const [deleteRequest, setDeteleRequest] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
 
   const handleSendBookingRequest = useCallback(() => {
     setModalVisible(false);
@@ -81,6 +85,31 @@ function EventDetailsScreen({navigation}) {
     {icon: ICONS.editGridientIcon, title: 'Edit'},
     {icon: ICONS.deleteIcon, title: 'Delete'},
   ];
+  const [commentType, setCommentType] = useState('public');
+
+  useEffect(() => {
+    handleNavigations();
+  }, [commentType]);
+
+  const handleNavigations = () => {
+    setCommentType('');
+    if (commentType == 'Delete') setDeteleRequest(true);
+  };
+
+  const onClose = () => {
+    setDeteleRequest(false);
+  };
+
+  const handleTrackBooking = () => {
+    setDeteleRequest(false);
+    setTimeout(() => {
+      setSuccessModal(true);
+    }, 500);
+
+    setTimeout(() => {
+      setSuccessModal(false);
+    }, 2000);
+  };
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <AppHeader
@@ -92,6 +121,8 @@ function EventDetailsScreen({navigation}) {
         isMenu={true}
         isShowMenuIcon={true}
         menuContent={menuContent || []}
+        setCommentType={setCommentType}
+        commentType={commentType}
       />
 
       <ScrollView style={{flex: 1}}>
@@ -182,6 +213,16 @@ function EventDetailsScreen({navigation}) {
           visible={resuestModalVisible}
           onClose={() => setResuestModalVisible(false)}
           navigation={navigation}
+        />
+        <DeleteRequestModal
+          visible={deleteRequest}
+          onClose={onClose}
+          navigation={navigation}
+          handleTrackBooking={handleTrackBooking}
+        />
+        <CategoryEditSuccess
+          visible={successModal}
+          type={'Successfully Delete !'}
         />
       </ScrollView>
     </SafeAreaView>

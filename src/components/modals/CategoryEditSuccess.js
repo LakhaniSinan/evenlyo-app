@@ -5,7 +5,7 @@ import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 
-const CategoryEditSuccess = ({visible}) => {
+const CategoryEditSuccess = ({visible, type}) => {
   const {t} = useTranslation();
 
   return (
@@ -13,7 +13,9 @@ const CategoryEditSuccess = ({visible}) => {
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={styles.title}>{t('Successfully Add')}</Text>
+            <Text style={styles.title}>
+              {t(type ? type : 'Successfully Add')}
+            </Text>
           </View>
           <Image
             source={ICONS.checkIcon}
