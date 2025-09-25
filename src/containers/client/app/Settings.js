@@ -46,7 +46,7 @@ const Settings = ({navigation}) => {
         headingText={t('Settings')}
         onLeftIconPress={() => navigation.goBack()}
       />
-      {data.map((item, index) => {
+      {/* {data.map((item, index) => {
         return (
           <TouchableOpacity
             key={index}
@@ -91,7 +91,7 @@ const Settings = ({navigation}) => {
             </View>
           </TouchableOpacity>
         );
-      })}
+      })} */}
 
       <ChangeLanguageModal
         visible={showLanguageModal}

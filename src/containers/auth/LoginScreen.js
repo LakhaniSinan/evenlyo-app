@@ -27,18 +27,16 @@ const LoginScreen = ({navigation, route}) => {
   const {type} = route.params;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(true);
   const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const {t} = useTranslation();
-  console.log(type, 'typetypetype');
-
   const navigateToRegister = () => {
     navigation.navigate('Register');
   };
 
-  const navigateToHome = async () => {
+  const handleLogin = async () => {
     console.log(email, password, 'isVisibleisVisible');
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (email.trim() === '') {
@@ -69,8 +67,10 @@ const LoginScreen = ({navigation, route}) => {
         };
         setIsLoading(true);
         const response = await loginUser(payload);
+        console.log(response?.data, 'datadatadatadata');
         setIsLoading(false);
         let data = response?.data?.user;
+
         dispatch(setUserData(data));
         AsyncStorage.setItem('userData', JSON.stringify(data));
       } catch (error) {
@@ -120,7 +120,7 @@ const LoginScreen = ({navigation, route}) => {
           <View style={{height: 25}} />
           <GradientButton
             text={t('login')}
-            onPress={navigateToHome}
+            onPress={handleLogin}
             type="filled"
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}
           />

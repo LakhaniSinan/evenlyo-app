@@ -1,6 +1,7 @@
 import React, {forwardRef, useImperativeHandle, useState} from 'react';
-import {Image, Text, View} from 'react-native';
+import {Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
+import FastImage from 'react-native-fast-image';
 import Modal from 'react-native-modal';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
@@ -42,13 +43,13 @@ const CommonAlert = forwardRef((props, ref) => {
         }}>
         <View style={{alignItems: 'center', justifyContent: 'center'}}>
           {status === 'ok' && (
-            <Image
+            <FastImage
               source={ICONS.checkedCircle}
               style={{height: width(25), width: width(25)}}
             />
           )}
           {status === 'error' && (
-            <Image
+            <FastImage
               source={ICONS.redcross}
               style={{height: width(12), width: width(12)}}
             />

@@ -90,6 +90,7 @@ export const IMAGES = {
   coverImage1: require('./images/coverImage1.png'),
   profilePhoto: require('./images/profilePhoto.png'),
   vase: require('./images/vase.png'),
+  avatarIcon: require('./images/avatarIcon.png'),
 };
 
 export const TAB_BAR_ICONS = {

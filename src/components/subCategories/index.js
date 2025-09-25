@@ -1,15 +1,9 @@
-import React, {useState} from 'react';
-import {
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React from 'react';
+import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 
 const data = [
   {label: 'All', icon: ICONS.four},
@@ -18,9 +12,14 @@ const data = [
   {label: 'Photo Booth', icon: ICONS.four},
 ];
 
-const SubCategories = () => {
-  const [selected, setSelected] = useState(0);
+const SubCategories = ({data, subSelected, setsubSelected}) => {
+  console.log(
+    data,
+    subSelected,
+    'data, subSelecteddata, subSelecteddata, subSelected',
+  );
 
+  const {currentLanguage} = useTranslation();
   return (
     <FlatList
       data={data}
@@ -29,7 +28,7 @@ const SubCategories = () => {
       contentContainerStyle={{paddingHorizontal: 10}}
       showsHorizontalScrollIndicator={false}
       renderItem={({item, index}) => {
-        const isSelected = selected === index;
+        const isSelected = subSelected === index;
 
         const CardContent = () => (
           <View
@@ -42,24 +41,22 @@ const SubCategories = () => {
               },
             ]}>
             <View style={styles.iconWrapper}>
-              <Image
-                style={styles.icon}
-                source={item.icon}
-                tintColor={isSelected ? COLORS.white : COLORS.black}
-              />
+              <Text style={{color: isSelected ? COLORS.white : COLORS.black}}>
+                {item?.icon}
+              </Text>
             </View>
             <Text
               style={[
                 styles.cardText,
                 {color: isSelected ? '#fff' : COLORS.textDark},
               ]}>
-              {item.label}
+              {currentLanguage == 'en' ? item?.name?.en : item?.name?.nl}
             </Text>
           </View>
         );
 
         return (
-          <TouchableOpacity onPress={() => setSelected(index)}>
+          <TouchableOpacity onPress={() => setsubSelected(index)}>
             {isSelected ? (
               <LinearGradient
                 colors={['#FF295D', '#E31B95', '#C817AE']}

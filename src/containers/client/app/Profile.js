@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React from 'react';
+import React, {useRef, useState} from 'react';
 import {
   Image,
   ScrollView,
@@ -9,9 +9,11 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
+import CommonAlert from '../../../components/commanAlert';
+import Loader from '../../../components/loder';
 import {COLORS, fontFamly} from '../../../constants';
 import useTranslation from '../../../hooks/useTranslation';
 import {setUserData} from '../../../redux/slice/auth';
@@ -54,10 +56,14 @@ const getHelpSupportMenuData = t => [
 
 const Profile = () => {
   const {t} = useTranslation();
+  const {user} = useSelector(state => state.LoginSlice);
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const data = getProfileMenuData(t);
   const data2 = getHelpSupportMenuData(t);
+  const [isLoading, setIsLoading] = useState(false);
+  const modalRef = useRef(null);
+
   const handleNavigate = navigate => {
     if (navigate === 'Logout') {
       dispatch(setUserData(null));
@@ -70,21 +76,32 @@ const Profile = () => {
     <ScrollView style={styles.container}>
       <AppHeader headingText={t('Profile')} />
       <View style={{alignItems: 'center', marginTop: width(4)}}>
-        <Image
-          style={{
-            height: 100,
-            width: 100,
-            borderRadius: 200,
-          }}
-          source={IMAGES.backgroundImage}
-        />
+        {user?.profileImage ? (
+          <Image
+            style={{
+              height: 100,
+              width: 100,
+              borderRadius: 200,
+            }}
+            source={{uri: user?.profileImage}}
+          />
+        ) : (
+          <Image
+            style={{
+              height: 100,
+              width: 100,
+              borderRadius: 200,
+            }}
+            source={IMAGES.avatarIcon}
+          />
+        )}
         <Text
           style={{
             marginTop: 5,
             fontSize: 15,
             fontFamily: fontFamly.PlusJakartaSansSemiBold,
           }}>
-          Esther Howard
+          {user?.firstName + ' ' + user?.lastName || 'N/A'}
         </Text>
         <Text
           style={{
@@ -93,7 +110,7 @@ const Profile = () => {
             fontSize: 12,
             fontFamily: fontFamly.PlusJakartaSansSemiMedium,
           }}>
-          @estherhoward
+          {user?.email || 'N/A'}
         </Text>
       </View>
 
@@ -211,6 +228,8 @@ const Profile = () => {
           );
         })}
       </View>
+      <CommonAlert ref={modalRef} />
+      <Loader isLoading={isLoading} />
     </ScrollView>
   );
 };

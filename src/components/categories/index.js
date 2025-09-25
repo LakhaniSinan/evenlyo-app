@@ -1,26 +1,11 @@
-import React, {useState} from 'react';
-import {
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React from 'react';
+import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 
-const data = [
-  {label: 'All', icon: ICONS.four},
-  {label: 'Entertainment & Attractions', icon: ICONS.four},
-  {label: 'Food & Drinks', icon: ICONS.four},
-  {label: 'Decoration & Style', icon: ICONS.four},
-  {label: 'Other', icon: ICONS.four},
-];
-
-const Categories = () => {
-  const [selected, setSelected] = useState(0);
+const Categories = ({data, selected, setSelected}) => {
+  const {currentLanguage} = useTranslation();
   return (
     <FlatList
       data={data}
@@ -29,7 +14,7 @@ const Categories = () => {
       contentContainerStyle={{paddingHorizontal: 10}}
       showsHorizontalScrollIndicator={false}
       renderItem={({item, index}) => {
-        const isSelected = selected === index;
+        const isSelected = selected?._id === item?._id;
         const CardContent = () => (
           <View
             style={[
@@ -46,27 +31,21 @@ const Categories = () => {
               <LinearGradient
                 colors={['#FF295D', '#E31B95', '#C817AE']}
                 style={styles.activeIconWrapper}>
-                <Image
-                  style={styles.icon}
-                  source={item.icon}
-                  tintColor={COLORS.white}
-                />
+                <Text>{item?.icon}</Text>
               </LinearGradient>
             ) : (
               <View style={styles.iconWrapper}>
-                <Image
-                  style={styles.icon}
-                  source={item.icon}
-                  tintColor={!isSelected ?? COLORS.white}
-                />
+                <Text>{item?.icon}</Text>
               </View>
             )}
-            <Text style={styles.cardText}>{item.label}</Text>
+            <Text style={styles.cardText}>
+              {currentLanguage === 'en' ? item?.name?.en : item?.name.nl}
+            </Text>
           </View>
         );
 
         return (
-          <TouchableOpacity onPress={() => setSelected(index)}>
+          <TouchableOpacity onPress={() => setSelected(item)}>
             {isSelected ? (
               <LinearGradient
                 colors={[

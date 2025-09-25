@@ -9,7 +9,7 @@ import {useTranslation} from '../../hooks';
 import {globalStyles} from '../../styles/globalStyle';
 
 const AuthSuccess = ({route, navigation}) => {
-  const {type} = route.params;
+  const {type, message} = route.params;
   const {t} = useTranslation();
   useEffect(() => {
     setTimeout(() => {
@@ -47,7 +47,7 @@ const AuthSuccess = ({route, navigation}) => {
                 globalStyles.title,
                 {fontSize: 20, textAlign: 'center', marginVertical: width(10)},
               ]}>
-              {t('successfullyChanged')}
+              {t(message)}
             </Text>
             <Image
               source={ICONS.checkIcon}

@@ -1,104 +1,214 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Image, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
-import { width } from 'react-native-dimension';
-import { ICONS, IMAGES } from '../../../assets';
+import React, {useEffect, useRef, useState} from 'react';
+import {useTranslation} from 'react-i18next';
+import {
+  Image,
+  ImageBackground,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {width} from 'react-native-dimension';
+import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
-import ContactNumberInput from '../../../components/phoneInput';
+import CommonAlert from '../../../components/commanAlert';
+import Loader from '../../../components/loder';
 import TextField from '../../../components/textInput';
-import { COLORS, SIZES } from '../../../constants';
+import {COLORS, SIZES} from '../../../constants';
+import useProfile from '../../../hooks/getProfileData';
+import {updateProfile} from '../../../services/Settings';
 
-const PersonalInfo = ({ navigation }) => {
-  const { t } = useTranslation();
+const PersonalInfo = ({navigation}) => {
+  const {t} = useTranslation();
+  const modalRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const {profileData, fetchProfile} = useProfile();
+  useEffect(() => {
+    handleGetProfile();
+  }, []);
+
+  const handleGetProfile = async () => {
+    setIsLoading(true);
+    await fetchProfile();
+    setIsLoading(false);
+  };
+
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
-    contact: '',
-    password: '',
-    confirmPassword: '',
+    contactNumber: '',
+    address: '',
   });
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
-      <ScrollView>
+  useEffect(() => {
+    if (profileData) {
+      setFormData({
+        firstName: profileData?.firstName || 'N/A',
+        lastName: profileData?.lastName || 'N/A',
+        email: profileData?.email || 'N/A',
+        contactNumber: profileData?.contactNumber || '',
+        address: profileData?.address?.fullAddress || 'N/A',
+      });
+    }
+  }, [profileData]);
 
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({...prev, [field]: value}));
+  };
+
+  const validateFields = () => {
+    if (!formData.firstName.trim()) return 'First name is required';
+    if (!formData.lastName.trim()) return 'Last name is required';
+    if (!formData.email.trim()) return 'Email is required';
+    if (!/\S+@\S+\.\S+/.test(formData.email)) return 'Enter a valid email';
+    if (!formData.contactNumber.trim()) return 'Contact number is required';
+    if (!formData.address.trim()) return 'Address is required';
+    return null;
+  };
+
+  const handleSave = async () => {
+    const errorMsg = validateFields();
+    if (errorMsg) {
+      modalRef.current?.show({status: 'error', message: errorMsg});
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const payload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        contactNumber: formData.contactNumber,
+        address: {
+          city: '',
+          postalCode: '',
+          fullAddress: formData.address,
+        },
+      };
+
+      const response = await updateProfile(payload);
+
+      if (response?.status === 200 || response?.status === 201) {
+        modalRef.current?.show({
+          status: 'success',
+          message: response?.data?.message,
+        });
+      } else {
+        modalRef.current?.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
+      }
+    } catch (error) {
+      console.log(error, 'errorerrorerrorerror233253465');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
           onLeftIconPress={() => navigation.goBack()}
-          headingText={'Personal Info'}
+          headingText={t('Personal Info')}
         />
-        <View style={{ alignItems: 'center', marginTop: width(4) }}>
-          <Image
-            style={{
-              height: 100,
-              width: 100,
-              borderRadius: 200,
-            }}
-            source={IMAGES.backgroundImage}
-          />
-        </View>
 
+        <ImageBackground
+          source={IMAGES.avatarIcon}
+          style={{
+            marginTop: width(4),
+            height: 100,
+            width: 100,
+            alignSelf: 'center',
+            borderRadius: 100,
+            position: 'relative',
+          }}>
+          <TouchableOpacity
+            style={{
+              height: width(7),
+              width: width(7),
+              borderRadius: 50,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: COLORS.primary,
+              position: 'absolute',
+              bottom: 5,
+              right: 5,
+            }}>
+            <Image
+              resizeMode="contain"
+              source={ICONS.calenderIcon}
+              style={{height: '50%', width: '50%'}}
+            />
+          </TouchableOpacity>
+        </ImageBackground>
+
+        {/* Form Fields */}
         <View style={styles.form}>
           <TextField
             label={t('firstName')}
             placeholder={t('firstNamePlaceholder')}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
+            value={formData.firstName}
+            onChangeText={val => handleInputChange('firstName', val)}
           />
 
-          <View style={{ height: 10 }} />
+          <View style={{height: 10}} />
           <TextField
             label={t('lastName')}
             placeholder={t('lastNamePlaceholder')}
-            // value={email}
-            // onChangeText={setEmail}
+            value={formData.lastName}
+            onChangeText={val => handleInputChange('lastName', val)}
+          />
+
+          <View style={{height: 10}} />
+          <TextField
+            label={t('emailAddress')}
+            placeholder={t('emailPlaceholder')}
+            value={formData.email}
+            onChangeText={val => handleInputChange('email', val)}
             keyboardType="email-address"
             autoCapitalize="none"
           />
 
-          <View style={{ height: 10 }} />
+          <View style={{height: 10}} />
+
           <TextField
-            label={t('emailAddress')}
-            placeholder={t('emailPlaceholder')}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
+            label={t('contactNumber')}
+            placeholder={t('+123 456 7890')}
+            value={formData.contactNumber}
+            onChangeText={val => handleInputChange('contactNumber', val)}
+            keyboardType="numaric"
             autoCapitalize="none"
           />
-          <View style={{ height: 10 }} />
-          <ContactNumberInput
-            labelText={t('contactNumber')}
-            labelColor={'#000'}
-            phoneNumber={formData.contact}
-            containerStyle={{
-              backgroundColor: COLORS.backgroundLight,
-            }}
-          // onChange={value => handleInputChange('contact', value)}
-          // ref={phoneInput}
-          />
-          <View style={{ height: 10 }} />
+
+          <View style={{height: 10}} />
           <TextField
             label={t('Address')}
-            placeholder={t('estherhoward@gmail.com')}
-            keyboardType="email-address"
-            autoCapitalize="none"
+            placeholder={t('Enter your address')}
+            value={formData.address}
+            onChangeText={val => handleInputChange('address', val)}
           />
         </View>
-        <View
-          style={{
-            marginHorizontal: 10,
-            flex: 1,
-            justifyContent: 'flex-end',
-            marginBottom: 15,
-          }}>
+
+        {/* Save Button */}
+        <View style={styles.btnContainer}>
           <GradientButton
-            text={'Save & Change'}
+            text={t('Save Change')}
+            onPress={handleSave}
+            disabled={isLoading}
           />
         </View>
       </ScrollView>
+
+      {/* Global Components */}
+      <CommonAlert ref={modalRef} />
+      <Loader isLoading={isLoading} />
     </SafeAreaView>
   );
 };
@@ -108,6 +218,12 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.lg,
     marginTop: 20,
     marginHorizontal: 10,
+  },
+  btnContainer: {
+    marginHorizontal: 10,
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginBottom: 15,
   },
 });
 

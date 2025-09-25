@@ -12,6 +12,7 @@ import {
 } from '../../containers/auth';
 import AuthSuccess from '../../containers/auth/AuthSuccess';
 import ForgotPasswordOtpScreen from '../../containers/auth/ForgotPasswordOtpScreen';
+import RegistrationOtp from '../../containers/auth/RegistrationOtp';
 import ResetPasswordScreen from '../../containers/auth/ResetPasswordScreen';
 
 const Stack = createStackNavigator();
@@ -66,6 +67,7 @@ const AuthStack = () => {
         component={ResetPasswordScreen}
       />
       <Stack.Screen name="AuthSuccess" component={AuthSuccess} />
+      <Stack.Screen name="RegistrationOtp" component={RegistrationOtp} />
     </Stack.Navigator>
   );
 };

@@ -28,7 +28,7 @@ const ForgotPasswordScreen = ({route, navigation}) => {
   const modalRef = useRef(null);
   const [activeTab, setActiveTab] = useState('phone'); // 'phone' or 'email'
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [email, setEmail] = useState('dummy1@gmail.com');
+  const [email, setEmail] = useState('');
   const {t} = useTranslation();
 
   const handleBack = () => {
@@ -57,12 +57,15 @@ const ForgotPasswordScreen = ({route, navigation}) => {
       };
       setIsLoading(true);
       const response = await forgotUser(params);
+      console.log(response?.data, 'responseresponse');
+
       setIsLoading(false);
       modalRef.current.show({
         status: 'ok',
         message: response.data.message,
         handlePressOk: () => {
-          // navigation.navigate('ForgotPasswordOtpScreen', {});
+          modalRef.current.hide();
+          navigation.navigate('ForgotPasswordOtpScreen', {});
         },
       });
       setIsLoading(false);
@@ -166,7 +169,7 @@ const ForgotPasswordScreen = ({route, navigation}) => {
             <View style={styles.buttonContainer}>
               <GradientButton
                 text={<GradientText text={t('back')} />}
-                onPress={() => navigation.navigate('Login')}
+                onPress={() => navigation.goBack()}
                 type="outline"
                 styleProps={{
                   paddingVertical: 14,

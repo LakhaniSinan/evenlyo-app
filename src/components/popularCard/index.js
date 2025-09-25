@@ -8,11 +8,11 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
-import {ICONS, IMAGES} from '../../assets';
+import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
-const PopularCard = ({data}) => {
+const PopularCard = ({data, onCardPress}) => {
   const {t} = useTranslation();
   const [isActiveHeart, setIsActiveHeart] = useState(false);
   return (
@@ -24,7 +24,9 @@ const PopularCard = ({data}) => {
       showsHorizontalScrollIndicator={false}
       renderItem={({item, index}) => {
         return (
-          <View style={styles.cardWrapper}>
+          <TouchableOpacity
+            onPress={() => onCardPress(item)}
+            style={styles.cardWrapper}>
             <Image
               resizeMode="cover"
               style={styles.image}
@@ -138,7 +140,7 @@ const PopularCard = ({data}) => {
                 </View>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         );
       }}
     />

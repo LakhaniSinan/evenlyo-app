@@ -1,18 +1,18 @@
-import React, { useRef, useState } from 'react';
+import React, {useRef, useState} from 'react';
 import {ScrollView, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
+import CommonAlert from '../../components/commanAlert';
 import Header from '../../components/header';
+import Loader from '../../components/loder';
 import OTPInputScreen from '../../components/otpScreen';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
-import {globalStyles} from '../../styles/globalStyle';
 import {register, registerUser} from '../../services/Auth';
-import Loader from '../../components/loder';
-import CommonAlert from '../../components/commanAlert';
+import {globalStyles} from '../../styles/globalStyle';
 
-const ForgotPasswordOtpScreen = ({route, navigation}) => {
+const RegistrationOtp = ({route, navigation}) => {
   const data = route.params;
   const [otp, setOtp] = useState(0);
   const modalRef = useRef(null);
@@ -67,6 +67,7 @@ const ForgotPasswordOtpScreen = ({route, navigation}) => {
       setIsLoading(false);
     }
   };
+
   return (
     <Background>
       <ScrollView style={{flex: 1, width: width(90)}}>
@@ -107,4 +108,4 @@ const ForgotPasswordOtpScreen = ({route, navigation}) => {
   );
 };
 
-export default ForgotPasswordOtpScreen;
+export default RegistrationOtp;

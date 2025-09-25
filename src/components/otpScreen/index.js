@@ -3,9 +3,9 @@ import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {OtpInput} from 'react-native-otp-entry';
 import {fontFamly} from '../../constants';
 
-export default function OTPInputScreen() {
+export default function OTPInputScreen({onResendPress ,setOtp}) {
   const [timer, setTimer] = useState(30);
-  const [otp, setOtp] = useState('');
+  
 
   useEffect(() => {
     if (timer > 0) {
@@ -31,7 +31,7 @@ export default function OTPInputScreen() {
       />
       <Text style={styles.timerText}>{timer} Sec</Text>
       {timer == 0 && (
-        <TouchableOpacity>
+        <TouchableOpacity onPress={onResendPress}>
           <Text style={styles.timerText2}>Resend Code</Text>
         </TouchableOpacity>
       )}
