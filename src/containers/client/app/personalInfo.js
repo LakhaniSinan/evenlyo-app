@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {
+  Alert,
   Image,
   ImageBackground,
   SafeAreaView,
@@ -10,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
+import {launchImageLibrary} from 'react-native-image-picker';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
@@ -17,7 +19,9 @@ import CommonAlert from '../../../components/commanAlert';
 import Loader from '../../../components/loder';
 import TextField from '../../../components/textInput';
 import {COLORS, SIZES} from '../../../constants';
+import {helper} from '../../../helper';
 import useProfile from '../../../hooks/getProfileData';
+import {updateProfilePicture} from '../../../services/Media';
 import {updateProfile} from '../../../services/Settings';
 
 const PersonalInfo = ({navigation}) => {
@@ -25,6 +29,7 @@ const PersonalInfo = ({navigation}) => {
   const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const {profileData, fetchProfile} = useProfile();
+
   useEffect(() => {
     handleGetProfile();
   }, []);
@@ -89,12 +94,14 @@ const PersonalInfo = ({navigation}) => {
           fullAddress: formData.address,
         },
       };
+      console.log(payload, 'payloadpayloadpayload');
 
       const response = await updateProfile(payload);
+      console.log(response, 'responseresponseresponseresponse');
 
       if (response?.status === 200 || response?.status === 201) {
         modalRef.current?.show({
-          status: 'success',
+          status: 'ok',
           message: response?.data?.message,
         });
       } else {
@@ -108,6 +115,58 @@ const PersonalInfo = ({navigation}) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleUpdateImage = () => {
+    launchImageLibrary({mediaType: 'photo'}, async response => {
+      if (response.didCancel) return;
+      if (response.errorCode) {
+        Alert.alert('Error', response.errorMessage);
+        return;
+      }
+
+      const asset = response.assets?.[0];
+      if (!asset) return;
+
+      const file = {
+        uri: asset.uri,
+        type: asset.type,
+        name: asset.fileName || `upload.${asset.type.split('/')[1]}`,
+      };
+
+      try {
+        setIsLoading(true);
+
+        const result = await helper.uploadMediaToCloudinary(file);
+
+        if (result?.secure_url) {
+          const res = await updateProfilePicture({
+            profilePicture: result.secure_url,
+          });
+          setIsLoading(false);
+          console.log(res?.data, 'resresresresresres');
+          return;
+          if (res?.status === 200 || res?.status === 201) {
+            modalRef.current?.show({
+              status: 'ok',
+              message:
+                res?.data?.message || 'Profile picture updated successfully',
+            });
+          } else {
+            modalRef.current?.show({
+              status: 'error',
+              message: res?.data?.message || 'Failed to upload profile picture',
+            });
+          }
+        } else {
+          console.log('Image upload failed');
+        }
+      } catch (err) {
+        console.error('Upload error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    });
   };
 
   return (
@@ -130,6 +189,7 @@ const PersonalInfo = ({navigation}) => {
             position: 'relative',
           }}>
           <TouchableOpacity
+            onPress={handleUpdateImage}
             style={{
               height: width(7),
               width: width(7),
@@ -143,7 +203,7 @@ const PersonalInfo = ({navigation}) => {
             }}>
             <Image
               resizeMode="contain"
-              source={ICONS.calenderIcon}
+              source={ICONS.cameraIcon}
               style={{height: '50%', width: '50%'}}
             />
           </TouchableOpacity>

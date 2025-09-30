@@ -57,18 +57,23 @@ const ForgotPasswordScreen = ({route, navigation}) => {
       };
       setIsLoading(true);
       const response = await forgotUser(params);
-      console.log(response?.data, 'responseresponse');
 
       setIsLoading(false);
-      modalRef.current.show({
-        status: 'ok',
-        message: response.data.message,
-        handlePressOk: () => {
-          modalRef.current.hide();
-          navigation.navigate('ForgotPasswordOtpScreen', {});
-        },
-      });
-      setIsLoading(false);
+      if (response?.status == 200 || response?.status == 201) {
+        modalRef.current.show({
+          status: 'ok',
+          message: response.data.message,
+          handlePressOk: () => {
+            modalRef.current.hide();
+            navigation.navigate('ForgotPasswordOtpScreen', {email: email});
+          },
+        });
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response.data.message,
+        });
+      }
     } catch (error) {
       setIsLoading(false);
       console.log(error, 'errorerrorerrorerror3463');

@@ -158,3 +158,31 @@ export const calculateRatingsPercentage = (reviews, star) => {
   const percentage = (starCount / totalReviews) * 100;
   return {starCount, percentage};
 };
+
+// utils/formatRelativeTime.js
+
+export function formatRelativeTime(isoDateString) {
+  if (!isoDateString) return '';
+
+  const date = new Date(isoDateString);
+  const now = new Date();
+  const diffMs = now - date; // milliseconds
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHr = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHr / 24);
+
+  // "just now"
+  if (diffSec < 60) return 'Just now';
+  if (diffMin < 60) return `${diffMin} min ago`;
+  if (diffHr < 24) return `${diffHr} hour${diffHr > 1 ? 's' : ''} ago`;
+
+  // yesterday
+  if (diffDay === 1) return 'Yesterday';
+
+  // if within a week
+  if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+
+  // otherwise show date
+  return date.toLocaleDateString(); // e.g. "9/26/2025" based on locale
+}

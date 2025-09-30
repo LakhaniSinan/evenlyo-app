@@ -15,6 +15,8 @@ import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import useCategories from '../../../hooks/getCategories';
 import useTranslation from '../../../hooks/useTranslation';
+import {getPopulorItems} from '../../../services/ListingsItem';
+import { useSelector } from 'react-redux';
 
 const Home = ({navigation}) => {
   const {
@@ -24,9 +26,17 @@ const Home = ({navigation}) => {
     fetchCategories,
     fetchSubCategories,
     setCategories,
+    setLoading,
   } = useCategories();
+  const {address, city, state: regionState, coords} = useSelector(
+    state => state.LocationSlice,
+  );
+  console.log(address, city, regionState, coords, 'location data');
 
   const [selected, setSelected] = useState(null);
+  const [popularData, setPopularData] = useState([]);
+  console.log(popularData, 'popularDatapopularDatapopularData');
+
   const [subCategoriesSelected, setSubCategoriesSelected] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -51,6 +61,7 @@ const Home = ({navigation}) => {
       if (subCatRes.success && subCatRes.data?.length > 0) {
         setSubCategoriesSelected(0);
       }
+      handleGetPopular();
     } else {
       modalRef.current?.show({status: 'error', message: res.message});
     }
@@ -70,6 +81,25 @@ const Home = ({navigation}) => {
     console.log('Card pressed:', item);
   }, []);
 
+  const handleGetPopular = async () => {
+    try {
+      setLoading(true);
+      const response = await getPopulorItems(6);
+
+      console.log(response, 'responsepopularresponsepopular');
+
+      setLoading(false);
+      if (response.status == 200 || response.status == 201) {
+        setPopularData(response?.data?.data || []);
+      } else {
+        modalRef.current?.show({status: 'error', message: response.message});
+      }
+    } catch (error) {
+      setLoading(false);
+      console.log(error, 'errorerrorerrorerror9079868685');
+    }
+  };
+
   const renderItem = ({item}) => {
     switch (item.type) {
       case 'header':
@@ -82,7 +112,6 @@ const Home = ({navigation}) => {
               borderBottomRightRadius: 20,
               borderBottomLeftRadius: 20,
             }}>
-            {/* 🔹 Location + Notification */}
             <View
               style={{
                 paddingVertical: width(2),
@@ -109,7 +138,9 @@ const Home = ({navigation}) => {
                     marginLeft: width(3),
                     fontFamily: fontFamly.PlusJakartaSansSemiMedium,
                   }}>
-                  San Francisco, CA
+                  {city || regionState
+                    ? `${city || ''}${regionState ? `${city ? ', ' : ''}${regionState}` : ''}`
+                    : address || ''}
                 </Text>
               </View>
               <TouchableOpacity
@@ -201,7 +232,7 @@ const Home = ({navigation}) => {
         );
 
       case 'popularCard':
-        return <PopularCard data={data1} onCardPress={onCardPress} />;
+        return <PopularCard data={popularData} onCardPress={onCardPress} />;
 
       case 'bookingItem':
         return (

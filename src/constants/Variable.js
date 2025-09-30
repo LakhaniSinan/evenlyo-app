@@ -5,15 +5,35 @@ export const requestType = {
   DELETE: 'delete',
 };
 
+export const apiHeaders = {
+  contentType: 'Content-Type',
+  application_json: 'application/json',
+  multipart_data: 'multipart/form-data',
+  language: 'LANG',
+  authorization: 'Authorization',
+};
+
 export const endPoints = {
   //Authentication
   login: '/auth/client/login',
   register: '/auth/client/register',
   registerOtp: '/auth/send-otp',
   forgot: '/auth/send-forgot-otp',
+  verifyForgot: '/auth/verify-forgot-otp',
+  reset: '/auth/reset-password',
 
   //Profile
   profile: '/settings/personal-info',
   categories: '/categories',
   subcategories: '/subcategories/category',
+  profilePicture: '/settings/profile-picture',
+
+  //Listings
+  listings: '/listings',
+  populorItems: '/listings/popular?limit',
+  vendorDetails: '/vendors',
+  booking: '/bookings',
+
+  //Notifications
+  notifications: '/notifications',
 };

@@ -23,6 +23,8 @@ const PopularCard = ({data, onCardPress}) => {
       contentContainerStyle={{paddingHorizontal: 10}}
       showsHorizontalScrollIndicator={false}
       renderItem={({item, index}) => {
+        console.log(item, 'itemitem7687687');
+
         return (
           <TouchableOpacity
             onPress={() => onCardPress(item)}
@@ -143,6 +145,24 @@ const PopularCard = ({data, onCardPress}) => {
           </TouchableOpacity>
         );
       }}
+      ListEmptyComponent={
+        <View
+          style={{
+            height: width(10),
+            width: width(90),
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <Text
+            style={{
+              fontSize: 12,
+              color: COLORS.textLight,
+              fontFamily: fontFamly.PlusJakartaSansBold,
+            }}>
+            No Popular Items Found.
+          </Text>
+        </View>
+      }
     />
   );
 };

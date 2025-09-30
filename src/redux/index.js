@@ -3,10 +3,12 @@ import {combineReducers, configureStore} from '@reduxjs/toolkit';
 import {thunk} from 'redux-thunk';
 import LoginSlice, {setUserData} from './slice/auth';
 import LanguageSlice from './slice/language';
+import LocationSlice from './slice/location'; // 👈 add location slice
 
 const rootReducer = combineReducers({
   LoginSlice: LoginSlice,
   LanguageSlice: LanguageSlice,
+  LocationSlice: LocationSlice, // 👈 add here 
 });
 
 const store = configureStore({

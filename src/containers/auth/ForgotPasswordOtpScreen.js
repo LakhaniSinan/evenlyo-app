@@ -1,16 +1,16 @@
-import React, { useRef, useState } from 'react';
+import React, {useRef, useState} from 'react';
 import {ScrollView, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
+import CommonAlert from '../../components/commanAlert';
 import Header from '../../components/header';
+import Loader from '../../components/loder';
 import OTPInputScreen from '../../components/otpScreen';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {forgotUser, verifyForgotOtp} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
-import {register, registerUser} from '../../services/Auth';
-import Loader from '../../components/loder';
-import CommonAlert from '../../components/commanAlert';
 
 const ForgotPasswordOtpScreen = ({route, navigation}) => {
   const data = route.params;
@@ -23,12 +23,16 @@ const ForgotPasswordOtpScreen = ({route, navigation}) => {
     try {
       const payload = {...data, otp: otp};
       setIsLoading(true);
-      const response = await register(payload);
+      const response = await verifyForgotOtp(payload);
       setIsLoading(false);
       if (response?.status == 200 || response?.status == 201) {
-        navigation.navigate('AuthSuccess', {
-          type: 'register',
+        modalRef.current.show({
+          status: 'ok',
           message: response?.data?.message,
+          handlePressOk: () => {
+            modalRef.current.hide();
+            navigation.navigate('ResetPasswordScreen', {type: 'forgot'});
+          },
         });
       } else {
         modalRef.current.show({
@@ -38,7 +42,7 @@ const ForgotPasswordOtpScreen = ({route, navigation}) => {
       }
     } catch (error) {
       setIsLoading(false);
-      console.log(error, 'errorerrorerrorerror3452343 ');
+      console.log(error, 'errorerrorerrorerror3452343');
     } finally {
       setIsLoading(false);
     }
@@ -47,8 +51,7 @@ const ForgotPasswordOtpScreen = ({route, navigation}) => {
   const handleResendCode = async () => {
     try {
       setIsLoading(true);
-      const response = await registerUser({email: data.email});
-
+      const response = await forgotUser({email: data.email});
       setIsLoading(false);
       if (response?.status == 200 || response?.status == 201) {
         modalRef.current.show({
@@ -108,3 +111,8 @@ const ForgotPasswordOtpScreen = ({route, navigation}) => {
 };
 
 export default ForgotPasswordOtpScreen;
+
+// navigation.navigate('AuthSuccess', {
+//           type: 'forgot',
+//           message: response?.data?.message,
+//         });

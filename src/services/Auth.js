@@ -14,3 +14,9 @@ export const loginUser = params => {
 export const forgotUser = params => {
   return Api(endPoints.forgot, params, requestType.POST);
 };
+export const verifyForgotOtp = params => {
+  return Api(endPoints.verifyForgot, params, requestType.POST);
+};
+export const resetPassword = params => {
+  return Api(endPoints.reset, params, requestType.POST);
+};

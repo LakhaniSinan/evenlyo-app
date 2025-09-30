@@ -17,7 +17,10 @@ const Api = async (path, params, method) => {
       return response;
     })
     .catch(async error => {
-      return error.response;
+      // Normalize error shape so callers can safely read .status and .data
+      const status = error?.response?.status || 0;
+      const data = error?.response?.data || {message: error?.message || 'Network error'};
+      return {status, data};
     });
 };
 

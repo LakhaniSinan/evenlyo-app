@@ -51,6 +51,7 @@ const useCategories = () => {
     categories,
     subCategories,
     loading,
+    setLoading,
     fetchCategories,
     fetchSubCategories,
     setCategories,

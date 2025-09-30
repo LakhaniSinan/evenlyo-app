@@ -79,6 +79,7 @@ export const ICONS = {
   inactiveHeartIcon: require('./icons/inactiveHeartIcon.png'),
   redcross: require('../assets/icons/redcross.png'),
   checkedCircle: require('../assets/icons/checkedCircle.gif'),
+  cameraIcon: require('../assets/icons/cameraIcon.png'),
   eyeIcon: require('../assets/icons/eyeIcon.png'),
 };
 
