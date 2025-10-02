@@ -3,6 +3,7 @@ import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {width} from 'react-native-dimension';
 
 const Categories = ({data, selected, setSelected}) => {
   const {currentLanguage} = useTranslation();
@@ -45,7 +46,9 @@ const Categories = ({data, selected, setSelected}) => {
         );
 
         return (
-          <TouchableOpacity onPress={() => setSelected(item)}>
+          <TouchableOpacity
+            style={{marginVertical: width(2)}}
+            onPress={() => setSelected(item)}>
             {isSelected ? (
               <LinearGradient
                 colors={[

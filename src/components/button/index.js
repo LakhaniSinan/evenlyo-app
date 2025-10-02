@@ -2,7 +2,7 @@ import React from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity} from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
-import {fontFamly} from '../../constants';
+import {COLORS, fontFamly} from '../../constants';
 import GradientText from '../gradiantText';
 
 const GradientButton = ({
@@ -64,6 +64,7 @@ const GradientButton = ({
         ) : (
           <Text
             style={{
+              color: COLORS.black,
               fontSize: 13,
               fontFamily: fontFamly.PlusJakartaSansBold,
             }}>

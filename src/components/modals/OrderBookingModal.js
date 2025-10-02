@@ -1,5 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import moment from 'moment';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   Image,
   Keyboard,
@@ -9,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import DatePicker from 'react-native-date-picker';
 import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -18,25 +20,27 @@ import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 import GradientText from '../gradiantText';
 import TextField from '../textInput';
+import CommonAlert from '../commanAlert';
 
 const OrderBooking = ({
-  isVisible,
   onClose,
-  nestedFilter,
+  isVisible,
+  selectedDate,
   handleSendBookingRequest,
 }) => {
   const {t} = useTranslation();
   const [isChecked, setIsChecked] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-  const navigation = useNavigation();
-  const [selectedDate, setSelectedDate] = useState('Friday, July 11, 2025');
   const [isMultipleDay, setIsMultipleDay] = useState(true);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
+  const [startTime, setStartTime] = useState(new Date());
+  const [endTime, setEndTime] = useState(new Date());
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
   const [location, setLocation] = useState('');
   const [kilometer, setKilometer] = useState('10');
   const [instructions, setInstructions] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const modalRef = useRef(null);
   const [pricing, setPricing] = useState({
     duration: 8,
     ratePerHour: 108,
@@ -73,11 +77,6 @@ const OrderBooking = ({
     setPricing(newPricing);
     console.log('Pricing updated:', newPricing);
   }, [kilometer]);
-
-  const handleDateRangeChange = (start, end) => {
-    setStartDate(start);
-    setEndDate(end);
-  };
 
   const toggleMultipleDay = () => {
     setIsMultipleDay(!isMultipleDay);
@@ -125,6 +124,7 @@ const OrderBooking = ({
 
   // Remove the old pricing variable since we're now using state
   // const pricing = calculatePricing();
+  const isSingleDateSelected = selectedDate?.length === 1;
 
   return (
     <Modal
@@ -147,44 +147,90 @@ const OrderBooking = ({
           showsVerticalScrollIndicator={false}>
           <View style={styles.section}>
             <View style={styles.dateTimeHeader}>
-              <View style={{flex: 1}}>
-                <Text style={styles.label}>Selected Date & Time</Text>
-                <Text style={styles.dateValue}>{selectedDate}</Text>
+              <Text style={styles.label}>Selected Date & Time</Text>
+              <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+                {selectedDate?.map(item => {
+                  return (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginRight: width(2),
+                      }}>
+                      <Text style={styles.dateValue}>
+                        {moment(item).format('dddd, MMMM D')},
+                      </Text>
+                    </View>
+                  );
+                })}
               </View>
-              <TouchableOpacity
-                onPress={toggleMultipleDay}
-                style={styles.checkboxContainer}>
-                <View
-                  style={[
-                    styles.checkbox,
-                    isMultipleDay && styles.checkboxChecked,
-                  ]}>
-                  {isMultipleDay && (
-                    <Icon name="checkmark" size={16} color="white" />
-                  )}
-                </View>
-                <Text style={styles.checkboxLabel}>Multiple Day</Text>
-              </TouchableOpacity>
             </View>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.label}>Date Range *</Text>
-            <View style={styles.dateRangeContainer}>
-              <TouchableOpacity style={styles.dateInput}>
-                <Text style={styles.dateInputText}>
-                  {startDate ? startDate.toLocaleDateString() : 'Start Date'}
-                </Text>
-                <Icon name="calendar" size={20} color="#666" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.dateInput}>
-                <Text style={styles.dateInputText}>
-                  {endDate ? endDate.toLocaleDateString() : 'End Date'}
-                </Text>
-                <Icon name="calendar" size={20} color="#666" />
-              </TouchableOpacity>
+          {isSingleDateSelected && (
+            <View style={styles.section}>
+              <Text style={styles.label}>Time Range *</Text>
+
+              <View style={styles.dateRangeContainer}>
+                {/* Start Time Picker */}
+                <TouchableOpacity
+                  style={styles.dateInput}
+                  onPress={() => setShowStartPicker(true)}>
+                  <Text style={styles.dateInputText}>
+                    {startTime
+                      ? moment(startTime).format('hh:mm A')
+                      : 'Start Time'}
+                  </Text>
+                  <Image
+                    source={ICONS.clockIcon}
+                    style={{height: width(5), width: width(5)}}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+
+                {/* End Time Picker */}
+                <TouchableOpacity
+                  style={styles.dateInput}
+                  onPress={() => setShowEndPicker(true)}>
+                  <Text style={styles.dateInputText}>
+                    {endTime ? moment(endTime).format('hh:mm A') : 'End Time'}
+                  </Text>
+                  <Image
+                    source={ICONS.clockIcon}
+                    style={{height: width(5), width: width(5)}}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Time Picker Modals */}
+              <DatePicker
+                modal
+                open={showStartPicker}
+                date={startTime}
+                mode="time"
+                is24hourSource={false}
+                onConfirm={date => {
+                  setShowStartPicker(false);
+                  setStartTime(date);
+                }}
+                onCancel={() => setShowStartPicker(false)}
+              />
+
+              <DatePicker
+                modal
+                open={showEndPicker}
+                date={endTime}
+                mode="time"
+                onConfirm={date => {
+                  setShowEndPicker(false);
+                  setEndTime(date);
+                }}
+                onCancel={() => setShowEndPicker(false)}
+              />
             </View>
-          </View>
+          )}
 
           <View style={styles.section}>
             <TextField
@@ -254,6 +300,7 @@ const OrderBooking = ({
                 fontFamily: fontFamly.PlusJakartaSansBold,
                 marginBottom: 3,
                 marginLeft: width(3),
+                color: COLORS.black,
               }}>
               {t('Enable Evenlyo Protect (+25)')}
             </Text>
@@ -347,9 +394,19 @@ const OrderBooking = ({
                 text="Send Booking Request"
                 onPress={() => {
                   if (!acceptTerms) {
-                    return;
+                    return modalRef.current.show({
+                      status: 'error',
+                      message: 'Please accept terms and conditions first.',
+                    });
                   }
-                  handleSendBookingRequest();
+                  let details = {
+                    startDate: '2026-01-10',
+                    endDate: '2026-05-10',
+                    eventLocation: '123 Event Street, Downtown City',
+                    distanceKm: 12,
+                  };
+
+                  handleSendBookingRequest(details);
                 }}
                 type="filled"
                 textStyle={{
@@ -362,6 +419,7 @@ const OrderBooking = ({
           </View>
         )}
       </View>
+      <CommonAlert ref={modalRef} />
     </Modal>
   );
 };
@@ -423,9 +481,6 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
   },
   dateTimeHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     backgroundColor: COLORS.backgroundLight,
     padding: width(4),
     borderRadius: width(3),

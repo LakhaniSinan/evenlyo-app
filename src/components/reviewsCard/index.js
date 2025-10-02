@@ -1,29 +1,29 @@
+import moment from 'moment';
 import React from 'react';
 import {Image, StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
-import {IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
 const ReviewsCard = ({item}) => {
-  const {t} = useTranslation();
+  const {currentLanguage} = useTranslation();
+  console.log(currentLanguage, 'currentLanguagecurrentLanguage');
 
   return (
     <View style={styles.card}>
       {/* User Info Row */}
       <View style={styles.userRow}>
-        {/* Profile Image */}
         <View style={styles.profileContainer}>
           <Image
-            source={IMAGES.profilePhoto}
+            source={{uri: item?.client?.profileImage}}
             style={styles.profileImage}
             resizeMode="cover"
           />
         </View>
 
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{item.user?.name}</Text>
+          <Text style={styles.userName}>{item?.client?.name}</Text>
           <View style={styles.ratingContainer}>
             <Rating
               count={5}
@@ -40,12 +40,16 @@ const ReviewsCard = ({item}) => {
         </View>
 
         <View style={styles.dateContainer}>
-          <Text style={styles.reviewDate}>{item.date}</Text>
+          <Text style={styles.reviewDate}>
+            {moment(item?.client?.createdAt).format('DD MMM YYYY')}
+          </Text>
         </View>
       </View>
 
       <View style={styles.reviewTextContainer}>
-        <Text style={styles.reviewText}>{item.comment}</Text>
+        <Text style={styles.reviewText}>
+          {currentLanguage == 'en' ? item?.review?.en : item?.review?.en}
+        </Text>
       </View>
     </View>
   );

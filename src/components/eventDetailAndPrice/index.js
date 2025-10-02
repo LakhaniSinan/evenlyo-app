@@ -4,7 +4,7 @@ import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
-const EventAndPriceDetails = ({showrating, showDiscount, showSwitch}) => {
+const EventAndPriceDetails = ({data, showrating, showDiscount, showSwitch}) => {
   const [emailNotification, setEmailNotification] = useState(false);
   return (
     <View
@@ -21,7 +21,7 @@ const EventAndPriceDetails = ({showrating, showDiscount, showSwitch}) => {
             color: COLORS.semiLightText,
             fontSize: 12,
           }}>
-          Newyork, USA
+          {data?.location?.fullAddress}
         </Text>
         <Text
           style={{
@@ -29,7 +29,7 @@ const EventAndPriceDetails = ({showrating, showDiscount, showSwitch}) => {
             color: COLORS.textDark,
             fontSize: 15,
           }}>
-          Morning Date at a Hidden Art Gallery
+          {data?.title}
         </Text>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <Image
@@ -55,7 +55,13 @@ const EventAndPriceDetails = ({showrating, showDiscount, showSwitch}) => {
               flexDirection: 'row',
               alignItems: 'center',
             }}>
-            <Rating ratingCount={5} imageSize={15} style={{}} />
+            <Rating
+              ratingCount={5}
+              minValue={data?.rating?.totalReviews}
+              readonly={true}
+              imageSize={15}
+              style={{}}
+            />
             <Text
               style={{
                 fontFamily: fontFamly.PlusJakartaSansSemiMedium,
@@ -63,7 +69,7 @@ const EventAndPriceDetails = ({showrating, showDiscount, showSwitch}) => {
                 marginLeft: width(2),
                 color: COLORS.semiLightText,
               }}>
-              5.0
+              {data?.rating?.average}
             </Text>
           </View>
         )}
@@ -122,7 +128,7 @@ const EventAndPriceDetails = ({showrating, showDiscount, showSwitch}) => {
             color: '#000',
             fontSize: 15,
           }}>
-          $ 300
+          $ {data?.pricing?.totalPrice}
         </Text>
         <Text
           style={{
@@ -130,7 +136,7 @@ const EventAndPriceDetails = ({showrating, showDiscount, showSwitch}) => {
             color: '#000',
             fontSize: 9,
           }}>
-          /Par Event
+          /{data?.pricing?.type.toUpperCase()}
         </Text>
       </View>
     </View>

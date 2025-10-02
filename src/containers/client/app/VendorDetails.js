@@ -1,3 +1,4 @@
+import {useEffect, useRef, useState} from 'react';
 import {
   Image,
   ImageBackground,
@@ -12,19 +13,58 @@ import {Rating} from 'react-native-ratings';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
+import CommonAlert from '../../../components/commanAlert';
 import HeadingComponent from '../../../components/headingComponent';
+import Loader from '../../../components/loder';
 import PopularCard from '../../../components/popularCard';
 import ReviewsCard from '../../../components/reviewsCard';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {getVendorDetails} from '../../../services/Vendor';
 
-function VendorDetails({navigation}) {
+function VendorDetails({navigation, route}) {
+  const item = route.params;
+  const modalRef = useRef();
+  const [isLoading, setIsLoading] = useState(false);
+  const [vendorDetail, setVendorDetails] = useState(null);
+  const [showAll, setShowAll] = useState(false);
+  const reviews = vendorDetail?.reviews || [];
+  const displayedReviews = showAll ? reviews : reviews.slice(0, 4);
+
+  console.log(vendorDetail, 'displayedReviewsdisplayedReviewsdisplayedReviews');
+
   const {t} = useTranslation();
+  useEffect(() => {
+    getVendorDetailsByID();
+  }, []);
+
+  const getVendorDetailsByID = async () => {
+    try {
+      setIsLoading(true);
+      const responce = await getVendorDetails('688cee39901d51358af867fa');
+      setIsLoading(false);
+      if (responce?.status == 200 || responce.status == 201) {
+        let data = responce?.data?.data;
+        console.log(data, 'datadatadatadatadatadata');
+        setVendorDetails(data);
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: responce?.data?.message,
+        });
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.log('errorerrorerrorerrorerrorerror');
+    }
+  };
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
+      <Loader isLoading={isLoading} />
+      <CommonAlert ref={modalRef} />
       <AppHeader
         leftIcon={ICONS.leftArrowIcon}
-        headingText={t('booking')}
+        headingText={t('Vendor Profile')}
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={() => navigation.goBack()}
         setModalVisible={() => {}}
@@ -36,19 +76,22 @@ function VendorDetails({navigation}) {
       <ScrollView style={{flex: 1, backgroundColor: COLORS.white}}>
         <ImageBackground
           resizeMode="contain"
-          source={IMAGES.bannerImage}
+          source={{uri: vendorDetail?.businessDetails?.bannerImage}}
           style={{
-            marginHorizontal: 10,
-            justifyContent: 'flex-end',
-            paddingHorizontal: width(5),
-            marginTop: -width(10),
+            height: width(55),
+            width: width(100),
+            padding: width(2),
+            position: 'relative',
+            borderRadius: 20,
           }}>
           <View
             style={{
               flexDirection: 'row',
               alignItems: 'flex-end',
               height: width(45),
-              marginTop: width(20),
+              position: 'absolute',
+              bottom: -70,
+              left: 20,
             }}>
             <View
               style={{
@@ -61,8 +104,8 @@ function VendorDetails({navigation}) {
                 marginBottom: width(5),
               }}>
               <Image
-                source={IMAGES.coverImage1}
-                resizeMode="contain"
+                source={{uri: vendorDetail?.businessDetails?.bannerImage}}
+                resizeMode="cover"
                 style={{height: width(25), width: width(25)}}
               />
             </View>
@@ -73,10 +116,10 @@ function VendorDetails({navigation}) {
                   fontSize: 15,
                   fontFamily: fontFamly.PlusJakartaSansSemiBold,
                 }}>
-                Ahsan Khan
+                {vendorDetail?.userDetails?.name}
               </Text>
               <Text style={{color: COLORS.textLight, fontSize: 14}}>
-                10k {t('followers')} 200-500 {t('employees')}
+                {vendorDetail?.businessDetails?.employees} {t('employees')}
               </Text>
               <View
                 style={{
@@ -100,7 +143,10 @@ function VendorDetails({navigation}) {
                     fontSize: 12,
                     marginLeft: 5,
                   }}>
-                  4.5 (127 {t('reviews')})
+                  {vendorDetail?.businessDetails?.rating}{' '}
+                  {`(${vendorDetail?.businessDetails?.reviews} ${t(
+                    'Reviews',
+                  )}}`}
                 </Text>
               </View>
             </View>
@@ -110,7 +156,7 @@ function VendorDetails({navigation}) {
           style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
-            marginTop: width(7),
+            marginTop: width(25),
             marginHorizontal: width(5),
           }}>
           <View style={{width: width(75)}}>
@@ -150,7 +196,7 @@ function VendorDetails({navigation}) {
               color: COLORS.textLight,
               marginTop: width(2),
             }}>
-            📞 {t('call')}: (123) 456-7890
+            📞 {t('call')}: {`+${vendorDetail?.businessDetails?.phone}`}
           </Text>
           <Text
             style={{
@@ -159,7 +205,7 @@ function VendorDetails({navigation}) {
               color: COLORS.textLight,
               marginTop: width(2),
             }}>
-            ✉️ {t('email')}: chef@[yourbusinessname].com
+            ✉️ {t('email')}: {vendorDetail?.businessDetails?.email}
           </Text>
           <Text
             style={{
@@ -168,7 +214,7 @@ function VendorDetails({navigation}) {
               color: COLORS.textLight,
               marginTop: width(2),
             }}>
-            📍Via Camilla Cavour, Florence (FI), Tuscany, Italy
+            📍{vendorDetail?.businessDetails?.location}
           </Text>
         </View>
         <View
@@ -179,8 +225,9 @@ function VendorDetails({navigation}) {
             style={{
               fontSize: 15,
               fontFamily: fontFamly.PlusJakartaSansSemiBold,
+              color: COLORS.black,
             }}>
-            {t('aboutUs')} Asima Khan
+            {t('aboutUs')} {vendorDetail?.userDetails?.name}
           </Text>
           <Text
             style={{
@@ -197,8 +244,7 @@ function VendorDetails({navigation}) {
               fontSize: 10,
               fontFamily: fontFamly.PlusJakartaSansSemiRegular,
             }}>
-            Focused on creating ‘vibes’ through immersive sound, ambient
-            lighting, and DJ talent perfectly matched to your setting.
+            {vendorDetail?.businessDetails?.description}
           </Text>
           <Text
             style={{
@@ -215,8 +261,7 @@ function VendorDetails({navigation}) {
               fontSize: 10,
               fontFamily: fontFamly.PlusJakartaSansSemiRegular,
             }}>
-            "Perfect for intimate parties, upscale lounges, and beach weddings.
-            Our approach is laid-back yet detail-driven."
+            {vendorDetail?.businessDetails?.whyChooseUs}
           </Text>
         </View>
         <View
@@ -234,6 +279,7 @@ function VendorDetails({navigation}) {
             }}>
             <Text
               style={{
+                color: COLORS.black,
                 fontSize: 15,
                 fontFamily: fontFamly.PlusJakartaSansSemiBold,
               }}>
@@ -251,11 +297,35 @@ function VendorDetails({navigation}) {
                   fontFamily: fontFamly.PlusJakartaSansSemiBold,
                   marginHorizontal: width(1),
                   marginTop: width(3),
+                  color: COLORS.black,
                 }}>
                 {category}
               </Text>
             ))}
           </View>
+        </View>
+
+        <View>
+          <HeadingComponent
+            heading={t('Vendor Listing')}
+            gradientText={`(${vendorDetail?.listings?.length})`}
+            rightArrow={true}
+            onPress={() => {}}
+          />
+        </View>
+        <View style={{}}>
+          <PopularCard data={vendorDetail?.listings || []} />
+        </View>
+        <View>
+          <HeadingComponent
+            heading={t('Most Popular')}
+            gradientText={`(${vendorDetail?.popularListings?.length})`}
+            rightArrow={true}
+            onPress={() => {}}
+          />
+        </View>
+        <View style={{}}>
+          <PopularCard data={vendorDetail?.popularListings || []} />
         </View>
         <View
           style={{
@@ -266,21 +336,14 @@ function VendorDetails({navigation}) {
           <View style={{width: '100%'}}>
             <Text
               style={{
-                fontSize: 15,
-                fontFamily: fontFamly.PlusJakartaSansSemiBold,
-                textAlign: 'left',
-              }}>
-              {t('aboutUs')} Asima Khan
-            </Text>
-            <Text
-              style={{
+                color: COLORS.black,
                 fontSize: 12,
                 fontFamily: fontFamly.PlusJakartaSansSemiBold,
               }}>
-              {t('mostRecent')} (7)
+              {t('mostRecent')} ({`${vendorDetail?.reviews?.length}`})
             </Text>
           </View>
-          {vendorDetails.reviews.map((review, index) => (
+          {displayedReviews?.map((review, index) => (
             <ReviewsCard key={index} item={review} />
           ))}
           <View
@@ -291,24 +354,13 @@ function VendorDetails({navigation}) {
               justifyContent: 'center',
             }}>
             <GradientButton
-              text={t('viewAll')}
-              onPress={() => {}}
+              text={showAll ? t('View Less') : t('viewAll')}
+              onPress={() => setShowAll(!showAll)}
               type="outline"
               useGradient={true}
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
             />
           </View>
-        </View>
-        <View>
-          <HeadingComponent
-            heading={t('mostPopularDJ')}
-            gradientText={`(${vendorDetails.popularDJs.length})`}
-            rightArrow={true}
-            onPress={() => {}}
-          />
-        </View>
-        <View>
-          <PopularCard />
         </View>
         <View style={{height: width(10)}} />
       </ScrollView>

@@ -8,11 +8,11 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
-import {ICONS} from '../../assets';
+import {ICONS, IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
-const PopularCard = ({data, onCardPress}) => {
+const PopularCard = ({data, onCardPress, type}) => {
   const {t} = useTranslation();
   const [isActiveHeart, setIsActiveHeart] = useState(false);
   return (
@@ -23,24 +23,30 @@ const PopularCard = ({data, onCardPress}) => {
       contentContainerStyle={{paddingHorizontal: 10}}
       showsHorizontalScrollIndicator={false}
       renderItem={({item, index}) => {
-        console.log(item, 'itemitem7687687');
-
         return (
           <TouchableOpacity
             onPress={() => onCardPress(item)}
             style={styles.cardWrapper}>
-            <Image
-              resizeMode="cover"
-              style={styles.image}
-              source={item.image}
-            />
+            {item?.images?.length > 0 ? (
+              <Image
+                resizeMode="cover"
+                style={styles.image}
+                source={{uri: `${item?.images[0]}`}}
+              />
+            ) : (
+              <Image
+                resizeMode="cover"
+                style={styles.image}
+                source={IMAGES.backgroundImage}
+              />
+            )}
             <View
               style={{
                 height: width(10),
                 width: '100%',
                 position: 'absolute',
                 zIndex: 99,
-                justifyContent: 'space-between',
+                justifyContent: type == 'home' ? 'space-between' : 'flex-end',
                 flexDirection: 'row',
                 alignItems: 'center',
                 paddingHorizontal: width(4),
@@ -73,26 +79,28 @@ const PopularCard = ({data, onCardPress}) => {
                   Available
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={() => setIsActiveHeart(!isActiveHeart)}
-                style={{
-                  height: width(8),
-                  width: width(8),
-                  borderRadius: 9,
-                  backgroundColor: 'rgba(255, 245, 245, 0.35)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                <Image
-                  source={
-                    isActiveHeart
-                      ? ICONS.activeHeartIocn
-                      : ICONS.inactiveHeartIcon
-                  }
-                  style={{height: width(4), width: width(4)}}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
+              {type == 'home' && (
+                <TouchableOpacity
+                  onPress={() => setIsActiveHeart(!isActiveHeart)}
+                  style={{
+                    height: width(8),
+                    width: width(8),
+                    borderRadius: 9,
+                    backgroundColor: 'rgba(255, 245, 245, 0.35)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  <Image
+                    source={
+                      isActiveHeart
+                        ? ICONS.activeHeartIocn
+                        : ICONS.inactiveHeartIcon
+                    }
+                    style={{height: width(4), width: width(4)}}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              )}
             </View>
             <View style={styles.blurContainer}>
               <View
@@ -102,7 +110,9 @@ const PopularCard = ({data, onCardPress}) => {
                   justifyContent: 'space-between',
                 }}>
                 <View style={{flex: 1}}>
-                  <Text style={styles.text}>DJ Ray Vibes</Text>
+                  <Text style={styles.text}>
+                    {item?.title || 'DJ Ray Vibes'}
+                  </Text>
                   <View
                     style={{
                       flexDirection: 'row',
@@ -122,13 +132,15 @@ const PopularCard = ({data, onCardPress}) => {
                         marginLeft: 5,
                         lineHeight: 12,
                       }}>
-                      Los Angeles, CA
+                      {item?.location?.fullAddress || item?.location}
                     </Text>
                   </View>
                 </View>
 
                 <View style={{alignItems: 'flex-end'}}>
-                  <Text style={styles.text}>$300</Text>
+                  <Text style={styles.text}>
+                    ${item?.pricing?.totalPrice || 0}
+                  </Text>
                   <Text
                     style={{
                       fontFamily: fontFamly.PlusJakartaSansSemiRegular,
@@ -137,7 +149,7 @@ const PopularCard = ({data, onCardPress}) => {
                       lineHeight: 11,
                       marginTop: 2,
                     }}>
-                    {t('perEvent')}
+                    {t(`/${item?.pricing?.type}`)}
                   </Text>
                 </View>
               </View>

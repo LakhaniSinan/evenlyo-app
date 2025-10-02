@@ -1,11 +1,17 @@
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
-import { IMAGES } from '../../assets';
-import { COLORS, fontFamly } from '../../constants';
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {width} from 'react-native-dimension';
+import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
-
-const HomeCard = () => {
+const HomeCard = ({data, onBookingCardPress}) => {
   const {t} = useTranslation();
-  const data = ['', ''];
+  // const data = ['', ''];
   return (
     <FlatList
       data={data}
@@ -15,24 +21,52 @@ const HomeCard = () => {
       showsHorizontalScrollIndicator={false}
       renderItem={({item, index}) => {
         return (
-          <View style={styles.cardWrapper}>
-            <Image
-              resizeMode="cover"
-              style={styles.image}
-              source={IMAGES.backgroundImage}
-            />
+          <TouchableOpacity
+            style={styles.cardWrapper}
+            onPress={() => onBookingCardPress(item)}>
+            {item?.images?.length > 0 ? (
+              <Image
+                resizeMode="cover"
+                style={styles.image}
+                source={{uri: item?.images[0]}}
+              />
+            ) : (
+              <Image
+                resizeMode="cover"
+                style={styles.image}
+                source={{uri: item?.featuredImage}}
+              />
+            )}
             <View style={styles.blurContainer}>
               <View style={styles.textContainer}>
-                <Text style={styles.text}>{t('Book DJs Food Trucks')}</Text>
+                <Text style={styles.text}>{t(`${item?.title}`)}</Text>
                 <Text style={styles.text2}>
-                  {t('Venues Fast Easy')}{' '}
-                  <Text style={styles.text}>{t('With Out Hassle')} </Text>
+                  {t(`${item?.description}`)}{' '}
+                  <Text style={styles.text}>{t(`${item?.subtitle}`)} </Text>
                 </Text>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         );
       }}
+      ListEmptyComponent={() => (
+        <View
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: width(100),
+            height: width(10),
+          }}>
+          <Text
+            style={{
+              fontFamily: fontFamly.PlusJakartaSansBold,
+              fontSize: 12,
+              color: COLORS.textLight,
+            }}>
+            No Relevant Vendors Found!
+          </Text>
+        </View>
+      )}
     />
   );
 };
@@ -40,6 +74,7 @@ const HomeCard = () => {
 const styles = StyleSheet.create({
   cardWrapper: {
     marginTop: 10,
+    backgroundColor: COLORS.backgroundLight,
     height: 214,
     width: 318,
     marginHorizontal: 5,

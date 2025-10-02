@@ -1,11 +1,14 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {SafeAreaView, ScrollView, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
+import CommonAlert from '../../../components/commanAlert';
+import Loader from '../../../components/loder';
 import TabItem from '../../../components/tabsComponent';
 import {COLORS} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {getBookingDetails} from '../../../services/ListingsItem';
 import DetailsContent from './EventDetailContent';
 import AllReviews from './ReviewScreen';
 
@@ -32,9 +35,45 @@ const getTabsData = t => [
   },
 ];
 
-const EventDetails = ({navigation}) => {
+const EventDetails = ({route, navigation}) => {
+  const item = route?.params;
   const {t} = useTranslation();
+  const modalRef = useRef();
+  const [selectedDates, setSelectedDates] = useState([]);
+  console.log(selectedDates, 'selectedDatesselectedDatesselectedDates');
+
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState('details');
+  const [bookingDetails, setBookingDetails] = useState(null);
+  console.log(bookingDetails, 'bookingDetailsbookingDetailsbookingDetails');
+
+  useEffect(() => {
+    handleGetBookingDetails();
+  }, []);
+
+  const handleGetBookingDetails = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getBookingDetails('68d561a38586e5530103c4c5');
+      setIsLoading(false);
+      if (response.status == 200 || response.status == 201) {
+        setBookingDetails(response?.data?.data);
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.log(error, 'errorerrorerrorerror123435');
+    }
+  };
+
+  const handleDaySelect = data => {
+    console.log(data, 'handleDaySelecthandleDaySelect');
+  };
+
   const Tabs = ({tabsData, selectedTab, onPress}) => {
     return (
       <View
@@ -74,9 +113,12 @@ const EventDetails = ({navigation}) => {
 
         {selectedTab === 'details' && (
           <DetailsContent
-            data={data}
+            selectedDates={selectedDates}
+            setSelectedDates={setSelectedDates}
+            data={bookingDetails}
             selectedTab={selectedTab}
             navigation={navigation}
+            handleDaySelect={handleDaySelect}
           />
         )}
         {selectedTab === 'gallery' && (
@@ -84,6 +126,8 @@ const EventDetails = ({navigation}) => {
         )}
         {selectedTab === 'reviews' && <AllReviews data={data} />}
       </ScrollView>
+      <Loader isLoading={isLoading} />
+      <CommonAlert isLoading={modalRef} />
     </SafeAreaView>
   );
 };

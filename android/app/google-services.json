@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "800391339545",
+    "project_id": "evenlyo",
+    "storage_bucket": "evenlyo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:800391339545:android:7ed9d0862e5bdca0e05488",
+        "android_client_info": {
+          "package_name": "com.evenlyo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "800391339545-djf87tvnfk7asv6rq303nrmet07seacf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcGPoVTXtCRktyt0rkdwD_VK1nCmKrjlk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "800391339545-djf87tvnfk7asv6rq303nrmet07seacf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

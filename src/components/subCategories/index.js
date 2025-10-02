@@ -13,12 +13,6 @@ const data = [
 ];
 
 const SubCategories = ({data, subSelected, setsubSelected}) => {
-  console.log(
-    data,
-    subSelected,
-    'data, subSelecteddata, subSelecteddata, subSelected',
-  );
-
   const {currentLanguage} = useTranslation();
   return (
     <FlatList
@@ -28,7 +22,7 @@ const SubCategories = ({data, subSelected, setsubSelected}) => {
       contentContainerStyle={{paddingHorizontal: 10}}
       showsHorizontalScrollIndicator={false}
       renderItem={({item, index}) => {
-        const isSelected = subSelected === index;
+        const isSelected = subSelected?._id === item?._id;
 
         const CardContent = () => (
           <View
@@ -56,7 +50,7 @@ const SubCategories = ({data, subSelected, setsubSelected}) => {
         );
 
         return (
-          <TouchableOpacity onPress={() => setsubSelected(index)}>
+          <TouchableOpacity onPress={() => setsubSelected(item)}>
             {isSelected ? (
               <LinearGradient
                 colors={['#FF295D', '#E31B95', '#C817AE']}

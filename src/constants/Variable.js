@@ -31,7 +31,10 @@ export const endPoints = {
   //Listings
   listings: '/listings',
   populorItems: '/listings/popular?limit',
+  bookingItems: '/listings?categoryId',
   vendorDetails: '/vendors',
+  vendor: '/vendor/bycategory',
+  vendorDetailsById: '/vendor/details',
   booking: '/bookings',
 
   //Notifications

@@ -6,12 +6,14 @@ import {IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
-const EventCard = ({navigation}) => {
+const EventCard = ({item, navigation}) => {
   const {t} = useTranslation();
+  console.log(item, 'itemitemitemitemitemitem123123');
+
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('VendorDetails')}>
+      onPress={() => navigation.navigate('VendorDetails', item)}>
       <View
         style={{
           height: width(30),
@@ -42,12 +44,12 @@ const EventCard = ({navigation}) => {
             style={{
               fontFamily: fontFamly.PlusJakartaSansBold,
               color: COLORS.textDark,
-              fontSize: 16,
-              width: '60%',
+              fontSize: 14,
+              // width: '60%',
             }}>
-            Pulse Events & Entertainment
+            {item?.businessName || 'Pulse Events & Entertainment'}
           </Text>
-          <View
+          {/* <View
             style={{
               borderRadius: 100,
               backgroundColor: 'rgba(4, 195, 115, 0.1)',
@@ -62,7 +64,7 @@ const EventCard = ({navigation}) => {
               }}>
               20%{t('Off')}
             </Text>
-          </View>
+          </View> */}
         </View>
         <Text
           style={{
@@ -70,7 +72,7 @@ const EventCard = ({navigation}) => {
             color: COLORS.textLight,
             fontSize: 12,
           }}>
-          Greater Los Angeles, Orange County
+          {item?.businessLocation || 'Greater Los Angeles, Orange County'}
         </Text>
         <View
           style={{
@@ -78,7 +80,7 @@ const EventCard = ({navigation}) => {
             alignItems: 'center',
           }}>
           <Rating
-            count={5}
+            count={item?.rating?.stars}
             defaultRating={4}
             imageSize={12}
             selectedColor={'#FCAD38'}
@@ -94,9 +96,21 @@ const EventCard = ({navigation}) => {
               fontSize: 12,
               marginLeft: 5,
             }}>
-            4.5 (127 {t('reviews')})
+            {`${item?.rating?.average} (${item?.rating?.totalReviews} ${t(
+              'reviews',
+            )})`}
           </Text>
         </View>
+        <Text
+          numberOfLines={2}
+          style={{
+            fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+            color: COLORS.textLight,
+            fontSize: 12,
+            marginLeft: 5,
+          }}>
+          {item?.businessDescription}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -107,6 +121,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: COLORS.white,
     padding: 10,
+    margin: width(2),
     borderRadius: 20,
     shadowColor: '#000',
     shadowOffset: {

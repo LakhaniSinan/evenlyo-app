@@ -110,7 +110,11 @@ const AppHeader = ({
           </TouchableOpacity>
         )}
         <View style={{justifyContent: 'center', flex: 1, alignItems: 'center'}}>
-          <Text style={{fontFamily: fontFamly.PlusJakartaSansBold}}>
+          <Text
+            style={{
+              color: COLORS.textDark,
+              fontFamily: fontFamly.PlusJakartaSansBold,
+            }}>
             {headingText}
           </Text>
         </View>
@@ -181,6 +185,7 @@ const AppHeader = ({
               <Text
                 style={{
                   fontFamily: fontFamly.PlusJakartaSansBold,
+                  color: COLORS.textDark,
                   fontSize: 12,
                 }}>
                 {chatHeaderData.name}

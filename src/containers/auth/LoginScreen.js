@@ -67,12 +67,19 @@ const LoginScreen = ({navigation, route}) => {
         };
         setIsLoading(true);
         const response = await loginUser(payload);
-        console.log(response?.data, 'datadatadatadata');
-        setIsLoading(false);
         let data = response?.data?.user;
 
-        dispatch(setUserData(data));
-        AsyncStorage.setItem('userData', JSON.stringify(data));
+        console.log(response?.data, 'datadatadatadata');
+        setIsLoading(false);
+        if (response.status == 200 || response.status) {
+          dispatch(setUserData(data));
+          AsyncStorage.setItem('userData', JSON.stringify(data));
+        } else {
+          modalRef.current.show({
+            status: 'error',
+            message: response.data.message,
+          });
+        }
       } catch (error) {
         console.log(error, 'errorerrorerrorerror123');
         setIsLoading(false);
