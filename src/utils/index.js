@@ -172,17 +172,43 @@ export function formatRelativeTime(isoDateString) {
   const diffHr = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHr / 24);
 
-  // "just now"
   if (diffSec < 60) return 'Just now';
   if (diffMin < 60) return `${diffMin} min ago`;
   if (diffHr < 24) return `${diffHr} hour${diffHr > 1 ? 's' : ''} ago`;
 
-  // yesterday
   if (diffDay === 1) return 'Yesterday';
 
-  // if within a week
   if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
 
-  // otherwise show date
-  return date.toLocaleDateString(); // e.g. "9/26/2025" based on locale
+  return date.toLocaleDateString();
 }
+export const getDistance = (coords1, coords2) => {
+  if (!coords1 || !coords2) {
+    return {distance: '0 km away'};
+  }
+
+  const toRad = value => (value * Math.PI) / 180;
+
+  const R = 6371;
+  const lat1 = coords1.latitude;
+  const lon1 = coords1.longitude;
+  const lat2 = coords2.latitude;
+  const lon2 = coords2.longitude;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c; // ✅ Distance in KM
+
+  return {
+    distance: `${d.toFixed(2)} km away`,
+  };
+};

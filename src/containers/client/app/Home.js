@@ -23,6 +23,18 @@ import useCategories from '../../../hooks/getCategories';
 import useTranslation from '../../../hooks/useTranslation';
 
 const Home = ({navigation}) => {
+  const modalRef = useRef();
+  const {t} = useTranslation();
+  const locationData = useSelector(state => state.LocationSlice);
+  const {address, city, state: regionState} = locationData;
+  const [bookingItems, setBookingItems] = useState([]);
+  const [vendorsBySubCat, setVendorsBySubCat] = useState([]);
+  const [popularData, setPopularData] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [subCategoriesSelected, setSubCategoriesSelected] = useState(null);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
   const {
     categories,
     subCategories,
@@ -31,38 +43,16 @@ const Home = ({navigation}) => {
     setCategories,
   } = useCategories();
 
-  const {
-    address,
-    city,
-    state: regionState,
-  } = useSelector(state => state.LocationSlice);
-
-  const [bookingItems, setBookingItems] = useState([]);
-  const [vendorsBySubCat, setVendorsBySubCat] = useState([]);
-  console.log(vendorsBySubCat, 'vendorsBySubCatvendorsBySubCatvendorsBySubCat');
-
-  const [popularData, setPopularData] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [subCategoriesSelected, setSubCategoriesSelected] = useState(null);
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const modalRef = useRef();
-  const {t} = useTranslation();
-
-  // ✅ Initial Load
   useEffect(() => {
     loadInitialData();
   }, []);
 
-  // ✅ Sub-category change: fetch both
   useEffect(() => {
     if (subCategoriesSelected && selected) {
       fetchBookingAndVendors();
     }
   }, [subCategoriesSelected]);
 
-  // ✅ Sub-category fetch on main category change
   useEffect(() => {
     if (selected?._id) {
       fetchSubCategories(selected._id);
@@ -166,6 +156,7 @@ const Home = ({navigation}) => {
                 />
                 <Text
                   style={{
+                    color: COLORS.black,
                     fontSize: 12,
                     marginLeft: width(3),
                     fontFamily: fontFamly.PlusJakartaSansSemiMedium,

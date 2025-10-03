@@ -17,6 +17,7 @@ import Loader from '../../../components/loder';
 import {COLORS, fontFamly} from '../../../constants';
 import useTranslation from '../../../hooks/useTranslation';
 import {setUserData} from '../../../redux/slice/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const getProfileMenuData = t => [
   {
@@ -57,6 +58,8 @@ const getHelpSupportMenuData = t => [
 const Profile = () => {
   const {t} = useTranslation();
   const {user} = useSelector(state => state.LoginSlice);
+  console.log(user, 'useruseruseruser');
+
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const data = getProfileMenuData(t);
@@ -67,6 +70,7 @@ const Profile = () => {
   const handleNavigate = navigate => {
     if (navigate === 'Logout') {
       dispatch(setUserData(null));
+      AsyncStorage.removeItem('userData');
     } else {
       navigation.navigate(navigate);
     }
@@ -97,6 +101,7 @@ const Profile = () => {
         )}
         <Text
           style={{
+            color: COLORS.black,
             marginTop: 5,
             fontSize: 15,
             fontFamily: fontFamly.PlusJakartaSansSemiBold,
@@ -146,6 +151,7 @@ const Profile = () => {
                   fontSize: 13,
                   fontFamily: fontFamly.PlusJakartaSansSemiBold,
                   marginLeft: 15,
+                  color: COLORS.black,
                 }}>
                 {item.name}
               </Text>
@@ -205,6 +211,7 @@ const Profile = () => {
                 style={{
                   fontSize: 13,
                   fontFamily: fontFamly.PlusJakartaSansSemiBold,
+                  color: COLORS.black,
                   marginLeft: 15,
                 }}>
                 {item.name}

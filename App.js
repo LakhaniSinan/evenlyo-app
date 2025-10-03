@@ -3,7 +3,7 @@ import {Platform, SafeAreaView, StatusBar} from 'react-native';
 import {Provider as PaperProvider} from 'react-native-paper';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Provider, useDispatch} from 'react-redux';
-
+import LocationInitializer from './src/components/LocationInitializer';
 import useNotifications from './src/hooks/notifications';
 import AppNavigator from './src/navigation';
 import store from './src/redux';
@@ -14,12 +14,10 @@ const AppContent = () => {
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   const {fetchNotifications} = useNotifications();
-  // const {fetchAndSaveLocation} = useLocation();
 
   useEffect(() => {
     dispatch(initializeLanguageFromStorage());
     fetchNotifications();
-    // fetchAndSaveLocation(); // ✅ Location fetch on startup
   }, [dispatch, fetchNotifications]);
 
   return (
@@ -30,6 +28,7 @@ const AppContent = () => {
         translucent
         backgroundColor="transparent"
       />
+      <LocationInitializer />
       <AppNavigator />
     </SafeAreaView>
   );

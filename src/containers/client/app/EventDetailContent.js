@@ -4,7 +4,7 @@ import {Image, Text, TouchableOpacity, View} from 'react-native';
 import {Calendar} from 'react-native-calendars';
 import {width} from 'react-native-dimension';
 import MapView, {Marker} from 'react-native-maps';
-import {ICONS, IMAGES} from '../../../assets';
+import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
 import CarouselComponent from '../../../components/carousel';
 import EventAndPriceDetails from '../../../components/eventDetailAndPrice';
@@ -65,6 +65,7 @@ const DetailsContent = ({
   navigation,
 }) => {
   const {currentLanguage} = useTranslation();
+
   // support both data.availability.availableDays and data.availableDays
   const availableDays = useMemo(() => {
     const days = data?.availability?.availableDays || data?.availableDays || [];
@@ -255,7 +256,12 @@ const DetailsContent = ({
       </View>
 
       <View style={{paddingVertical: width(3), marginHorizontal: 20}}>
-        <Text style={{fontFamily: fontFamly.PlusJakartaSansBold, fontSize: 12}}>
+        <Text
+          style={{
+            color: COLORS.black,
+            fontFamily: fontFamly.PlusJakartaSansBold,
+            fontSize: 12,
+          }}>
           Description:
         </Text>
         <Text

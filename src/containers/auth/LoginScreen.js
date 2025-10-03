@@ -71,7 +71,7 @@ const LoginScreen = ({navigation, route}) => {
 
         console.log(response?.data, 'datadatadatadata');
         setIsLoading(false);
-        if (response.status == 200 || response.status) {
+        if (response.status == 200 || response.status == 201) {
           dispatch(setUserData(data));
           AsyncStorage.setItem('userData', JSON.stringify(data));
         } else {

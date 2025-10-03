@@ -54,7 +54,7 @@ const EventDetails = ({route, navigation}) => {
   const handleGetBookingDetails = async () => {
     try {
       setIsLoading(true);
-      const response = await getBookingDetails('68d561a38586e5530103c4c5');
+      const response = await getBookingDetails(item?._id);
       setIsLoading(false);
       if (response.status == 200 || response.status == 201) {
         setBookingDetails(response?.data?.data);

@@ -4,8 +4,13 @@ import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import {getDistance} from '../../utils';
 const EventAndPriceDetails = ({data, showrating, showDiscount, showSwitch}) => {
+  console.log(data, 'datadatadatadatadata');
+  
+
   const [emailNotification, setEmailNotification] = useState(false);
+  // const {distance} = getDistance(data?.coords1, data?.coords2);
   return (
     <View
       style={{
@@ -45,7 +50,7 @@ const EventAndPriceDetails = ({data, showrating, showDiscount, showSwitch}) => {
               color: COLORS.semiLightText,
               fontSize: 11,
             }}>
-            12.6 Km away
+            {/* {distance} */}
           </Text>
         </View>
         {showrating && (
