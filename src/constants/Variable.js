@@ -16,6 +16,7 @@ export const apiHeaders = {
 export const endPoints = {
   //Authentication
   login: '/auth/client/login',
+  loginVendor: '/auth/vendor/login',
   register: '/auth/client/register',
   registerOtp: '/auth/send-otp',
   forgot: '/auth/send-forgot-otp',

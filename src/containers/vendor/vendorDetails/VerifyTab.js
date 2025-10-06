@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useState} from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Alert, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
 import {ICONS} from '../../../assets';
@@ -20,7 +20,11 @@ const VerifyTab = ({onPressBack, handleNextStep}) => {
   const {t} = useTranslation();
 
   const handleContinue = () => {
-    navigation.navigate('VendorOtpVerifications');
+    if (!phoneNumber && !email) {
+      Alert.alert('Error', 'At least one of phone or email is required.');
+      return;
+    }
+    handleNextStep({ phoneNumber, email });
   };
 
   return (

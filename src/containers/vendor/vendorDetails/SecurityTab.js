@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   KeyboardAvoidingView,
   ScrollView,
@@ -15,6 +15,8 @@ import {useTranslation} from '../../../hooks';
 
 const SecurityTab = ({onPressBack, handleNextStep}) => {
   const {t} = useTranslation();
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   return (
     <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -33,9 +35,9 @@ const SecurityTab = ({onPressBack, handleNextStep}) => {
             label={t('Set Password')}
             placeholder={t('passwordPlaceholder')}
             bgColor={COLORS.white}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
             autoCapitalize="none"
           />
           <View style={{height: 10}} />
@@ -43,9 +45,9 @@ const SecurityTab = ({onPressBack, handleNextStep}) => {
             label={t('Re Enter Password')}
             placeholder={t('Re Enter Password')}
             bgColor={COLORS.white}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
             autoCapitalize="none"
           />
 
@@ -64,7 +66,7 @@ const SecurityTab = ({onPressBack, handleNextStep}) => {
 
             <GradientButton
               text={t('continue')}
-              onPress={() => handleNextStep()}
+              onPress={() => handleNextStep({ password, confirmPassword })}
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
               styleProps={{flex: 1}}

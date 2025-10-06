@@ -1,147 +1,154 @@
-import React, {useCallback, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {
+  ActivityIndicator,
   FlatList,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
+import FastImage from 'react-native-fast-image';
 import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
-import {COLORS, fontFamly, SIZES} from '../../../constants';
+import CommonAlert from '../../../components/commanAlert';
+import Loader from '../../../components/loder';
+import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import useCategories from '../../../hooks/getCategories';
 
 const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
 
-const categories = [
-  {
-    id: 1,
-    name: 'Entertainment & Attractions',
-    image: ICONS.entertintmentIcon,
-    subCategories: [
-      {id: 1, name: 'DJ', icon: ICONS.decoration7},
-      {id: 2, name: 'Live Band', icon: ICONS.decoration6},
-      {id: 3, name: 'Photo Booth', icon: ICONS.decoration5},
-    ],
-  },
-  {
-    id: 2,
-    name: 'Food & Drinks',
-    image: ICONS.foodIcon,
-    subCategories: [
-      {id: 4, name: 'LED Fairy Lights', icon: ICONS.decoration4},
-      {id: 5, name: 'Table Floral Centerpieces', icon: ICONS.decoration3},
-      {id: 6, name: 'Floral Chandelier', icon: ICONS.decoration2},
-      {id: 7, name: 'Helium Balloon Setup', icon: ICONS.decoration1},
-    ],
-  },
-  {
-    id: 3,
-    name: 'Decoration & Styling',
-    image: ICONS.decorIcon,
-    subCategories: [
-      {id: 8, name: 'LED Fairy Lights', icon: ICONS.decoration4},
-      {id: 9, name: 'Table Floral Centerpieces', icon: ICONS.decoration3},
-      {id: 10, name: 'Floral Chandelier', icon: ICONS.decoration2},
-      {id: 11, name: 'Helium Balloon Setup', icon: ICONS.decoration1},
-    ],
-  },
-  {
-    id: 4,
-    name: 'Locations & Party Tents',
-    image: ICONS.tentIcon,
-    subCategories: [
-      {id: 1, name: 'DJ', icon: ICONS.decoration7},
-      {id: 2, name: 'Live Band', icon: ICONS.decoration6},
-      {id: 3, name: 'Photo Booth', icon: ICONS.decoration5},
-    ],
-  },
-  {
-    id: 5,
-    name: 'Staff & Services',
-    image: ICONS.staffServices,
-    subCategories: [
-      {id: 4, name: 'LED Fairy Lights', icon: ICONS.decoration4},
-      {id: 5, name: 'Table Floral Centerpieces', icon: ICONS.decoration3},
-      {id: 6, name: 'Floral Chandelier', icon: ICONS.decoration2},
-      {id: 7, name: 'Helium Balloon Setup', icon: ICONS.decoration1},
-    ],
-  },
-];
+/* -------------------------------------------------------------------------- */
+/*                            Category Item Component                         */
+/* -------------------------------------------------------------------------- */
+const CategoryItem = memo(({item, isSelected, onSelect, currentLanguage}) => {
+  const iconUri = item?.icon?.endsWith('.svg')
+    ? item.icon.replace('.svg', '.png')
+    : item.icon;
 
+  return (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={() => onSelect(item.id || item._id)}
+      style={[
+        styles.categoryBox,
+        {backgroundColor: isSelected ? COLORS.white : COLORS.backgroundLight},
+      ]}>
+      {isSelected && (
+        <View style={styles.checkIconWrapper}>
+          <FastImage
+            source={ICONS.cheackIcon}
+            style={styles.checkIcon}
+            resizeMode={FastImage.resizeMode.contain}
+          />
+        </View>
+      )}
+
+      <View
+        style={[
+          styles.imageWrapper,
+          {
+            borderColor: isSelected ? COLORS.primary : COLORS.backgroundLight,
+          },
+        ]}>
+        <FastImage
+          source={{uri: iconUri}}
+          style={styles.image}
+          resizeMode={FastImage.resizeMode.contain}
+        />
+      </View>
+
+      <Text style={styles.categoryName}>
+        {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
+      </Text>
+    </TouchableOpacity>
+  );
+});
+
+/* -------------------------------------------------------------------------- */
+/*                             Main Categories Screen                         */
+/* -------------------------------------------------------------------------- */
 const Categories = ({onPressBack, handleNextStep}) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
+  const modalRef = useRef(null);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const {categories, fetchCategories} = useCategories();
 
-  const toggleSelect = id => {
+  useEffect(() => {
+    loadCategories();
+  }, [fetchCategories]);
+
+  const loadCategories = async () => {
+    try {
+      setIsFetching(true);
+      setIsLoading(true);
+      await fetchCategories();
+    } catch (error) {
+      console.log('Error fetching categories:', error);
+    } finally {
+      setIsFetching(false);
+      setIsLoading(false);
+    }
+  };
+
+  const toggleSelect = useCallback(id => {
     setSelectedCategories(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id],
     );
+  }, []);
+
+  const handleContinue = () => {
+    if (!selectedCategories?.length) {
+      return modalRef.current.show({
+        status: 'error',
+        message: 'Please select at least one category.',
+      });
+    }
+    handleNextStep(selectedCategories);
   };
 
-  // ✅ Render category item
-  const renderItem = useCallback(
-    ({item}) => {
-      const isSelected = selectedCategories.includes(item.id);
-
-      return (
-        <TouchableOpacity
-          key={item.id}
-          activeOpacity={0.8}
-          onPress={() => toggleSelect(item.id)}
-          style={[
-            styles.categoryBox,
-            {
-              backgroundColor: isSelected
-                ? COLORS.white
-                : COLORS.backgroundLight,
-            },
-          ]}>
-          {isSelected && (
-            <View style={styles.checkIconWrapper}>
-              <Image
-                source={ICONS.cheackIcon}
-                resizeMode="contain"
-                style={styles.checkIcon}
-              />
-            </View>
-          )}
-
-          <View
-            style={[
-              styles.imageWrapper,
-              {
-                borderColor: isSelected
-                  ? COLORS.primary
-                  : COLORS.backgroundLight,
-              },
-            ]}>
-            <Image
-              source={item.image}
-              style={styles.image}
-              resizeMode="contain"
-            />
-          </View>
-
-          <Text style={styles.categoryName}>{item.name}</Text>
-        </TouchableOpacity>
-      );
-    },
-    [selectedCategories],
+  const ListEmptyComponent = () => (
+    <View style={styles.emptyContainer}>
+      {isFetching ? (
+        <>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={styles.loadingText}>Fetching categories...</Text>
+        </>
+      ) : (
+        <Text style={styles.emptyText}>No categories found.</Text>
+      )}
+    </View>
   );
 
   return (
     <View style={styles.form}>
-      <Text style={styles.headerText}>Select Your Categories</Text>
+      <Text style={styles.headerText}>{t('Select Your Categories')}</Text>
+
+      <Loader isLoading={isLoading} />
+      <CommonAlert ref={modalRef} />
 
       <FlatList
         data={categories}
-        keyExtractor={item => item.id.toString()}
-        renderItem={renderItem}
+        keyExtractor={item => item._id?.toString()}
+        renderItem={({item}) => (
+          <CategoryItem
+            item={item}
+            isSelected={selectedCategories.includes(item.id || item._id)}
+            onSelect={toggleSelect}
+            currentLanguage={currentLanguage}
+          />
+        )}
         numColumns={2}
         contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        initialNumToRender={8}
+        windowSize={10}
+        maxToRenderPerBatch={8}
+        ListEmptyComponent={ListEmptyComponent}
       />
 
       <View style={styles.buttonContainer}>
@@ -150,13 +157,14 @@ const Categories = ({onPressBack, handleNextStep}) => {
           useGradient
           onPress={onPressBack}
           type="outline"
-          styleProps={{paddingVertical: 14}}
           gradientColors={GRADIENT_COLORS}
           icon={ICONS.backIcon}
+          styleProps={{paddingVertical: 14}}
         />
+
         <GradientButton
           text={t('continue')}
-          onPress={() => handleNextStep(selectedCategories)}
+          onPress={handleContinue}
           type="filled"
           gradientColors={GRADIENT_COLORS}
           styleProps={{flex: 1}}
@@ -167,9 +175,6 @@ const Categories = ({onPressBack, handleNextStep}) => {
 };
 
 const styles = StyleSheet.create({
-  form: {
-    marginBottom: SIZES.lg,
-  },
   headerText: {
     fontSize: 20,
     fontFamily: fontFamly.PlusJakartaSansBold,
@@ -180,6 +185,8 @@ const styles = StyleSheet.create({
   listContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'center',
+    paddingBottom: width(10),
   },
   categoryBox: {
     backgroundColor: COLORS.white,
@@ -210,8 +217,8 @@ const styles = StyleSheet.create({
     marginVertical: width(2),
   },
   image: {
-    height: width(6),
-    width: width(6),
+    height: width(8),
+    width: width(8),
   },
   categoryName: {
     fontSize: 12,
@@ -226,6 +233,22 @@ const styles = StyleSheet.create({
     marginTop: width(10),
     gap: width(2),
     justifyContent: 'flex-end',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: width(10),
+  },
+  loadingText: {
+    fontSize: 14,
+    color: COLORS.gray,
+    marginTop: 10,
+    fontFamily: fontFamly.PlusJakartaSansRegular,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: COLORS.gray,
+    fontFamily: fontFamly.PlusJakartaSansRegular,
   },
 });
 

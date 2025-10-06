@@ -1,6 +1,5 @@
 import React, {useRef, useState} from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   ScrollView,
   StyleSheet,
@@ -10,17 +9,19 @@ import {
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
-import GradientText from '../../../components/gradiantText';
+import CommonAlert from '../../../components/commanAlert';
 import ContactNumberInput from '../../../components/phoneInput';
 import TextField from '../../../components/textInput';
 import {COLORS, fontFamly, SIZES} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 
 const PersonalInfo = ({onPressBack, handleNextStep}) => {
+  const modalRef = useRef(null);
   const phoneInput = useRef(null);
   const {t} = useTranslation();
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     contact: '',
     city: '',
@@ -35,24 +36,34 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
     setFormData(prev => ({...prev, [field]: value}));
   };
 
-  const handleRegister = async () => {
-    const {name, email, password, contact, confirmPassword} = formData;
+  const handleContinue = () => {
+    const {
+      firstName,
+      lastName,
+      email,
+      contact,
+      city,
+      postalCode,
+      address,
+      cnicPassport,
+    } = formData;
 
-    // Validation
-    if (!name || !email || !contact || !password || !confirmPassword) {
-      Alert.alert(t('Error'), t('Please fill all fields'));
-      return;
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !contact ||
+      !city ||
+      !postalCode ||
+      !address ||
+      !cnicPassport
+    ) {
+      return modalRef.current.show({
+        status: 'error',
+        message: 'All fields are required',
+      });
     }
-
-    if (password !== confirmPassword) {
-      Alert.alert(t('Error'), t('Passwords do not match'));
-      return;
-    }
-
-    if (!selectedRole) {
-      Alert.alert(t('Error'), t('Please select your role'));
-      return;
-    }
+    handleNextStep(formData);
   };
 
   return (
@@ -72,10 +83,10 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
             label={t('firstName')}
             placeholder={t('firstNamePlaceholder')}
             bgColor={COLORS.white}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
+            value={formData.firstName}
+            onChangeText={value => handleInputChange('firstName', value)}
+            keyboardType="default"
+            autoCapitalize="words"
           />
 
           <View style={{height: 10}} />
@@ -83,18 +94,18 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
             label={t('lastName')}
             placeholder={t('lastNamePlaceholder')}
             bgColor={COLORS.white}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
+            value={formData.lastName}
+            onChangeText={value => handleInputChange('lastName', value)}
+            keyboardType="default"
+            autoCapitalize="words"
           />
 
           <View style={{height: 10}} />
           <TextField
             label={t('emailAddress')}
             placeholder={t('emailPlaceholder')}
-            // value={email}
-            // onChangeText={setEmail}
+            value={formData.email}
+            onChangeText={value => handleInputChange('email', value)}
             bgColor={COLORS.white}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -116,10 +127,10 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
             label={t('City')}
             placeholder={t('Enter Your City')}
             bgColor={COLORS.white}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="text"
-            autoCapitalize="none"
+            value={formData.city}
+            onChangeText={value => handleInputChange('city', value)}
+            keyboardType="default"
+            autoCapitalize="words"
           />
           <View style={{height: 10}} />
 
@@ -127,8 +138,8 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
             label={t('Postal Code')}
             placeholder={t('Enter Your Postal Code')}
             bgColor={COLORS.white}
-            // value={email}
-            // onChangeText={setEmail}
+            value={formData.postalCode}
+            onChangeText={value => handleInputChange('postalCode', value)}
             keyboardType="numeric"
             autoCapitalize="none"
           />
@@ -138,10 +149,10 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
             label={t('Address')}
             placeholder={t('Enter Your Address')}
             bgColor={COLORS.white}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="text"
-            autoCapitalize="none"
+            value={formData.address}
+            onChangeText={value => handleInputChange('address', value)}
+            keyboardType="default"
+            autoCapitalize="sentences"
           />
           <View style={{height: 10}} />
 
@@ -149,10 +160,10 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
             label={t('CNIC / Passport Details')}
             placeholder={t('Enter Your CNIC / Passport Details')}
             bgColor={COLORS.white}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="text"
-            autoCapitalize="none"
+            value={formData.cnicPassport}
+            onChangeText={value => handleInputChange('cnicPassport', value)}
+            keyboardType="default"
+            autoCapitalize="characters"
           />
           <View style={styles.buttonContainer}>
             <GradientButton
@@ -169,7 +180,7 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
 
             <GradientButton
               text={t('continue')}
-              onPress={() => handleNextStep(formData)}
+              onPress={handleContinue}
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
               styleProps={{flex: 1}}
@@ -177,6 +188,7 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
           </View>
         </KeyboardAvoidingView>
       </View>
+      <CommonAlert ref={modalRef} />
     </ScrollView>
   );
 };

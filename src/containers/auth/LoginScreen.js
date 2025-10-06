@@ -20,11 +20,13 @@ import TextField from '../../components/textInput';
 import {COLORS, fontFamly, SIZES} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 import {setUserData} from '../../redux/slice/auth';
-import {loginUser} from '../../services/Auth';
+import {loginUser, loginVendor} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
 
 const LoginScreen = ({navigation, route}) => {
   const {type} = route.params;
+  console.log(type, 'typetypetypetypetypetype');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(true);
@@ -33,7 +35,11 @@ const LoginScreen = ({navigation, route}) => {
   const dispatch = useDispatch();
   const {t} = useTranslation();
   const navigateToRegister = () => {
-    navigation.navigate('Register');
+    if (type == 'vendor') {
+      navigation.navigate('VendorDetailStack');
+    } else {
+      navigation.navigate('Register');
+    }
   };
 
   const handleLogin = async () => {
@@ -66,7 +72,10 @@ const LoginScreen = ({navigation, route}) => {
           password: password,
         };
         setIsLoading(true);
-        const response = await loginUser(payload);
+        const response =
+          type == 'vendor'
+            ? await loginVendor(payload)
+            : await loginUser(payload);
         let data = response?.data?.user;
 
         console.log(response?.data, 'datadatadatadata');

@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {
+  Alert,
   Image,
   PermissionsAndroid,
   Platform,
@@ -134,7 +135,14 @@ const MediaUploader = ({onPressBack, handleNextStep}) => {
 
         <GradientButton
           text={t('continue')}
-          onPress={() => handleNextStep()}
+          onPress={() => {
+            const totalImages = (banner?.length || 0) + (workImages?.length || 0);
+            if (totalImages < 1) {
+              Alert.alert('Error', 'Please upload at least one image.');
+              return;
+            }
+            handleNextStep({ banner, workImages, workVideos });
+          }}
           type="filled"
           gradientColors={['#FF295D', '#E31B95', '#C817AE']}
           styleProps={{flex: 1}}

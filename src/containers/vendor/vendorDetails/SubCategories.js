@@ -1,5 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import {
+  Alert,
   FlatList,
   Image,
   StyleSheet,
@@ -128,7 +129,13 @@ const SubCategories = ({onPressBack, handleNextStep}) => {
         />
         <GradientButton
           text={t('continue')}
-          onPress={() => handleNextStep(selectedItems)}
+          onPress={() => {
+            if (!selectedItems?.length) {
+              Alert.alert('Error', 'Please select at least one category or subcategory.');
+              return;
+            }
+            handleNextStep(selectedItems);
+          }}
           type="filled"
           gradientColors={GRADIENT_COLORS}
           styleProps={{flex: 1}}

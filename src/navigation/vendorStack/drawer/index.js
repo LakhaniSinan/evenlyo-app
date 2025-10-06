@@ -10,6 +10,7 @@ import CustomDrawer from './CustomDrawer';
 import ChatDetail from '../../../containers/vendor/app/ChatDetails';
 import CreateCustomOffer from '../../../containers/vendor/app/CreateCustomOffre';
 import BookingItems from '../../../containers/vendor/app/BookingItems';
+import VendorDetailStack from '../VendorDetailStack';
 
 const Drawer = createDrawerNavigator();
 

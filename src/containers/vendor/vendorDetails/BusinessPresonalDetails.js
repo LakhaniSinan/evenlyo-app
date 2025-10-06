@@ -22,13 +22,14 @@ const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
   const teamWorkRef = useRef();
   const {t} = useTranslation();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
+    companyName: '',
+    businessType: '',
+    companyEmail: '',
     contact: '',
-    city: '',
-    postalCode: '',
-    address: '',
-    cnicPassport: '',
+    companyAddress: '',
+    companyWebsite: '',
+    selecctSizeRef: '',
+    teamWorkRef: '',
   });
 
   const [selectedRole, setSelectedRole] = useState(null);
@@ -85,6 +86,24 @@ const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
     }
   };
 
+  const handleContinue = () => {
+    const required = [
+      'companyName',
+      'businessType',
+      'companyEmail',
+      'contact',
+      'companyAddress',
+      'companyWebsite',
+    ];
+    for (const key of required) {
+      if (!formData[key]) {
+        Alert.alert('Error', 'This field is required.');
+        return;
+      }
+    }
+    handleNextStep(formData);
+  };
+
   return (
     <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
       <View style={styles.form}>
@@ -102,10 +121,10 @@ const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
             label={t('Company  Name')}
             placeholder={t('Company Name')}
             bgColor={COLORS.white}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
+            value={formData.companyName}
+            onChangeText={value => handleInputChange('companyName', value)}
+            keyboardType="default"
+            autoCapitalize="words"
           />
 
           <View style={{height: 10}} />
@@ -113,18 +132,18 @@ const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
             label={t('Business type')}
             placeholder={t('Business type')}
             bgColor={COLORS.white}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
+            value={formData.businessType}
+            onChangeText={value => handleInputChange('businessType', value)}
+            keyboardType="default"
+            autoCapitalize="words"
           />
 
           <View style={{height: 10}} />
           <TextField
             label={t('Company  Email Address')}
             placeholder={t('Company  Email Address')}
-            // value={email}
-            // onChangeText={setEmail}
+            value={formData.companyEmail}
+            onChangeText={value => handleInputChange('companyEmail', value)}
             bgColor={COLORS.white}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -146,10 +165,10 @@ const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
             label={t('Company Address')}
             placeholder={t('Company Address')}
             bgColor={COLORS.white}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="text"
-            autoCapitalize="none"
+            value={formData.companyAddress}
+            onChangeText={value => handleInputChange('companyAddress', value)}
+            keyboardType="default"
+            autoCapitalize="sentences"
           />
           <View style={{height: 10}} />
 
@@ -157,9 +176,9 @@ const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
             label={t('Company Website')}
             placeholder={t('URL')}
             bgColor={COLORS.white}
-            // value={email}
-            // onChangeText={setEmail}
-            keyboardType="numeric"
+            value={formData.companyWebsite}
+            onChangeText={value => handleInputChange('companyWebsite', value)}
+            keyboardType="url"
             autoCapitalize="none"
           />
           <View style={{height: 10}} />
@@ -220,7 +239,7 @@ const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
 
             <GradientButton
               text={t('continue')}
-              onPress={() => handleNextStep(formData)}
+            onPress={handleContinue}
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
               styleProps={{flex: 1}}

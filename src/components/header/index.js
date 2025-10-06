@@ -50,7 +50,7 @@ const Header = ({languageModal}) => {
             resizeMode="contain"
             style={{width: 15, height: 15, tintColor: COLORS.black}}
           />
-          <Text style={{fontSize: 12, fontWeight: '600'}}>
+          <Text style={{fontSize: 12, fontWeight: '600', color: COLORS.black}}>
             {getLanguageDisplayName()}
           </Text>
         </TouchableOpacity>

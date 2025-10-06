@@ -14,6 +14,7 @@ import AuthSuccess from '../../containers/auth/AuthSuccess';
 import ForgotPasswordOtpScreen from '../../containers/auth/ForgotPasswordOtpScreen';
 import RegistrationOtp from '../../containers/auth/RegistrationOtp';
 import ResetPasswordScreen from '../../containers/auth/ResetPasswordScreen';
+import VendorDetailStack from '../vendorStack/VendorDetailStack';
 
 const Stack = createStackNavigator();
 export const MyTransition = {
@@ -68,6 +69,7 @@ const AuthStack = () => {
       />
       <Stack.Screen name="AuthSuccess" component={AuthSuccess} />
       <Stack.Screen name="RegistrationOtp" component={RegistrationOtp} />
+      <Stack.Screen name="VendorDetailStack" component={VendorDetailStack} />
     </Stack.Navigator>
   );
 };
