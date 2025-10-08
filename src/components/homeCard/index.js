@@ -10,8 +10,9 @@ import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 const HomeCard = ({data, onBookingCardPress}) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   // const data = ['', ''];
+
   return (
     <FlatList
       data={data}
@@ -39,10 +40,32 @@ const HomeCard = ({data, onBookingCardPress}) => {
             )}
             <View style={styles.blurContainer}>
               <View style={styles.textContainer}>
-                <Text style={styles.text}>{t(`${item?.title}`)}</Text>
+                <Text style={styles.text}>
+                  {t(
+                    `${
+                      currentLanguage == 'en'
+                        ? item?.title?.en
+                        : item?.title?.nl
+                    }`,
+                  )}
+                </Text>
                 <Text style={styles.text2}>
-                  {t(`${item?.description}`)}{' '}
-                  <Text style={styles.text}>{t(`${item?.subtitle}`)} </Text>
+                  {t(
+                    `${
+                      currentLanguage == 'en'
+                        ? item?.description?.en
+                        : item?.description?.nl
+                    }`,
+                  )}{' '}
+                  <Text style={styles.text}>
+                    {t(
+                      `${
+                        currentLanguage == 'en'
+                          ? item?.subtitle?.en
+                          : item?.subtitle?.nl
+                      }`,
+                    )}
+                  </Text>
                 </Text>
               </View>
             </View>

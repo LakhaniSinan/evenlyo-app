@@ -72,13 +72,15 @@ const bookingsData = [
 
 const getStatusColor = (status, t) => {
   switch (status) {
-    case t('Completed'):
-      return '#E8F5E8';
-    case t('New Request'):
-      return '#FFE8F0';
+    case t('pending'):
+      return '#ffee0027';
+    case t('accepted'):
+      return '#1e43e92d';
+    case t('paid'):
+      return '#2e7d321f';
     case t('In Progress'):
       return '#FFF3E0';
-    case t('Rejected'):
+    case t('rejected'):
       return '#FFEBEE';
     default:
       return '#F5F5F5';
@@ -87,13 +89,15 @@ const getStatusColor = (status, t) => {
 
 const getStatusTextColor = (status, t) => {
   switch (status) {
-    case t('Completed'):
+    case t('pending'):
+      return '#eeff00ff';
+    case t('paid'):
       return '#2E7D32';
-    case t('New Request'):
-      return '#E91E63';
+    case t('accepted'):
+      return '#1e43e9ff';
     case t('In Progress'):
       return '#FF9800';
-    case t('Rejected'):
+    case t('rejected'):
       return '#D32F2F';
     default:
       return '#666666';
@@ -103,10 +107,13 @@ const getStatusTextColor = (status, t) => {
 const BookingCard = ({item}) => {
   const navigation = useNavigation();
   const {t} = useTranslation();
+  console.log(item, 'askldnlaskndlaskdnlsakd');
 
   return (
     <View style={styles.card}>
-      <Image source={item.image} style={styles.image} />
+      {/* {item?.images?.length > 0 && ( */}
+      <Image source={{uri: item?.vendor?.businessLogo}} style={styles.image} />
+      {/* )} */}
       <View style={styles.infoContainer}>
         <View style={styles.topSection}>
           <View style={styles.headerRow}>
@@ -121,15 +128,18 @@ const BookingCard = ({item}) => {
                   styles.statusText,
                   {color: getStatusTextColor(item.status, t)},
                 ]}>
-                {t(item.status)}
+                {t(
+                  item?.status?.charAt(0).toUpperCase() +
+                    item?.status?.slice(1).toLowerCase(),
+                )}
               </Text>
             </View>
           </View>
           <Text style={styles.name} numberOfLines={2}>
-            {item.name}
+            {item?.vendor?.businessName}
           </Text>
           <Text style={styles.location} numberOfLines={1}>
-            📍 {item.location}
+            📍 {item?.eventLocation}
           </Text>
         </View>
         <View style={styles.footer}>
@@ -141,7 +151,7 @@ const BookingCard = ({item}) => {
             <Text style={styles.buttonText}>{t('View Details')}</Text>
           </TouchableOpacity>
           <View style={styles.priceContainer}>
-            <Text style={styles.price}>{item.price}</Text>
+            <Text style={styles.price}>{item.totalPrice}</Text>
             <Text style={styles.perEvent}>{t('/Per Event')}</Text>
           </View>
         </View>
@@ -150,22 +160,24 @@ const BookingCard = ({item}) => {
   );
 };
 
-const BookingList = ({activeTab}) => {
+const BookingList = ({bookings, activeTab}) => {
   const {t} = useTranslation();
+
+  console.log(bookings, 'bookingsbookingsbookingsbookingsbookings');
 
   const getFilteredData = () => {
     if (activeTab === t('All Order')) {
-      return bookingsData;
-    } else if (activeTab === t('New Requests')) {
-      return bookingsData.filter(item => item.status === t('New Request'));
-    } else if (activeTab === t('In Progress')) {
-      return bookingsData.filter(item => item.status === t('In Progress'));
-    } else if (activeTab === t('Completed')) {
-      return bookingsData.filter(item => item.status === t('Completed'));
-    } else if (activeTab === t('Rejected')) {
-      return bookingsData.filter(item => item.status === t('Rejected'));
+      return bookings;
+    } else if (activeTab === t('pending')) {
+      return bookings.filter(item => item.status === t('pending'));
+    } else if (activeTab === t('accepted')) {
+      return bookings.filter(item => item.status === t('accepted'));
+    } else if (activeTab === t('completed')) {
+      return bookings.filter(item => item.status === t('completed'));
+    } else if (activeTab === t('rejected')) {
+      return bookings.filter(item => item.status === t('rejected'));
     }
-    return bookingsData;
+    return bookings;
   };
 
   const filteredData = getFilteredData();
@@ -175,7 +187,24 @@ const BookingList = ({activeTab}) => {
       data={filteredData}
       keyExtractor={item => item.id}
       renderItem={({item}) => <BookingCard item={item} />}
-      contentContainerStyle={{padding: 16}}
+      ListEmptyComponent={
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <Text
+            style={{
+              fontFamily: fontFamly.PlusJakartaSansBold,
+              fontSize: 12,
+              color: COLORS.textLight,
+            }}>
+            No bookings found right now!
+          </Text>
+        </View>
+      }
+      contentContainerStyle={{flexGrow: 1, padding: 16}}
       showsVerticalScrollIndicator={false}
     />
   );
@@ -261,7 +290,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   price: {
-    fontSize: 18,
+    fontSize: 14,
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
   },

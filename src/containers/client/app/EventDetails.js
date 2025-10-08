@@ -40,12 +40,9 @@ const EventDetails = ({route, navigation}) => {
   const {t} = useTranslation();
   const modalRef = useRef();
   const [selectedDates, setSelectedDates] = useState([]);
-  console.log(selectedDates, 'selectedDatesselectedDatesselectedDates');
-
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState('details');
   const [bookingDetails, setBookingDetails] = useState(null);
-  console.log(bookingDetails, 'bookingDetailsbookingDetailsbookingDetails');
 
   useEffect(() => {
     handleGetBookingDetails();
@@ -55,6 +52,9 @@ const EventDetails = ({route, navigation}) => {
     try {
       setIsLoading(true);
       const response = await getBookingDetails(item?._id);
+
+      console.log(response, 'responseresponseresponseresponseadasd');
+
       setIsLoading(false);
       if (response.status == 200 || response.status == 201) {
         setBookingDetails(response?.data?.data);

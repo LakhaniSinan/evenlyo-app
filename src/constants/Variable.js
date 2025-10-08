@@ -31,12 +31,15 @@ export const endPoints = {
 
   //Listings
   listings: '/listings',
+  createBooking: '/booking/request',
   populorItems: '/listings/popular?limit',
   bookingItems: '/listings?categoryId',
+  listingsHome: '/listings/home?categoryId=',
   vendorDetails: '/vendors',
   vendor: '/vendor/bycategory',
   vendorDetailsById: '/vendor/details',
   booking: '/bookings',
+  bookingHistory: '/booking/history?status=',
 
   //Notifications
   notifications: '/notifications',

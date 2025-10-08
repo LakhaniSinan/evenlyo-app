@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -14,19 +14,49 @@ import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import BookingList from '../../../components/bookingCard';
 import {COLORS, fontFamly} from '../../../constants';
+import {getAllBookingHistory} from '../../../services/ListingsItem';
+import Loader from '../../../components/loder';
+import CommonAlert from '../../../components/commanAlert';
 
 // 🔹 Added "Completed" & "Rejected"
 const renderTabs = [
   'All Order',
-  'New Requests',
-  'In Progress',
-  'Completed',
-  'Rejected',
+  'pending',
+  'accepted',
+  'completed',
+  'rejected',
 ];
 
 const BooKings = () => {
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('All Order');
+  const [bookingHistory, setBookingHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    handleGetBookingHistory();
+  }, [activeTab]);
+
+  const handleGetBookingHistory = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getAllBookingHistory('', 1, 10);
+      setIsLoading(false);
+      if (response.status == 200 || response.status == 201) {
+        let data = response?.data?.data?.bookings;
+        setBookingHistory(data);
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.log(error, 'errorerrorerrorerrorerror');
+    }
+  };
 
   const renderTabItem = ({item}) => (
     <TouchableOpacity onPress={() => setActiveTab(item)}>
@@ -36,11 +66,15 @@ const BooKings = () => {
           start={{x: 0, y: 0}}
           end={{x: 0, y: 1}}
           style={styles.activeTab}>
-          <Text style={styles.activeText}>{item}</Text>
+          <Text style={styles.activeText}>
+            {item?.charAt(0).toUpperCase() + item?.slice(1).toLowerCase()}
+          </Text>
         </LinearGradient>
       ) : (
         <View style={styles.inactiveTab}>
-          <Text style={styles.inactiveText}>{item}</Text>
+          <Text style={styles.inactiveText}>
+            {item?.charAt(0).toUpperCase() + item?.slice(1).toLowerCase()}
+          </Text>
         </View>
       )}
     </TouchableOpacity>
@@ -67,7 +101,9 @@ const BooKings = () => {
       </View>
 
       {/* 🔹 Booking List based on active tab */}
-      <BookingList activeTab={activeTab} />
+      <BookingList bookings={bookingHistory} activeTab={activeTab} />
+      <Loader isLoading={isLoading} />
+      <CommonAlert ref={modalRef} />
     </SafeAreaView>
   );
 };

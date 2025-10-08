@@ -1,9 +1,18 @@
 import React from 'react';
-import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import {width} from 'react-native-dimension';
+import FastImage from 'react-native-fast-image';
+import SvgUri from 'react-native-svg-uri';
 
 const Categories = ({data, selected, setSelected}) => {
   const {currentLanguage} = useTranslation();
@@ -32,11 +41,23 @@ const Categories = ({data, selected, setSelected}) => {
               <LinearGradient
                 colors={['#FF295D', '#E31B95', '#C817AE']}
                 style={styles.activeIconWrapper}>
-                <Text>{item?.icon}</Text>
+                <SvgUri
+                  width={20}
+                  height={20}
+                  source={{
+                    uri: item?.icon,
+                  }}
+                />
               </LinearGradient>
             ) : (
               <View style={styles.iconWrapper}>
-                <Text>{item?.icon}</Text>
+                <SvgUri
+                  width={20}
+                  height={20}
+                  source={{
+                    uri: item?.icon,
+                  }}
+                />
               </View>
             )}
             <Text style={styles.cardText}>

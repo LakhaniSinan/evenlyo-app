@@ -2,15 +2,24 @@ import React, {useState} from 'react';
 import {Image, StyleSheet, Switch, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
+import {useSelector} from 'react-redux';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {getDistance} from '../../utils';
-const EventAndPriceDetails = ({data, showrating, showDiscount, showSwitch}) => {
-  console.log(data, 'datadatadatadatadata');
-  
+const EventAndPriceDetails = ({
+  data,
+  showrating,
+  showDiscount,
+  showSwitch,
+  currentLanguage,
+}) => {
+  const locationData = useSelector(state => state.LocationSlice);
+  const {coords} = locationData;
 
   const [emailNotification, setEmailNotification] = useState(false);
-  // const {distance} = getDistance(data?.coords1, data?.coords2);
+  const {distance} = getDistance(data?.location?.coordinates, coords);
+  console.log(currentLanguage, 'distancedistancedistancedistancedistance');
+
   return (
     <View
       style={{
@@ -34,7 +43,7 @@ const EventAndPriceDetails = ({data, showrating, showDiscount, showSwitch}) => {
             color: COLORS.textDark,
             fontSize: 15,
           }}>
-          {data?.title}
+          {currentLanguage == 'en' ? data?.title?.en : data?.title?.nl}
         </Text>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <Image
@@ -50,7 +59,7 @@ const EventAndPriceDetails = ({data, showrating, showDiscount, showSwitch}) => {
               color: COLORS.semiLightText,
               fontSize: 11,
             }}>
-            {/* {distance} */}
+            {`${distance} km away`}
           </Text>
         </View>
         {showrating && (
@@ -141,7 +150,7 @@ const EventAndPriceDetails = ({data, showrating, showDiscount, showSwitch}) => {
             color: '#000',
             fontSize: 9,
           }}>
-          /{data?.pricing?.type.toUpperCase()}
+          /{data?.pricing?.type?.toUpperCase()}
         </Text>
       </View>
     </View>

@@ -26,10 +26,8 @@ export const useLocation = () => {
 
   const initializeLocation = async () => {
     try {
-      // First check if we already have permission
       const permissionStatus = await helper.checkLocation();
 
-      // If not granted, request permission
       if (permissionStatus !== 'granted') {
         const granted = await requestLocationPermission();
         if (!granted) {
@@ -38,23 +36,20 @@ export const useLocation = () => {
         }
       }
 
-      // Get location after permission is granted
       const position = await helper.getCurrentLocation();
-      console.log('Raw position data:', position);
 
       if (position) {
         try {
-          // Use Google Maps Geocoding API to get address details
           const response = await fetch(
-            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.coords.latitude},${position.coords.longitude}&key=AIzaSyAvPVhgFVY2qv4c6kvukvIP2krPJe9dZGA`
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.coords.latitude},${position.coords.longitude}&key=AIzaSyAvPVhgFVY2qv4c6kvukvIP2krPJe9dZGA`,
           );
           const data = await response.json();
-          
+
           if (data.results && data.results.length > 0) {
             let city = '';
             let state = '';
             let fullAddress = '';
-            
+
             // Parse address components
             data.results[0].address_components.forEach(component => {
               if (component.types.includes('locality')) {
@@ -64,14 +59,14 @@ export const useLocation = () => {
                 state = component.long_name;
               }
             });
-            
+
             fullAddress = data.results[0].formatted_address;
 
             console.log('Geocoding response:', {
               fullAddress,
               city,
               state,
-              rawData: data.results[0]
+              rawData: data.results[0],
             });
 
             // Construct the location data with real address
@@ -87,7 +82,6 @@ export const useLocation = () => {
             };
 
             dispatch(setLocation(locationData));
-            console.log('Location data dispatched:', locationData);
           }
         } catch (error) {
           console.error('Error getting address:', error);

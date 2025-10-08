@@ -209,6 +209,6 @@ export const getDistance = (coords1, coords2) => {
   const d = R * c; // ✅ Distance in KM
 
   return {
-    distance: `${d.toFixed(2)} km away`,
+    distance: d.toFixed(2),
   };
 };

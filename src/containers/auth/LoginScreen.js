@@ -77,12 +77,16 @@ const LoginScreen = ({navigation, route}) => {
             ? await loginVendor(payload)
             : await loginUser(payload);
         let data = response?.data?.user;
-
-        console.log(response?.data, 'datadatadatadata');
         setIsLoading(false);
+
         if (response.status == 200 || response.status == 201) {
+          await AsyncStorage.setItem(
+            'token',
+            JSON.stringify(response?.data?.tokens?.access),
+          );
+          await AsyncStorage.setItem('userData', JSON.stringify(data));
           dispatch(setUserData(data));
-          AsyncStorage.setItem('userData', JSON.stringify(data));
+          console.log('userTokenuserTokenuserToken');
         } else {
           modalRef.current.show({
             status: 'error',

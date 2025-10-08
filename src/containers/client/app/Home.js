@@ -4,6 +4,7 @@ import {width} from 'react-native-dimension';
 import {useSelector} from 'react-redux';
 import {
   getBookingItems,
+  getHomeData,
   getPopulorItems,
   getVendorsBySubCategory,
 } from '../../../services/ListingsItem';
@@ -86,13 +87,32 @@ const Home = ({navigation}) => {
     }
   };
 
+  useEffect(() => {
+    if (selected?._id && subCategoriesSelected?._id) {
+      fetchHomeData();
+    }
+  }, [selected, subCategoriesSelected]);
+
+  const fetchHomeData = async () => {
+    try {
+      const res = await getHomeData(selected?._id, subCategoriesSelected?._id);
+
+      if (res.status === 200 || res.status === 201) {
+        setPopularData(res?.data?.data || []);
+      } else {
+        modalRef.current?.show({status: 'error', message: res?.data?.message});
+      }
+    } catch (err) {
+      console.log('Popular fetch error:', err);
+    }
+  };
+
   const fetchBookingAndVendors = async () => {
     try {
       const [bookingRes, vendorRes] = await Promise.all([
         getBookingItems(selected?._id, subCategoriesSelected?._id),
         getVendorsBySubCategory(subCategoriesSelected?._id),
       ]);
-      console.log(vendorRes, 'bookingResbookingResbookingResbookingRes');
 
       if (bookingRes.status === 200 || bookingRes.status === 201) {
         setBookingItems(bookingRes?.data?.data || []);

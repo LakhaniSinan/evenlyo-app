@@ -15,7 +15,9 @@ import {COLORS, fontFamly} from '../../constants';
 import GradientButton from '../button';
 import GradientText from '../gradiantText';
 
-const RequestConfirmation = ({visible, onClose}) => {
+const RequestConfirmation = ({responeData, visible, onClose}) => {
+  console.log(responeData, 'responeDataresponeDataresponeDataresponeData');
+
   const navigation = useNavigation();
   const handleBackToListing = () => {
     onClose();
@@ -50,16 +52,20 @@ const RequestConfirmation = ({visible, onClose}) => {
           <View style={styles.messageContainer}>
             <Text style={styles.messageText}>
               Our request has been sent to vendor{' '}
-              <Text style={styles.vendorCode}>#VENDOR-2024-001</Text>. Please
-              wait for their confirmation.
+              <Text style={styles.vendorCode}>
+                #{responeData?.vendorId?.businessName}
+              </Text>
+              . Please wait for their confirmation.
             </Text>
           </View>
 
           {/* Location Input Field */}
           <View style={styles.locationSection}>
-            <Text style={styles.locationLabel}>Add Location *</Text>
+            <Text style={styles.locationLabel}>Copy Tracking Id *</Text>
             <View style={styles.locationInputContainer}>
-              <Text style={styles.locationInputText}>BK-20250709-3733</Text>
+              <Text style={styles.locationInputText}>   
+                {responeData?.trackingId}
+              </Text>
               <TouchableOpacity style={styles.copyButton}>
                 <Image
                   source={ICONS.copyIcon}

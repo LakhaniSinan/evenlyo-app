@@ -40,11 +40,9 @@ export const helper = {
   },
 
   async getCurrentLocation() {
-    console.log('📍 getCurrentLocation called');
     return new Promise((resolve, reject) => {
       Geolocation.getCurrentPosition(
         position => {
-          console.log('✅ Location fetched:', position);
           resolve(position);
         },
         error => {
@@ -59,7 +57,26 @@ export const helper = {
       );
     });
   },
-
+  async getLocationAddress(lat, lng, googleKeyyyy) {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${googleKeyyyy}`,
+        )
+        .then(response => {
+          const data = response.data;
+          if (data.status === 'OK' && data.results.length > 0) {
+            const location = data.results[0].formatted_address;
+            resolve(location);
+          } else {
+            reject('Geocoding request failed.');
+          }
+        })
+        .catch(error => {
+          reject('Geocoding request failed.');
+        });
+    });
+  },
   async uploadMediaToCloudinary(file) {
     if (!file || !file.uri || !file.type) {
       console.warn('Invalid file object');

@@ -144,7 +144,6 @@ const PersonalInfo = ({navigation}) => {
             profilePicture: result.secure_url,
           });
           setIsLoading(false);
-          console.log(res?.data, 'resresresresresres');
           return;
           if (res?.status === 200 || res?.status === 201) {
             modalRef.current?.show({
