@@ -19,43 +19,11 @@ import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 
-const data = [1, 2, 3, 4, 5];
-
-// San Francisco dummy coordinates
 const sanFranciscoLocation = {
   latitude: 37.7749,
   longitude: -122.4194,
   latitudeDelta: 0.01,
   longitudeDelta: 0.01,
-};
-
-const renderCards = type => {
-  return (
-    <View
-      style={{
-        borderRadius: 10,
-        height: 79,
-        width: 140,
-        backgroundColor: 'white',
-        elevation: 10,
-        paddingLeft: 10,
-      }}>
-      <GradientText
-        customStyles={{
-          textAlign: 'left',
-        }}
-        text={type}
-      />
-      <Text
-        style={{
-          fontSize: 16,
-          fontFamily: fontFamly.PlusJakartaSansBold,
-        }}>
-        12 May, 2025
-      </Text>
-      <Text style={{color: COLORS.textLight, fontSize: 12}}>12: 00 pm</Text>
-    </View>
-  );
 };
 
 const SalesItems = ({navigation}) => {

@@ -1,3 +1,4 @@
+import {useState} from 'react';
 import {
   FlatList,
   Image,
@@ -7,11 +8,14 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
+import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
-const HomeCard = ({data, onBookingCardPress}) => {
+const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
   const {t, currentLanguage} = useTranslation();
-  // const data = ['', ''];
+  const [isActiveHeart, setIsActiveHeart] = useState(
+    data?.isFavourite || false,
+  );
 
   return (
     <FlatList
@@ -38,6 +42,66 @@ const HomeCard = ({data, onBookingCardPress}) => {
                 source={{uri: item?.featuredImage}}
               />
             )}
+            <View
+              style={{
+                height: width(10),
+                width: '100%',
+                position: 'absolute',
+                zIndex: 99,
+                justifyContent: 'space-between',
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: width(4),
+                marginTop: width(3),
+              }}>
+              <View
+                style={{
+                  height: width(5),
+                  borderRadius: 10,
+                  flexDirection: 'row',
+                  backgroundColor: '#04c37448',
+                  alignItems: 'center',
+                  paddingHorizontal: width(2),
+                }}>
+                <View
+                  style={{
+                    borderRadius: 100,
+                    padding: width(0.5),
+                    backgroundColor: '#04c374ff',
+                    marginRight: width(1),
+                    marginTop: width(0.5),
+                  }}
+                />
+                <Text
+                  style={{
+                    fontFamily: fontFamly.PlusJakartaSansBold,
+                    fontSize: 8,
+                    color: COLORS.green,
+                  }}>
+                  Available
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => handleAddToWishList(item?._id)}
+                style={{
+                  height: width(8),
+                  width: width(8),
+                  borderRadius: 9,
+                  backgroundColor: 'hsla(0, 0%, 0%, 0.45)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <Image
+                  source={
+                    item?.isFavourite
+                      ? ICONS.activeHeartIocn
+                      : ICONS.inactiveHeartIcon
+                  }
+                  style={{height: width(4), width: width(4)}}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            </View>
             <View style={styles.blurContainer}>
               <View style={styles.textContainer}>
                 <Text style={styles.text}>
@@ -115,7 +179,7 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 16,
     right: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.39)',
+    backgroundColor: 'hsla(0, 0%, 0%, 0.45)',
     borderRadius: 15,
     padding: 15,
     justifyContent: 'center',

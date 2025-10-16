@@ -125,7 +125,7 @@ const OrderBooking = ({
 
   const toggleState = useCallback(setter => setter(prev => !prev), []);
 
-  const isSingleDateSelected = selectedDate?.endDate == null;
+  const isSingleDateSelected = selectedDate?.endDate == selectedDate?.startDate;
 
   const {distance} = getDistance(
     data?.location?.coordinates,
@@ -133,20 +133,41 @@ const OrderBooking = ({
   );
 
   const handleBooking = useCallback(() => {
-    if (!acceptTerms) {
+    const startDateStr = selectedDate?.startDate
+      ? moment(selectedDate.startDate).format('YYYY-MM-DD')
+      : null;
+    let endDateStr = selectedDate?.endDate
+      ? moment(selectedDate.endDate).format('YYYY-MM-DD')
+      : null;
+
+    if (selectedCoords == null) {
       modalRef.current?.show({
         status: 'error',
-        message: 'Please accept terms and conditions first.',
+        message: 'Please add address first.',
+      });
+      return;
+    }
+    if (startDateStr && !endDateStr) {
+      endDateStr = startDateStr;
+    }
+
+    if (!startDateStr && !endDateStr) {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please select start date and end date first.',
       });
       return;
     }
 
-    const startDateStr = moment(selectedDate?.startDate).format('YYYY-MM-DD');
-    const endDateStr = selectedDate?.endDate
-      ? moment(selectedDate?.endDate).format('YYYY-MM-DD')
-      : null;
+    if (!startDateStr && endDateStr) {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please select start date first.',
+      });
+      return;
+    }
 
-    if (endDateStr && startDateStr === endDateStr) {
+    if (startDateStr === endDateStr) {
       if (!startTime && !endTime) {
         modalRef.current?.show({
           status: 'error',
@@ -154,7 +175,6 @@ const OrderBooking = ({
         });
         return;
       }
-
       if (!startTime) {
         modalRef.current?.show({
           status: 'error',
@@ -162,7 +182,6 @@ const OrderBooking = ({
         });
         return;
       }
-
       if (!endTime) {
         modalRef.current?.show({
           status: 'error',
@@ -172,28 +191,36 @@ const OrderBooking = ({
       }
     }
 
-    // ✅ Prepare booking details
-    const details = {
+    if (!acceptTerms) {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please accept terms and conditions first.',
+      });
+      return;
+    }
+
+    let details = {
       startDate: startDateStr,
-      endDate: endDateStr ? endDateStr : startDateStr, // if null, use startDate
-      eventLocation: selectedCoords?.userAddress,
-      startTime: startTime
-        ? moment(startTime).format('hh:mm A')
-        : data?.availability?.availableTimeSlots[0]?.startTime,
-      endTime: endTime
-        ? moment(endTime).format('hh:mm A')
-        : data?.availability?.availableTimeSlots[0]?.endTime,
+      endDate: endDateStr,
+      eventLocation: selectedCoords?.userAddress || '',
       specialRequests: instructions,
       distanceKm: Number(distance) || 0,
     };
 
+    if (startDateStr === endDateStr && startTime && endTime) {
+      details.startTime = moment(startTime).format('hh:mm A');
+      details.endTime = moment(endTime).format('hh:mm A');
+    }
+
     console.log(details, 'Booking Details ✅');
     handleSendBookingRequest(details);
   }, [
-    acceptTerms,
     selectedDate,
     startTime,
     endTime,
+    acceptTerms,
+    selectedCoords,
+    instructions,
     distance,
     handleSendBookingRequest,
   ]);

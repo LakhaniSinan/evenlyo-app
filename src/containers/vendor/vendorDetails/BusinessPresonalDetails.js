@@ -15,11 +15,13 @@ import ContactNumberInput from '../../../components/phoneInput';
 import TextField from '../../../components/textInput';
 import {COLORS, fontFamly, SIZES} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import CommonAlert from '../../../components/commanAlert';
 
 const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
   const phoneInput = useRef(null);
-  const selecctSizeRef = useRef();
-  const teamWorkRef = useRef();
+  const selecctSizeRef = useRef(null);
+  const modalRef = useRef(null);
+  const teamWorkRef = useRef(null);
   const {t} = useTranslation();
   const [formData, setFormData] = useState({
     companyName: '',
@@ -87,21 +89,73 @@ const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
   };
 
   const handleContinue = () => {
-    const required = [
-      'companyName',
-      'businessType',
-      'companyEmail',
-      'contact',
-      'companyAddress',
-      'companyWebsite',
-    ];
-    for (const key of required) {
-      if (!formData[key]) {
-        Alert.alert('Error', 'This field is required.');
-        return;
-      }
+    // safe string values
+    const companyName = String(formData.companyName || '').trim();
+    const businessType = String(formData.businessType || '').trim();
+    const companyEmail = String(formData.companyEmail || '').trim();
+    const contact = String(formData.contact || '').trim();
+    const companyAddress = String(formData.companyAddress || '').trim();
+    const companyWebsite = String(formData.companyWebsite || '').trim();
+    const workType = String(formData.selecctSizeRef || '').trim();
+    const teamSize = String(formData.teamWorkRef || '').trim();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // sequential checks (one-by-one) with modal messages
+    if (companyName === '') {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please enter Company Name.',
+      });
+    } else if (businessType === '') {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please select Business Type.',
+      });
+    } else if (companyEmail === '') {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please enter Company Email.',
+      });
+    } else if (!emailRegex.test(companyEmail)) {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please enter a valid email address.',
+      });
+    } else if (contact === '') {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please enter Contact Number.',
+      });
+    } else if (contact.replace(/\D/g, '').length < 7) {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please enter a valid contact number.',
+      });
+    } else if (companyAddress === '') {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please enter Company Address.',
+      });
+    } else if (companyWebsite === '') {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please enter Company Website.',
+      });
+    } else if (workType === '') {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please select your Work Type.',
+      });
+    } else if (teamSize === '') {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please select your Team Size.',
+      });
+    } else {
+      // all validations passed
+      handleNextStep(formData);
     }
-    handleNextStep(formData);
   };
 
   return (
@@ -185,17 +239,13 @@ const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
           <CustomPicker
             ref={selecctSizeRef}
             label="Your Work Type "
-            labelll="Team"
+            labelll="Your Work Type"
             handleOpenModal={handleOpenSelection}
             value={formData?.selecctSizeRef || ''}
             dropdownContainerStyle={{
               backgroundColor: COLORS.white,
             }}
-            listData={[
-              {name: 'DJ'},
-              {name: 'Live Band'},
-              {name: 'Photo Booth'},
-            ]}
+            listData={[{name: 'Single'}, {name: 'Team'}]}
             name="selecctSizeRef"
             handleSelectValue={handleSelectValue}
           />
@@ -239,7 +289,7 @@ const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
 
             <GradientButton
               text={t('continue')}
-            onPress={handleContinue}
+              onPress={handleContinue}
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
               styleProps={{flex: 1}}
@@ -247,6 +297,7 @@ const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
           </View>
         </KeyboardAvoidingView>
       </View>
+      <CommonAlert ref={modalRef} />
     </ScrollView>
   );
 };

@@ -7,9 +7,10 @@ import {
   getHomeData,
   getPopulorItems,
   getVendorsBySubCategory,
+  listingAddToCart,
 } from '../../../services/ListingsItem';
 
-import {ICONS, IMAGES} from '../../../assets';
+import {ICONS} from '../../../assets';
 import Categories from '../../../components/categories';
 import CommonAlert from '../../../components/commanAlert';
 import EventCard from '../../../components/eventCard';
@@ -31,10 +32,13 @@ const Home = ({navigation}) => {
   const [bookingItems, setBookingItems] = useState([]);
   const [vendorsBySubCat, setVendorsBySubCat] = useState([]);
   const [popularData, setPopularData] = useState([]);
+  const [homedata, setHomeData] = useState(null);
   const [selected, setSelected] = useState(null);
   const [subCategoriesSelected, setSubCategoriesSelected] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  console.log(homedata, 'homedatahomedatahomedatahomedata');
 
   const {
     categories,
@@ -77,6 +81,7 @@ const Home = ({navigation}) => {
   const fetchPopular = async () => {
     try {
       const res = await getPopulorItems(6);
+
       if (res.status === 200 || res.status === 201) {
         setPopularData(res?.data?.data || []);
       } else {
@@ -96,9 +101,10 @@ const Home = ({navigation}) => {
   const fetchHomeData = async () => {
     try {
       const res = await getHomeData(selected?._id, subCategoriesSelected?._id);
+      console.log(res, 'resresresresresresresres');
 
       if (res.status === 200 || res.status === 201) {
-        setPopularData(res?.data?.data || []);
+        setHomeData(res?.data?.data || []);
       } else {
         modalRef.current?.show({status: 'error', message: res?.data?.message});
       }
@@ -141,6 +147,20 @@ const Home = ({navigation}) => {
 
   const onBookingCardPress = item => {
     navigation.navigate('EventDetails', item);
+  };
+
+  const handleGoToDetails = item => {
+    navigation.navigate('EventDetails', item);
+  };
+
+  const handleAddToWishList = async listingId => {
+    try {
+      const response = await listingAddToCart({listingId});
+      console.log(response, 'responseresponseresponseresponse12343rsjk');
+      fetchHomeData();
+    } catch (error) {
+      console.log(error, 'errorerrorerrorerrorerrorerror2-3423432');
+    }
   };
 
   const renderItem = ({item}) => {
@@ -280,8 +300,9 @@ const Home = ({navigation}) => {
       case 'homecard':
         return (
           <HomeCard
-            data={bookingItems || []}
+            data={homedata?.listings?.data || []}
             onBookingCardPress={onBookingCardPress}
+            handleAddToWishList={handleAddToWishList}
           />
         );
 
@@ -294,7 +315,11 @@ const Home = ({navigation}) => {
               rightArrow
               onPress={() => navigation.navigate('SalesItems')}
             />
-            <PopularCard data={[{image: IMAGES.vase}, {image: IMAGES.vase}]} />
+            <PopularCard
+              type={'saleItem'}
+              data={homedata?.saleItems?.data || []}
+              onCardPress={handleGoToDetails}
+            />
           </>
         );
 
@@ -355,7 +380,7 @@ const Home = ({navigation}) => {
           {type: 'homecard'},
           {type: 'saleItem'},
           {type: 'relevant'},
-          {type: 'eventCard'},
+          // {type: 'eventCard'},
         ]}
         renderItem={renderItem}
         keyExtractor={(_, index) => index.toString()}

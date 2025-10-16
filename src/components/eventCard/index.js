@@ -96,9 +96,9 @@ const EventCard = ({item, navigation}) => {
               fontSize: 12,
               marginLeft: 5,
             }}>
-            {`${item?.rating?.average} (${item?.rating?.totalReviews} ${t(
-              'reviews',
-            )})`}
+            {`${item?.rating?.average?.toFixed(1)} (${
+              item?.rating?.totalReviews
+            } ${t('reviews')})`}
           </Text>
         </View>
         <Text

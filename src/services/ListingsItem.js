@@ -38,3 +38,18 @@ export const getAllBookingHistory = (status, page, limit) => {
     requestType.GET,
   );
 };
+
+export const listingAddToCart = params => {
+  return Api(endPoints.addListingToCart, params, requestType.POST);
+};
+export const getCartListings = () => {
+  return Api(endPoints.getCartListings, null, requestType.GET);
+};
+
+export const listingRemoveFromCart = id => {
+  return Api(
+    `${endPoints.removeListingToCart}/${id}`,
+    null,
+    requestType.DELETE,
+  );
+};

@@ -308,7 +308,7 @@ function VendorDetails({navigation, route}) {
         <View>
           <HeadingComponent
             heading={t('Vendor Listing')}
-            gradientText={`(${vendorDetail?.listings?.length})`}
+            gradientText={`(${vendorDetail?.listings?.length || 0})`}
             rightArrow={true}
             onPress={() => {}}
           />
@@ -319,7 +319,7 @@ function VendorDetails({navigation, route}) {
         <View>
           <HeadingComponent
             heading={t('Most Popular')}
-            gradientText={`(${vendorDetail?.popularListings?.length})`}
+            gradientText={`(${vendorDetail?.popularListings?.length || 0})`}
             rightArrow={true}
             onPress={() => {}}
           />

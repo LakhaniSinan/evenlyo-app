@@ -1,17 +1,18 @@
-import React, { useState } from "react";
-import { View, Image, StyleSheet } from "react-native";
-import Carousel from "react-native-snap-carousel";
-import { width } from "react-native-dimension";
-import { IMAGES } from "../../assets";
-import { COLORS } from "../../constants"; // assuming you have COLORS
+import React, {useState} from 'react';
+import {View, Image, StyleSheet} from 'react-native';
+import Carousel from 'react-native-snap-carousel';
+import {width} from 'react-native-dimension';
+import {IMAGES} from '../../assets';
+import {COLORS} from '../../constants'; // assuming you have COLORS
 
-const CarouselComponent = ({ data }) => {
+const CarouselComponent = ({data}) => {
+  let mapData = [data?.image];
   const [activeSlide, setActiveSlide] = useState(0);
 
   const renderIndicators = () => {
     return (
       <View style={styles.indicatorContainer}>
-        {data.map((_, index) => {
+        {mapData.map((_, index) => {
           const isActive = index === activeSlide;
           return (
             <View
@@ -22,8 +23,7 @@ const CarouselComponent = ({ data }) => {
                 borderWidth: isActive ? 1 : 0,
                 borderRadius: 100,
                 borderColor: COLORS.white,
-              }}
-            >
+              }}>
               <View
                 style={{
                   height: 7,
@@ -40,11 +40,11 @@ const CarouselComponent = ({ data }) => {
     );
   };
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({item}) => {
     return (
       <View style={styles.card}>
         <Image
-          source={IMAGES.backgroundImage} // you might want to use item instead
+          source={{uri: item}} // you might want to use item instead
           resizeMode="cover"
           style={styles.image}
         />
@@ -56,14 +56,14 @@ const CarouselComponent = ({ data }) => {
   return (
     <View>
       <Carousel
-        data={data}
+        data={mapData}
         renderItem={renderItem}
         sliderWidth={width(100)}
         itemWidth={width(100)}
         containerCustomStyle={{
           margin: width(5),
         }}
-        onSnapToItem={(index) => setActiveSlide(index)}
+        onSnapToItem={index => setActiveSlide(index)}
       />
     </View>
   );
@@ -72,31 +72,31 @@ const CarouselComponent = ({ data }) => {
 const styles = StyleSheet.create({
   card: {
     height: width(80),
-    backgroundColor: "red",
+    backgroundColor: 'red',
     width: width(90),
     borderRadius: width(5),
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
   image: {
-    height: "100%",
-    width: "100%",
+    height: '100%',
+    width: '100%',
   },
   indicatorWrapper: {
     zIndex: 999,
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
   },
   indicatorContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: width(5),
     marginBottom: width(5),
   },

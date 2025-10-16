@@ -13,8 +13,9 @@ import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
 const PopularCard = ({data, onCardPress, type}) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const [isActiveHeart, setIsActiveHeart] = useState(false);
+
   return (
     <FlatList
       data={data}
@@ -23,9 +24,13 @@ const PopularCard = ({data, onCardPress, type}) => {
       contentContainerStyle={{paddingHorizontal: 10}}
       showsHorizontalScrollIndicator={false}
       renderItem={({item, index}) => {
+        console.log(
+          item?.vendor?.businessLocation,
+          'datadatadatadatadata12312',
+        );
         return (
           <TouchableOpacity
-            onPress={() => onCardPress(item)}
+            onPress={() => onCardPress({...item, type})}
             style={styles.cardWrapper}>
             {item?.images?.length > 0 ? (
               <Image
@@ -37,7 +42,7 @@ const PopularCard = ({data, onCardPress, type}) => {
               <Image
                 resizeMode="cover"
                 style={styles.image}
-                source={IMAGES.backgroundImage}
+                source={{uri: item?.image}}
               />
             )}
             <View
@@ -86,7 +91,7 @@ const PopularCard = ({data, onCardPress, type}) => {
                     height: width(8),
                     width: width(8),
                     borderRadius: 9,
-                    backgroundColor: 'rgba(255, 245, 245, 0.35)',
+                    backgroundColor: 'hsla(0, 0%, 0%, 0.45)',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}>
@@ -110,36 +115,86 @@ const PopularCard = ({data, onCardPress, type}) => {
                   justifyContent: 'space-between',
                 }}>
                 <View style={{flex: 1}}>
-                  <Text style={styles.text}>
-                    {item?.title || 'DJ Ray Vibes'}
+                  <Text style={styles.text} numberOfLines={1}>
+                    {currentLanguage == 'en'
+                      ? item?.title?.en
+                      : item?.title?.nl}
                   </Text>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginTop: 4,
-                    }}>
-                    <Image
-                      source={ICONS.locationWithoutBg}
-                      resizeMode="contain"
-                      style={{height: 10.89, width: 8.91}}
-                    />
-                    <Text
+                  {item?.location?.fullAddress ? (
+                    <View
                       style={{
-                        fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                        color: COLORS.white,
-                        fontSize: 10,
-                        marginLeft: 5,
-                        lineHeight: 12,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        marginTop: 4,
                       }}>
-                      {item?.location?.fullAddress || item?.location}
-                    </Text>
-                  </View>
+                      <Image
+                        source={ICONS.locationWithoutBg}
+                        resizeMode="contain"
+                        style={{height: 10.89, width: 8.91}}
+                      />
+                      <Text
+                        style={{
+                          fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                          color: COLORS.white,
+                          fontSize: 10,
+                          marginLeft: 5,
+                          lineHeight: 12,
+                        }}>
+                        {item?.location?.fullAddress}
+                      </Text>
+                    </View>
+                  ) : item?.location ? (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        marginTop: 4,
+                      }}>
+                      <Image
+                        source={ICONS.locationWithoutBg}
+                        resizeMode="contain"
+                        style={{height: 10.89, width: 8.91}}
+                      />
+                      <Text
+                        style={{
+                          fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                          color: COLORS.white,
+                          fontSize: 10,
+                          marginLeft: 5,
+                          lineHeight: 12,
+                        }}>
+                        {item?.location}
+                      </Text>
+                    </View>
+                  ) : item?.vendor?.businessLocation ? (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        marginTop: 4,
+                      }}>
+                      <Image
+                        source={ICONS.locationWithoutBg}
+                        resizeMode="contain"
+                        style={{height: 10.89, width: 8.91}}
+                      />
+                      <Text
+                        style={{
+                          fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                          color: COLORS.white,
+                          fontSize: 10,
+                          marginLeft: 5,
+                          lineHeight: 12,
+                        }}>
+                        {item?.vendor?.businessLocation}
+                      </Text>
+                    </View>
+                  ) : null}
                 </View>
 
                 <View style={{alignItems: 'flex-end'}}>
                   <Text style={styles.text}>
-                    ${item?.pricing?.totalPrice || 0}
+                    ${item?.pricing?.totalPrice || item?.sellingPrice || 0}
                   </Text>
                   <Text
                     style={{
@@ -149,7 +204,7 @@ const PopularCard = ({data, onCardPress, type}) => {
                       lineHeight: 11,
                       marginTop: 2,
                     }}>
-                    {t(`/${item?.pricing?.type}`)}
+                    {item?.pricing?.type && t(`/${item?.pricing?.type}`)}
                   </Text>
                 </View>
               </View>
@@ -199,7 +254,7 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 16,
     right: 16,
-    backgroundColor: 'rgba(255, 245, 245, 0.35)',
+    backgroundColor: 'hsla(0, 0%, 0%, 0.45)',
     borderRadius: 15,
     padding: 15,
     justifyContent: 'center',
@@ -209,7 +264,7 @@ const styles = StyleSheet.create({
   text: {
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.white,
-    fontSize: 16,
+    fontSize: 12,
     zIndex: 1,
     textAlign: 'left',
     lineHeight: 20,

@@ -1,16 +1,16 @@
 import React from 'react';
-import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
-
-const data = [
-  {label: 'All', icon: ICONS.four},
-  {label: 'DJ', icon: ICONS.four},
-  {label: 'Live Band', icon: ICONS.four},
-  {label: 'Photo Booth', icon: ICONS.four},
-];
 
 const SubCategories = ({data, subSelected, setsubSelected}) => {
   const {currentLanguage} = useTranslation();
@@ -36,7 +36,13 @@ const SubCategories = ({data, subSelected, setsubSelected}) => {
             ]}>
             <View style={styles.iconWrapper}>
               <Text style={{color: isSelected ? COLORS.white : COLORS.black}}>
-                {item?.icon}
+                <Image
+                  width={20}
+                  height={20}
+                  source={{
+                    uri: item?.icon,
+                  }}
+                />
               </Text>
             </View>
             <Text

@@ -1,9 +1,11 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Image, Text, TouchableOpacity, View} from 'react-native';
 import {Calendar} from 'react-native-calendars';
 import {width} from 'react-native-dimension';
 import MapView, {Marker} from 'react-native-maps';
+import {useDispatch, useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
 import CarouselComponent from '../../../components/carousel';
@@ -15,7 +17,11 @@ import OrderBooking from '../../../components/modals/OrderBookingModal';
 import RequestConfirmation from '../../../components/modals/RequestConfirmation';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
-import {sendBookingRequest} from '../../../services/ListingsItem';
+import {setCartData} from '../../../redux/slice/cart';
+import {
+  listingAddToCart,
+  sendBookingRequest,
+} from '../../../services/ListingsItem';
 
 // ✅ Function to mark all available days within next 6 months
 const getInitialMarkedDates = availableDays => {
@@ -51,6 +57,10 @@ const getInitialMarkedDates = availableDays => {
 };
 
 const DetailsContent = ({data, selectedTab, navigation}) => {
+  console.log(data, 'datadatadatadatadata123123323131231231312323');
+  const {cartData} = useSelector(state => state.CartSlice);
+  const dispatch = useDispatch(null);
+
   const {currentLanguage} = useTranslation();
   const modalRef = useRef(null);
   const [responeData, setResponeData] = useState(null);
@@ -195,11 +205,8 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
       };
 
       console.log(params, 'paramsparamsparamsparamss');
-      return;
       setIsLoadding(true);
       const response = await sendBookingRequest(params);
-      console.log(response?.data, 'responseresponseresponse');
-      return;
       if (response.status == 200 || response.status == 201) {
         setResponeData(response?.data?.data?.bookingRequest);
         setStartDate(null);
@@ -215,6 +222,118 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     } catch (error) {
       setIsLoadding(false);
       console.log(error, 'errorerrorerrorerror');
+    }
+  };
+
+  const handleAddToCart = async () => {
+    console.log('asdasd');
+
+    try {
+      // if (!user?._id) {
+      //   bottomModalRef?.current?.closeModal?.();
+      //   setTimeout(() => {
+      //     navigation.reset({
+      //       index: 0,
+      //       routes: [
+      //         {name: 'UserBottomStack', params: {screen: 'ProfileStack'}},
+      //       ],
+      //     });
+      //   }, 500);
+      //   return;
+      // }
+
+      let updatedCart = JSON.parse(JSON.stringify(cartData || []));
+      const vendorId = data?.vendor?._id;
+
+      // check vendor exist
+      const vendorIndex = updatedCart.findIndex(v => v.vendorId === vendorId);
+
+      // bana lo product object
+      const productObject = {
+        _id: data?._id,
+        title: data?.title?.en,
+        image: data?.image,
+        sellingPrice: data?.sellingPrice,
+        quantity: 1, // default quantity 1
+        stockQuantity: data?.stockQuantity,
+        vendor: {
+          _id: data?.vendor?._id,
+          businessName: data?.vendor?.businessName,
+          businessLogo: data?.vendor?.businessLogo,
+        },
+        linkedListing: data?.linkedListing,
+        orderStatus: 'Pending',
+        type: data?.type,
+        createdAt: new Date().toISOString(),
+      };
+
+      // agar vendor already exist karta hai
+      if (vendorIndex !== -1) {
+        const alreadyExists = updatedCart[vendorIndex].products.some(
+          p => p._id === data._id,
+        );
+
+        if (alreadyExists) {
+          modalRef.current.show({
+            status: 'error',
+            message: 'Item already exists in your cart',
+          });
+          return;
+        } else {
+          updatedCart[vendorIndex].products.push(productObject);
+        }
+      } else {
+        // vendor new hai to naya entry add karo
+        updatedCart.push({
+          vendorId: vendorId,
+          products: [productObject],
+          businessLogo: data?.vendor?.businessLogo,
+          vendorName: data?.vendor?.businessName,
+          businessLocation: data?.vendor?.businessLocation,
+        });
+      }
+
+      // save to redux & asyncstorage
+      dispatch(setCartData(updatedCart));
+      await AsyncStorage.setItem('cartData', JSON.stringify(updatedCart));
+
+      modalRef.current.show({
+        status: 'ok',
+        message: 'Item added to cart successfully!',
+      });
+    } catch (error) {
+      console.log('Add to Cart Error:', error);
+      modalRef.current.show({
+        status: 'error',
+        message: 'Something went wrong while adding to cart',
+      });
+    }
+  };
+
+  const handleAddToWishList = async listingId => {
+    console.log(listingId, 'listingIdlistingIdlistingIdlistingId');
+    try {
+      setIsLoadding(true);
+      const response = await listingAddToCart({listingId});
+      setIsLoadding(false);
+      if (response.status == 200 || response.status == 201) {
+        modalRef.current.show({
+          status: 'ok',
+          message: response?.data?.message,
+          handlePressOk: () => {
+            modalRef.current.hide();
+            navigation.navigate('Messages');
+          },
+        });
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
+      }
+    } catch (error) {
+      setIsLoadding(false);
+      console.log(error, 'ljsbalskbdlasdnlasndlaskdnlsa');
     }
   };
 
@@ -322,83 +441,105 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
             fontSize: 10,
             color: COLORS.textLight,
           }}>
-          {currentLanguage == 'en'
-            ? data?.description?.en
-            : data?.description?.nl}
+          {data?.description
+            ? currentLanguage == 'en'
+              ? data?.description?.en
+              : data?.description?.nl
+            : 'No Description'}
         </Text>
       </View>
 
       {/* ✅ Map View */}
-      <View style={{paddingVertical: width(3), marginHorizontal: 20}}>
-        <Text
-          style={{
-            color: COLORS.black,
-            fontFamily: fontFamly.PlusJakartaSansBold,
-            fontSize: 12,
-          }}>
-          Location:
-        </Text>
+      {data?.type !== 'saleItem' ? (
+        <View style={{paddingVertical: width(3), marginHorizontal: 20}}>
+          <Text
+            style={{
+              color: COLORS.black,
+              fontFamily: fontFamly.PlusJakartaSansBold,
+              fontSize: 12,
+            }}>
+            Location:
+          </Text>
 
-        <View
-          style={{
-            height: 200,
-            borderRadius: 10,
-            overflow: 'hidden',
-            marginTop: 10,
-          }}>
-          <MapView
-            ref={mapRef}
-            style={{flex: 1}}
-            initialRegion={mapRegion}
-            showsUserLocation={false}
-            showsMyLocationButton={false}
-            scrollEnabled={true}
-            zoomEnabled={true}>
-            <Marker
-              coordinate={{latitude, longitude}}
-              title={data?.vendor?.businessName || 'Event Location'}
-              description={data?.location?.fullAddress || 'Location'}
-            />
-          </MapView>
-        </View>
-        {selectedTab == 'details' && (
           <View
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginTop: width(3),
+              height: 200,
+              borderRadius: 10,
+              overflow: 'hidden',
+              marginTop: 10,
             }}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Messages')}
-              style={{
-                width: width(45),
-                backgroundColor: COLORS.backgroundLight,
-                height: width(13),
-                borderRadius: width(5),
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <GradientText text={'Add To Wishlist'} />
-            </TouchableOpacity>
-            <View style={{width: width(42)}}>
-              <GradientButton
-                text={'Book Now'}
-                type="filled"
-                onPress={() => {
-                  if (startDate == null) {
-                    return modalRef.current.show({
-                      status: 'error',
-                      message: 'Please select any available date first!',
-                    });
-                  }
-                  setModalVisible(true);
-                }}
+            <MapView
+              ref={mapRef}
+              style={{flex: 1}}
+              initialRegion={mapRegion}
+              showsUserLocation={false}
+              showsMyLocationButton={false}
+              scrollEnabled={true}
+              zoomEnabled={true}>
+              <Marker
+                coordinate={{latitude, longitude}}
+                title={data?.vendor?.businessName || 'Event Location'}
+                description={data?.location?.fullAddress || 'Location'}
               />
-            </View>
+            </MapView>
           </View>
-        )}
-      </View>
+          {selectedTab == 'details' && (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginTop: width(3),
+              }}>
+              <TouchableOpacity
+                onPress={() => handleAddToWishList(data?._id)}
+                style={{
+                  width: width(45),
+                  backgroundColor: COLORS.backgroundLight,
+                  height: width(13),
+                  borderRadius: width(5),
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <GradientText text={'Add To Wishlist'} />
+              </TouchableOpacity>
+              <View style={{width: width(42)}}>
+                <GradientButton
+                  text={'Book Now'}
+                  type="filled"
+                  onPress={() => {
+                    if (startDate == null) {
+                      return modalRef.current.show({
+                        status: 'error',
+                        message: 'Please select any available date first!',
+                      });
+                    }
+                    if (endDate == null) {
+                      return modalRef.current.show({
+                        status: 'error',
+                        message: 'Please select any available end date first!',
+                      });
+                    }
+                    setModalVisible(true);
+                  }}
+                />
+              </View>
+            </View>
+          )}
+        </View>
+      ) : null}
+      {selectedTab == 'gallery' && data?.type == 'saleItem' && (
+        <View
+          style={{
+            marginHorizontal: width(3),
+          }}>
+          <GradientButton
+            text={'Add To Cart'}
+            type="filled"
+            onPress={handleAddToCart}
+          />
+        </View>
+      )}
 
       {/* ✅ Modals */}
       <OrderBooking

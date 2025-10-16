@@ -18,7 +18,7 @@ const EventAndPriceDetails = ({
 
   const [emailNotification, setEmailNotification] = useState(false);
   const {distance} = getDistance(data?.location?.coordinates, coords);
-  console.log(currentLanguage, 'distancedistancedistancedistancedistance');
+  console.log(data, 'distancedistancedistancedistancedistance');
 
   return (
     <View
@@ -35,7 +35,7 @@ const EventAndPriceDetails = ({
             color: COLORS.semiLightText,
             fontSize: 12,
           }}>
-          {data?.location?.fullAddress}
+          {data?.location?.fullAddress || data?.vendor?.businessLocation}
         </Text>
         <Text
           style={{
@@ -59,7 +59,7 @@ const EventAndPriceDetails = ({
               color: COLORS.semiLightText,
               fontSize: 11,
             }}>
-            {`${distance} km away`}
+            {distance}
           </Text>
         </View>
         {showrating && (
@@ -142,7 +142,7 @@ const EventAndPriceDetails = ({
             color: '#000',
             fontSize: 15,
           }}>
-          $ {data?.pricing?.totalPrice}
+          $ {data?.pricing?.totalPrice || data?.sellingPrice}
         </Text>
         <Text
           style={{
@@ -150,7 +150,7 @@ const EventAndPriceDetails = ({
             color: '#000',
             fontSize: 9,
           }}>
-          /{data?.pricing?.type?.toUpperCase()}
+          {data?.pricing?.type && ` /${data?.pricing?.type?.toUpperCase()}`}
         </Text>
       </View>
     </View>

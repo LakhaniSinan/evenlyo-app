@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {SafeAreaView, ScrollView, View} from 'react-native';
 import {width} from 'react-native-dimension';
+import {useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import CommonAlert from '../../../components/commanAlert';
@@ -34,26 +35,45 @@ const getTabsData = t => [
     inactiveIcon: ICONS.starIconInActive,
   },
 ];
+const getSaleItemsTabs = t => [
+  {
+    id: 'gallery',
+    title: t('Gallery'),
+    activeIcon: ICONS.galleryIconActive,
+    inactiveIcon: ICONS.galleryIconInActive,
+  },
+  {
+    id: 'reviews',
+    title: t('Reviews'),
+    activeIcon: ICONS.starIconActive,
+    inactiveIcon: ICONS.starIconInActive,
+  },
+];
 
 const EventDetails = ({route, navigation}) => {
-  const item = route?.params;
+  const data = route?.params;
+  const {cartData} = useSelector(state => state.CartSlice);
+
+  console.log(cartData, ',cartDatacartDatacartDatacartData');
+
   const {t} = useTranslation();
   const modalRef = useRef();
   const [selectedDates, setSelectedDates] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedTab, setSelectedTab] = useState('details');
+  const [selectedTab, setSelectedTab] = useState(
+    data?.type == 'saleItem' ? 'gallery' : 'details',
+  );
   const [bookingDetails, setBookingDetails] = useState(null);
 
   useEffect(() => {
-    handleGetBookingDetails();
+    data?.type !== 'saleItem' && handleGetBookingDetails();
   }, []);
 
   const handleGetBookingDetails = async () => {
     try {
       setIsLoading(true);
-      const response = await getBookingDetails(item?._id);
-
-      console.log(response, 'responseresponseresponseresponseadasd');
+      const response = await getBookingDetails(data?._id);
+      console.log(response, 'responseresponseresponseresponse');
 
       setIsLoading(false);
       if (response.status == 200 || response.status == 201) {
@@ -79,11 +99,13 @@ const EventDetails = ({route, navigation}) => {
       <View
         style={{
           flexDirection: 'row',
+          alignItems: 'center',
           justifyContent: 'space-between',
           padding: width(3),
         }}>
         {tabsData.map((item, index) => (
           <TabItem
+            type={data?.type}
             key={item.id}
             item={item}
             isActive={selectedTab === item.id}
@@ -106,7 +128,9 @@ const EventDetails = ({route, navigation}) => {
         />
 
         <Tabs
-          tabsData={getTabsData(t)}
+          tabsData={
+            data?.type == 'saleItem' ? getSaleItemsTabs(t) : getTabsData(t)
+          }
           selectedTab={selectedTab}
           onPress={setSelectedTab}
         />
@@ -115,7 +139,7 @@ const EventDetails = ({route, navigation}) => {
           <DetailsContent
             selectedDates={selectedDates}
             setSelectedDates={setSelectedDates}
-            data={bookingDetails}
+            data={bookingDetails || data}
             selectedTab={selectedTab}
             navigation={navigation}
             handleDaySelect={handleDaySelect}

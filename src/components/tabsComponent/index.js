@@ -6,7 +6,7 @@ import {COLORS, fontFamly} from '../../constants';
 
 const gradientColors = ['#FF295D', '#E31B95', '#C817AE'];
 
-const TabItem = ({item, isActive, onPress}) => {
+const TabItem = ({item, isActive, onPress, type}) => {
   return (
     <TouchableOpacity
       onPress={() => onPress(item.id)}
@@ -14,6 +14,7 @@ const TabItem = ({item, isActive, onPress}) => {
         marginHorizontal: width(2),
         borderRadius: width(5),
         overflow: 'hidden',
+        width: type == 'saleItem' && '45%',
       }}>
       {isActive ? (
         <LinearGradient

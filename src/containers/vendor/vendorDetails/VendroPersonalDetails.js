@@ -253,20 +253,21 @@ const VendorPersonalDetails = ({navigation}) => {
                 />
               </ProgressStep>
 
+              <ProgressStep removeBtnRow>
+                <SubCategories
+                  onPressBack={() => setActiveStep(pre => pre - 1)}
+                  handleNextStep={handleSubCategoriesNext}
+                />
+              </ProgressStep>
               {selectedType === 'personal' ? (
-                <ProgressStep removeBtnRow>
-                  <SubCategories
-                    onPressBack={() => setActiveStep(pre => pre - 1)}
-                    handleNextStep={handleSubCategoriesNext}
-                  />
-                </ProgressStep>
-              ) : (
                 <ProgressStep removeBtnRow>
                   <MultipleMediaUpload
                     onPressBack={() => setActiveStep(pre => pre - 1)}
                     handleNextStep={handleMediaNext}
                   />
                 </ProgressStep>
+              ) : (
+                <View />
               )}
               <ProgressStep removeBtnRow>
                 <SecurityTab

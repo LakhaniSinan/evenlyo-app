@@ -1,21 +1,14 @@
 import React from 'react';
-import {
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
+import SvgUri from 'react-native-svg-uri';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
-import {width} from 'react-native-dimension';
-import FastImage from 'react-native-fast-image';
-import SvgUri from 'react-native-svg-uri';
 
 const Categories = ({data, selected, setSelected}) => {
   const {currentLanguage} = useTranslation();
+
   return (
     <FlatList
       data={data}
