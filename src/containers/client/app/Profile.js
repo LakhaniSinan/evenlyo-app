@@ -71,6 +71,7 @@ const Profile = () => {
     if (navigate === 'Logout') {
       dispatch(setUserData(null));
       AsyncStorage.removeItem('userData');
+      AsyncStorage.removeItem('token');
     } else {
       navigation.navigate(navigate);
     }

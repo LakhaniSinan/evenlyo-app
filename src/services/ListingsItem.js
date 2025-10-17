@@ -18,6 +18,9 @@ export const getHomeData = (catID, subCatId) => {
     requestType.GET,
   );
 };
+export const getAllListingData = () => {
+  return Api(endPoints.listings, null, requestType.GET);
+};
 export const getVendorsBySubCategory = subCatId => {
   return Api(
     `${endPoints.vendor}?subcategory=${subCatId}`,
@@ -52,4 +55,7 @@ export const listingRemoveFromCart = id => {
     null,
     requestType.DELETE,
   );
+};
+export const getAccepetedBookings = () => {
+  return Api(endPoints.accepetedBookings, null, requestType.GET);
 };

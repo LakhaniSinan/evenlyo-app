@@ -16,8 +16,6 @@ import GradientButton from '../button';
 import GradientText from '../gradiantText';
 
 const RequestConfirmation = ({responeData, visible, onClose}) => {
-  console.log(responeData, 'responeDataresponeDataresponeDataresponeData');
-
   const navigation = useNavigation();
   const handleBackToListing = () => {
     onClose();
@@ -63,7 +61,7 @@ const RequestConfirmation = ({responeData, visible, onClose}) => {
           <View style={styles.locationSection}>
             <Text style={styles.locationLabel}>Copy Tracking Id *</Text>
             <View style={styles.locationInputContainer}>
-              <Text style={styles.locationInputText}>   
+              <Text style={styles.locationInputText}>
                 {responeData?.trackingId}
               </Text>
               <TouchableOpacity style={styles.copyButton}>

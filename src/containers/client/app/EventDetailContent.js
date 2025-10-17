@@ -7,6 +7,7 @@ import {width} from 'react-native-dimension';
 import MapView, {Marker} from 'react-native-maps';
 import {useDispatch, useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
+import LoginModal from '../../../components/authModal';
 import GradientButton from '../../../components/button';
 import CarouselComponent from '../../../components/carousel';
 import CommonAlert from '../../../components/commanAlert';
@@ -23,7 +24,6 @@ import {
   sendBookingRequest,
 } from '../../../services/ListingsItem';
 
-// ✅ Function to mark all available days within next 6 months
 const getInitialMarkedDates = availableDays => {
   let marked = {};
   const start = moment();
@@ -57,19 +57,18 @@ const getInitialMarkedDates = availableDays => {
 };
 
 const DetailsContent = ({data, selectedTab, navigation}) => {
-  console.log(data, 'datadatadatadatadata123123323131231231312323');
   const {cartData} = useSelector(state => state.CartSlice);
   const dispatch = useDispatch(null);
-
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const {currentLanguage} = useTranslation();
   const modalRef = useRef(null);
   const [responeData, setResponeData] = useState(null);
   const [isLoadding, setIsLoadding] = useState(false);
   const mapRef = useRef(null);
   const locationCoordinates = data?.location?.coordinates;
-
   let latitude = 24.9614333;
   let longitude = 67.106703;
+
   if (Array.isArray(locationCoordinates)) {
     longitude = Number(locationCoordinates[0]);
     latitude = Number(locationCoordinates[1]);
@@ -93,13 +92,11 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     }
   }, [latitude, longitude]);
 
-  // ✅ Setup for available days
   const availableDays = useMemo(() => {
     const days = data?.availability?.availableDays || data?.availableDays || [];
     return days.map(d => String(d).toLowerCase());
   }, [data]);
 
-  // ✅ States
   const [modalVisible, setModalVisible] = useState(false);
   const [resuestModalVisible, setResuestModalVisible] = useState(false);
   const [markedDates, setMarkedDates] = useState(() =>
@@ -109,12 +106,10 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
-  // ✅ Reset marked dates when availableDays change
   useEffect(() => {
     setMarkedDates(getInitialMarkedDates(availableDays));
   }, [availableDays]);
 
-  // ✅ Handle Day Press (Date Range Selection)
   const handleDayPress = day => {
     const date = day.dateString;
     const m = moment(date, 'YYYY-MM-DD');
@@ -127,25 +122,21 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     let newStartDate = startDate;
     let newEndDate = endDate;
 
-    // If no start date → select start
     if (!startDate || (startDate && endDate)) {
       newStartDate = date;
       newEndDate = null;
       setStartDate(newStartDate);
       setEndDate(null);
     } else if (moment(date).isBefore(moment(startDate))) {
-      // if new date < start date, reset range
       newStartDate = date;
       newEndDate = null;
       setStartDate(newStartDate);
       setEndDate(null);
     } else {
-      // Select end date
       newEndDate = date;
       setEndDate(newEndDate);
     }
 
-    // Mark range in calendar
     let updatedMarked = getInitialMarkedDates(availableDays);
 
     if (newStartDate && newEndDate) {
@@ -180,7 +171,6 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     setMarkedDates(updatedMarked);
   };
 
-  // ✅ Combine selected range into readable text
   const selectedRangeText =
     startDate && endDate
       ? `${startDate} → ${endDate}`
@@ -229,32 +219,17 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     console.log('asdasd');
 
     try {
-      // if (!user?._id) {
-      //   bottomModalRef?.current?.closeModal?.();
-      //   setTimeout(() => {
-      //     navigation.reset({
-      //       index: 0,
-      //       routes: [
-      //         {name: 'UserBottomStack', params: {screen: 'ProfileStack'}},
-      //       ],
-      //     });
-      //   }, 500);
-      //   return;
-      // }
-
       let updatedCart = JSON.parse(JSON.stringify(cartData || []));
       const vendorId = data?.vendor?._id;
 
-      // check vendor exist
       const vendorIndex = updatedCart.findIndex(v => v.vendorId === vendorId);
 
-      // bana lo product object
       const productObject = {
         _id: data?._id,
         title: data?.title?.en,
         image: data?.image,
         sellingPrice: data?.sellingPrice,
-        quantity: 1, // default quantity 1
+        quantity: 1,
         stockQuantity: data?.stockQuantity,
         vendor: {
           _id: data?.vendor?._id,
@@ -266,8 +241,6 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         type: data?.type,
         createdAt: new Date().toISOString(),
       };
-
-      // agar vendor already exist karta hai
       if (vendorIndex !== -1) {
         const alreadyExists = updatedCart[vendorIndex].products.some(
           p => p._id === data._id,
@@ -283,7 +256,6 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
           updatedCart[vendorIndex].products.push(productObject);
         }
       } else {
-        // vendor new hai to naya entry add karo
         updatedCart.push({
           vendorId: vendorId,
           products: [productObject],
@@ -293,7 +265,6 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         });
       }
 
-      // save to redux & asyncstorage
       dispatch(setCartData(updatedCart));
       await AsyncStorage.setItem('cartData', JSON.stringify(updatedCart));
 
@@ -311,29 +282,63 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
   };
 
   const handleAddToWishList = async listingId => {
-    console.log(listingId, 'listingIdlistingIdlistingIdlistingId');
-    try {
-      setIsLoadding(true);
-      const response = await listingAddToCart({listingId});
-      setIsLoadding(false);
-      if (response.status == 200 || response.status == 201) {
-        modalRef.current.show({
-          status: 'ok',
-          message: response?.data?.message,
-          handlePressOk: () => {
-            modalRef.current.hide();
-            navigation.navigate('Messages');
+    const userToken = await AsyncStorage.getItem('token');
+
+    if (userToken == null) {
+      setShowLoginModal(true);
+    } else {
+      try {
+        let payload = {
+          listingId,
+          tempDetails: {
+            startDate: startDate,
+            endDate: endDate,
           },
-        });
-      } else {
-        modalRef.current.show({
-          status: 'error',
-          message: response?.data?.message,
-        });
+        };
+        let params = {
+          listingId: listingId?.listingId,
+          tempDetails: {
+            startDate: listingId?.startDate,
+            endDate: listingId?.endDate,
+            eventLocation: listingId?.eventLocation,
+            specialRequests: listingId?.specialRequests,
+            distanceKm: listingId?.distanceKm,
+            evenlyoProtect: listingId?.evenlyoProtect,
+            startTime: listingId?.startTime,
+            endTime: listingId?.endTime,
+          },
+        };
+        setIsLoadding(true);
+
+        const response = await listingAddToCart(
+          listingId?.listingId ? params : payload,
+        );
+
+        setIsLoadding(false);
+        if (response.status == 200 || response.status == 201) {
+          modalRef.current.show({
+            status: 'ok',
+            message: response?.data?.message,
+            handlePressOk: () => {
+              modalRef.current.hide();
+              setModalVisible(false);
+              setTimeout(() => {
+                listingId?.listingId == undefined
+                  ? navigation.navigate('Messages')
+                  : null;
+              }, 500);
+            },
+          });
+        } else {
+          modalRef.current.show({
+            status: 'error',
+            message: response?.data?.message,
+          });
+        }
+      } catch (error) {
+        setIsLoadding(false);
+        console.log(error, 'ljsbalskbdlasdnlasndlaskdnlsa');
       }
-    } catch (error) {
-      setIsLoadding(false);
-      console.log(error, 'ljsbalskbdlasdnlasndlaskdnlsa');
     }
   };
 
@@ -356,7 +361,6 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
             disableAllTouchEventsForDisabledDays
           />
 
-          {/* ✅ Display selected range */}
           <View style={{marginHorizontal: 20, marginTop: 10}}>
             <Text
               style={{
@@ -424,7 +428,6 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         </TouchableOpacity>
       </View>
 
-      {/* ✅ Description + Map */}
       <View style={{paddingVertical: width(3), marginHorizontal: 20}}>
         <Text
           style={{
@@ -449,7 +452,6 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         </Text>
       </View>
 
-      {/* ✅ Map View */}
       {data?.type !== 'saleItem' ? (
         <View style={{paddingVertical: width(3), marginHorizontal: 20}}>
           <Text
@@ -541,12 +543,12 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         </View>
       )}
 
-      {/* ✅ Modals */}
       <OrderBooking
         data={data}
         isVisible={modalVisible}
         selectedDate={{startDate, endDate}}
         onClose={() => setModalVisible(false)}
+        handleAddToWishList={handleAddToWishList}
         handleSendBookingRequest={handleSendBookingRequest}
       />
       <RequestConfirmation
@@ -554,6 +556,10 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         visible={resuestModalVisible}
         onClose={() => setResuestModalVisible(false)}
         navigation={navigation}
+      />
+      <LoginModal
+        isVisible={showLoginModal}
+        onClose={() => setShowLoginModal(!showLoginModal)}
       />
       <Loader isLoading={isLoadding} />
       <CommonAlert ref={modalRef} />

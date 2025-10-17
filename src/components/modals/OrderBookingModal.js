@@ -36,9 +36,8 @@ const OrderBooking = ({
   isVisible,
   selectedDate,
   handleSendBookingRequest,
+  handleAddToWishList,
 }) => {
-  console.log(data, 'datadatadatadata');
-
   const {t} = useTranslation();
   const modalRef = useRef(null);
   const [selectedCoords, setSelectedCoords] = useState(null);
@@ -51,6 +50,45 @@ const OrderBooking = ({
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
+  const startDateStr = selectedDate?.startDate
+    ? moment(selectedDate.startDate).format('YYYY-MM-DD')
+    : null;
+  const endDateStr = selectedDate?.endDate
+    ? moment(selectedDate.endDate).format('YYYY-MM-DD')
+    : null;
+
+  useEffect(() => {
+    if (
+      isSingleDateSelected &&
+      data?.availability?.availableTimeSlots?.length > 0
+    ) {
+      const slot = data.availability.availableTimeSlots[0];
+      const today = new Date();
+
+      const start = slot?.startTime
+        ? moment(slot.startTime, ['hh:mm A'])
+            .set({
+              year: today.getFullYear(),
+              month: today.getMonth(),
+              date: today.getDate(),
+            })
+            .toDate()
+        : null;
+
+      const end = slot?.endTime
+        ? moment(slot.endTime, ['hh:mm A'])
+            .set({
+              year: today.getFullYear(),
+              month: today.getMonth(),
+              date: today.getDate(),
+            })
+            .toDate()
+        : null;
+
+      setStartTime(start);
+      setEndTime(end);
+    }
+  }, [data, isSingleDateSelected]);
 
   useEffect(() => {
     const onShow = Keyboard.addListener('keyboardDidShow', () =>
@@ -68,12 +106,10 @@ const OrderBooking = ({
 
   const calculatedPricing = useMemo(() => {
     const kmValue = parseFloat(kilometer) || 0;
-
-    // 🕒 Calculate duration in hours from start & end time
     let durationValue = 0;
     if (startTime && endTime) {
       const diffMs = moment(endTime).diff(moment(startTime));
-      durationValue = diffMs > 0 ? diffMs / (1000 * 60 * 60) : 0; // convert ms → hours
+      durationValue = diffMs > 0 ? diffMs / (1000 * 60 * 60) : 0;
     }
 
     const {
@@ -133,13 +169,6 @@ const OrderBooking = ({
   );
 
   const handleBooking = useCallback(() => {
-    const startDateStr = selectedDate?.startDate
-      ? moment(selectedDate.startDate).format('YYYY-MM-DD')
-      : null;
-    let endDateStr = selectedDate?.endDate
-      ? moment(selectedDate.endDate).format('YYYY-MM-DD')
-      : null;
-
     if (selectedCoords == null) {
       modalRef.current?.show({
         status: 'error',
@@ -364,6 +393,14 @@ const OrderBooking = ({
             <Text style={styles.protectText}>
               {t('Enable Evenlyo Protect (+25)')}
             </Text>
+
+            <Text
+              style={[
+                styles.protectText,
+                {fontSize: 8, color: COLORS.textLight},
+              ]}>
+              {t('(Non Refundable)')}
+            </Text>
           </View>
 
           <View style={styles.pricingSection}>
@@ -440,7 +477,34 @@ const OrderBooking = ({
 
         {!isKeyboardVisible && (
           <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={onClose} style={styles.wishlistBtn}>
+            <TouchableOpacity
+              onPress={() => {
+                // let details = {
+                //   listingId: data?._id,
+                //   startDate: startDateStr,
+                //   endDate: endDateStr,
+                //   eventLocation: selectedCoords?.userAddress || '',
+                //   specialRequests: instructions,
+                //   distanceKm: Number(distance) || 0,
+                //   evenlyoProtect: isChecked,
+                // };
+                let details = {
+                  listingId: data?._id,
+                  startDate: startDateStr,
+                  endDate: endDateStr,
+                  eventLocation: selectedCoords?.userAddress || '',
+                  specialRequests: instructions,
+                  distanceKm: Number(distance) || 0,
+                };
+
+                if (startDateStr === endDateStr && startTime && endTime) {
+                  details.startTime = moment(startTime).format('hh:mm A');
+                  details.endTime = moment(endTime).format('hh:mm A');
+                }
+
+                handleAddToWishList(details);
+              }}
+              style={styles.wishlistBtn}>
               <GradientText text="Add To Wishlist" />
             </TouchableOpacity>
             <View style={{width: width(50)}}>

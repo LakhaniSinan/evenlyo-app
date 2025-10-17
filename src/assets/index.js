@@ -81,6 +81,7 @@ export const ICONS = {
   checkedCircle: require('../assets/icons/checkedCircle.gif'),
   cameraIcon: require('../assets/icons/cameraIcon.png'),
   eyeIcon: require('../assets/icons/eyeIcon.png'),
+  alertIcon: require('../assets/icons/alertIcon.png'),
 };
 
 export const IMAGES = {

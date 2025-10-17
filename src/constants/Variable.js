@@ -40,9 +40,11 @@ export const endPoints = {
   vendorDetailsById: '/vendor/details',
   booking: '/bookings',
   bookingHistory: '/booking/history?status=',
-  addListingToCart: '/cart/add',
+  addListingToCart: '/cart/wishlist',
+  addListingToggelCart: '/cart/wishlist',
   removeListingToCart: '/cart/remove',
   getCartListings: '/cart',
+  accepetedBookings: '/booking/accepted',
 
   //Notifications
   notifications: '/notifications',

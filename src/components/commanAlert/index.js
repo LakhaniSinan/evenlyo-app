@@ -48,6 +48,13 @@ const CommonAlert = forwardRef((props, ref) => {
               style={{height: width(25), width: width(25)}}
             />
           )}
+          {status === 'alert' && (
+            <FastImage
+              resizeMode="contain"
+              source={ICONS.alertIcon}
+              style={{height: width(25), width: width(25)}}
+            />
+          )}
           {status === 'error' && (
             <FastImage
               source={ICONS.redcross}
@@ -67,25 +74,83 @@ const CommonAlert = forwardRef((props, ref) => {
           {message}
         </Text>
 
-        <View style={{justifyContent: 'center', height: width(14)}}>
-          <GradientButton
-            text={t('OK')}
-            onPress={() => {
-              if (status === 'ok' && handlePressOk) {
-                handlePressOk();
-              } else if (status === 'ok' && handleDelete) {
-                handleDelete();
-              }
-              setIsVisible(false);
-            }}
-            type="filled"
-            textStyle={{
-              fontSize: 12,
-              fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-              color: 'white',
-            }}
-          />
-        </View>
+        {status == 'ok' && (
+          <View style={{justifyContent: 'center', height: width(14)}}>
+            <GradientButton
+              text={t('OK')}
+              onPress={() => {
+                if (status === 'ok' && handlePressOk) {
+                  handlePressOk();
+                }
+                setIsVisible(false);
+              }}
+              type="filled"
+              textStyle={{
+                fontSize: 12,
+                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                color: 'white',
+              }}
+            />
+          </View>
+        )}
+        {status == 'error' && (
+          <View style={{justifyContent: 'center', height: width(14)}}>
+            <GradientButton
+              text={t('OK')}
+              onPress={() => {
+                setIsVisible(false);
+              }}
+              type="filled"
+              textStyle={{
+                fontSize: 12,
+                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                color: 'white',
+              }}
+            />
+          </View>
+        )}
+
+        {status === 'alert' && (
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: width(3),
+            }}>
+            <View style={{width: width(33)}}>
+              <GradientButton
+                text={t('No')}
+                onPress={() => {
+                  setIsVisible(false);
+                }}
+                type="filled"
+                textStyle={{
+                  fontSize: 12,
+                  fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                  color: 'white',
+                }}
+              />
+            </View>
+            <View style={{width: width(33)}}>
+              <GradientButton
+                text={t('Yes')}
+                onPress={() => {
+                  if (handlePressOk) {
+                    handlePressOk();
+                  }
+                  setIsVisible(false);
+                }}
+                type="filled"
+                textStyle={{
+                  fontSize: 12,
+                  fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                  color: 'white',
+                }}
+              />
+            </View>
+          </View>
+        )}
       </View>
     </Modal>
   );

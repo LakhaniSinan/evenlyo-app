@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import React, {useRef, useState} from 'react';
 import {
   ScrollView,
@@ -25,8 +26,6 @@ import {globalStyles} from '../../styles/globalStyle';
 
 const LoginScreen = ({navigation, route}) => {
   const {type} = route.params;
-  console.log(type, 'typetypetypetypetypetype');
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(true);
@@ -86,7 +85,6 @@ const LoginScreen = ({navigation, route}) => {
           );
           await AsyncStorage.setItem('userData', JSON.stringify(data));
           dispatch(setUserData(data));
-          console.log('userTokenuserTokenuserToken');
         } else {
           modalRef.current.show({
             status: 'error',
@@ -98,6 +96,26 @@ const LoginScreen = ({navigation, route}) => {
         setIsLoading(false);
       }
     }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
+      const userInfo = await GoogleSignin.signIn();
+      console.log(userInfo, 'userInfouserInfouserInfouserInfouserInfo');
+    } catch (error) {
+      console.log(error, 'errorerrorerrorerrorerror12312312');
+    }
+  };
+
+  const handleSkip = () => {
+    const payload = {
+      email: '',
+      password: '',
+      userType: 'client',
+    };
+    dispatch(setUserData(payload));
+    AsyncStorage.setItem('userData', JSON.stringify(payload));
   };
 
   return (
@@ -144,6 +162,18 @@ const LoginScreen = ({navigation, route}) => {
             type="filled"
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}
           />
+          {type === 'client' && (
+            <>
+              <View style={{height: 10}} />
+              <GradientButton
+                text={t('Skip')}
+                onPress={handleSkip}
+                type="outline"
+                styleProps={{backgroundColor: COLORS.backgroundLight}}
+                iconPosition="left"
+              />
+            </>
+          )}
         </View>
         <View
           style={{
@@ -173,7 +203,7 @@ const LoginScreen = ({navigation, route}) => {
         <View style={{height: 25}} />
         <GradientButton
           text={t('continueWithGoogle')}
-          onPress={() => {}}
+          onPress={handleGoogleSignIn}
           type="outline"
           styleProps={{backgroundColor: COLORS.backgroundLight}}
           icon={ICONS.googleIcon}

@@ -10,12 +10,17 @@ import {
   listingAddToCart,
 } from '../../../services/ListingsItem';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ICONS} from '../../../assets';
+import LoginModal from '../../../components/authModal';
+import ForgotModal from '../../../components/authModal/ForgotModal';
+import RegistrationModal from '../../../components/authModal/RegistrationModal';
 import Categories from '../../../components/categories';
 import CommonAlert from '../../../components/commanAlert';
 import EventCard from '../../../components/eventCard';
 import HeadingComponent from '../../../components/headingComponent';
 import HomeCard from '../../../components/homeCard';
+import Loader from '../../../components/loder';
 import FilterModal from '../../../components/modals/FilterModal';
 import PopularCard from '../../../components/popularCard';
 import SubCategories from '../../../components/subCategories';
@@ -37,8 +42,10 @@ const Home = ({navigation}) => {
   const [subCategoriesSelected, setSubCategoriesSelected] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  console.log(homedata, 'homedatahomedatahomedatahomedata');
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showFrogotModal, setShowFrogotModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
 
   const {
     categories,
@@ -154,12 +161,59 @@ const Home = ({navigation}) => {
   };
 
   const handleAddToWishList = async listingId => {
-    try {
-      const response = await listingAddToCart({listingId});
-      console.log(response, 'responseresponseresponseresponse12343rsjk');
-      fetchHomeData();
-    } catch (error) {
-      console.log(error, 'errorerrorerrorerrorerrorerror2-3423432');
+    const userToken = await AsyncStorage.getItem('token');
+    let token = JSON.parse(userToken);
+
+    if (token == null) {
+      setShowLoginModal(true);
+    } else {
+      try {
+        setIsLoading(true);
+        const response = await listingAddToCart({listingId});
+        setIsLoading(false);
+        fetchHomeData();
+        if (response.status == 200 || response.status == 201) {
+          modalRef.current.show({
+            status: 'ok',
+            message: response?.data?.message,
+          });
+        } else {
+          modalRef.current.show({
+            status: 'error',
+            message: response?.data?.message,
+          });
+        }
+      } catch (error) {
+        setIsLoading(false);
+        console.log(error, 'errorerrorerrorerrorerrorerror2-3423432');
+      }
+    }
+  };
+
+  const handlePressFun = type => {
+    setShowFrogotModal(false);
+    setShowLoginModal(false);
+    setShowRegisterModal(false);
+
+    if (type == 'forgot') {
+      setTimeout(() => {
+        setShowFrogotModal(true);
+      }, 500);
+    } else if (type == 'reset') {
+      setShowFrogotModal(false);
+      setTimeout(() => {
+        setShowLoginModal(true);
+      }, 500);
+    } else if (type == 'register') {
+      setShowLoginModal(false);
+      setTimeout(() => {
+        setShowRegisterModal(true);
+      }, 500);
+    } else if (type == 'goBackToLogin') {
+      setShowRegisterModal(false);
+      setTimeout(() => {
+        setShowLoginModal(true);
+      }, 500);
     }
   };
 
@@ -393,6 +447,22 @@ const Home = ({navigation}) => {
         onClose={() => setModalVisible(false)}
       />
       <CommonAlert ref={modalRef} />
+      <Loader isLoading={isLoading} />
+      <LoginModal
+        isVisible={showLoginModal}
+        onClose={() => setShowLoginModal(!showLoginModal)}
+        handlePressFun={handlePressFun}
+      />
+      <ForgotModal
+        isVisible={showFrogotModal}
+        onClose={() => setShowFrogotModal(!showFrogotModal)}
+        handlePressFun={handlePressFun}
+      />
+      <RegistrationModal
+        isVisible={showRegisterModal}
+        onClose={() => setShowRegisterModal(!showRegisterModal)}
+        handlePressFun={handlePressFun}
+      />
     </>
   );
 };

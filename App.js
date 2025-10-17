@@ -4,6 +4,7 @@ import {Provider as PaperProvider} from 'react-native-paper';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Provider, useDispatch} from 'react-redux';
 import LocationInitializer from './src/components/LocationInitializer';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import useNotifications from './src/hooks/notifications';
 import AppNavigator from './src/navigation';
 import store from './src/redux';
@@ -18,6 +19,16 @@ const AppContent = () => {
   useEffect(() => {
     dispatch(initializeLanguageFromStorage());
     fetchNotifications();
+    // Initialize Google Signin
+    try {
+      GoogleSignin.configure({
+        webClientId: '800391339545-djf87tvnfk7asv6rq303nrmet07seacf.apps.googleusercontent.com',
+        offlineAccess: true,
+      });
+      console.log('GoogleSignin configured');
+    } catch (e) {
+      console.log('GoogleSignin init error', e);
+    }
   }, [dispatch, fetchNotifications]);
 
   return (

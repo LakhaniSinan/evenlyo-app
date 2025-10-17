@@ -11,6 +11,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import SvgUri from 'react-native-svg-uri';
 
 const SubCategories = ({data, subSelected, setsubSelected}) => {
   const {currentLanguage} = useTranslation();
@@ -36,7 +37,7 @@ const SubCategories = ({data, subSelected, setsubSelected}) => {
             ]}>
             <View style={styles.iconWrapper}>
               <Text style={{color: isSelected ? COLORS.white : COLORS.black}}>
-                <Image
+                <SvgUri
                   width={20}
                   height={20}
                   source={{

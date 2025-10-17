@@ -1,10 +1,26 @@
+import React from 'react';
 import {Image, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 
 const ListingCard = ({item, navigation}) => {
+  const {currentLanguage} = useTranslation();
+
+  const title =
+    currentLanguage == 'en' ? item?.title?.en : item?.title?.nl || 'Untitled';
+  const subtitle = item?.subtitle?.en || '';
+  const location = item?.location?.fullAddress || 'Unknown';
+  const price = item?.pricing?.amount || 0;
+  const priceUnit = item?.pricing?.type || '';
+  const rating = item?.rating?.average || 0;
+  const reviews = item?.rating?.totalReviews || 0;
+  const vendorName = item?.vendor?.businessName || '';
+  const vendorLogo = item?.vendor?.businessLogo;
+  const image = item?.images?.[0];
+
   return (
     <View
       style={{
@@ -26,11 +42,12 @@ const ListingCard = ({item, navigation}) => {
           backgroundColor: COLORS.white,
         }}>
         <Image
-          source={item?.image}
+          source={{uri: image}}
           resizeMode="cover"
           style={{width: '100%', height: '100%'}}
         />
       </View>
+
       <View
         style={{
           width: width(60),
@@ -46,32 +63,31 @@ const ListingCard = ({item, navigation}) => {
           }}>
           <Text
             style={{
-              fontSize: 8,
+              fontSize: 10,
               color: COLORS.green,
               fontFamily: fontFamly.PlusJakartaSansSemiMedium,
             }}>
-            DJ
+            {vendorName}
           </Text>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
             <Text
               style={{
                 fontSize: 10,
                 color: COLORS.textLight,
                 fontFamily: fontFamly.PlusJakartaSansSemiMedium,
               }}>
-              4.9
+              {rating.toFixed(1)} ({reviews})
             </Text>
             <Rating
-              ratingCount={1}
-              imageSize={15}
-              style={{marginLeft: width(2)}}
+              readonly
+              startingValue={rating}
+              ratingCount={5}
+              imageSize={12}
+              style={{marginLeft: width(1)}}
             />
           </View>
         </View>
+
         <View>
           <Text
             style={{
@@ -79,13 +95,22 @@ const ListingCard = ({item, navigation}) => {
               color: COLORS.textDark,
               fontFamily: fontFamly.PlusJakartaSansBold,
             }}>
-            DJ Ray Vibes
+            {title}
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={{
+              fontSize: 10,
+              color: COLORS.textLight,
+              fontFamily: fontFamly.PlusJakartaSansBold,
+            }}>
+            {subtitle}
           </Text>
           <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              marginTop: width(2),
+              marginTop: width(1.5),
             }}>
             <Image
               style={{width: 10, height: 10}}
@@ -94,16 +119,18 @@ const ListingCard = ({item, navigation}) => {
               tintColor={COLORS.textLight}
             />
             <Text
+              numberOfLines={1}
               style={{
                 fontSize: 8,
                 color: COLORS.textDark,
                 marginLeft: width(1),
                 fontFamily: fontFamly.PlusJakartaSansSemiMedium,
               }}>
-              Los Angeles, CA
+              {location}
             </Text>
           </View>
         </View>
+
         <View
           style={{
             flexDirection: 'row',
@@ -126,8 +153,9 @@ const ListingCard = ({item, navigation}) => {
               resizeMode="contain"
             />
           </TouchableOpacity>
+
           <TouchableOpacity
-            onPress={() => navigation.navigate('EventDetails')}
+            onPress={() => navigation.navigate('EventDetails', item)}
             style={{
               height: width(8),
               width: width(25),
@@ -145,29 +173,26 @@ const ListingCard = ({item, navigation}) => {
               Book Now
             </Text>
           </TouchableOpacity>
-          <View
-            style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
+
+          <View style={{alignItems: 'center', justifyContent: 'center'}}>
             <Text
               style={{
                 fontSize: 14,
                 color: COLORS.textDark,
                 fontFamily: fontFamly.PlusJakartaSansBold,
               }}>
-              $300
+              ${price}
             </Text>
-            {item?.priceUnit && (
+            {priceUnit ? (
               <Text
                 style={{
                   fontSize: 9,
                   color: COLORS.textLight,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                /{item?.priceUnit}
+                /{priceUnit?.toUpperCase()}
               </Text>
-            )}
+            ) : null}
           </View>
         </View>
       </View>

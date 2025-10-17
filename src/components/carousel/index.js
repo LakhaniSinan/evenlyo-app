@@ -1,18 +1,16 @@
 import React, {useState} from 'react';
-import {View, Image, StyleSheet} from 'react-native';
-import Carousel from 'react-native-snap-carousel';
+import {Image, StyleSheet, View} from 'react-native';
 import {width} from 'react-native-dimension';
-import {IMAGES} from '../../assets';
-import {COLORS} from '../../constants'; // assuming you have COLORS
+import Carousel from 'react-native-snap-carousel';
+import {COLORS} from '../../constants';
 
 const CarouselComponent = ({data}) => {
-  let mapData = [data?.image];
   const [activeSlide, setActiveSlide] = useState(0);
 
   const renderIndicators = () => {
     return (
       <View style={styles.indicatorContainer}>
-        {mapData.map((_, index) => {
+        {data?.images?.map((_, index) => {
           const isActive = index === activeSlide;
           return (
             <View
@@ -43,11 +41,7 @@ const CarouselComponent = ({data}) => {
   const renderItem = ({item}) => {
     return (
       <View style={styles.card}>
-        <Image
-          source={{uri: item}} // you might want to use item instead
-          resizeMode="cover"
-          style={styles.image}
-        />
+        <Image source={{uri: item}} resizeMode="cover" style={styles.image} />
         <View style={styles.indicatorWrapper}>{renderIndicators()}</View>
       </View>
     );
@@ -56,7 +50,7 @@ const CarouselComponent = ({data}) => {
   return (
     <View>
       <Carousel
-        data={mapData}
+        data={data?.images || []}
         renderItem={renderItem}
         sliderWidth={width(100)}
         itemWidth={width(100)}

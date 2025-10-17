@@ -1,4 +1,5 @@
-import React, {useEffect, useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef, useState} from 'react';
 import {
   FlatList,
   SafeAreaView,
@@ -23,7 +24,11 @@ import ShippingFromModal from '../../../components/modals/ShippingFormModal';
 import SaleItemCard from '../../../components/saleItemCard';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
-import {getCartListings} from '../../../services/ListingsItem';
+import {
+  getAccepetedBookings,
+  getCartListings,
+  listingRemoveFromCart,
+} from '../../../services/ListingsItem';
 
 function CartScreen({navigation}) {
   const {t} = useTranslation();
@@ -35,12 +40,76 @@ function CartScreen({navigation}) {
   const [activeTab, setActiveTab] = useState('bookingItem');
   const [isLoadding, setIsLoadding] = useState(false);
   const [listingCartData, setListingCartData] = useState([]);
+  const [accepetedBookings, setAccepetedBookings] = useState([]);
 
-  useEffect(() => {
-    handleGetCartListing();
-  }, []);
-  const handleCancelBooking = () => {
-    setModalVisible(true);
+  useFocusEffect(
+    useCallback(() => {
+      handleGetCartListing();
+    }, []),
+  );
+
+  const handleGetCartListing = async () => {
+    try {
+      setIsLoadding(true);
+
+      const [responseCart, responseAccepted] = await Promise.all([
+        getCartListings(),
+        getAccepetedBookings(),
+      ]);
+
+      setIsLoadding(false);
+
+      if (
+        (responseCart?.status === 200 || responseCart?.status === 201) &&
+        (responseAccepted?.status === 200 || responseAccepted?.status === 201)
+      ) {
+        const cartData = responseCart?.data?.data || [];
+        const acceptedData = responseAccepted?.data?.data?.bookings || [];
+        setAccepetedBookings(acceptedData);
+        setListingCartData(cartData);
+      } else {
+        modalRef.current?.show({
+          status: 'error',
+          message: responseCart?.data?.message,
+        });
+      }
+    } catch (error) {
+      setIsLoadding(false);
+      console.log(error, 'errorerrorerrorerrorerror214543654');
+    }
+  };
+
+  const handleRemoveFromCart = async id => {
+    modalRef.current.show({
+      status: 'alert',
+      message: 'Are you sure you want to remove this item from the wishlist?',
+      handlePressOk: async () => {
+        modalRef.current.hide();
+        try {
+          setIsLoadding(true);
+          const response = await listingRemoveFromCart(id);
+          setIsLoadding(false);
+          if (response?.status == 200 || response.status == 201) {
+            modalRef.current.show({
+              status: 'ok',
+              message: response?.data?.message,
+              handlePressOk: () => {
+                modalRef.current.hide();
+                handleGetCartListing();
+              },
+            });
+          } else {
+            modalRef.current.show({
+              status: 'error',
+              message: response?.data?.message,
+            });
+          }
+        } catch (error) {
+          setIsLoadding(false);
+          console.log('Remove from cart error:', error);
+        }
+      },
+    });
   };
 
   const handleConfirmCancel = () => {
@@ -57,29 +126,55 @@ function CartScreen({navigation}) {
     <CartCard
       item={item}
       onBookNow={handleBookNow}
-      onCancelBooking={handleCancelBooking}
+      onRemoveItemFromCart={handleRemoveFromCart}
     />
   );
+  const renderAcceptedItem = ({item}) => (
+    <CartCard
+      item={item}
+      onBookNow={handleBookNow}
+      onRemoveItemFromCart={handleRemoveFromCart}
+    />
+  );
+
   const renderSaleItemCart = ({item}) => (
     <SaleItemCard
       item={item}
       onBookNow={handleBookNow}
-      onCancelBooking={handleCancelBooking}
+      onCancelBooking={handleRemoveFromCart}
     />
   );
 
-  const renderSection = (title, data) => {
+  const renderSection = (title, data, onSeeAllPress) => {
     if (!data?.length) return null;
     return (
       <View style={{marginBottom: width(4)}}>
-        <Text style={styles.sectionTitle}>{t(title)}</Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+          <Text style={styles.sectionTitle}>{t(title)}</Text>
+          <TouchableOpacity onPress={onSeeAllPress}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                {fontSize: 10, color: COLORS.primary},
+              ]}>
+              See All
+            </Text>
+          </TouchableOpacity>
+        </View>
         <FlatList
           data={data}
           keyExtractor={item => item.id}
           renderItem={(item, index) => {
             return activeTab == 'saleItem'
               ? renderSaleItemCart(item)
-              : renderCartItem(item);
+              : title == 'Accepted Order'
+              ? renderCartItem(item)
+              : renderAcceptedItem(item);
           }}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
@@ -88,24 +183,12 @@ function CartScreen({navigation}) {
     );
   };
 
-  const getBookingTabData = () => {
-    const requestData =
-      requested.find(r => r.requestType === 'Request Add To Cart')?.requests ||
-      [];
-    const acceptedData =
-      requested.find(r => r.requestType === 'Accepted Order')?.requests || [];
-    return {requestData, acceptedData};
-  };
-
-  const {requestData, acceptedData} = getBookingTabData();
-
   const onContinueToShipping = async () => {
     setModalVisible(false);
     setshippingForm(false);
     setTimeout(() => setShowInfoModal(true), 500);
   };
 
-  // 🔹 Safe LinearGradient Tabs (Fixed)
   const renderTabs = () => {
     const tabs = [
       {id: 'bookingItem', label: t('Booking Items')},
@@ -143,27 +226,6 @@ function CartScreen({navigation}) {
     );
   };
 
-  const handleGetCartListing = async () => {
-    try {
-      setIsLoadding(true);
-      const response = await getCartListings();
-      setIsLoadding(false);
-      if ((response.status = 200 || response.status == 201)) {
-        let data = response.data.data;
-        console.log(data, 'datadatadatadatadata12312');
-        setListingCartData(data || []);
-      } else {
-        modalRef.current.isVisible({
-          status: 'error',
-          message: response?.data?.message,
-        });
-      }
-    } catch (error) {
-      setIsLoadding(false);
-      console.log(error, 'errorerrorerrorerrorerror214543654');
-    }
-  };
-
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <AppHeader
@@ -177,10 +239,15 @@ function CartScreen({navigation}) {
 
         {activeTab === 'bookingItem' ? (
           <>
-            {renderSection('Request Add To Cart', requestData)}
-            {renderSection('Accepted Order', acceptedData)}
-
-            <View style={styles.progressNotesCard}>
+            {renderSection(
+              'Request Add To Cart',
+              listingCartData?.slice(0, 2),
+              () => navigation.navigate('SeeAllRequestCart'),
+            )}
+            {renderSection('Accepted Order', accepetedBookings, () =>
+              navigation.navigate('SeeAllRequestCart'),
+            )}
+            {/* <View style={styles.progressNotesCard}>
               <View style={styles.itemsList}>
                 {[
                   {label: 'Subtotal', value: '$600'},
@@ -200,7 +267,7 @@ function CartScreen({navigation}) {
                   <Text style={styles.totalAmount}>$690</Text>
                 </View>
               </View>
-            </View>
+            </View> */}
 
             <View style={{margin: width(3)}}>
               <GradientButton
@@ -212,43 +279,10 @@ function CartScreen({navigation}) {
             </View>
           </>
         ) : (
-          <>
-            {renderSection('Sale Items', saleItem)}
-
-            {/* <View style={styles.progressNotesCard}>
-              <View style={styles.itemsList}>
-                {[
-                  {label: 'Subtotal', value: '$600'},
-                  {label: 'Security Fee', value: '$25'},
-                  {label: 'Kilometre Fee', value: '$5'},
-                  {label: 'Service Charges', value: '$60'},
-                ].map((item, idx) => (
-                  <View key={idx} style={styles.itemRow}>
-                    <Text style={styles.itemName}>{item.label}</Text>
-                    <Text style={styles.itemPrice}>{item.value}</Text>
-                  </View>
-                ))}
-                <View
-                  style={[styles.itemRow, {borderBottomColor: COLORS.white}]}>
-                  <Text style={styles.totalText}>Total</Text>
-                  <Text style={styles.totalAmount}>$690</Text>
-                </View>
-              </View>
-            </View> */}
-
-            {/* <View style={{margin: width(4)}}>
-              <GradientButton
-                text={t('Pay Now')}
-                type="filled"
-                gradientColors={['#FF295D', '#E31B95', '#C817AE']}
-                onPress={() => {}}
-              />
-            </View> */}
-          </>
+          <>{renderSection('Sale Items', saleItem)}</>
         )}
       </ScrollView>
 
-      {/* Modals */}
       <CancelBookingModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -369,64 +403,7 @@ const styles = StyleSheet.create({
   },
 });
 
-// ================== DUMMY DATA ==================
-export const requested = [
-  {
-    requestType: 'Request Add To Cart',
-    requests: [
-      {
-        id: 'dj_01',
-        name: 'DJ Ray Vibes',
-        status: 'In stock',
-        verified: true,
-        artistName: 'Jaydeep',
-        price: 300,
-        priceUnit: 'Per Event',
-        image: IMAGES.backgroundImage2,
-        isBookmarked: true,
-        isProtected: true,
-        isSelected: false,
-        variant: 'requested',
-      },
-      {
-        id: 'dj_02',
-        name: 'DJ Ray Vibes',
-        status: 'In stock',
-        verified: true,
-        artistName: 'Jaydeep',
-        price: 300,
-        priceUnit: 'Per Event',
-        image: IMAGES.backgroundImage2,
-        isBookmarked: true,
-        isSelected: true,
-        variant: 'requested',
-      },
-    ],
-  },
-  {
-    requestType: 'Accepted Order',
-    requests: [
-      {
-        id: 'dj_03',
-        name: 'DJ Ray Vibes',
-        status: 'In stock',
-        verified: true,
-        artistName: 'Jaydeep',
-        artistAvatar:
-          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-        price: 300,
-        priceUnit: 'Per Event',
-        image: IMAGES.backgroundImage2,
-        isBookmarked: true,
-        isSelected: true,
-        variant: 'accepted',
-        actionButton: {label: 'Cancel Booking', variant: 'outlined'},
-      },
-    ],
-  },
-];
-
-export const saleItem = [
+const saleItem = [
   {
     id: 'dj_01',
     name: 'DJ Ray Vibes',

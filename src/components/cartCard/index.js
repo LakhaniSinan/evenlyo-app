@@ -6,108 +6,117 @@ import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 
-const CartCard = ({item, onBookNow, onCancelBooking}) => {
-  const {t} = useTranslation();
+const CartCard = ({item, onBookNow, onRemoveItemFromCart}) => {
+  console.log(
+    item?.listingDetails?.title,
+    'itemitemitemitemitemitemandalskdnaslkd',
+  );
 
-  const renderActionButton = () => {
-    if (item?.variant === 'requested') {
-      return (
-        <GradientButton
-          text={t('Book Now')}
-          onPress={() => onBookNow && onBookNow(item)}
-          type="filled"
-          textStyle={{
-            fontSize: 9,
-            fontFamly: fontFamly.PlusJakartaSansMedium,
-            color: COLORS.white,
-          }}
-          styleProps={{
-            paddingVertical: width(1.5),
-            height: width(6),
-          }}
-          styleContainer={{
-            borderRadius: 10,
-          }}
-        />
-      );
-    } else if (item?.variant === 'accepted' && item.actionButton) {
-      return (
-        <GradientButton
-          styleContainer={{borderRadius: 10, height: width(8)}}
-          textStyle={{
-            fontSize: 10,
-            fontFamly: fontFamly.PlusJakartaSansMedium,
-            color: COLORS.white,
-          }}
-          text={t('Cancel Booking')}
-          onPress={() => onCancelBooking && onCancelBooking()}
-          styleProps={{
-            paddingVertical: width(1.5),
-          }}
-        />
-      );
-    }
-    return null;
-  };
+  let imageData =
+    item?.listingId?.images?.[0] || item?.listingDetails?.images?.[0] || '';
 
+  const {t, currentLanguage} = useTranslation();
   return (
     <View style={styles.cardContainer}>
       <View style={{flexDirection: 'row'}}>
         <View style={styles.imageContainer}>
           <Image
-            source={item?.image}
+            source={imageData ? {uri: imageData} : IMAGES.backgroundImage2}
             style={styles.cardImage}
             resizeMode="cover"
           />
-          {item.isBookmarked && (
-            <View style={styles.bookmarkContainer}>
-              <Image source={ICONS.favouriteIcon} style={styles.bookmarkIcon} />
-            </View>
-          )}
+
+          <View style={styles.bookmarkContainer}>
+            <Image source={ICONS.favouriteIcon} style={styles.bookmarkIcon} />
+          </View>
         </View>
 
         <View style={styles.cardContent}>
           <View style={styles.headerRow}>
             <View style={styles.titleSection}>
-              <Text style={styles.title}>{item.name}</Text>
+              <Text style={styles.title}>
+                {currentLanguage
+                  ? item?.listingId?.title?.en
+                  : item?.listingId?.title?.nl || currentLanguage
+                  ? item?.listingDetails?.title?.en
+                  : item?.listingDetails?.title?.nl}
+              </Text>
               <View style={styles.statusRow}>
                 <Text style={styles.status}>{t('inStock')}</Text>
-                {item.verified && (
-                  <Image
-                    source={ICONS.verifyedIcon}
-                    style={styles.verifiedIcon}
-                  />
-                )}
+                <Image
+                  source={ICONS.verifyedIcon}
+                  style={styles.verifiedIcon}
+                />
               </View>
             </View>
             <TouchableOpacity style={styles.shareButton}>
               <Image source={ICONS.editIcon} style={styles.editIcon} />
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.shareButton}
+              onPress={() => onRemoveItemFromCart(item?._id)}>
+              <Image
+                source={ICONS.deleteIcon}
+                style={styles.editIcon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.artistRow}>
-            {item?.variant === 'accepted' && item.artistAvatar && (
-              <View style={styles.artistAvatarContainer}>
-                <Image
-                  source={{uri: item.artistAvatar}}
-                  style={styles.artistAvatar}
-                  resizeMode="cover"
-                />
-              </View>
-            )}
-            <Text style={styles.artistName}>{item.artistName}</Text>
+            <View style={styles.artistAvatarContainer}>
+              <Image
+                source={{
+                  uri: item?.listingId?.vendor?.bannerImage
+                    ? item?.listingId?.vendor?.bannerImage
+                    : '' || item?.listingDetails?.vendor?.bannerImage
+                    ? item?.listingDetails?.vendor?.bannerImage
+                    : '',
+                }}
+                style={styles.artistAvatar}
+                resizeMode="cover"
+              />
+            </View>
+            <Text style={styles.artistName}>
+              {item?.listingId?.vendor?.businessName ||
+                item?.vendorId?.businessName}
+            </Text>
           </View>
 
           <View style={styles.bottomRow}>
-            {renderActionButton()}
+            <GradientButton
+              text={t('Book Now')}
+              onPress={() => onBookNow && onBookNow(item)}
+              type="filled"
+              textStyle={{
+                fontSize: 9,
+                fontFamly: fontFamly.PlusJakartaSansMedium,
+                color: COLORS.white,
+              }}
+              styleProps={{
+                paddingVertical: width(1.5),
+                height: width(6),
+              }}
+              styleContainer={{
+                borderRadius: 10,
+              }}
+            />
             <View style={styles.priceContainer}>
-              <Text style={styles.price}>${item.price}</Text>
-              <Text style={styles.priceUnit}>/{t('Per Event')}</Text>
+              <Text style={styles.price}>
+                $
+                {item?.listingId?.pricing?.totalPrice ||
+                  item?.listingDetails?.pricing?.totalPrice}
+              </Text>
+              <Text style={styles.priceUnit}>
+                /
+                {item?.listingId?.pricing?.type?.toUpperCase() ||
+                  item?.listingDetails?.pricing?.type?.toUpperCase()}
+              </Text>
             </View>
           </View>
         </View>
       </View>
-      {item?.isProtected && (
+      {item?.tempDetails?.evenlyoProtect && (
         <View
           style={{
             height: width(10),

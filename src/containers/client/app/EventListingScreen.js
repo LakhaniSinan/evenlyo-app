@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   FlatList,
   Image,
@@ -10,23 +10,89 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import MapView, {Marker} from 'react-native-maps';
-import {ICONS, IMAGES} from '../../../assets';
+import {ICONS} from '../../../assets';
+import CommonAlert from '../../../components/commanAlert';
 import ListingCard from '../../../components/listingCard';
+import Loader from '../../../components/loder';
 import FilterModal from '../../../components/modals/FilterModal';
 import TextField from '../../../components/textInput';
 import {COLORS} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {getAllListingData} from '../../../services/ListingsItem';
 
-const sanFranciscoLocation = {
+const DEFAULT_REGION = {
   latitude: 37.7749,
   longitude: -122.4194,
-  latitudeDelta: 0.01,
-  longitudeDelta: 0.01,
+  latitudeDelta: 0.05,
+  longitudeDelta: 0.05,
 };
 
 const EventListingScreen = ({navigation}) => {
   const {t} = useTranslation();
+  const modalRef = useRef(null);
+  const mapRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [allListings, setAllListings] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+
+  useEffect(() => {
+    handleGetAllBooking();
+  }, []);
+
+  const handleGetAllBooking = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getAllListingData();
+      setIsLoading(false);
+      let data = response.data?.data || [];
+
+      if (response.status === 200 || response.status === 201) {
+        setAllListings(data);
+
+        // extract valid coords from both array or object
+        const validCoords = data
+          .map(item => {
+            const coords = item?.location?.coordinates;
+            if (Array.isArray(coords) && coords.length === 2) {
+              // format: [longitude, latitude]
+              return {latitude: coords[1], longitude: coords[0]};
+            } else if (coords?.latitude && coords?.longitude) {
+              return {latitude: coords.latitude, longitude: coords.longitude};
+            }
+            return null;
+          })
+          .filter(c => c);
+
+        // center map if valid coordinates exist
+        if (validCoords.length > 0 && mapRef.current) {
+          const avgLat =
+            validCoords.reduce((sum, c) => sum + c.latitude, 0) /
+            validCoords.length;
+          const avgLng =
+            validCoords.reduce((sum, c) => sum + c.longitude, 0) /
+            validCoords.length;
+
+          mapRef.current.animateToRegion(
+            {
+              latitude: avgLat,
+              longitude: avgLng,
+              latitudeDelta: 0.1,
+              longitudeDelta: 0.1,
+            },
+            1000,
+          );
+        }
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.log(error, 'Error fetching listings');
+    }
+  };
 
   const renderCartItem = ({item}) => {
     return <ListingCard item={item} navigation={navigation} />;
@@ -71,6 +137,7 @@ const EventListingScreen = ({navigation}) => {
               />
             </TouchableOpacity>
           </View>
+
           <View
             style={{
               flex: 1,
@@ -113,120 +180,81 @@ const EventListingScreen = ({navigation}) => {
             </TouchableOpacity>
           </View>
         </View>
+
         <View
           style={{
-            height: 200,
+            height: 250,
             borderRadius: width(5),
             overflow: 'hidden',
             marginTop: width(2),
             marginHorizontal: width(3),
           }}>
           <MapView
-            style={{
-              flex: 1,
-            }}
-            initialRegion={sanFranciscoLocation}
+            ref={mapRef}
+            style={{flex: 1}}
+            initialRegion={DEFAULT_REGION}
             showsUserLocation={false}
             showsMyLocationButton={false}
-            scrollEnabled={true}
-            zoomEnabled={true}>
-            <Marker
-              coordinate={{
-                latitude: sanFranciscoLocation.latitude,
-                longitude: sanFranciscoLocation.longitude,
-              }}
-              title="Event Location"
-              description="San Francisco, CA"
-            />
+            zoomEnabled={true}
+            scrollEnabled={true}>
+            {allListings?.map((item, index) => {
+              let latitude, longitude;
+              const coords = item?.location?.coordinates;
+
+              if (Array.isArray(coords) && coords.length === 2) {
+                longitude = coords[0];
+                latitude = coords[1];
+              } else {
+                latitude = coords?.latitude;
+                longitude = coords?.longitude;
+              }
+
+              if (latitude && longitude) {
+                return (
+                  <Marker
+                    key={index}
+                    coordinate={{latitude, longitude}}
+                    title={item?.vendor?.businessName || 'Vendor'}
+                    description={
+                      item?.location?.fullAddress || 'No address available'
+                    }>
+                    <Image
+                      source={ICONS.locationIcon}
+                      style={{width: 40, height: 40, resizeMode: 'contain'}}
+                      tintColor={'red'}
+                    />
+                  </Marker>
+                );
+              }
+              return null;
+            })}
           </MapView>
         </View>
+
         <FlatList
-          data={requested}
-          keyExtractor={item => item.id}
-          renderItem={({item}) => renderCartItem({item})}
+          data={allListings}
+          keyExtractor={item => item.id?.toString()}
+          renderItem={renderCartItem}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
         />
       </ScrollView>
+
       <FilterModal
         isVisible={modalVisible}
         onClose={() => setModalVisible(false)}
         nestedFilter={true}
       />
+      <Loader isLoading={isLoading} />
+      <CommonAlert ref={modalRef} />
     </SafeAreaView>
   );
 };
 
 export default EventListingScreen;
+
 const styles = StyleSheet.create({
   listContainer: {
     paddingBottom: width(5),
   },
 });
-
-export const requested = [
-  {
-    id: 'dj_01',
-    name: 'DJ Ray Vibes',
-    status: 'In stock',
-    verified: true,
-    artistName: 'Jaydeep',
-    price: 300,
-    priceUnit: 'Per Event',
-    image: IMAGES.backgroundImage2,
-    isBookmarked: true,
-    isSelected: false,
-    category: 'DJ',
-  },
-  {
-    id: 'dj_02',
-    name: 'DJ Ray Vibes',
-    status: 'In stock',
-    verified: true,
-    artistName: 'Jaydeep',
-    price: 300,
-    priceUnit: 'Per Event',
-    image: IMAGES.backgroundImage2,
-    isBookmarked: true,
-    isSelected: true,
-  },
-  {
-    id: 'dj_03',
-    name: 'DJ Ray Vibes',
-    status: 'In stock',
-    verified: true,
-    artistName: 'Jaydeep',
-    price: 300,
-    priceUnit: 'Per Event',
-    image: IMAGES.backgroundImage2,
-    isBookmarked: false,
-    isSelected: false,
-    category: 'DJ',
-  },
-  {
-    id: 'dj_04',
-    name: 'DJ Ray Vibes',
-    status: 'In stock',
-    verified: true,
-    artistName: 'Jaydeep',
-    price: 300,
-    priceUnit: 'Per Event',
-    image: IMAGES.backgroundImage2,
-    isBookmarked: false,
-    isSelected: false,
-    category: 'DJ',
-  },
-  {
-    id: 'dj_05',
-    name: 'DJ Ray Vibes',
-    status: 'In stock',
-    verified: true,
-    artistName: 'Jaydeep',
-    price: 300,
-    priceUnit: 'Per Event',
-    image: IMAGES.backgroundImage2,
-    isBookmarked: true,
-    isSelected: false,
-    category: 'DJ',
-  },
-];
