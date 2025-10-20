@@ -5,12 +5,16 @@ import Carousel from 'react-native-snap-carousel';
 import {COLORS} from '../../constants';
 
 const CarouselComponent = ({data}) => {
+  console.log(data, 'datadatadatadataadasd');
+  const images = [data?.image] || data?.images || [];
+  console.log(images, 'imagesimagesimagesimages');
+
   const [activeSlide, setActiveSlide] = useState(0);
 
   const renderIndicators = () => {
     return (
       <View style={styles.indicatorContainer}>
-        {data?.images?.map((_, index) => {
+        {images?.map((_, index) => {
           const isActive = index === activeSlide;
           return (
             <View
@@ -50,7 +54,7 @@ const CarouselComponent = ({data}) => {
   return (
     <View>
       <Carousel
-        data={data?.images || []}
+        data={images || []}
         renderItem={renderItem}
         sliderWidth={width(100)}
         itemWidth={width(100)}

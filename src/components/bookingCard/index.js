@@ -163,8 +163,6 @@ const BookingCard = ({item}) => {
 const BookingList = ({bookings, activeTab}) => {
   const {t} = useTranslation();
 
-  console.log(bookings, 'bookingsbookingsbookingsbookingsbookings');
-
   const getFilteredData = () => {
     if (activeTab === t('All Order')) {
       return bookings;

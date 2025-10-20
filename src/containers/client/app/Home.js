@@ -46,6 +46,12 @@ const Home = ({navigation}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showFrogotModal, setShowFrogotModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [otherSaleItems, setOtherSaleItems] = useState([]);
+
+  console.log(
+    otherSaleItems,
+    'otherSaleItemsotherSaleItemsotherSaleItemsotherSaleItems',
+  );
 
   const {
     categories,
@@ -108,10 +114,10 @@ const Home = ({navigation}) => {
   const fetchHomeData = async () => {
     try {
       const res = await getHomeData(selected?._id, subCategoriesSelected?._id);
-      console.log(res, 'resresresresresresresres');
 
       if (res.status === 200 || res.status === 201) {
         setHomeData(res?.data?.data || []);
+        setOtherSaleItems(res?.data?.otherSaleItems || []);
       } else {
         modalRef.current?.show({status: 'error', message: res?.data?.message});
       }
@@ -376,6 +382,22 @@ const Home = ({navigation}) => {
             />
           </>
         );
+      case 'otherSaleItem':
+        return (
+          <>
+            <HeadingComponent
+              heading={t('Other Sale')}
+              gradientText={t('Items')}
+              rightArrow
+              onPress={() => navigation.navigate('SalesItems')}
+            />
+            <PopularCard
+              type={'saleItem'}
+              data={otherSaleItems || []}
+              onCardPress={handleGoToDetails}
+            />
+          </>
+        );
 
       case 'relevant':
         return (
@@ -433,8 +455,9 @@ const Home = ({navigation}) => {
           {type: 'bookingItem'},
           {type: 'homecard'},
           {type: 'saleItem'},
+          {type: 'otherSaleItem'},
           {type: 'relevant'},
-          // {type: 'eventCard'},
+          {type: 'eventCard'},
         ]}
         renderItem={renderItem}
         keyExtractor={(_, index) => index.toString()}

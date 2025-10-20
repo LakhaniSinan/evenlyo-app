@@ -3,8 +3,10 @@ import {useSelector} from 'react-redux';
 
 const useTranslation = () => {
   const {t, i18n} = useI18nTranslation();
-  const currentLanguage = useSelector(state => state.LanguageSlice.currentLanguage);
-  
+  const currentLanguage = useSelector(
+    state => state.LanguageSlice.currentLanguage,
+  );
+
   return {
     t,
     i18n,

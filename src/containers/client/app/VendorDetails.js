@@ -30,10 +30,9 @@ function VendorDetails({navigation, route}) {
   const [showAll, setShowAll] = useState(false);
   const reviews = vendorDetail?.reviews || [];
   const displayedReviews = showAll ? reviews : reviews.slice(0, 4);
+  console.log(vendorDetail, 'vendorDetailvendorDetailvendorDetail');
 
-  console.log(vendorDetail, 'displayedReviewsdisplayedReviewsdisplayedReviews');
-
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   useEffect(() => {
     getVendorDetailsByID();
   }, []);
@@ -41,11 +40,10 @@ function VendorDetails({navigation, route}) {
   const getVendorDetailsByID = async () => {
     try {
       setIsLoading(true);
-      const responce = await getVendorDetails('688cee39901d51358af867fa');
+      const responce = await getVendorDetails(item?._id);
       setIsLoading(false);
       if (responce?.status == 200 || responce.status == 201) {
         let data = responce?.data?.data;
-        console.log(data, 'datadatadatadatadatadata');
         setVendorDetails(data);
       } else {
         modalRef.current.show({
@@ -58,6 +56,7 @@ function VendorDetails({navigation, route}) {
       console.log('errorerrorerrorerrorerrorerror');
     }
   };
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <Loader isLoading={isLoading} />
@@ -104,7 +103,7 @@ function VendorDetails({navigation, route}) {
                 marginBottom: width(5),
               }}>
               <Image
-                source={{uri: vendorDetail?.businessDetails?.bannerImage}}
+                source={{uri: vendorDetail?.businessDetails?.buisnessLogo}}
                 resizeMode="cover"
                 style={{height: width(25), width: width(25)}}
               />
@@ -261,7 +260,9 @@ function VendorDetails({navigation, route}) {
               fontSize: 10,
               fontFamily: fontFamly.PlusJakartaSansSemiRegular,
             }}>
-            {vendorDetail?.businessDetails?.whyChooseUs}
+            {currentLanguage == 'en'
+              ? vendorDetail?.businessDetails?.whyChooseUs?.en
+              : vendorDetail?.businessDetails?.whyChooseUs?.nl}
           </Text>
         </View>
         <View

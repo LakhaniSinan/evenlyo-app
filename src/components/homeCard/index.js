@@ -104,7 +104,7 @@ const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
             </View>
             <View style={styles.blurContainer}>
               <View style={styles.textContainer}>
-                <Text style={styles.text}>
+                <Text numberOfLines={2} style={styles.text}>
                   {t(
                     `${
                       currentLanguage == 'en'
@@ -113,7 +113,7 @@ const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
                     }`,
                   )}
                 </Text>
-                <Text style={styles.text2}>
+                <Text numberOfLines={2} style={styles.text2}>
                   {t(
                     `${
                       currentLanguage == 'en'
@@ -121,7 +121,7 @@ const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
                         : item?.description?.nl
                     }`,
                   )}{' '}
-                  <Text style={styles.text}>
+                  <Text  numberOfLines={2} style={styles.text}>
                     {t(
                       `${
                         currentLanguage == 'en'

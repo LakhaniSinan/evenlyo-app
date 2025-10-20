@@ -20,6 +20,7 @@ import Loader from '../../../components/loder';
 import CancellationConfirm from '../../../components/modals/CancellationConfirm';
 import CancelBookingModal from '../../../components/modals/CancellationModal';
 import InfoModal from '../../../components/modals/InfoModal';
+import OrderBooking from '../../../components/modals/OrderBookingModal';
 import ShippingFromModal from '../../../components/modals/ShippingFormModal';
 import SaleItemCard from '../../../components/saleItemCard';
 import {COLORS, fontFamly} from '../../../constants';
@@ -33,6 +34,7 @@ import {
 function CartScreen({navigation}) {
   const {t} = useTranslation();
   const modalRef = useRef(null);
+  const [orderBookingForm, setOrderBookingForm] = useState(false);
   const [cancelConfirmation, setCancelConfirmation] = useState(false);
   const [shippingForm, setshippingForm] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -41,6 +43,9 @@ function CartScreen({navigation}) {
   const [isLoadding, setIsLoadding] = useState(false);
   const [listingCartData, setListingCartData] = useState([]);
   const [accepetedBookings, setAccepetedBookings] = useState([]);
+  const [bookingData, setBookingData] = useState(null);
+
+  console.log(bookingData, 'bookingDatabookingDatabookingData');
 
   useFocusEffect(
     useCallback(() => {
@@ -56,6 +61,8 @@ function CartScreen({navigation}) {
         getCartListings(),
         getAccepetedBookings(),
       ]);
+
+      console.log(responseCart, 'responseCartresponseCartresponseCart');
 
       setIsLoadding(false);
 
@@ -119,7 +126,8 @@ function CartScreen({navigation}) {
   };
 
   const handleBookNow = item => {
-    setshippingForm(true);
+    setOrderBookingForm(true);
+    setBookingData(item);
   };
 
   const renderCartItem = ({item}) => (
@@ -139,7 +147,6 @@ function CartScreen({navigation}) {
 
   const renderSaleItemCart = ({item}) => (
     <SaleItemCard
-      item={item}
       onBookNow={handleBookNow}
       onCancelBooking={handleRemoveFromCart}
     />
@@ -147,6 +154,7 @@ function CartScreen({navigation}) {
 
   const renderSection = (title, data, onSeeAllPress) => {
     if (!data?.length) return null;
+
     return (
       <View style={{marginBottom: width(4)}}>
         <View
@@ -186,6 +194,7 @@ function CartScreen({navigation}) {
   const onContinueToShipping = async () => {
     setModalVisible(false);
     setshippingForm(false);
+    setOrderBookingForm(false);
     setTimeout(() => setShowInfoModal(true), 500);
   };
 
@@ -279,10 +288,15 @@ function CartScreen({navigation}) {
             </View>
           </>
         ) : (
-          <>{renderSection('Sale Items', saleItem)}</>
+          renderSection('Sale Items', saleItem)
         )}
       </ScrollView>
-
+      <OrderBooking
+        data={bookingData?.tempDetails}
+        selectedDate={bookingData?.tempDetails}
+        isVisible={orderBookingForm}
+        onClose={() => setOrderBookingForm(!orderBookingForm)}
+      />
       <CancelBookingModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}

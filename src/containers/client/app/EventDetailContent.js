@@ -57,6 +57,8 @@ const getInitialMarkedDates = availableDays => {
 };
 
 const DetailsContent = ({data, selectedTab, navigation}) => {
+  console.log(data?.vendor, 'selectedTabselectedTabselectedTabselectedTab');
+
   const {cartData} = useSelector(state => state.CartSlice);
   const dispatch = useDispatch(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -195,6 +197,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
       };
 
       console.log(params, 'paramsparamsparamsparamss');
+      return;
       setIsLoadding(true);
       const response = await sendBookingRequest(params);
       if (response.status == 200 || response.status == 201) {
@@ -309,7 +312,6 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
           },
         };
         setIsLoadding(true);
-
         const response = await listingAddToCart(
           listingId?.listingId ? params : payload,
         );

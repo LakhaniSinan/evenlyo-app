@@ -7,10 +7,7 @@ import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 
 const CartCard = ({item, onBookNow, onRemoveItemFromCart}) => {
-  console.log(
-    item?.listingDetails?.title,
-    'itemitemitemitemitemitemandalskdnaslkd',
-  );
+  console.log(item, 'itemitemitemitemitemitem131213sdfsdf');
 
   let imageData =
     item?.listingId?.images?.[0] || item?.listingDetails?.images?.[0] || '';
@@ -49,7 +46,9 @@ const CartCard = ({item, onBookNow, onRemoveItemFromCart}) => {
                 />
               </View>
             </View>
-            <TouchableOpacity style={styles.shareButton}>
+            <TouchableOpacity
+              onPress={() => onBookNow(item)}
+              style={styles.shareButton}>
               <Image source={ICONS.editIcon} style={styles.editIcon} />
             </TouchableOpacity>
             <TouchableOpacity

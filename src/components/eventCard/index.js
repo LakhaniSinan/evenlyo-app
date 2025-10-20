@@ -8,7 +8,6 @@ import useTranslation from '../../hooks/useTranslation';
 
 const EventCard = ({item, navigation}) => {
   const {t} = useTranslation();
-  console.log(item, 'itemitemitemitemitemitem123123');
 
   return (
     <TouchableOpacity
@@ -23,7 +22,7 @@ const EventCard = ({item, navigation}) => {
           backgroundColor: COLORS.backgroundLight,
         }}>
         <Image
-          source={IMAGES.coverImage1}
+          source={{uri: item?.businessLogo}}
           resizeMode="cover"
           style={{width: '100%', height: '100%'}}
         />
