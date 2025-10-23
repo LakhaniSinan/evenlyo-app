@@ -2,8 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {icons} from '../assets';
 
-// export const baseUrl = 'https://evenlyo-backend-20036df510ad.herokuapp.com/api';
-export const baseUrl = 'https://0g01d8wd-5000.inc1.devtunnels.ms/api';
+export const baseUrl = 'https://evenlyo-backend-20036df510ad.herokuapp.com/api';
+// export const baseUrl = 'https://0g01d8wd-5000.inc1.devtunnels.ms/api';
 
 const api = async (path, params, method) => {
   let userToken = await AsyncStorage.getItem('token');

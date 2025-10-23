@@ -25,11 +25,6 @@ import GooglePlacesInput from '../locationField';
 import TextField from '../textInput';
 
 const availableDays = ['mon', 'tue', 'thu', 'fri'];
-
-/**
- * Build initial marked map using a referenceDate (so UI is stable while modal open).
- * Returns an object keyed by 'YYYY-MM-DD' with disabled/customStyles.
- */
 const getInitialMarkedDates = (availableDays, referenceDate = moment()) => {
   const marked = {};
   const start = referenceDate.clone();
@@ -67,46 +62,36 @@ const OrderBooking = ({
   data,
   onClose,
   isVisible,
-  selectedDate, // optional initial selection from parent
+  selectedDate,
   handleSendBookingRequest,
   handleAddToWishList,
 }) => {
   const {t} = useTranslation();
   const modalRef = useRef(null);
-
-  // GENERAL UI STATE
   const [selectedCoords, setSelectedCoords] = useState(null);
   const [kilometer, setKilometer] = useState('0');
   const [instructions, setInstructions] = useState('');
   const [isChecked, setIsChecked] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-
-  // TIME PICKERS
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
-
-  // LOCAL DATE MANAGEMENT
-  const [referenceDate, setReferenceDate] = useState(moment()); // fixed when modal opens
-  const [localStartDate, setLocalStartDate] = useState(null); // 'YYYY-MM-DD' or null
-  const [localEndDate, setLocalEndDate] = useState(null); // 'YYYY-MM-DD' or null
+  const [referenceDate, setReferenceDate] = useState(moment());
+  const [localStartDate, setLocalStartDate] = useState(null);
+  const [localEndDate, setLocalEndDate] = useState(null);
   const [markedDates, setMarkedDates] = useState(() =>
     getInitialMarkedDates(availableDays, moment()),
   );
 
-  // initialise or reset when modal visibility changes
   useEffect(() => {
     if (isVisible) {
-      // Lock reference date the moment modal opens
       const ref = moment();
       setReferenceDate(ref);
 
-      // initialize marked dates based on new reference
       setMarkedDates(getInitialMarkedDates(availableDays, ref));
 
-      // initialize local selection from selectedDate prop if provided
       if (selectedDate?.startDate) {
         const s = moment(selectedDate.startDate).format('YYYY-MM-DD');
         const e = selectedDate?.endDate
@@ -116,48 +101,50 @@ const OrderBooking = ({
         setLocalStartDate(s);
         setLocalEndDate(e);
 
-        // highlight them
         if (s) {
-          // build marks for the range (respecting disabled days)
           const updated = getInitialMarkedDates(availableDays, ref);
+
           if (e) {
-            let curr = moment(s);
-            while (curr.isSameOrBefore(moment(e))) {
-              const d = curr.format('YYYY-MM-DD');
-              if (updated[d] && !updated[d].disabled) {
+            const start = moment(s);
+            const end = moment(e);
+
+            while (start.isSameOrBefore(end)) {
+              const d = start.format('YYYY-MM-DD');
+              const dayName = start.format('ddd').toLowerCase();
+
+              // ✅ highlight only available days inside range
+              if (availableDays.includes(dayName)) {
                 updated[d] = {
-                  ...updated[d],
+                  ...(updated[d] || {}),
                   customStyles: {
-                    container: {backgroundColor: '#FF295D', borderRadius: 5},
+                    container: {
+                      backgroundColor: '#FF295D',
+                      borderRadius: d === s || d === e ? 5 : 0,
+                    },
                     text: {color: '#fff', fontWeight: 'bold'},
                   },
                 };
-              } else {
-                // stop if disabled encountered
-                break;
               }
-              curr.add(1, 'day');
+
+              start.add(1, 'day');
             }
           } else {
-            if (updated[s] && !updated[s].disabled) {
-              updated[s] = {
-                ...updated[s],
-                customStyles: {
-                  container: {backgroundColor: '#FF295D', borderRadius: 5},
-                  text: {color: '#fff', fontWeight: 'bold'},
-                },
-              };
-            }
+            updated[s] = {
+              ...(updated[s] || {}),
+              customStyles: {
+                container: {backgroundColor: '#FF295D', borderRadius: 5},
+                text: {color: '#fff', fontWeight: 'bold'},
+              },
+            };
           }
+
           setMarkedDates(updated);
         }
       } else {
-        // no selectedDate prop — just initialize minimal state
         setLocalStartDate(null);
         setLocalEndDate(null);
       }
     } else {
-      // modal closed -> reset local states
       setSelectedCoords(null);
       setKilometer('0');
       setInstructions('');
@@ -259,14 +246,12 @@ const OrderBooking = ({
 
   const isSingleDateSelected = !!startDateStr && startDateStr === endDateStr;
 
-  // When single-date selected and service has a default slot, populate times
   useEffect(() => {
     if (
       isSingleDateSelected &&
       data?.availability?.availableTimeSlots?.length > 0
     ) {
       const slot = data.availability.availableTimeSlots[0];
-      // use referenceDate's year/month/day so times match the selected day
       const ref = referenceDate || moment();
       const selDate = moment(
         startDateStr || ref.format('YYYY-MM-DD'),
@@ -298,7 +283,6 @@ const OrderBooking = ({
     }
   }, [data, isSingleDateSelected, startDateStr, referenceDate]);
 
-  // BOOKING handler (uses local start/end)
   const handleBooking = useCallback(() => {
     if (selectedCoords == null) {
       modalRef.current?.show({
@@ -308,7 +292,6 @@ const OrderBooking = ({
       return;
     }
 
-    // validations using local start/end
     if (startDateStr && !endDateStr) {
       // if only start provided, treat as single day
       // (we already treat single-day bookings elsewhere)
@@ -376,7 +359,6 @@ const OrderBooking = ({
       details.endTime = moment(endTime).format('hh:mm A');
     }
 
-    console.log(details, 'Booking Details ✅');
     handleSendBookingRequest(details);
   }, [
     selectedCoords,
@@ -391,13 +373,6 @@ const OrderBooking = ({
     handleSendBookingRequest,
   ]);
 
-  /**
-   * handleDayPress - local selection logic:
-   * - first tap -> start date (resets if both start&end already set)
-   * - second tap (after start) -> set end date if after start and if range doesn't cross disabled days
-   * - tapping before start resets start (user changed mind)
-   */
-  // ✅ Replace your handleDayPress function with this updated version
   const handleDayPress = day => {
     const date = day.dateString;
     const m = moment(date, 'YYYY-MM-DD');
@@ -405,12 +380,10 @@ const OrderBooking = ({
     const isPast = m.isBefore(referenceDate, 'day');
     const isAvailable = availableDays.includes(dayName);
 
-    // Past or unavailable day ignore
     if (isPast) return;
 
     let updatedMarks = getInitialMarkedDates(availableDays, referenceDate);
 
-    // No start selected yet → set start
     if (!localStartDate) {
       setLocalStartDate(date);
       setLocalEndDate(null);
@@ -426,12 +399,9 @@ const OrderBooking = ({
       return;
     }
 
-    // If start already selected but no end yet → set range
     if (localStartDate && !localEndDate) {
       const start = moment(localStartDate);
       const end = moment(date);
-
-      // If clicked before start → reset start
       if (end.isBefore(start)) {
         setLocalStartDate(date);
         setLocalEndDate(null);
@@ -447,27 +417,19 @@ const OrderBooking = ({
         return;
       }
 
-      // ✅ Build range from start → end
       let curr = start.clone();
       while (curr.isSameOrBefore(end)) {
         const d = curr.format('YYYY-MM-DD');
-        const isDisabled = updatedMarks[d]?.disabled;
-
         updatedMarks[d] = {
-          ...updatedMarks[d],
+          ...(updatedMarks[d] || {}),
           customStyles: {
             container: {
-              backgroundColor: isDisabled ? '#f0b6b6' : '#FF295D',
-              borderRadius: 5,
+              backgroundColor: '#FF295D',
+              borderRadius: d === localStartDate || d === date ? 5 : 0,
             },
-            text: {
-              color: '#fff',
-              fontWeight: 'bold',
-              opacity: isDisabled ? 0.6 : 1,
-            },
+            text: {color: '#fff', fontWeight: 'bold'},
           },
         };
-
         curr.add(1, 'day');
       }
 
@@ -476,7 +438,6 @@ const OrderBooking = ({
       return;
     }
 
-    // If both start & end already selected → start fresh selection
     if (localStartDate && localEndDate) {
       setLocalStartDate(date);
       setLocalEndDate(null);
@@ -750,6 +711,8 @@ const OrderBooking = ({
                   details.startTime = moment(startTime).format('hh:mm A');
                   details.endTime = moment(endTime).format('hh:mm A');
                 }
+
+                console.log(details, 'detailsdetailsdetailsdetails');
 
                 handleAddToWishList(details);
               }}

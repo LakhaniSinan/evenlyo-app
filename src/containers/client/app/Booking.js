@@ -24,6 +24,8 @@ const renderTabs = [
   'pending',
   'accepted',
   'completed',
+  'paid',
+  'finished',
   'rejected',
 ];
 
@@ -31,6 +33,11 @@ const BooKings = () => {
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('All Order');
   const [bookingHistory, setBookingHistory] = useState([]);
+  console.log(
+    bookingHistory,
+    'bookingHistorybookingHistorybookingHistorybookingHistory',
+  );
+
   const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef(null);
 
@@ -40,9 +47,7 @@ const BooKings = () => {
 
   const handleGetBookingHistory = async () => {
     try {
-      setIsLoading(true);
       const response = await getAllBookingHistory('', 1, 10);
-      setIsLoading(false);
       if (response.status == 200 || response.status == 201) {
         let data = response?.data?.data?.bookings;
         setBookingHistory(data);
@@ -53,7 +58,6 @@ const BooKings = () => {
         });
       }
     } catch (error) {
-      setIsLoading(false);
       console.log(error, 'errorerrorerrorerrorerror');
     }
   };

@@ -9,131 +9,22 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
-import {IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
-
-const bookingsData = [
-  {
-    id: '1',
-    name: 'DJ Ray Vibes',
-    location: 'Los Angeles, CA',
-    price: '$300',
-    status: 'Completed',
-    image: IMAGES.backgroundImage,
-    category: 'DJ',
-  },
-  {
-    id: '2',
-    name: 'DJ Ray Vibes',
-    location: 'Los Angeles, CA',
-    price: '$300',
-    status: 'New Request',
-    image: IMAGES.backgroundImage,
-    category: 'DJ',
-  },
-  {
-    id: '3',
-    name: 'DJ Ray Vibes',
-    location: 'Los Angeles, CA',
-    price: '$300',
-    status: 'In Progress',
-    image: IMAGES.backgroundImage,
-    category: 'DJ',
-  },
-  {
-    id: '4',
-    name: 'Food Truck Express',
-    location: 'San Francisco, CA',
-    price: '$450',
-    status: 'Completed',
-    image: IMAGES.backgroundImage,
-    category: 'Food',
-  },
-  {
-    id: '5',
-    name: 'Party Planner Pro',
-    location: 'New York, NY',
-    price: '$200',
-    status: 'Rejected',
-    image: IMAGES.backgroundImage,
-    category: 'Event',
-  },
-  {
-    id: '6',
-    name: 'Live Band Rock',
-    location: 'Chicago, IL',
-    price: '$500',
-    status: 'In Progress',
-    image: IMAGES.backgroundImage,
-    category: 'Music',
-  },
-];
-
-const getStatusColor = (status, t) => {
-  switch (status) {
-    case t('pending'):
-      return '#ffee0027';
-    case t('accepted'):
-      return '#1e43e92d';
-    case t('paid'):
-      return '#2e7d321f';
-    case t('In Progress'):
-      return '#FFF3E0';
-    case t('rejected'):
-      return '#FFEBEE';
-    default:
-      return '#F5F5F5';
-  }
-};
-
-const getStatusTextColor = (status, t) => {
-  switch (status) {
-    case t('pending'):
-      return '#eeff00ff';
-    case t('paid'):
-      return '#2E7D32';
-    case t('accepted'):
-      return '#1e43e9ff';
-    case t('In Progress'):
-      return '#FF9800';
-    case t('rejected'):
-      return '#D32F2F';
-    default:
-      return '#666666';
-  }
-};
+import StatusBadge from '../statusComponent';
 
 const BookingCard = ({item}) => {
   const navigation = useNavigation();
   const {t} = useTranslation();
-  console.log(item, 'askldnlaskndlaskdnlsakd');
 
   return (
     <View style={styles.card}>
-      {/* {item?.images?.length > 0 && ( */}
       <Image source={{uri: item?.vendor?.businessLogo}} style={styles.image} />
-      {/* )} */}
       <View style={styles.infoContainer}>
         <View style={styles.topSection}>
           <View style={styles.headerRow}>
             <Text style={styles.tag}>• {item.category}</Text>
-            <View
-              style={[
-                styles.statusBadge,
-                {backgroundColor: getStatusColor(item.status, t)},
-              ]}>
-              <Text
-                style={[
-                  styles.statusText,
-                  {color: getStatusTextColor(item.status, t)},
-                ]}>
-                {t(
-                  item?.status?.charAt(0).toUpperCase() +
-                    item?.status?.slice(1).toLowerCase(),
-                )}
-              </Text>
-            </View>
+            <StatusBadge status={item?.status} />
           </View>
           <Text style={styles.name} numberOfLines={2}>
             {item?.vendor?.businessName}
@@ -144,9 +35,7 @@ const BookingCard = ({item}) => {
         </View>
         <View style={styles.footer}>
           <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('BookingDetails', {booking: item})
-            }
+            onPress={() => navigation.navigate('BookingDetails', item)}
             style={styles.button}>
             <Text style={styles.buttonText}>{t('View Details')}</Text>
           </TouchableOpacity>
@@ -174,6 +63,10 @@ const BookingList = ({bookings, activeTab}) => {
       return bookings.filter(item => item.status === t('completed'));
     } else if (activeTab === t('rejected')) {
       return bookings.filter(item => item.status === t('rejected'));
+    } else if (activeTab === t('paid')) {
+      return bookings.filter(item => item.status === t('paid'));
+    } else if (activeTab === t('finished')) {
+      return bookings.filter(item => item.status === t('finished'));
     }
     return bookings;
   };

@@ -1,24 +1,27 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
+  Animated,
   FlatList,
   Image,
-  StyleSheet,
   Modal,
-  Animated,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
-import GradientButton from '../button';
-import GradientText from '../gradiantText';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import GradientButton from '../button';
+import GradientText from '../gradiantText';
+import TextField from '../textInput';
 
 const RejectRequestModal = ({visible, onClose, onConfirm}) => {
   const {t} = useTranslation();
   const [selectedReason, setSelectedReason] = useState('');
+  const [customReason, setCustomReason] = useState('');
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.8));
 
@@ -32,7 +35,6 @@ const RejectRequestModal = ({visible, onClose, onConfirm}) => {
 
   useEffect(() => {
     if (visible) {
-      // Animate in
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -47,7 +49,6 @@ const RejectRequestModal = ({visible, onClose, onConfirm}) => {
         }),
       ]).start();
     } else {
-      // Animate out
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
@@ -65,12 +66,30 @@ const RejectRequestModal = ({visible, onClose, onConfirm}) => {
 
   const handleSelect = reason => {
     setSelectedReason(reason);
+    if (reason !== 'Custom reason') setCustomReason('');
   };
 
   const handleConfirm = () => {
-    if (selectedReason) {
-      onConfirm();
+    if (!selectedReason) {
+      ToastAndroid.show('Please select a reason first!', ToastAndroid.SHORT);
+      return;
     }
+
+    // If custom reason is selected, ensure it's not empty
+    if (selectedReason === 'Custom reason' && !customReason.trim()) {
+      ToastAndroid.show('Please enter your custom reason!', ToastAndroid.SHORT);
+      return;
+    }
+
+    onConfirm(
+      selectedReason === 'Custom reason' ? customReason.trim() : selectedReason,
+    );
+  };
+
+  const handleClose = () => {
+    setSelectedReason('');
+    setCustomReason('');
+    onClose();
   };
 
   return (
@@ -124,11 +143,22 @@ const RejectRequestModal = ({visible, onClose, onConfirm}) => {
             )}
           />
 
+          {selectedReason === 'Custom reason' && (
+            <TextField
+              label={t('Enter your reason...')}
+              placeholder={t('Enter your reason...')}
+              value={customReason}
+              onChangeText={text => setCustomReason(text)}
+              autoCapitalize="none"
+              multiline={true}
+            />
+          )}
+
           <View style={styles.buttonContainer}>
             <View style={{width: width(35), marginRight: width(2)}}>
               <GradientButton
                 text={t('Cancel')}
-                onPress={onClose}
+                onPress={handleClose}
                 type="outline"
                 useGradient={true}
               />
@@ -139,7 +169,10 @@ const RejectRequestModal = ({visible, onClose, onConfirm}) => {
                 onPress={handleConfirm}
                 type="filled"
                 textStyle={{fontSize: 14, color: COLORS.white}}
-                disabled={!selectedReason}
+                disabled={
+                  !selectedReason ||
+                  (selectedReason === 'Custom reason' && !customReason.trim())
+                }
               />
             </View>
           </View>
@@ -162,10 +195,7 @@ const styles = StyleSheet.create({
     borderRadius: width(6),
     padding: width(4),
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
+    shadowOffset: {width: 0, height: 10},
     shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 10,
@@ -208,45 +238,27 @@ const styles = StyleSheet.create({
     marginRight: width(2),
     overflow: 'hidden',
   },
-  radioInner: {
-    width: 7,
-    height: 7,
-    borderRadius: 10,
-    backgroundColor: COLORS.primary,
-  },
   reasonText: {
     fontSize: 12,
     color: COLORS.textDark,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
+  customInput: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+    padding: 10,
+    marginTop: width(2),
+    fontSize: 12,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansRegular,
+    textAlignVertical: 'top',
+    minHeight: 60,
+  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: width(5),
-  },
-  cancelBtn: {
-    flex: 1,
-    marginRight: width(2),
-    paddingVertical: width(3),
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: width(2),
-    alignItems: 'center',
-  },
-  confirmBtn: {
-    flex: 1,
-    marginLeft: width(2),
-    paddingVertical: width(3),
-    backgroundColor: COLORS.primary,
-    borderRadius: width(2),
-    alignItems: 'center',
-  },
-  cancelText: {
-    fontSize: width(4),
-    color: COLORS.textLight,
-  },
-  confirmText: {
-    fontSize: width(4),
-    color: COLORS.white,
   },
 });
 

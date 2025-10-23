@@ -1,10 +1,21 @@
 import React from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {StyleSheet, Text, TouchableOpacity, View, Image} from 'react-native';
+import moment from 'moment';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
 
 const RecentClientsCard = ({item, index, dataLength}) => {
   const isLastItem = index === dataLength - 1;
+
+  const getInitials = name => {
+    if (!name) return '';
+    const parts = name.split(' ');
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+  };
+
+  const initials = getInitials(item?.name);
+  const formattedDate = moment(item?.lastBooking).fromNow();
 
   return (
     <View
@@ -13,19 +24,20 @@ const RecentClientsCard = ({item, index, dataLength}) => {
         isLastItem && {borderBottomWidth: 0, borderBottomColor: 'transparent'},
       ]}>
       <View style={styles.row}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{item.initials}</Text>
-        </View>
+        {item?.profileImage ? (
+          <Image source={{uri: item.profileImage}} style={styles.avatarImage} />
+        ) : (
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initials}</Text>
+          </View>
+        )}
+
         <View style={styles.infoContainer}>
           <Text style={styles.name}>{item.name}</Text>
-
-          <Text style={styles.time}>⏱ {item.time}</Text>
+          <Text style={styles.time}>⏱ {formattedDate}</Text>
         </View>
-        <View
-          style={{
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
+
+        <View style={{alignItems: 'center', justifyContent: 'space-between'}}>
           <TouchableOpacity style={styles.trackButton}>
             <Text style={styles.trackText}>More Details</Text>
           </TouchableOpacity>
@@ -50,58 +62,49 @@ const styles = StyleSheet.create({
   },
   avatar: {
     backgroundColor: COLORS.white,
-    width: 30,
-    height: 30,
+    width: 40,
+    height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
+    borderWidth: 1,
+    borderColor: COLORS.semiLightText,
+  },
+  avatarImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
   },
   avatarText: {
-    fontSize: 10,
+    color: COLORS.black,
+    fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
   infoContainer: {
     flex: 1,
   },
   name: {
-    fontSize: 10,
-    fontWeight: fontFamly.PlusJakartaSansSemiBold,
-    marginRight: 8,
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  badgeText: {
-    fontSize: 8,
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
     color: COLORS.black,
   },
-  service: {
-    fontSize: 8,
+  time: {
+    fontSize: 10,
     color: COLORS.textLight,
     marginTop: 2,
-  },
-  location: {
-    fontSize: 8,
-    color: COLORS.textLight,
-    marginTop: 4,
   },
   trackButton: {
     borderWidth: 1,
     borderColor: COLORS.semiLightText,
     borderRadius: 5,
     paddingHorizontal: 12,
-    paddingVertical: 2,
+    paddingVertical: 4,
   },
   trackText: {
-    fontWeight: 'bold',
+    fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.black,
     fontSize: 10,
-  },
-  time: {
-    fontSize: 8,
-    color: COLORS.textLight,
   },
 });

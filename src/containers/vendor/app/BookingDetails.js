@@ -1,47 +1,123 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import moment from 'moment';
+import React, {useEffect, useRef, useState} from 'react';
 import {Image, SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
+import CommonAlert from '../../../components/commanAlert';
+import Loader from '../../../components/loder';
 import RejectRequestModal from '../../../components/modals/RejectRequest';
+import StatusBadge from '../../../components/statusComponent';
 import {COLORS, fontFamly} from '../../../constants';
+import {
+  acceptBooking,
+  getBookingAnalytics,
+  rejectBooking,
+} from '../../../services/BookingItem';
 
 function BookingDetails({route}) {
   const data = route.params;
+
   const navigation = useNavigation();
+  const [isLoading, setIsLoading] = useState(false);
+  const [listingCartData, setListingCartData] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  console.log(data, 'datadatadatadata1231232');
-  const getStatusColor = status => {
-    switch (status) {
-      case 'Completed':
-        return '#E8F5E8';
-      case 'New Requests':
-        return '#FFE8F0';
-      case 'In Progress':
-        return '#FFF3E0';
-      default:
-        return '#F5F5F5';
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    handleGetCartListing();
+  }, []);
+
+  const handleGetCartListing = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getBookingAnalytics();
+      setIsLoading(false);
+
+      if (response?.status === 200 || response?.status === 201) {
+        const cartData = response?.data?.bookings || [];
+
+        const matchedBooking = cartData.find(
+          item => item.trackingId === data.trackingId,
+        );
+
+        if (matchedBooking) {
+          setListingCartData(matchedBooking);
+        } else {
+        }
+      } else {
+        modalRef.current?.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.log(error, 'errorerrorerrorerrorerror214543654');
     }
   };
 
-  const getStatusTextColor = status => {
-    switch (status) {
-      case 'Completed':
-        return '#2E7D32';
-      case 'New Requests':
-        return '#E91E63';
-      case 'In Progress':
-        return '#FF9800';
-      default:
-        return '#666666';
+  const handleConfirmCancel = async data => {
+    try {
+      setIsLoading(true);
+      const response = await rejectBooking(listingCartData?.id, {
+        rejectionReason: data,
+      });
+
+      setIsLoading(false);
+      if (response.status == 200 || response.status == 201) {
+        setTimeout(() => {
+          setModalVisible(false);
+          modalRef.current.show({
+            status: 'ok',
+            message: response?.data?.message,
+            handlePressOk: () => {
+              modalRef.current.hide();
+              handleGetCartListing();
+            },
+          });
+        }, 500);
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
+      }
+    } catch (error) {
+      console.log(error, 'ERRRRRRRRRASDSADASD');
+      setIsLoading(false);
     }
   };
-  const handleConfirmCancel = () => {
-    setTimeout(() => {
-      setModalVisible(false);
-    }, 500);
+
+  const handleAcceptBooking = async () => {
+    try {
+      setIsLoading(true);
+      const response = await acceptBooking(listingCartData?.id);
+      setIsLoading(false);
+      if (response.status == 200 || response.status == 201) {
+        setTimeout(() => {
+          setModalVisible(false);
+          modalRef.current.show({
+            status: 'ok',
+            message: response?.data?.message,
+            handlePressOk: () => {
+              modalRef.current.hide();
+              handleGetCartListing();
+            },
+          });
+        }, 500);
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.log(error, 'errorerrorerrorerrorerror');
+    }
   };
 
   return (
@@ -76,21 +152,17 @@ function BookingDetails({route}) {
               fontSize: 12,
               color: COLORS.textDark,
             }}>
-            Booking #TRK001
-          </Text>
-          <View
-            style={[
-              styles.statusBadge,
-              {backgroundColor: getStatusColor(data.status)},
-            ]}>
+            Booking{' '}
             <Text
-              style={[
-                styles.statusText,
-                {color: getStatusTextColor(data.status)},
-              ]}>
-              {data.status}
+              style={{
+                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                color: COLORS.textLight,
+                fontSize: 10,
+              }}>
+              #{listingCartData?.trackingId}
             </Text>
-          </View>
+          </Text>
+          <StatusBadge status={listingCartData?.status} />
         </View>
         <View
           style={{
@@ -110,7 +182,7 @@ function BookingDetails({route}) {
                 fontSize: 12,
                 color: COLORS.textDark,
               }}>
-              2024-06-27
+              {moment(listingCartData?.createdAt).format('YYYY-MM-DD')}
             </Text>
             <Text
               style={{
@@ -118,7 +190,7 @@ function BookingDetails({route}) {
                 fontSize: 10,
                 color: COLORS.textLight,
               }}>
-              10:00
+              {moment(listingCartData?.createdAt).format('hh:mm A')}
             </Text>
           </View>
         </View>
@@ -150,7 +222,7 @@ function BookingDetails({route}) {
                 fontSize: 10,
                 color: COLORS.textLight,
               }}>
-              TRK001
+              {listingCartData?.trackingId}
             </Text>
           </View>
         </View>
@@ -183,19 +255,20 @@ function BookingDetails({route}) {
                 fontSize: 12,
                 color: COLORS.textDark,
               }}>
-              John Smith
+              {listingCartData?.customer}
             </Text>
             <Text
               style={{
+                width: width(70),
                 fontFamily: fontFamly.PlusJakartaSansMedium,
                 fontSize: 10,
                 color: COLORS.textLight,
               }}>
-              ID: USR001
+              {listingCartData?.location}
             </Text>
           </View>
         </View>
-        {data?.type !== 'Booking' && (
+        {data?.type == 'Booking' && (
           <>
             <Text
               style={{
@@ -240,7 +313,7 @@ function BookingDetails({route}) {
         )}
       </View>
 
-      {data?.type == 'Booking' && (
+      {listingCartData?.status == 'pending' && (
         <View
           style={{
             flexDirection: 'row',
@@ -251,7 +324,7 @@ function BookingDetails({route}) {
           <View style={{width: width(44), marginRight: width(2)}}>
             <GradientButton
               text={'Accept'}
-              // onPress={onClose}
+              onPress={handleAcceptBooking}
               type="outline"
               useGradient={true}
             />
@@ -272,7 +345,7 @@ function BookingDetails({route}) {
           </View>
         </View>
       )}
-      {data?.type !== 'Booking' && (
+      {listingCartData?.status !== 'pending' && (
         <View style={{paddingHorizontal: width(4), marginTop: width(3)}}>
           <GradientButton
             textStyle={{
@@ -289,10 +362,13 @@ function BookingDetails({route}) {
         </View>
       )}
 
+      <CommonAlert ref={modalRef} />
+      <Loader isLoading={isLoading} />
+
       <RejectRequestModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
-        onConfirm={() => handleConfirmCancel()}
+        onConfirm={handleConfirmCancel}
       />
     </SafeAreaView>
   );

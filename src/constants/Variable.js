@@ -38,7 +38,7 @@ export const endPoints = {
   vendorDetails: '/vendors',
   vendor: '/vendor/bycategory',
   vendorDetailsById: '/vendor/details',
-  booking: '/bookings',
+  booking: '/booking',
   bookingHistory: '/booking/history?status=',
   addListingToCart: '/cart/add',
   addListingToggelCart: '/cart/wishlist',
@@ -48,4 +48,17 @@ export const endPoints = {
 
   //Notifications
   notifications: '/notifications',
+
+  //Vendors APIS
+  //Dashboard
+
+  dashboard: '/vendor/dashboard/analytics',
+
+  //Booking Actions
+  rejectBooking: '/vendor/bookings',
+  acceptBooking: '/vendor/bookings',
+
+  //Analytics
+  bookingAnalytics: '/vendor/bookings/analytics',
+  analyticsReport: '/vendor/earnings/analytics',
 };

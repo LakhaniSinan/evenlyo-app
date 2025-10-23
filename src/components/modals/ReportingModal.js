@@ -15,36 +15,9 @@ import BookingTable from '../bookingTable';
 import GradientButton from '../button';
 import GradientText from '../gradiantText';
 
-const ReportingModal = ({visible, onClose}) => {
+const ReportingModal = ({data, visible, onClose}) => {
   const {t} = useTranslation();
-
-  const tableData = [
-    {
-      bookingId: 'ITM001',
-      bookingItem: 'DJ',
-      totalCost: '$1,195',
-      earning: '$359',
-    },
-    {
-      bookingId: 'ITM002',
-      bookingItem: 'DJ',
-      totalCost: '$1,195',
-      earning: '$359',
-    },
-    {
-      bookingId: 'ITM003',
-      bookingItem: 'DJ',
-      totalCost: '$1,195',
-      earning: '$359',
-    },
-    {
-      bookingId: 'ITM004',
-      bookingItem: 'DJ',
-      totalCost: '$1,195',
-      earning: '$359',
-    },
-  ];
-
+  const handleDownloadPDF = () => {};
   const earningsData = [
     {label: 'Report Date:', value: '1/15/2024'},
     {label: 'Today Earning:', value: '$2,450'},
@@ -91,14 +64,14 @@ const ReportingModal = ({visible, onClose}) => {
 
             {/* Booking Table */}
             <View style={{minHeight: width(60)}}>
-              <BookingTable data={tableData} canDownload={false} />
+              <BookingTable data={data} canDownload={false} />
             </View>
 
             <GradientButton
               icon={ICONS.downloadIcon}
               text="Export PDF"
               textStyle={styles.buttonText}
-              // onPress={handleDownloadPDF}
+              onPress={handleDownloadPDF}
             />
           </View>
         </View>

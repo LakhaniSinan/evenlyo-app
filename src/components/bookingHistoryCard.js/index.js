@@ -11,6 +11,7 @@ import {
 import {width} from 'react-native-dimension';
 import {IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import StatusBadge from '../statusComponent';
 
 const bookingsData = [
   {
@@ -69,34 +70,6 @@ const bookingsData = [
   },
 ];
 
-// Status color helpers
-const getStatusColor = status => {
-  switch (status) {
-    case 'Completed':
-      return '#E8F5E8';
-    case 'New Requests':
-      return '#FFE8F0';
-    case 'In Progress':
-      return '#FFF3E0';
-    default:
-      return '#F5F5F5';
-  }
-};
-
-const getStatusTextColor = status => {
-  switch (status) {
-    case 'Completed':
-      return '#2E7D32';
-    case 'New Requests':
-      return '#E91E63';
-    case 'In Progress':
-      return '#FF9800';
-    default:
-      return '#666666';
-  }
-};
-
-// Card Component
 const BookingCard = ({item}) => {
   const navigation = useNavigation();
 
@@ -109,19 +82,7 @@ const BookingCard = ({item}) => {
         <View style={styles.topSection}>
           <View style={styles.headerRow}>
             <Text style={styles.tag}>{item.category}</Text>
-            <View
-              style={[
-                styles.statusBadge,
-                {backgroundColor: getStatusColor(item.status)},
-              ]}>
-              <Text
-                style={[
-                  styles.statusText,
-                  {color: getStatusTextColor(item.status)},
-                ]}>
-                {item.status}
-              </Text>
-            </View>
+            <StatusBadge status={item?.status} />
           </View>
           <Text style={styles.name} numberOfLines={2}>
             {item.name}
@@ -144,11 +105,7 @@ const BookingCard = ({item}) => {
   );
 };
 
-// Main Component
 const BookingHistoryCard = ({status}) => {
-  // Normalize the status (trim + lowercase)
-  console.log(status, 'statusstatusstatus');
-
   const normalizedStatus = status?.trim().toLowerCase();
 
   const getFilteredData = () => {

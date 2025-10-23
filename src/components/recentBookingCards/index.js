@@ -1,10 +1,32 @@
+import {useNavigation} from '@react-navigation/native';
+import moment from 'moment';
 import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
+import StatusBadge from '../statusComponent';
 
 const RecentBookingCards = ({item, index, dataLength}) => {
   const isLastItem = index === dataLength - 1;
+  const navigation = useNavigation();
+
+  // 🟩 Capitalize each word in a name
+  const capitalizeWords = text => {
+    if (!text) return '';
+    return text
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  // 🟦 Get initials for avatar
+  const getInitials = name => {
+    if (!name) return '';
+    const parts = name.split(' ');
+    return parts.length > 1
+      ? `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+      : parts[0][0].toUpperCase();
+  };
 
   return (
     <View
@@ -13,30 +35,34 @@ const RecentBookingCards = ({item, index, dataLength}) => {
         isLastItem && {borderBottomWidth: 0, borderBottomColor: 'transparent'},
       ]}>
       <View style={styles.row}>
+        {/* Avatar */}
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{item.initials}</Text>
+          <Text style={styles.avatarText}>
+            {getInitials(item.clientName || item?.customer)}
+          </Text>
         </View>
+
+        {/* Info Section */}
         <View style={styles.infoContainer}>
-          <View style={styles.row}>
-            <Text style={styles.name}>{item.name}</Text>
-            <View style={[styles.badge, {backgroundColor: item.statusColor}]}>
-              <Text style={styles.badgeText}>{item.status}</Text>
-            </View>
+          <View style={[styles.row, {marginBottom: 4}]}>
+            <Text style={styles.name}>{capitalizeWords(item.clientName)}</Text>
+            <StatusBadge status={item?.status} />
           </View>
-          <Text style={styles.service}>{item.service}</Text>
-          <View style={styles.row}>
-            <Text style={styles.location}>📍{item.location}</Text>
-          </View>
+
+          <Text style={styles.service}>Tracking ID: {item.trackingId}</Text>
+          <Text style={styles.location}>📍 {item.location}</Text>
         </View>
-        <View
-          style={{
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
-          <TouchableOpacity style={styles.trackButton}>
-            <Text style={styles.trackText}>Track</Text>
+
+        {/* Right Section */}
+        <View style={styles.rightSection}>
+          <TouchableOpacity
+            style={styles.trackButton}
+            onPress={() => navigation.navigate('BookingDetails', item)}>
+            <Text style={styles.trackText}>View</Text>
           </TouchableOpacity>
-          <Text style={styles.time}>⏱ {item.time}</Text>
+          <Text style={styles.time}>
+            ⏱ {moment(item.createdAt).format('hh:mm A')}
+          </Text>
         </View>
       </View>
     </View>
@@ -58,50 +84,48 @@ const styles = StyleSheet.create({
   },
   avatar: {
     backgroundColor: COLORS.white,
-    width: 30,
-    height: 30,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
+    borderWidth: 0.5,
+    borderColor: COLORS.lightGray,
   },
   avatarText: {
-    fontSize: 10,
+    color: COLORS.black,
+    fontSize: 11,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
   infoContainer: {
     flex: 1,
   },
   name: {
-    fontSize: 10,
-    fontWeight: fontFamly.PlusJakartaSansSemiBold,
+    color: COLORS.black,
+    fontSize: 11,
+    fontWeight: 'bold',
     marginRight: 8,
   },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  badgeText: {
-    fontSize: 8,
-    color: COLORS.black,
-  },
   service: {
-    fontSize: 8,
+    fontSize: 9,
+    color: COLORS.textLight,
+  },
+  location: {
+    fontSize: 9,
     color: COLORS.textLight,
     marginTop: 2,
   },
-  location: {
-    fontSize: 8,
-    color: COLORS.textLight,
-    marginTop: 4,
+  rightSection: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   trackButton: {
     borderWidth: 1,
     borderColor: COLORS.semiLightText,
-    borderRadius: 5,
+    borderRadius: 6,
     paddingHorizontal: 12,
-    paddingVertical: 2,
+    paddingVertical: 3,
   },
   trackText: {
     fontWeight: 'bold',

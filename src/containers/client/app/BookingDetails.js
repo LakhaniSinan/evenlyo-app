@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   Image,
   SafeAreaView,
@@ -13,9 +13,12 @@ import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
 import CarouselComponent from '../../../components/carousel';
+import CommonAlert from '../../../components/commanAlert';
 import EventAndPriceDetails from '../../../components/eventDetailAndPrice';
 import GradientText from '../../../components/gradiantText';
+import Loader from '../../../components/loder';
 import {COLORS, fontFamly} from '../../../constants';
+import {getBookingDetails} from '../../../services/BookingItem';
 
 const data = [1, 2, 3, 4, 5];
 
@@ -55,13 +58,42 @@ const renderCards = type => {
   );
 };
 
-const BookingDetails = ({navigation}) => {
+const BookingDetails = ({route, navigation}) => {
+  const item = route.params;
+  const modalRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [bookingData, setBookingData] = useState(null);
+  console.log(bookingData, 'itemitemitemitemitemitem');
+
+  useEffect(() => {
+    handleGetBookingDetails();
+  }, []);
+
+  const handleGetBookingDetails = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getBookingDetails(item?._id);
+      setIsLoading(false);
+      if (response.status == 200 || response.status == 201) {
+        let data = response.data.data.booking || null;
+        setBookingData(data);
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
+      }
+    } catch (error) {
+      console.log(error, 'errorerrorerrorerrorerror');
+      setIsLoading(false);
+    }
+  };
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <ScrollView>
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
-          // headingText={'Booking'}
+          headingText={'Booking'}
           rightIcon={ICONS.chatIcon}
           onRightIconPress={() => navigation.navigate('MessagesScreen')}
           onLeftIconPress={() => navigation.goBack()}
@@ -238,6 +270,8 @@ const BookingDetails = ({navigation}) => {
           </View>
         </View>
       </ScrollView>
+      <CommonAlert ref={modalRef} />
+      <Loader isLoading={isLoading} />
     </SafeAreaView>
   );
 };

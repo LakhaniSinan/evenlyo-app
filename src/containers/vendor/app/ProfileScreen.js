@@ -10,12 +10,13 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import {COLORS, fontFamly} from '../../../constants';
 import useTranslation from '../../../hooks/useTranslation';
 import {setUserData} from '../../../redux/slice/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const getProfileMenuData = t => [
   {
@@ -57,11 +58,16 @@ const ProfileScreen = () => {
   const {t} = useTranslation();
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const {user} = useSelector(state => state.LoginSlice);
+
   const data = getProfileMenuData(t);
   const data2 = getHelpSupportMenuData(t);
+
   const handleNavigate = navigate => {
     if (navigate === 'Logout') {
       dispatch(setUserData(null));
+      AsyncStorage.removeItem('userData');
+      AsyncStorage.removeItem('token');
     } else {
       navigation.navigate(navigate);
     }
@@ -82,20 +88,25 @@ const ProfileScreen = () => {
           />
           <Text
             style={{
+              color: COLORS.black,
               marginTop: 5,
               fontSize: 15,
               fontFamily: fontFamly.PlusJakartaSansSemiBold,
             }}>
-            Esther Howard
+            <Text>
+              {user?.businessName
+                ? user.businessName.replace(/\b\w/g, char => char.toUpperCase())
+                : ''}
+            </Text>
           </Text>
           <Text
             style={{
               marginTop: 5,
-              color: '#BABABA',
+              color: COLORS.textLight,
               fontSize: 12,
               fontFamily: fontFamly.PlusJakartaSansSemiMedium,
             }}>
-            @estherhoward
+            {user?.email}
           </Text>
         </View>
 
@@ -128,6 +139,7 @@ const ProfileScreen = () => {
                 />
                 <Text
                   style={{
+                    color: COLORS.black,
                     fontSize: 13,
                     fontFamily: fontFamly.PlusJakartaSansSemiBold,
                     marginLeft: 15,
@@ -188,6 +200,7 @@ const ProfileScreen = () => {
                 />
                 <Text
                   style={{
+                    color: COLORS.black,
                     fontSize: 13,
                     fontFamily: fontFamly.PlusJakartaSansSemiBold,
                     marginLeft: 15,

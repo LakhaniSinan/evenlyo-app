@@ -1,8 +1,8 @@
 import {useNavigation} from '@react-navigation/native';
-import React from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   FlatList,
-  SafeAreaView,
+  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -13,212 +13,319 @@ import {ICONS} from '../../../assets';
 import ActivityLogCard from '../../../components/activityLogCard';
 import AppHeader from '../../../components/appHeader';
 import LineChartComponent from '../../../components/charts/LineChart';
+import CommonAlert from '../../../components/commanAlert';
 import DashboardCard from '../../../components/dashboardCard';
 import RecentBookingCards from '../../../components/recentBookingCards';
 import RecentClientsCard from '../../../components/recentClientsCard';
 import {COLORS, fontFamly} from '../../../constants';
+import {getDashboard} from '../../../services/Dashboard';
 
-const dashboardData = [
-  {
-    title: 'All Clients',
-    icon: ICONS.groupIcon,
-    value: 1247,
-    percentage: 10,
-  },
-  {
-    title: 'Total Items',
-    icon: ICONS.whiteCartIcon,
-    value: 89,
-    percentage: 10,
-  },
-  {
-    title: 'Complete Bookings',
-    icon: ICONS.checkIcon,
-    value: 456,
-    percentage: 10,
-  },
-  {
-    title: 'Monthly Revenue',
-    icon: ICONS.earningIcon,
-    value: 12450,
-    percentage: 10,
-  },
-];
+const ViewMoreButton = React.memo(({heading, onPress}) => (
+  <View style={styles.viewMoreContainer}>
+    <Text style={styles.viewMoreHeading}>{heading}</Text>
+    <TouchableOpacity onPress={onPress}>
+      <Text style={styles.viewMoreText}>View All</Text>
+    </TouchableOpacity>
+  </View>
+));
 
-export const ViewMoreButton = ({onPress, heading}) => {
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: width(4),
-      }}>
-      <Text
-        style={{
-          fontFamily: fontFamly.PlusJakartaSansBold,
-          color: COLORS.textDark,
-          fontSize: 12,
-        }}>
-        {heading}
-      </Text>
-      <TouchableOpacity onPress={onPress}>
-        <Text
-          style={{
-            fontSize: 10,
-            marginTop: width(1),
-            color: COLORS.primary,
-            textDecorationColor: 'underline',
-            fontFamily: fontFamly.PlusJakartaSansSemiBold,
-          }}>
-          View All
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
-function Dashboard() {
+const Dashboard = () => {
   const navigation = useNavigation();
+  const modalRef = useRef(null);
+
+  const [dashboardData, setDashboardData] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState('Booking'); // ✅ Booking | Sale
+
+  // ✅ Dashboard stats
+  const dashboardStats = useMemo(
+    () => [
+      {
+        title: 'All Clients',
+        icon: ICONS.groupIcon,
+        value: dashboardData?.stats?.totalClients ?? 0,
+      },
+      {
+        title: 'Total Items',
+        icon: ICONS.whiteCartIcon,
+        value: dashboardData?.stats?.totalItemsListed ?? 0,
+      },
+      {
+        title: 'Complete Bookings',
+        icon: ICONS.checkIcon,
+        value: dashboardData?.stats?.completedBookingsCount ?? 0,
+      },
+      {
+        title: 'Monthly Revenue',
+        icon: ICONS.earningIcon,
+        value: dashboardData?.stats?.monthlyRevenue ?? 0,
+      },
+    ],
+    [dashboardData],
+  );
+
+  // ✅ Fetch dashboard data
+  const handleGetDashboard = useCallback(async () => {
+    try {
+      const response = await getDashboard();
+      if (response?.status === 200 || response?.status === 201) {
+        setDashboardData(response.data);
+      } else {
+        modalRef.current?.show({
+          status: 'error',
+          message: response?.data?.message || 'Failed to load dashboard data',
+        });
+      }
+    } catch (error) {
+      console.error('Dashboard error:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    handleGetDashboard();
+  }, [handleGetDashboard]);
+
+  // ✅ Pull-to-refresh handler
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    handleGetDashboard();
+  }, [handleGetDashboard]);
+
+  // ✅ Render functions
+  const renderDashboardCard = ({item}) => <DashboardCard item={item} />;
+
+  const renderRecentBookings = ({item, index}) => (
+    <RecentBookingCards
+      item={item}
+      index={index}
+      dataLength={dashboardData?.recentBookings?.length || 0}
+    />
+  );
+
+  const renderActivityLog = ({item, index}) => (
+    <ActivityLogCard
+      item={item}
+      index={index}
+      dataLength={activityData.length}
+    />
+  );
+
+  const renderRecentClients = ({item, index}) => (
+    <RecentClientsCard
+      item={item}
+      index={index}
+      dataLength={dashboardData?.recentClients?.length || 0}
+    />
+  );
+
+  console.log(dashboardData?.orderOverview, 'dashboardData?.orderOverview');
+
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
+    <>
       <AppHeader
-        headingText={'Dashboard'}
+        headingText="Dashboard"
         leftIcon={ICONS.drawerIcon}
         rightIcon={ICONS.notificationIcon}
-        onLeftIconPress={() => {
-          navigation.openDrawer();
-        }}
-        onRightIconPress={() => {
-          navigation.navigate('Notifications');
-        }}
+        onLeftIconPress={() => navigation.openDrawer()}
+        onRightIconPress={() => navigation.navigate('Notifications')}
       />
-      <ScrollView style={{flex: 1}} showsVerticalScrollIndicator={false}>
-        <View style={{flex: 1, padding: width(4), paddingBottom: 0}}>
-          <Text
-            style={{
-              fontSize: 15,
-              fontFamily: fontFamly.PlusJakartaSansSemiBold,
-            }}>
-            Welcome, John Doe
-          </Text>
-          <Text
-            style={{
-              fontSize: 10,
-              fontFamily: fontFamly.PlusJakartaSansMedium,
-              color: COLORS.textLight,
-            }}>
+
+      {/* ✅ ScrollView with Pull-to-Refresh */}
+      <ScrollView
+        style={{flex: 1}}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
+        {/* ✅ Welcome Section */}
+        <View style={styles.headerContainer}>
+          <Text style={styles.welcomeText}>Welcome, John Doe</Text>
+          <Text style={styles.roleText}>
             Role: Vendor • Here's an overview of your business performance
           </Text>
         </View>
 
+        {/* ✅ Dashboard Stats */}
         <FlatList
-          data={dashboardData}
+          data={dashboardStats}
           numColumns={2}
-          renderItem={({item, index}) => {
-            return <DashboardCard item={item} />;
-          }}
-          contentContainerStyle={{
-            padding: width(3),
-          }}
-          columnWrapperStyle={{
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
+          renderItem={renderDashboardCard}
+          keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={styles.dashboardGrid}
+          columnWrapperStyle={styles.columnWrapper}
         />
-        <View
-          style={{
-            backgroundColor: COLORS.backgroundLight,
-            marginHorizontal: width(3),
-            borderRadius: 12,
-            paddingVertical: width(4),
-          }}>
-          <LineChartComponent />
+
+        {/* ✅ Booking / Sale Tabs */}
+        <View style={styles.tabContainer}>
+          {['Booking', 'Sale'].map(tab => (
+            <TouchableOpacity
+              key={tab}
+              style={[
+                styles.tabButton,
+                {
+                  backgroundColor:
+                    activeTab === tab ? COLORS.primary : COLORS.white,
+                },
+              ]}
+              onPress={() => setActiveTab(tab)}>
+              <Text
+                style={[
+                  styles.tabText,
+                  {
+                    color: activeTab === tab ? COLORS.white : COLORS.textLight,
+                  },
+                ]}>
+                {tab} Items
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        <View
-          style={{
-            backgroundColor: COLORS.backgroundLight,
-            marginTop: width(3),
-            marginHorizontal: width(3),
-            borderRadius: 12,
-            paddingVertical: width(4),
-            marginBottom: width(2),
-          }}>
-          <ViewMoreButton onPress={() => {}} heading={'Recent Bookings'} />
-          <FlatList
-            data={data}
-            renderItem={({item, index}) => (
-              <RecentBookingCards
-                item={item}
-                index={index}
-                dataLength={data.length}
-              />
-            )}
-            keyExtractor={(item, index) => index.toString()}
+        {/* ✅ Line Chart */}
+        <View style={styles.chartContainer}>
+          <LineChartComponent
+            data={
+              activeTab === 'Booking'
+                ? dashboardData?.orderOverview || []
+                : dashboardData?.salesOverview || []
+            }
           />
         </View>
 
-        <View
-          style={{
-            backgroundColor: COLORS.backgroundLight,
-            marginTop: width(3),
-            marginHorizontal: width(3),
-            borderRadius: 12,
-            paddingVertical: width(4),
-            marginBottom: width(2),
-          }}>
-          <ViewMoreButton onPress={() => {}} heading={'Activity Log'} />
-          <FlatList
-            data={data}
-            renderItem={({item, index}) => (
-              <ActivityLogCard
-                item={item}
-                index={index}
-                dataLength={data.length}
-              />
-            )}
-            keyExtractor={(item, index) => index.toString()}
-          />
-        </View>
-
-        <View
-          style={{
-            backgroundColor: COLORS.backgroundLight,
-            marginTop: width(3),
-            marginHorizontal: width(3),
-            borderRadius: 12,
-            paddingVertical: width(4),
-            marginBottom: width(2),
-          }}>
+        {/* ✅ Recent Bookings */}
+        <View style={styles.sectionContainer}>
           <ViewMoreButton
-            onPress={() => {}}
-            heading={'Recently Joined Clients'}
+            heading="Recent Bookings Offers"
+            onPress={() =>
+              navigation.navigate(
+                'AllRecentBookings',
+                dashboardData?.recentBookings,
+              )
+            }
           />
           <FlatList
-            data={data}
-            renderItem={({item, index}) => (
-              <RecentClientsCard
-                item={item}
-                index={index}
-                dataLength={data.length}
-              />
-            )}
+            data={dashboardData?.recentBookings?.slice(0, 4) || []}
+            renderItem={renderRecentBookings}
             keyExtractor={(item, index) => index.toString()}
           />
         </View>
+
+        {/* ✅ Activity Log */}
+        <View style={styles.sectionContainer}>
+          <ViewMoreButton heading="Activity Log" onPress={() => {}} />
+          <FlatList
+            data={activityData}
+            renderItem={renderActivityLog}
+            keyExtractor={(item, index) => index.toString()}
+          />
+        </View>
+
+        {/* ✅ Recent Clients */}
+        <View style={styles.sectionContainer}>
+          <ViewMoreButton
+            heading="Recently Joined Clients"
+            onPress={() =>
+              navigation.navigate(
+                'AllRecentClients',
+                dashboardData?.recentClients,
+              )
+            }
+          />
+          <FlatList
+            data={dashboardData?.recentClients || []}
+            renderItem={renderRecentClients}
+            keyExtractor={(item, index) => index.toString()}
+          />
+        </View>
+
+        <CommonAlert ref={modalRef} />
       </ScrollView>
-    </SafeAreaView>
+    </>
   );
-}
+};
 
 export default Dashboard;
-const data = [
+
+const styles = {
+  headerContainer: {
+    padding: width(4),
+    paddingBottom: 0,
+  },
+  welcomeText: {
+    color: COLORS.black,
+    fontSize: 15,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
+  },
+  roleText: {
+    fontSize: 10,
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+    color: COLORS.textLight,
+  },
+  dashboardGrid: {
+    padding: width(3),
+  },
+  columnWrapper: {
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: width(3),
+    marginVertical: width(3),
+  },
+  tabButton: {
+    height: width(10),
+    width: width(35),
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabText: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 12,
+  },
+  chartContainer: {
+    backgroundColor: COLORS.backgroundLight,
+    marginHorizontal: width(3),
+    borderRadius: 12,
+    paddingVertical: width(4),
+  },
+  sectionContainer: {
+    backgroundColor: COLORS.backgroundLight,
+    marginTop: width(3),
+    marginHorizontal: width(3),
+    borderRadius: 12,
+    paddingVertical: width(4),
+  },
+  viewMoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: width(4),
+  },
+  viewMoreHeading: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textDark,
+    fontSize: 12,
+  },
+  viewMoreText: {
+    fontSize: 10,
+    marginTop: width(1),
+    color: COLORS.primary,
+    textDecorationColor: 'underline',
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
+  },
+};
+
+// ✅ Dummy activity data
+const activityData = [
   {
     id: 1,
     name: 'Sarah Johnson',
-    initials: 'SJ',
     status: 'New',
-    statusColor: '#FFB6C1',
     service: 'Camera Equipment',
     location: 'Downtown',
     time: '2 hours ago',
@@ -226,9 +333,7 @@ const data = [
   {
     id: 2,
     name: 'Mike Chen',
-    initials: 'MC',
     status: 'Confirmed',
-    statusColor: '#90EE90',
     service: 'Sound System',
     location: 'Downtown',
     time: '2 hours ago',
@@ -236,9 +341,7 @@ const data = [
   {
     id: 3,
     name: 'Chen',
-    initials: 'MC',
     status: 'Confirmed',
-    statusColor: '#FFB6C1',
     service: 'Sound System',
     location: 'Downtown',
     time: '2 hours ago',

@@ -48,18 +48,8 @@ const Home = ({navigation}) => {
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [otherSaleItems, setOtherSaleItems] = useState([]);
 
-  console.log(
-    otherSaleItems,
-    'otherSaleItemsotherSaleItemsotherSaleItemsotherSaleItems',
-  );
-
-  const {
-    categories,
-    subCategories,
-    fetchCategories,
-    fetchSubCategories,
-    setCategories,
-  } = useCategories();
+  const {categories, subCategories, fetchCategories, fetchSubCategories} =
+    useCategories();
 
   useEffect(() => {
     loadInitialData();

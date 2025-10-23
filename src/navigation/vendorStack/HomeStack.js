@@ -1,11 +1,14 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
-import Dashboard from '../../containers/vendor/app/Dashboard';
-import Notification from '../../containers/vendor/app/Notification';
+import AllRecentBookings from '../../containers/vendor/app/AllRecentBookings';
+import AllRecentClients from '../../containers/vendor/app/AllRecentClients';
 import AnalyticsReport from '../../containers/vendor/app/AnalyticsScreen';
+import Dashboard from '../../containers/vendor/app/Dashboard';
 import Messages from '../../containers/vendor/app/Messages';
+import Notification from '../../containers/vendor/app/Notification';
 import NotificationDetails from '../../containers/vendor/app/NotificationDetails';
-import ChatDetails from '../../containers/vendor/app/ChatDetails';
+import BookingDetails from '../../containers/vendor/app/BookingDetails';
+import TrackingBookingDetails from '../../containers/vendor/app/TrackBooking';
 
 const Stack = createStackNavigator();
 
@@ -22,6 +25,34 @@ const HomeStack = () => {
         component={Dashboard}
         options={{
           title: 'Dashboard',
+        }}
+      />
+      <Stack.Screen
+        name="TrackingBookingDetails"
+        component={TrackingBookingDetails}
+        options={{
+          title: 'TrackingBookingDetails',
+        }}
+      />
+      <Stack.Screen
+        name="BookingDetails"
+        component={BookingDetails}
+        options={{
+          title: 'BookingDetails',
+        }}
+      />
+      <Stack.Screen
+        name="AllRecentBookings"
+        component={AllRecentBookings}
+        options={{
+          title: 'AllRecentBookings',
+        }}
+      />
+      <Stack.Screen
+        name="AllRecentClients"
+        component={AllRecentClients}
+        options={{
+          title: 'AllRecentClients',
         }}
       />
       <Stack.Screen

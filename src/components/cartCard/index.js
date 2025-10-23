@@ -7,8 +7,6 @@ import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 
 const CartCard = ({item, onBookNow, onRemoveItemFromCart}) => {
-  console.log(item, 'itemitemitemitemitemitem131213sdfsdf');
-
   let imageData =
     item?.listingId?.images?.[0] || item?.listingDetails?.images?.[0] || '';
 

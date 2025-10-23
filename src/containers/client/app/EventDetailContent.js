@@ -145,10 +145,16 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
       const range = [];
       let curr = moment(newStartDate);
       while (curr.isSameOrBefore(newEndDate)) {
-        range.push(curr.format('YYYY-MM-DD'));
+        const currDayName = curr.format('ddd').toLowerCase();
+        const currDateStr = curr.format('YYYY-MM-DD');
+        // Only push if this date is in availableDays
+        if (availableDays.includes(currDayName)) {
+          range.push(currDateStr);
+        }
         curr.add(1, 'day');
       }
 
+      // Highlight only available days
       range.forEach(d => {
         if (updatedMarked[d] && !updatedMarked[d].disabled) {
           updatedMarked[d] = {
@@ -161,13 +167,16 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         }
       });
     } else if (newStartDate && !newEndDate) {
-      updatedMarked[newStartDate] = {
-        ...updatedMarked[newStartDate],
-        customStyles: {
-          container: {backgroundColor: '#FF295D', borderRadius: 5},
-          text: {color: '#fff', fontWeight: 'bold'},
-        },
-      };
+      const startDayName = moment(newStartDate).format('ddd').toLowerCase();
+      if (availableDays.includes(startDayName)) {
+        updatedMarked[newStartDate] = {
+          ...updatedMarked[newStartDate],
+          customStyles: {
+            container: {backgroundColor: '#FF295D', borderRadius: 5},
+            text: {color: '#fff', fontWeight: 'bold'},
+          },
+        };
+      }
     }
 
     setMarkedDates(updatedMarked);
@@ -301,20 +310,22 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         let params = {
           listingId: listingId?.listingId,
           tempDetails: {
+            contactPreference: 'email',
             startDate: listingId?.startDate,
             endDate: listingId?.endDate,
             eventLocation: listingId?.eventLocation,
             specialRequests: listingId?.specialRequests,
             distanceKm: listingId?.distanceKm,
-            evenlyoProtect: listingId?.evenlyoProtect,
+            evenyloProtect: listingId?.evenlyoProtect,
             startTime: listingId?.startTime,
             endTime: listingId?.endTime,
           },
         };
+
+        const finalPayload = listingId?.listingId ? params : payload;
+
         setIsLoadding(true);
-        const response = await listingAddToCart(
-          listingId?.listingId ? params : payload,
-        );
+        const response = await listingAddToCart(finalPayload);
 
         setIsLoadding(false);
         if (response.status == 200 || response.status == 201) {

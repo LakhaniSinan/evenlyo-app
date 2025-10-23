@@ -100,7 +100,7 @@ const CardContent = ({item, isDark = false}) => {
           fontSize: 10,
           color: isDark ? COLORS.white : COLORS.textDark,
         }}>
-        {`+${item?.percentage}% from last month`}
+        {`+${item?.percentage || 0}% from last month`}
       </Text>
     </>
   );

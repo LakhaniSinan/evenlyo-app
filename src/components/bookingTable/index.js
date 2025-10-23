@@ -7,20 +7,23 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import ReportingModal from '../modals/ReportingModal';
 
 const BookingTable = ({data, canDownload}) => {
   const [modalVisible, setModalVisible] = useState(false);
-
+  const asdasd = {
+    trackingId: 'TRK1760955026225EVEJL5P3R',
+    listingName: 'Event Photography and Video Coverage',
+    totalCost: 12992,
+  };
   const renderItem = ({item}) => (
     <View style={styles.row}>
-      <Text style={styles.cell}>{item.bookingId}</Text>
-      <Text style={styles.cell}>{item.bookingItem}</Text>
-      <Text style={styles.cell}>{item.totalCost}</Text>
-      <Text style={[styles.cell, styles.earning]}>{item.earning}</Text>
+      <Text style={styles.cell}>{item.trackingId}</Text>
+      <Text style={styles.cell}>{item.listingName}</Text>
+      <Text style={styles.cell}>${item.totalCost}</Text>
+      {/* <Text style={[styles.cell, styles.earning]}>{item.earning}</Text> */}
       {canDownload && (
         <TouchableOpacity
           style={styles.cell}
@@ -43,7 +46,7 @@ const BookingTable = ({data, canDownload}) => {
           <Text style={styles.headerCell}>Booking Id</Text>
           <Text style={styles.headerCell}>Booking Item</Text>
           <Text style={styles.headerCell}>Total Cost</Text>
-          <Text style={styles.headerCell}>Earning</Text>
+          {/* <Text style={styles.headerCell}>Earning</Text> */}
           {canDownload && <Text style={styles.headerCell}></Text>}
         </View>
 
@@ -60,6 +63,7 @@ const BookingTable = ({data, canDownload}) => {
 
       {/* Modal */}
       <ReportingModal
+        data={data}
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
       />
@@ -80,8 +84,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
   },
-  scrollContainer: {
-  },
+  scrollContainer: {},
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
