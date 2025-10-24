@@ -1,16 +1,24 @@
+import moment from 'moment';
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
-import moment from 'moment'; // ✅ Import moment
-import {COLORS, fontFamly} from '../../constants';
 import {ICONS} from '../../assets';
+import {COLORS, fontFamly} from '../../constants';
+
+const statusColors = {
+  pending: '#FFA500', // Orange
+  accepted: '#32CD32', // Green
+  rejected: '#FF4C4C', // Red
+  completed: '#0080FF', // Blue
+  default: '#808080', // Gray
+};
 
 const timeSlots = [
   '07:00 am',
@@ -31,16 +39,20 @@ const timeSlots = [
   '10:00 pm',
 ];
 
-const events = [
-  {title: 'New Requests', start: '08:00 am', end: '08:30 am', color: '#FF69B4'},
-  {title: 'Reject', start: '10:30 am', end: '03:45 pm', color: '#FF4C4C'},
-  {title: 'In Progress', start: '04:00 pm', end: '04:30 pm', color: '#FFA500'},
-  {title: 'Completed', start: '09:00 pm', end: '09:30 pm', color: '#32CD32'},
-];
-
-function DailyCalendar({onEventPress, selectedDate, goBack}) {
+function DailyCalendar({
+  listingCartData = [],
+  onEventPress,
+  selectedDate,
+  goBack,
+}) {
+  const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
   const dayName = moment(selectedDate).format('dddd');
-  const formattedDate = moment(selectedDate).format('DD/MM/YYYY');
+  const showDate = moment(selectedDate).format('DD/MM/YYYY');
+
+  // ✅ Filter bookings based on selected date
+  const filteredBookings = listingCartData.filter(
+    item => moment(item.startDate).format('YYYY-MM-DD') === formattedDate,
+  );
 
   return (
     <View style={styles.container}>
@@ -56,36 +68,50 @@ function DailyCalendar({onEventPress, selectedDate, goBack}) {
           </TouchableOpacity>
           <Text style={styles.dayText}>{dayName}</Text>
         </View>
-        <Text style={styles.dateText}>{formattedDate}</Text>
+        <Text style={styles.dateText}>{showDate}</Text>
       </View>
 
       {/* Time Slots */}
       <ScrollView style={{flex: 1}}>
         {timeSlots.map((slot, index) => {
-          const slotEvents = events.filter(event =>
-            event.start.startsWith(slot),
+          // ✅ Match bookings only by startTime
+          const slotEvents = filteredBookings.filter(event =>
+            event?.startTime?.startsWith(slot.split(' ')[0]),
           );
+
           return (
             <View key={index} style={styles.timeRow}>
               <Text style={styles.timeText}>{slot}</Text>
               <View style={styles.eventContainer}>
-                {slotEvents.map((event, i) => (
-                  <TouchableOpacity
-                    key={i}
-                    activeOpacity={0.7}
-                    onPress={() => onEventPress && onEventPress(event)}
-                    style={[
-                      styles.eventBox,
-                      {
-                        backgroundColor: event.color + '20',
-                        borderColor: event.color,
-                      },
-                    ]}>
-                    <Text style={[styles.eventTitle, {color: event.color}]}>
-                      {event.title} {event.start} to {event.end}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {slotEvents.length > 0 &&
+                  slotEvents.map((event, i) => {
+                    const color =
+                      statusColors[event?.status?.toLowerCase()] ||
+                      statusColors.default;
+                    return (
+                      <TouchableOpacity
+                        key={i}
+                        activeOpacity={0.8}
+                        onPress={() => onEventPress && onEventPress(event)}
+                        style={[
+                          styles.eventBox,
+                          {backgroundColor: color + '20', borderColor: color},
+                        ]}>
+                        <Text style={[styles.eventTitle, {color}]}>
+                          {event?.title?.en || 'Untitled'} — {event?.status}
+                        </Text>
+
+                        {/* ✅ Show only startTime now */}
+                        <Text style={[styles.eventTime, {color}]}>
+                          {event?.startTime || 'N/A'}
+                        </Text>
+
+                        <Text style={styles.location}>
+                          📍 {event?.location || 'Unknown'}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
               </View>
             </View>
           );
@@ -117,9 +143,9 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ddd',
   },
   dayText: {
-    fontSize: 13,
-    fontWeight: fontFamly.PlusJakartaSansSemiBold,
-    color: COLORS.textLight,
+    fontSize: 14,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
+    color: COLORS.textDark,
     marginLeft: width(2),
   },
   dateText: {
@@ -136,6 +162,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: width(3),
   },
   timeText: {
+    color: COLORS.textLight,
     width: width(20),
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
     fontSize: 10,
@@ -146,21 +173,22 @@ const styles = StyleSheet.create({
   },
   eventBox: {
     borderWidth: 1,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 100,
-    marginBottom: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginBottom: 6,
   },
   eventTitle: {
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
   eventTime: {
     fontSize: 10,
-    fontWeight: '500',
-    marginTop: 2,
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+  },
+  location: {
+    fontSize: 9,
+    color: '#666',
+    fontFamily: fontFamly.PlusJakartaSansMedium,
   },
 });

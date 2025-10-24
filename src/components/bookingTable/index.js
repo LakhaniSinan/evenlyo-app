@@ -12,12 +12,10 @@ import {COLORS, fontFamly} from '../../constants';
 import ReportingModal from '../modals/ReportingModal';
 
 const BookingTable = ({data, canDownload}) => {
+  console.log(data, 'datadatadatadatadatadataasndlkasndlsandlasndlasnd');
+
   const [modalVisible, setModalVisible] = useState(false);
-  const asdasd = {
-    trackingId: 'TRK1760955026225EVEJL5P3R',
-    listingName: 'Event Photography and Video Coverage',
-    totalCost: 12992,
-  };
+
   const renderItem = ({item}) => (
     <View style={styles.row}>
       <Text style={styles.cell}>{item.trackingId}</Text>
@@ -53,7 +51,7 @@ const BookingTable = ({data, canDownload}) => {
         {/* Scrollable Table Body */}
         <View style={styles.scrollContainer}>
           <FlatList
-            data={data}
+            data={data?.bookingTable || []}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderItem}
             showsVerticalScrollIndicator={false}

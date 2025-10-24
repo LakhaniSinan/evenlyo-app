@@ -57,6 +57,7 @@ export const endPoints = {
   //Booking Actions
   rejectBooking: '/vendor/bookings',
   acceptBooking: '/vendor/bookings',
+  bookingByStatus: '/booking/request-by-status',
 
   //Analytics
   bookingAnalytics: '/vendor/bookings/analytics',

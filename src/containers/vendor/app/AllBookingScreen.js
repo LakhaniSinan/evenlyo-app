@@ -1,9 +1,12 @@
 import {useNavigation} from '@react-navigation/native';
-import dayjs from 'dayjs';
-import React, {useRef, useState} from 'react';
+import moment from 'moment';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   FlatList,
   Image,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   Text,
@@ -12,124 +15,163 @@ import {
 } from 'react-native';
 import {Calendar} from 'react-native-calendars';
 import {width} from 'react-native-dimension';
-import LinearGradient from 'react-native-linear-gradient';
 import {ICONS} from '../../../assets';
 import AllBookingCard from '../../../components/allBookingCard';
 import AppHeader from '../../../components/appHeader';
-import CustomPicker from '../../../components/customPicker';
 import BookingFilterModal from '../../../components/modals/BookingFilterModal';
 import DailyCalendar from '../../../components/timeChart';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {getBookingAnalytics} from '../../../services/BookingItem';
 
-const getDashboardData = t => [
-  {
-    title: t('Total Bookings'),
-    icon: ICONS.groupIcon,
-    value: 10,
-    percentage: 12,
-  },
-  {
-    title: t('Total Items'),
-    icon: ICONS.whiteCartIcon,
-    value: 3,
-    percentage: 10,
-  },
-  {
-    title: t('Request Bookings'),
-    icon: ICONS.checkIcon,
-    value: 7,
-    percentage: 10,
-  },
-  {
-    title: t('In Process'),
-    icon: ICONS.earningIcon,
-    value: 10,
-    percentage: 10,
-  },
-];
+const countBookingsByStatus = (bookings = []) => {
+  const statusCounts = {
+    pending: 0,
+    accepted: 0,
+    rejected: 0,
+    claim: 0,
+    'on the way': 0,
+    received: 0,
+    finished: 0,
+    'picked up': 0,
+    'received back': 0,
+    complete: 0,
+  };
 
-const statusData = [
-  {
-    title: 'Completed',
-    value: 80,
-  },
-  {
-    title: 'New Requests',
-    value: 20,
-  },
-  {
-    title: 'In Progress',
-    value: 10,
-  },
-  {
-    title: 'Delivered',
-    value: 10,
-  },
-  {
-    title: 'Received',
-    value: 69,
-  },
-];
+  bookings.forEach(item => {
+    const status = item?.status?.trim()?.toLowerCase();
+    if (status && statusCounts.hasOwnProperty(status)) {
+      statusCounts[status] += 1;
+    }
+  });
 
-export const ViewMoreButton = ({onPress, heading}) => {
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: width(4),
-      }}>
-      <Text
-        style={{
-          fontFamily: fontFamly.PlusJakartaSansBold,
-          color: COLORS.textDark,
-          fontSize: 12,
-        }}>
-        {heading}
-      </Text>
-      <TouchableOpacity onPress={onPress}>
-        <Text
-          style={{
-            fontSize: 10,
-            marginTop: width(1),
-            color: COLORS.primary,
-            textDecorationColor: 'underline',
-            fontFamily: fontFamly.PlusJakartaSansSemiBold,
-          }}>
-          View All
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
+  return statusCounts;
+};
+
+const getStatusData = counts => {
+  return Object.entries(counts).map(([key, value]) => ({
+    title: key.charAt(0).toUpperCase() + key.slice(1).replaceAll('-', ' '),
+    value,
+  }));
 };
 
 function AllBookingScreen() {
   const navigation = useNavigation();
   const {t} = useTranslation();
-  const selectSizeRef = useRef();
-  const [filterType, setFilterType] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
-  const [markedDates, setMarkedDates] = useState({});
-  const gradientColors = ['#FF295D', '#E31B95', '#C817AE'];
-  console.log(selectedDate, 'selectedDateselectedDate');
+  const [listingCartData, setListingCartData] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [statusData, setStatusData] = useState([]);
 
-  const handleSelectValue = (name, value) => {
-    setFilterType(value?.name || value);
-  };
+  const handleGetCartListing = useCallback(async () => {
+    try {
+      setRefreshing(true);
+      setLoading(true);
+
+      const response = await getBookingAnalytics();
+      console.log(response, 'responseresponseresponseresponse');
+
+      if (response?.status === 200 || response?.status === 201) {
+        const bookings = response?.data?.bookings || [];
+
+        const filteredBookings = bookings.filter(
+          item => item?.status && item?.startDate,
+        );
+
+        setListingCartData(filteredBookings);
+
+        const counts = countBookingsByStatus(filteredBookings);
+        const formattedStatusData = getStatusData(counts);
+        setStatusData(formattedStatusData);
+      } else {
+        console.log('Fetch failed:', response?.data?.message);
+      }
+    } catch (error) {
+      console.log('Error fetching bookings:', error);
+    } finally {
+      setRefreshing(false);
+      setLoading(false);
+    }
+  }, []);
+
+  const getDashboardData = t => [
+    {
+      title: t('Total Bookings'),
+      icon: ICONS.groupIcon,
+      value: 10,
+      percentage: 12,
+    },
+    {
+      title: t('Total Items'),
+      icon: ICONS.whiteCartIcon,
+      value: 3,
+      percentage: 10,
+    },
+    {
+      title: t('Request Bookings'),
+      icon: ICONS.checkIcon,
+      value: 7,
+      percentage: 10,
+    },
+    {
+      title: t('In Process'),
+      icon: ICONS.earningIcon,
+      value: 10,
+      percentage: 10,
+    },
+  ];
+  useEffect(() => {
+    handleGetCartListing();
+  }, [handleGetCartListing]);
+
+  const markedDates = useMemo(() => {
+    const marks = {};
+    listingCartData.forEach(item => {
+      const start = moment(item.startDate).format('YYYY-MM-DD');
+      marks[start] = {
+        selected: true,
+        selectedColor: COLORS.primary,
+        customStyles: {
+          container: {
+            backgroundColor: COLORS.primary,
+            borderRadius: 8,
+          },
+          text: {
+            color: '#fff',
+            fontWeight: 'bold',
+          },
+        },
+      };
+    });
+    return marks;
+  }, [listingCartData]);
 
   const handleDaySelect = day => {
-    const formattedDate = dayjs(day.dateString).format('DD-MM-YYYY');
-    setSelectedDate(formattedDate);
-
-    setMarkedDates({
-      [day.dateString]: {
-        selected: true,
-      },
-    });
+    const dateStr = day.dateString;
+    if (markedDates[dateStr]) {
+      setSelectedDate(dateStr);
+      const booking = listingCartData.find(
+        b => moment(b.startDate).format('YYYY-MM-DD') === dateStr,
+      );
+      Alert.alert('Booking Selected', booking?.title?.en || 'Booking found');
+    } else {
+      Alert.alert('Not Allowed', 'You can only select booked start dates.');
+    }
   };
+
+  const onRefresh = useCallback(() => {
+    handleGetCartListing();
+  }, [handleGetCartListing]);
+
+  if (loading) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
@@ -137,23 +179,22 @@ function AllBookingScreen() {
         headingText={'All Bookings'}
         leftIcon={ICONS.drawerIcon}
         rightIcon={ICONS.notificationIcon}
-        onLeftIconPress={() => {
-          navigation.openDrawer();
-        }}
-        onRightIconPress={() => {
-          navigation.navigate('Notifications');
-        }}
+        onLeftIconPress={() => navigation.openDrawer()}
+        onRightIconPress={() => navigation.navigate('Notifications')}
       />
-      <ScrollView style={{flex: 1}} showsVerticalScrollIndicator={false}>
+
+      <ScrollView
+        style={{flex: 1}}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
         <FlatList
           data={getDashboardData(t)}
           numColumns={2}
-          renderItem={({item, index}) => {
-            return <AllBookingCard item={item} />;
-          }}
-          contentContainerStyle={{
-            padding: width(3),
-          }}
+          renderItem={({item}) => <AllBookingCard item={item} />}
+          keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={{padding: width(3)}}
           columnWrapperStyle={{
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -163,32 +204,10 @@ function AllBookingScreen() {
         <View
           style={{
             flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-end',
             marginTop: width(3),
             paddingHorizontal: width(4),
           }}>
-          <View style={{width: width(40)}}>
-            <CustomPicker
-              ref={selectSizeRef}
-              labelll={'By Week'}
-              value={filterType || 'Select'}
-              dropdownContainerStyle={{
-                backgroundColor: COLORS.backgroundLight,
-                paddingVertical: width(3),
-                borderRadius: 6,
-              }}
-              listData={[
-                {name: 'Today'},
-                {name: 'Weekly'},
-                {name: 'Monthly'},
-                {name: '6Monthly'},
-                {name: 'Yearly'},
-              ]}
-              name="filterType"
-              handleSelectValue={handleSelectValue}
-            />
-          </View>
           <TouchableOpacity
             onPress={() => setModalVisible(true)}
             style={{
@@ -219,48 +238,17 @@ function AllBookingScreen() {
 
         {!selectedDate ? (
           <Calendar
-            minDate={dayjs().format('YYYY-MM-DD')}
             onDayPress={handleDaySelect}
             markingType="custom"
             markedDates={markedDates}
-            dayComponent={({date, state}) => {
-              const isSelected = markedDates[date.dateString];
-              return (
-                <TouchableOpacity onPress={() => handleDaySelect(date)}>
-                  {isSelected ? (
-                    <LinearGradient
-                      colors={gradientColors}
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 100,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}>
-                      <Text style={{color: '#fff', fontWeight: 'bold'}}>
-                        {date.day}
-                      </Text>
-                    </LinearGradient>
-                  ) : (
-                    <Text
-                      style={{
-                        textAlign: 'center',
-                        color: state === 'disabled' ? '#ccc' : '#000',
-                        padding: 10,
-                      }}>
-                      {date.day}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              );
-            }}
             theme={{
-              todayTextColor: 'red',
-              arrowColor: 'blue',
+              todayTextColor: COLORS.primary,
+              arrowColor: COLORS.primary,
             }}
           />
         ) : (
           <DailyCalendar
+            listingCartData={listingCartData}
             goBack={() => setSelectedDate('')}
             selectedDate={selectedDate}
             onEventPress={event =>
@@ -269,63 +257,70 @@ function AllBookingScreen() {
           />
         )}
 
-        {statusData.map((item, index) => {
-          return (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('BookingsByStatus', item)}
-              key={index}
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                height: width(12),
-                backgroundColor: COLORS.backgroundLight,
-                marginTop: width(4),
-                paddingHorizontal: width(3),
-                marginHorizontal: width(4),
-                borderRadius: width(3),
-              }}>
-              <View
+        <Text
+          style={{
+            fontSize: 18,
+            fontFamily: fontFamly.PlusJakartaSansSemiBold,
+            color: COLORS.textDark,
+            marginHorizontal: width(4),
+            marginTop: width(5),
+            marginBottom: width(2),
+          }}>
+          Booking Status Summary
+        </Text>
+
+        {statusData.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            onPress={() => navigation.navigate('BookingsByStatus', item)}
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              height: width(12),
+              backgroundColor: COLORS.backgroundLight,
+              marginTop: width(2),
+              paddingHorizontal: width(3),
+              marginHorizontal: width(4),
+              borderRadius: width(3),
+            }}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <Text
                 style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
+                  color: COLORS.textDark,
+                  fontSize: 14,
+                  fontFamily: fontFamly.PlusJakartaSansSemiBold,
                 }}>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontFamily: fontFamly.PlusJakartaSansSemiBold,
-                  }}>
-                  {item?.title}
-                </Text>
-                <Text
-                  style={{
-                    marginLeft: width(1),
-                    fontSize: 13,
-                    color: COLORS.textLight,
-                    fontFamily: fontFamly.PlusJakartaSansSemiBold,
-                  }}>
-                  ({item.value})
-                </Text>
-              </View>
-              <Image
-                source={ICONS.arrowRight}
-                style={{height: 12, width: 12}}
-                resizeMode="contain"
-                tintColor={COLORS.semiLightText}
-              />
-            </TouchableOpacity>
-          );
-        })}
+                {item.title}
+              </Text>
+              <Text
+                style={{
+                  marginLeft: width(1),
+                  fontSize: 13,
+                  color: COLORS.textLight,
+                  fontFamily: fontFamly.PlusJakartaSansSemiBold,
+                }}>
+                ({item.value})
+              </Text>
+            </View>
+            <Image
+              source={ICONS.arrowRight}
+              style={{height: 12, width: 12}}
+              resizeMode="contain"
+              tintColor={COLORS.semiLightText}
+            />
+          </TouchableOpacity>
+        ))}
+
         <View style={{height: width(5)}} />
       </ScrollView>
 
-      {/* Filter Modal */}
       <BookingFilterModal
         isVisible={modalVisible}
-        onClose={() => setModalVisible()}
+        onClose={() => setModalVisible(false)}
       />
     </SafeAreaView>
   );
 }
 
-export default AllBookingScreen;
+export default React.memo(AllBookingScreen);

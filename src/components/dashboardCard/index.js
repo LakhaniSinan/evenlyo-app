@@ -10,7 +10,7 @@ const DashboardCard = ({item}) => {
     <View
       style={{
         width: width(45),
-        height: 83,
+        height: 60,
         marginTop: width(3),
         borderRadius: width(3),
         overflow: 'hidden',
@@ -93,14 +93,6 @@ const CardContent = ({item, isDark = false}) => {
           color: isDark ? COLORS.white : COLORS.textDark,
         }}>
         {item?.value}
-      </Text>
-      <Text
-        style={{
-          fontFamily: fontFamly.PlusJakartaSansSemiBold,
-          fontSize: 10,
-          color: isDark ? COLORS.white : COLORS.textDark,
-        }}>
-        {`+${item?.percentage || 0}% from last month`}
       </Text>
     </>
   );

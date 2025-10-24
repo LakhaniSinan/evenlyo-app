@@ -1,29 +1,182 @@
-import React from 'react';
+import moment from 'moment';
+import React, {useRef} from 'react';
 import {
   FlatList,
   Modal,
+  Platform,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
+import RNFS from 'react-native-fs';
+import {generatePDF} from 'react-native-html-to-pdf';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import BookingTable from '../bookingTable';
 import GradientButton from '../button';
+import CommonAlert from '../commanAlert';
 import GradientText from '../gradiantText';
 
 const ReportingModal = ({data, visible, onClose}) => {
   const {t} = useTranslation();
-  const handleDownloadPDF = () => {};
+  const modalRef = useRef(null);
   const earningsData = [
-    {label: 'Report Date:', value: '1/15/2024'},
-    {label: 'Today Earning:', value: '$2,450'},
-    {label: 'Last Week Earning:', value: '$18,500'},
-    {label: 'Total Earning:', value: '$125,000'},
+    {label: 'Report Date:', value: moment().format('MMMM D, YYYY')},
+    {label: 'Today Earning:', value: `$${data?.stats?.todayEarnings || 0}`},
+    {
+      label: 'Last Week Earning:',
+      value: `$${data?.stats?.lastWeekEarnings || 0}`,
+    },
+    {label: 'Total Earning:', value: `$${data?.stats?.totalEarnings || 0}`},
   ];
+
+  // ✅ Function to generate and download PDF
+  const handleDownloadPDF = async () => {
+    try {
+      const timeStamp = moment().format('YYYYMMDD_HHmmss');
+
+      const htmlContent = `
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 40px;
+        color: #000;
+        font-size: 13px;
+      }
+      h1 {
+        text-align: center;
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+      .report-date {
+        margin-bottom: 30px;
+      }
+      .report-date span {
+        font-weight: bold;
+      }
+      h3 {
+        margin-top: 25px;
+        margin-bottom: 10px;
+        font-size: 15px;
+      }
+      .earnings {
+        margin-bottom: 25px;
+        line-height: 1.8;
+      }
+      .earnings div {
+        font-size: 13px;
+      }
+      .table-container {
+        margin-top: 10px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        border: 1px solid #000;
+        padding: 8px;
+        text-align: left;
+        font-size: 12px;
+      }
+      th {
+        font-weight: bold;
+      }
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Analytics & Report</h1>
+
+    <div class="report-date">
+      <span>Report Date:</span> ${moment().format('MM/DD/YYYY')}
+    </div>
+
+    <h3>Earnings Summary</h3>
+    <div class="earnings">
+      <div>Today Earning: $${data?.stats?.todayEarnings || 0}</div>
+      <div>Last Week Earning: $${data?.stats?.lastWeekEarnings || 0}</div>
+      <div>Total Earning: $${data?.stats?.totalEarnings || 0}</div>
+    </div>
+
+    <h3>Booking Details</h3>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Booking ID</th>
+            <th>Booking Item</th>
+            <th>Total Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data?.bookingTable
+            ?.map(
+              item => `
+              <tr>
+                <td>${item?.trackingId || '-'}</td>
+                <td>${item?.listingName || '-'}</td>
+                <td>$${item?.totalCost || 0}</td>
+              </tr>
+            `,
+            )
+            .join('')}
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>
+`;
+
+      const pdf = await generatePDF({
+        html: htmlContent,
+        fileName: `Report_${timeStamp}`,
+        directory: 'Documents',
+      });
+
+      if (Platform.OS === 'android') {
+        const folderPath = RNFS.DownloadDirectoryPath;
+        const fileName = `Report_${timeStamp}.pdf`;
+        const destinationPath = `${folderPath}/${fileName}`;
+
+        if (!(await RNFS.exists(folderPath))) {
+          await RNFS.mkdir(folderPath);
+        }
+
+        await RNFS.copyFile(pdf.filePath, destinationPath);
+        modalRef.current?.show({
+          status: 'ok',
+          message: 'PDF saved to Downloads folder.',
+          handlePressOk: () => {
+            modalRef.current?.hide();
+            setTimeout(() => {
+              onClose();
+            }, 500);
+          },
+        });
+        console.log('Saved to Android Downloads:', destinationPath);
+      } else {
+        const destinationPath = `${RNFS.DocumentDirectoryPath}/Report_${timeStamp}.pdf`;
+        await RNFS.moveFile(pdf.filePath, destinationPath);
+
+        await Share.share({
+          url: `file://${destinationPath}`,
+          type: 'application/pdf',
+          title: 'Share your Report PDF',
+        });
+      }
+    } catch (error) {
+      console.log('PDF Error:', error);
+    }
+  };
 
   const renderEarningItem = ({item}) => (
     <View style={styles.earningRow}>
@@ -43,7 +196,6 @@ const ReportingModal = ({data, visible, onClose}) => {
         activeOpacity={1}
         onPress={onClose}>
         <View style={styles.modalContainer}>
-          {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>{t('Analytics & Report')}</Text>
             <TouchableOpacity onPress={onClose}>
@@ -51,9 +203,7 @@ const ReportingModal = ({data, visible, onClose}) => {
             </TouchableOpacity>
           </View>
 
-          {/* Body */}
           <View style={styles.body}>
-            {/* Earnings Info */}
             <View style={styles.cardRow}>
               <FlatList
                 data={earningsData}
@@ -62,7 +212,6 @@ const ReportingModal = ({data, visible, onClose}) => {
               />
             </View>
 
-            {/* Booking Table */}
             <View style={{minHeight: width(60)}}>
               <BookingTable data={data} canDownload={false} />
             </View>
@@ -76,6 +225,7 @@ const ReportingModal = ({data, visible, onClose}) => {
           </View>
         </View>
       </TouchableOpacity>
+      <CommonAlert ref={modalRef} />
     </Modal>
   );
 };

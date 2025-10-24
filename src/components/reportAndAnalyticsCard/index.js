@@ -11,7 +11,7 @@ const AnalyticsCard = ({item}) => {
     <View
       style={{
         width: width(45),
-        height: 83,
+        height: 65,
         borderRadius: width(3),
         overflow: 'hidden',
         backgroundColor: '#fff',
@@ -95,14 +95,6 @@ const CardContent = ({item, isDark = false}) => {
           color: isDark ? COLORS.white : COLORS.textDark,
         }}>
         {item?.value}
-      </Text>
-      <Text
-        style={{
-          fontFamily: fontFamly.PlusJakartaSansSemiBold,
-          fontSize: 10,
-          color: isDark ? COLORS.white : COLORS.textDark,
-        }}>
-        {`+${item?.percentage}% from last month`}
       </Text>
     </>
   );

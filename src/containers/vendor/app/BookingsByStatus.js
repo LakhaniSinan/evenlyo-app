@@ -1,7 +1,9 @@
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Image,
+  RefreshControl,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -9,82 +11,147 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
-import LinearGradient from 'react-native-linear-gradient';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import {COLORS, fontFamly} from '../../../constants';
-import {ALL_ITEMS} from './DummyData';
+import {
+  getBookingAnalytics,
+  getBookingByStatus,
+} from '../../../services/BookingItem';
+import {useTranslation} from '../../../hooks';
+import {useSelector} from 'react-redux';
+import moment from 'moment';
 
 const TABS = ['Booking Items', 'Sale Items'];
 
-const TabButton = ({tab, isActive, onPress}) =>
-  isActive ? (
-    <LinearGradient
-      colors={['#FF295D', '#E31B95', '#C817AE']}
-      start={{x: 0, y: 0}}
-      end={{x: 0, y: 1}}
-      style={styles.activeTab}>
-      <Text style={styles.activeText}>{tab}</Text>
-    </LinearGradient>
-  ) : (
-    <TouchableOpacity style={styles.inactiveTab} onPress={onPress}>
-      <Text style={styles.inactiveText}>{tab}</Text>
-    </TouchableOpacity>
-  );
+const TabButton = ({tab, isActive, onPress}) => (
+  <TouchableOpacity
+    style={[styles.tabButton, isActive && styles.activeTab]}
+    onPress={onPress}>
+    <Text style={[styles.tabText, isActive && styles.activeText]}>{tab}</Text>
+  </TouchableOpacity>
+);
+
 const BookingsByStatus = ({navigation, route}) => {
+  const {t, currentLanguage} = useTranslation();
   const {title} = route.params;
   const [activeTab, setActiveTab] = useState(TABS[0]);
+  const [listingCartData, setListingCartData] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const {user} = useSelector(state => state.LoginSlice);
 
-  const BookingCard = ({item}) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() =>
-        navigation.navigate('BookingDetails', {...item, tab: activeTab})
-      }>
-      <View style={styles.cardImageWrapper}>
-        <Image
-          source={item.image}
-          resizeMode="cover"
-          style={styles.cardImage}
-        />
-      </View>
-      <View style={styles.cardDetails}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.organizer}>{item.organizer}</Text>
-          <View
-            style={[styles.statusWrapper, {backgroundColor: item.statusColor}]}>
-            <Text style={[styles.statusText, {color: item.statusTextColor}]}>
-              {item.status}
+  const handleGetCartListing = useCallback(async () => {
+    try {
+      setRefreshing(true);
+      setLoading(true);
+
+      const response = await getBookingByStatus({
+        status: title.toLowerCase(),
+        vendorId: user?.vendorId,
+      });
+      console.log(response, 'responseresponseresponseresponse');
+
+      if (response?.status === 200 || response?.status === 201) {
+        let data = response?.data?.data || [];
+        setListingCartData(data);
+      } else {
+        console.log('Fetch failed:', response?.data?.message);
+      }
+    } catch (error) {
+      console.log('Error fetching bookings:', error);
+    } finally {
+      setRefreshing(false);
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    handleGetCartListing();
+  }, [handleGetCartListing]);
+
+  const onRefresh = useCallback(() => {
+    handleGetCartListing();
+  }, [handleGetCartListing]);
+
+  const BookingCard = ({item}) => {
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() =>
+          navigation.navigate('BookingDetails', {...item, tab: activeTab})
+        }>
+        <View style={styles.cardImageWrapper}>
+          <Image
+            source={{
+              uri: item?.listingDetails?.images[0] || '',
+            }}
+            resizeMode="cover"
+            style={styles.cardImage}
+          />
+        </View>
+
+        {/* 📄 Card Details */}
+        <View style={styles.cardDetails}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.organizer}>
+              {item?.customer || 'Unknown Customer'}
+            </Text>
+
+            <View
+              style={[
+                styles.statusWrapper,
+                {
+                  backgroundColor:
+                    item?.status?.toLowerCase() === 'completed'
+                      ? COLORS.green
+                      : item?.status?.toLowerCase() === 'pending'
+                      ? COLORS.orange
+                      : COLORS.primaryLight,
+                },
+              ]}>
+              <Text style={styles.statusText}>
+                {item?.status?.charAt(0).toUpperCase() + item?.status?.slice(1)}
+              </Text>
+            </View>
+          </View>
+
+          {/* 🏷️ Title */}
+          <Text style={styles.title}>
+            {currentLanguage == 'en'
+              ? item?.listingDetails?.title?.en
+              : item?.listingDetails?.title?.nl || 'Untitled'}
+          </Text>
+
+          {/* 📍 Location */}
+          <Text style={styles.bookingId}>
+            Location:{' '}
+            {item?.listingDetails?.location?.fullAddress || 'Not specified'}
+          </Text>
+
+          {/* 🧾 Tracking ID */}
+          <Text style={styles.bookingId}>
+            Booking ID: {item?.trackingId || 'N/A'}
+          </Text>
+
+          {/* 🗓️ Dates */}
+          <View style={styles.dateTimeWrapper}>
+            <Text style={styles.dateTime}>
+              Start: {moment(item?.details?.startDate).format('MMMM DD, YYYY')}
             </Text>
           </View>
         </View>
-        <Text style={styles.title}>{item.title}</Text>
-        {item?.type == 'Sale' ? (
-          <Text style={styles.bookingId}>
-            With over 7 years of event experience, DJ Ray...
-          </Text>
-        ) : (
-          <Text style={styles.bookingId}>Booking ID: {item.bookingId}</Text>
-        )}
-        <View
-          style={[
-            styles.dateTimeWrapper,
-            {marginTop: item?.type == 'Sale' ? width(5) : width(8)},
-          ]}>
-          <Text style={styles.dateTime}>Date: {item.date}</Text>
-          <Text style={styles.dateTime}>Time: {item.time}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const getData = () => {
-    return ALL_ITEMS.filter(
-      item =>
-        item.type === (activeTab === 'Booking Items' ? 'Booking' : 'Sale') &&
-        item.status === title,
+      </TouchableOpacity>
     );
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -95,6 +162,7 @@ const BookingsByStatus = ({navigation, route}) => {
         onLeftIconPress={() => navigation.goBack()}
         onRightIconPress={() => navigation.navigate('Notifications')}
       />
+
       <View style={styles.tabContainer}>
         {TABS.map(tab => (
           <TabButton
@@ -107,12 +175,15 @@ const BookingsByStatus = ({navigation, route}) => {
       </View>
 
       <FlatList
-        data={getData()}
-        keyExtractor={item => item.id}
+        data={listingCartData}
+        keyExtractor={(item, index) => index.toString()}
         renderItem={({item}) => <BookingCard item={item} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         ListEmptyComponent={
-          <Text style={{textAlign: 'center', marginTop: 20, color: 'gray'}}>
-            No items found for "{title}"
+          <Text style={styles.emptyText}>
+            No items found for "{title}" in {activeTab}.
           </Text>
         }
         contentContainerStyle={{paddingBottom: 20}}
@@ -128,6 +199,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.white,
   },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -137,28 +213,22 @@ const styles = StyleSheet.create({
     borderRadius: width(4),
     marginTop: width(2),
   },
-  activeTab: {
+  tabButton: {
     paddingVertical: 16,
     width: width(44.5),
     borderRadius: 12,
+    alignItems: 'center',
   },
-  inactiveTab: {
-    paddingVertical: 16,
-    width: width(44.5),
-    borderRadius: 12,
+  activeTab: {
+    backgroundColor: COLORS.primary,
+  },
+  tabText: {
+    color: COLORS.textDark,
+    fontSize: 13,
+    fontFamily: fontFamly.PlusJakartaSansBold,
   },
   activeText: {
     color: COLORS.white,
-    fontSize: 13,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontFamily: fontFamly.PlusJakartaSansBold,
-  },
-  inactiveText: {
-    color: '#333',
-    fontSize: 13,
-    textAlign: 'center',
-    fontFamily: fontFamly.PlusJakartaSansBold,
   },
   card: {
     flexDirection: 'row',
@@ -207,6 +277,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontFamily: fontFamly.PlusJakartaSansSemiMedium,
     fontSize: 9,
+    color: COLORS.white,
   },
   title: {
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
@@ -223,11 +294,16 @@ const styles = StyleSheet.create({
   dateTimeWrapper: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: width(8),
   },
   dateTime: {
-    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
     fontSize: 10,
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 20,
+    color: 'gray',
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
   },
 });

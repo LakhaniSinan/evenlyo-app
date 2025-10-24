@@ -13,7 +13,7 @@ const AllBookingCard = ({item}) => {
     <View
       style={{
         width: width(45),
-        height: 83,
+        height: 60,
         borderRadius: width(3),
         overflow: 'hidden',
         backgroundColor: '#fff',
@@ -103,14 +103,6 @@ const CardContent = ({item, isDark = false}) => {
               : COLORS.white,
         }}>
         {item?.value}
-      </Text>
-      <Text
-        style={{
-          fontFamily: fontFamly.PlusJakartaSansSemiBold,
-          fontSize: 10,
-          color: isDark ? COLORS.white : COLORS.textDark,
-        }}>
-        {t(`+${item?.percentage}% from last month`, {value: item?.percentage})}
       </Text>
     </>
   );

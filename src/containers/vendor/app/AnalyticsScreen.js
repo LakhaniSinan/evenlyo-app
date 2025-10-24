@@ -182,7 +182,6 @@ const AnalyticsReport = () => {
           <Text style={styles.totalEarningValue}>
             ${analyticsReport?.stats?.totalEarnings}
           </Text>
-          <Text style={styles.totalEarningSubText}>+8.7% from last month</Text>
         </View>
 
         {/* Filter Buttons */}
@@ -219,7 +218,7 @@ const AnalyticsReport = () => {
         {/* Booking Table */}
         <View style={styles.tableContainer}>
           <BookingTable
-            data={analyticsReport?.bookingTable}
+            data={analyticsReport || []}
             canDownload={handleDownload}
           />
         </View>
@@ -280,7 +279,7 @@ const styles = StyleSheet.create({
     padding: width(4),
     backgroundColor: COLORS.backgroundLight,
     marginHorizontal: width(3.5),
-    height: 95,
+    height: 80,
     borderRadius: width(3),
     elevation: 5,
   },
