@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
+import {useSelector} from 'react-redux';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
@@ -20,22 +21,51 @@ import PopularCard from '../../../components/popularCard';
 import ReviewsCard from '../../../components/reviewsCard';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {checkIsChatedBefore, createConnection} from '../../../services/Chat';
 import {getVendorDetails} from '../../../services/Vendor';
 
 function VendorDetails({navigation, route}) {
   const item = route.params;
   const modalRef = useRef();
+  const {user} = useSelector(state => state.LoginSlice);
   const [isLoading, setIsLoading] = useState(false);
   const [vendorDetail, setVendorDetails] = useState(null);
   const [showAll, setShowAll] = useState(false);
   const reviews = vendorDetail?.reviews || [];
   const displayedReviews = showAll ? reviews : reviews.slice(0, 4);
-  console.log(vendorDetail, 'vendorDetailvendorDetailvendorDetail');
+  const [chatData, setChatData] = useState(null);
+  console.log(chatData, 'chatDatachatDatachatDatachatData');
 
   const {t, currentLanguage} = useTranslation();
   useEffect(() => {
     getVendorDetailsByID();
+    handleCheckIsChatedBefore();
   }, []);
+
+  const formatParticipants = data => {
+    const participants = {};
+    data?.forEach(({role, refPath, userId}) => {
+      if (refPath == 'User') {
+        participants[role === 'user' ? 'user' : 'vendor'] = {
+          userId: userId?._id,
+          name: `${userId?.firstName} ${userId?.lastName}`,
+          photo: userId?.photo || null,
+          email: userId?.email,
+          role: 'user',
+        };
+      } else {
+        participants['vendor'] = {
+          userId: userId?._id,
+          name: userId?.businessName,
+          photo: userId?.businessLogo || null,
+          email: userId?.businessEmail,
+          role: 'vendor',
+        };
+      }
+    });
+
+    return participants;
+  };
 
   const getVendorDetailsByID = async () => {
     try {
@@ -54,6 +84,63 @@ function VendorDetails({navigation, route}) {
     } catch (error) {
       setIsLoading(false);
       console.log('errorerrorerrorerrorerrorerror');
+    }
+  };
+  const handleCheckIsChatedBefore = async () => {
+    try {
+      setIsLoading(true);
+      const responce = await checkIsChatedBefore(user?.id, item?._id);
+      setIsLoading(false);
+      if (responce?.status == 200 || responce.status == 201) {
+        let data = responce?.data?.data;
+        setChatData({
+          ...data,
+          participants: formatParticipants(data?.participants),
+        });
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: responce?.data?.message,
+        });
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.log('errorerrorerrorerrorerrorerror');
+    }
+  };
+
+  const handleConnect = () => {
+    if (chatData) {
+      navigation.navigate('ChatDetail', chatData);
+    } else {
+      handleCreateSocketConnenction();
+    }
+  };
+
+  const handleCreateSocketConnenction = async () => {
+    try {
+      setIsLoading(true);
+      let params = {
+        userId: user?.id,
+        vendorId: item?._id,
+      };
+      const responce = await createConnection(params);
+
+      if (responce?.status == 200 || responce.status == 201) {
+        setChatData({
+          ...chatData,
+          participants: formatParticipants(data?.participants),
+        });
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: responce?.data?.message,
+        });
+      }
+    } catch (error) {
+      console.log('errorerrorerrorerrorerrorerror');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -160,8 +247,8 @@ function VendorDetails({navigation, route}) {
           }}>
           <View style={{width: width(75)}}>
             <GradientButton
-              text={t('contactMe')}
-              onPress={() => {}}
+              text={chatData === null ? t('contactMe') : t('Chat with Vendor')}
+              onPress={handleConnect}
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
             />

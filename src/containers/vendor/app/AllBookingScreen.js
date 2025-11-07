@@ -2,7 +2,6 @@ import {useNavigation} from '@react-navigation/native';
 import moment from 'moment';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Image,
@@ -164,14 +163,6 @@ function AllBookingScreen() {
   const onRefresh = useCallback(() => {
     handleGetCartListing();
   }, [handleGetCartListing]);
-
-  if (loading) {
-    return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>

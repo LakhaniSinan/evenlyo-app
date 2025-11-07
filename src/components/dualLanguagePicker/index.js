@@ -7,7 +7,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {COLORS, fontFamly} from '../../constants';
 
 let propsData = {};
-const CustomPicker = React.forwardRef(
+const DualLanguageCustomPicker = React.forwardRef(
   (
     {
       marginVertical,
@@ -25,6 +25,10 @@ const CustomPicker = React.forwardRef(
     ref,
   ) => {
     const [isVisible, setModalVisibility] = useState(false);
+    console.log(
+      value,
+      'listDatalistDatalistDatalistDatalistDatalistDatalistData',
+    );
 
     React.useImperativeHandle(ref, () => ({
       show(params) {
@@ -38,12 +42,15 @@ const CustomPicker = React.forwardRef(
 
     const renderLabel = () => {
       if (value) {
-        const selectedItem = listData?.find(item => item?.name === value);
-        return selectedItem ? selectedItem?.name : labelll;
+        const selectedItem = listData?.find(
+          item => item?.name?.en === value?.name?.en,
+        );
+        console.log(listData, 'listDatalistDatalistDatalistDatalistData');
+
+        return selectedItem ? selectedItem?.name?.en : labelll;
       }
       return labelll;
     };
-
     return (
       <>
         {label && (
@@ -128,7 +135,7 @@ const CustomPicker = React.forwardRef(
             <FlatList
               data={listData}
               renderItem={({item}) => {
-                const isSelected = value === item.name;
+                const isSelected = value?.name?.en === item.name?.en;
 
                 return (
                   <TouchableOpacity
@@ -142,7 +149,7 @@ const CustomPicker = React.forwardRef(
                         handleSelectValue &&
                         typeof handleSelectValue === 'function'
                       ) {
-                        handleSelectValue(name, item?.name ? item?.name : item);
+                        handleSelectValue(name, item);
                       }
                     }}
                     style={styles.optionContainer}>
@@ -155,7 +162,7 @@ const CustomPicker = React.forwardRef(
                         <Text
                           style={[styles.optionText, {color: '#FFF'}]}
                           numberOfLines={1}>
-                          {item.name ? item.name : item.label}
+                          {item.name?.en ? item.name?.en : item.label}
                         </Text>
                       </LinearGradient>
                     ) : (
@@ -167,7 +174,7 @@ const CustomPicker = React.forwardRef(
                         <Text
                           style={[styles.optionText, {color: COLORS.black}]}
                           numberOfLines={1}>
-                          {item.name ? item.name : item.label}
+                          {item.name?.en ? item.name?.en : item.label}
                         </Text>
                       </View>
                     )}
@@ -250,4 +257,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CustomPicker;
+export default DualLanguageCustomPicker;

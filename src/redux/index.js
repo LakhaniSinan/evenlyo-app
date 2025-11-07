@@ -5,12 +5,14 @@ import LoginSlice, {setUserData} from './slice/auth';
 import CartSlice, {setCartData} from './slice/cart';
 import LanguageSlice from './slice/language';
 import LocationSlice from './slice/location';
+import activeChatSlice from './slice/chat';
 
 const rootReducer = combineReducers({
   LoginSlice: LoginSlice,
   LanguageSlice: LanguageSlice,
   LocationSlice: LocationSlice,
   CartSlice: CartSlice,
+  activeChat: activeChatSlice,
 });
 
 const store = configureStore({

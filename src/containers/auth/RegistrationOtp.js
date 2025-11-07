@@ -9,22 +9,52 @@ import Loader from '../../components/loder';
 import OTPInputScreen from '../../components/otpScreen';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
-import {register, registerUser} from '../../services/Auth';
+import {register, registerUser, vendorRegister} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
 
 const RegistrationOtp = ({route, navigation}) => {
   const data = route.params;
+
+  console.log(data, 'datadatadatadatadatadata123123123');
+
   const [otp, setOtp] = useState(0);
   const modalRef = useRef(null);
   const {t} = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
+  console.log(data, 'data data data data data');
 
   const handleVerifyOtp = async () => {
     try {
       const payload = {...data, otp: otp};
+
+      const vendorPayload = {
+        accountType: data?.vendorType,
+        firstName: data?.personalInfo?.firstName,
+        lastName: data?.personalInfo?.lastName,
+        email: data?.personalInfo?.email,
+        contactNumber: data?.personalInfo?.contact,
+        city: data?.personalInfo?.city,
+        postalCode: data?.personalInfo?.postalCode,
+        fullAddress: data?.personalInfo?.address,
+        passportDetails: data?.personalInfo?.cnicPassport,
+        mainCategories: data.categories,
+        subCategories: data?.subCategories,
+        businessLogo: data?.media?.workImages[0],
+        bannerImage: data?.media?.banner,
+        password: data?.security?.password,
+        confirmPassword: data?.security?.confirmPassword,
+        otp: otp,
+      };
       setIsLoading(true);
-      const response = await register(payload);
+
+      const response =
+        data?.type == 'vendor'
+          ? await vendorRegister(vendorPayload)
+          : await register(payload);
       setIsLoading(false);
+
+      console.log(response, 'responseresponseresponse');
+
       if (response?.status == 200 || response?.status == 201) {
         navigation.navigate('AuthSuccess', {
           type: 'register',
@@ -47,7 +77,9 @@ const RegistrationOtp = ({route, navigation}) => {
   const handleResendCode = async () => {
     try {
       setIsLoading(true);
-      const response = await registerUser({email: data.email});
+      const response = await registerUser({
+        email: data?.type == 'vendor' ? data?.personalInfo?.email : data.email,
+      });
 
       setIsLoading(false);
       if (response?.status == 200 || response?.status == 201) {

@@ -35,9 +35,8 @@ const Dashboard = () => {
 
   const [dashboardData, setDashboardData] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('Booking'); // ✅ Booking | Sale
+  const [activeTab, setActiveTab] = useState('Booking');
 
-  // ✅ Dashboard stats
   const dashboardStats = useMemo(
     () => [
       {
@@ -64,10 +63,11 @@ const Dashboard = () => {
     [dashboardData],
   );
 
-  // ✅ Fetch dashboard data
   const handleGetDashboard = useCallback(async () => {
     try {
       const response = await getDashboard();
+      console.log(response, 'responseresponseresponseresponse1231232222');
+
       if (response?.status === 200 || response?.status === 201) {
         setDashboardData(response.data);
       } else {
@@ -87,13 +87,11 @@ const Dashboard = () => {
     handleGetDashboard();
   }, [handleGetDashboard]);
 
-  // ✅ Pull-to-refresh handler
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     handleGetDashboard();
   }, [handleGetDashboard]);
 
-  // ✅ Render functions
   const renderDashboardCard = ({item}) => <DashboardCard item={item} />;
 
   const renderRecentBookings = ({item, index}) => (
@@ -120,8 +118,6 @@ const Dashboard = () => {
     />
   );
 
-  console.log(dashboardData?.orderOverview, 'dashboardData?.orderOverview');
-
   return (
     <>
       <AppHeader
@@ -132,14 +128,12 @@ const Dashboard = () => {
         onRightIconPress={() => navigation.navigate('Notifications')}
       />
 
-      {/* ✅ ScrollView with Pull-to-Refresh */}
       <ScrollView
         style={{flex: 1}}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
-        {/* ✅ Welcome Section */}
         <View style={styles.headerContainer}>
           <Text style={styles.welcomeText}>Welcome, John Doe</Text>
           <Text style={styles.roleText}>
@@ -147,7 +141,6 @@ const Dashboard = () => {
           </Text>
         </View>
 
-        {/* ✅ Dashboard Stats */}
         <FlatList
           data={dashboardStats}
           numColumns={2}
@@ -157,7 +150,6 @@ const Dashboard = () => {
           columnWrapperStyle={styles.columnWrapper}
         />
 
-        {/* ✅ Booking / Sale Tabs */}
         <View style={styles.tabContainer}>
           {['Booking', 'Sale'].map(tab => (
             <TouchableOpacity
@@ -183,7 +175,6 @@ const Dashboard = () => {
           ))}
         </View>
 
-        {/* ✅ Line Chart */}
         <View style={styles.chartContainer}>
           <LineChartComponent
             data={
@@ -194,7 +185,6 @@ const Dashboard = () => {
           />
         </View>
 
-        {/* ✅ Recent Bookings */}
         <View style={styles.sectionContainer}>
           <ViewMoreButton
             heading="Recent Bookings Offers"
@@ -206,23 +196,26 @@ const Dashboard = () => {
             }
           />
           <FlatList
-            data={dashboardData?.recentBookings?.slice(0, 4) || []}
+            data={dashboardData?.recentBookings?.slice(0, 3) || []}
             renderItem={renderRecentBookings}
             keyExtractor={(item, index) => index.toString()}
           />
         </View>
 
-        {/* ✅ Activity Log */}
         <View style={styles.sectionContainer}>
-          <ViewMoreButton heading="Activity Log" onPress={() => {}} />
+          <ViewMoreButton
+            heading="Activity Log"
+            onPress={() =>
+              navigation.navigate('AllActivityLog', dashboardData?.activityLog)
+            }
+          />
           <FlatList
-            data={activityData}
+            data={dashboardData?.activityLog?.slice(0, 3)}
             renderItem={renderActivityLog}
             keyExtractor={(item, index) => index.toString()}
           />
         </View>
 
-        {/* ✅ Recent Clients */}
         <View style={styles.sectionContainer}>
           <ViewMoreButton
             heading="Recently Joined Clients"
@@ -234,7 +227,7 @@ const Dashboard = () => {
             }
           />
           <FlatList
-            data={dashboardData?.recentClients || []}
+            data={dashboardData?.recentClients?.slice(0, 3) || []}
             renderItem={renderRecentClients}
             keyExtractor={(item, index) => index.toString()}
           />

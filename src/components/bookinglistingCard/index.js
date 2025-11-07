@@ -3,53 +3,78 @@ import moment from 'moment';
 import React from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
+import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 
-const EventListingCard = ({item}) => {
+const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
   const navigation = useNavigation();
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
 
   return (
-    <TouchableOpacity
-      onPress={() => navigation.navigate('EventDetails', {booking: item})}
-      style={styles.card}>
+    <View style={styles.card}>
       <Image source={{uri: item.image}} style={styles.image} />
       <View style={styles.infoContainer}>
         <View style={styles.topSection}>
           <View style={styles.headerRow}>
-            {item.mainCategory && (
-              <Text style={styles.tag}>• {item.mainCategory}</Text>
-            )}
             <View style={styles.statusBadge}>
               <Text style={styles.statusText}>
                 {moment(item?.date).format('MMM DD,YYYY')}
               </Text>
+              <View style={{flexDirection: 'row'}}>
+                <TouchableOpacity
+                  style={{marginRight: width(2)}}
+                  onPress={() => onDeleteIconPress(item)}>
+                  <Image
+                    resizeMode="contain"
+                    source={ICONS.deleteIcon}
+                    style={{height: width(5), width: width(5)}}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => onEditIconPress(item)}>
+                  <Image
+                    resizeMode="contain"
+                    source={ICONS.editIcon}
+                    style={{height: width(5), width: width(5)}}
+                    tintColor={COLORS.primary}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-          <Text style={styles.name} numberOfLines={2}>
+          <Text style={styles.name} numberOfLines={1}>
             {item.title}
           </Text>
-          <Text style={styles.buttonText}>Available Stock: {item?.Stock}</Text>
-          <Text style={styles.buttonText}>
-            Purchase Price: {item?.PurchasePrice}
+          <Text style={styles.buttonText} numberOfLines={1}>
+            {currentLanguage ? item?.subtitle?.en : item?.subtitle?.nl}
+          </Text>
+          <Text style={styles.buttonText} numberOfLines={2}>
+            {item?.description}
           </Text>
         </View>
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>{t('View Details')}</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('EventDetails', item)}
+            style={styles.button}>
+            <Text style={[styles.buttonText, {color: COLORS.black}]}>
+              {t('View Details')}
+            </Text>
           </TouchableOpacity>
           <View style={styles.priceContainer}>
-            <Text style={styles.price}>{item.SellingPrice}</Text>
-            <Text style={styles.perEvent}>/Dar</Text>
+            <Text style={styles.price}>
+              {item.pricing?.totalPrice.toFixed(2)}
+            </Text>
+            <Text style={styles.perEvent}>
+              {item?.pricing?.type.toUpperCase()}
+            </Text>
           </View>
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
-export default EventListingCard;
+export default BookingListingCard;
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.backgroundLight,
@@ -92,6 +117,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
   },
   statusText: {
     fontSize: 10,
@@ -124,9 +153,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   buttonText: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
-    color: COLORS.textDark,
+    color: COLORS.textLight,
   },
   priceContainer: {
     alignItems: 'flex-end',

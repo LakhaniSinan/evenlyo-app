@@ -9,6 +9,7 @@ import Notification from '../../containers/vendor/app/Notification';
 import NotificationDetails from '../../containers/vendor/app/NotificationDetails';
 import BookingDetails from '../../containers/vendor/app/BookingDetails';
 import TrackingBookingDetails from '../../containers/vendor/app/TrackBooking';
+import AllActivityLog from '../../containers/vendor/app/AllActivityLog';
 
 const Stack = createStackNavigator();
 
@@ -25,6 +26,13 @@ const HomeStack = () => {
         component={Dashboard}
         options={{
           title: 'Dashboard',
+        }}
+      />
+      <Stack.Screen
+        name="AllActivityLog"
+        component={AllActivityLog}
+        options={{
+          title: 'AllActivityLog',
         }}
       />
       <Stack.Screen

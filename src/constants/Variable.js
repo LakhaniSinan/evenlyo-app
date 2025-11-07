@@ -3,6 +3,7 @@ export const requestType = {
   GET: 'get',
   PUT: 'put',
   DELETE: 'delete',
+  PATCH: 'patch',
 };
 
 export const apiHeaders = {
@@ -15,22 +16,25 @@ export const apiHeaders = {
 
 export const endPoints = {
   //Authentication
-  login: '/auth/client/login',
-  loginVendor: '/auth/vendor/login',
+  login: '/auth/vendor/login',
   register: '/auth/client/register',
+  vendorRegister: '/auth/vendor/register',
   registerOtp: '/auth/send-otp',
   forgot: '/auth/send-forgot-otp',
   verifyForgot: '/auth/verify-forgot-otp',
   reset: '/auth/reset-password',
+  socialLogin: '/auth/google',
 
   //Profile
   profile: '/settings/personal-info',
   categories: '/categories',
   subcategories: '/subcategories/category',
   profilePicture: '/settings/profile-picture',
+  vendorsCategories: '/vendor/profile/get-main-category',
 
   //Listings
   listings: '/listings',
+  vendorListings: '/listings/vendor',
   createBooking: '/booking/request',
   populorItems: '/listings/popular?limit',
   bookingItems: '/listings?categoryId',
@@ -45,12 +49,17 @@ export const endPoints = {
   removeListingToCart: '/cart/remove',
   getCartListings: '/cart',
   accepetedBookings: '/booking/accepted',
+  createSaleItem: '/vendor/items/create',
+  getSaleItem: '/vendor/items/overview',
+  listingsItems: '/vendor/listings/overview',
 
   //Notifications
   notifications: '/notifications',
 
   //Vendors APIS
   //Dashboard
+
+  updateVendor: '/vendor/profile/update',
 
   dashboard: '/vendor/dashboard/analytics',
 
@@ -62,4 +71,28 @@ export const endPoints = {
   //Analytics
   bookingAnalytics: '/vendor/bookings/analytics',
   analyticsReport: '/vendor/earnings/analytics',
+
+  //subCategories by category Ids
+  subCategoriesByCategoryIds: '/vendor/profile/get-sub-category-by-categoryIds',
+
+  //CHAT VENDOR CLIENT AND ADMIN
+  checkIsChatedBefore: '/conversations/single',
+  createConversation: '/conversations',
+  //Vendor Listing
+  updateListing: '/vendor/listings/update',
+  createListing: '/vendor/listings/create',
+  deleteListing: '/vendor/listings/delete',
+
+  messages: {
+    all: (id, userId) => `/messages/${id}/${userId}`,
+    delete: (conversationId, userId) => `/messages/${conversationId}/${userId}`,
+  },
+  conversations: {
+    create: `/conversations`,
+    all: (id, type) => `/conversations/${id}/${type}`,
+    single: (userId, vendorId) => `/conversations/single/${userId}/${vendorId}`,
+    block: id => `/conversations/block/${id}`,
+    unblock: id => `/conversations/unblock/${id}`,
+    report: id => `/conversations/report/${id}`,
+  },
 };

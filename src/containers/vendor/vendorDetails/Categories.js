@@ -19,9 +19,6 @@ import useCategories from '../../../hooks/getCategories';
 
 const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
 
-/* -------------------------------------------------------------------------- */
-/*                            Category Item Component                         */
-/* -------------------------------------------------------------------------- */
 const CategoryItem = memo(({item, isSelected, onSelect, currentLanguage}) => {
   const iconUri = item?.icon?.endsWith('.svg')
     ? item.icon.replace('.svg', '.png')
@@ -66,9 +63,6 @@ const CategoryItem = memo(({item, isSelected, onSelect, currentLanguage}) => {
   );
 });
 
-/* -------------------------------------------------------------------------- */
-/*                             Main Categories Screen                         */
-/* -------------------------------------------------------------------------- */
 const Categories = ({onPressBack, handleNextStep}) => {
   const {t, currentLanguage} = useTranslation();
   const modalRef = useRef(null);

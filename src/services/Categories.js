@@ -7,3 +7,19 @@ export const getCategories = () => {
 export const getSubCategories = id => {
   return Api(`${endPoints.subcategories}/${id}`, null, requestType.GET);
 };
+
+export const getVendorCategories = vendorId => {
+  return Api(
+    `${endPoints.vendorsCategories}/${vendorId}`,
+    null,
+    requestType.GET,
+  );
+};
+
+export const fetchSubCategoriesByCategoryIds = categoryIds => {
+  return Api(
+    endPoints.subCategoriesByCategoryIds,
+    categoryIds,
+    requestType.POST,
+  );
+};

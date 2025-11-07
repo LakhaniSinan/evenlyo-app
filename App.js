@@ -10,6 +10,7 @@ import AppNavigator from './src/navigation';
 import store from './src/redux';
 import {initializeLanguageFromStorage} from './src/redux/slice/language';
 import './src/services/i18n';
+import {SocketProvider} from './src/context';
 
 const AppContent = () => {
   const dispatch = useDispatch();
@@ -49,9 +50,11 @@ const AppContent = () => {
 const App = () => {
   return (
     <Provider store={store}>
-      <PaperProvider>
-        <AppContent />
-      </PaperProvider>
+      <SocketProvider>
+        <PaperProvider>
+          <AppContent />
+        </PaperProvider>
+      </SocketProvider>
     </Provider>
   );
 };

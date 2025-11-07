@@ -12,7 +12,7 @@ import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {globalStyles} from '../../../styles/globalStyle';
 
-const VerifyTab = ({onPressBack, handleNextStep}) => {
+const VerifyTab = ({onPressBack, handleNextStep, setVerification}) => {
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('phone');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -24,7 +24,12 @@ const VerifyTab = ({onPressBack, handleNextStep}) => {
       Alert.alert('Error', 'At least one of phone or email is required.');
       return;
     }
-    handleNextStep({ phoneNumber, email });
+    setVerification({
+      phoneNumber,
+      email,
+    });
+
+    handleNextStep({phoneNumber, email});
   };
 
   return (

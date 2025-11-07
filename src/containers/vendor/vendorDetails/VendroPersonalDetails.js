@@ -3,8 +3,11 @@ import {ScrollView, StyleSheet, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {ProgressStep, ProgressSteps} from 'react-native-progress-steps';
 import Background from '../../../components/background';
+import CommonAlert from '../../../components/commanAlert';
 import Header from '../../../components/header';
+import Loader from '../../../components/loder';
 import {COLORS} from '../../../constants';
+import {registerUser} from '../../../services/Auth';
 import BusinessPersonalInfo from './BusinessPresonalDetails';
 import Categories from './Categories';
 import MultipleMediaUpload from './GalleryForBusiness';
@@ -19,14 +22,18 @@ const VendorPersonalDetails = ({navigation}) => {
   const [selectedType, setSelectedType] = useState('');
   const [vendorType, setVendorType] = useState('');
   const modalRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [personalInfo, setPersonalInfo] = useState(null);
   const [businessInfo, setBusinessInfo] = useState(null);
   const [categoriesSelected, setCategoriesSelected] = useState([]);
   const [subCategoriesSelected, setSubCategoriesSelected] = useState([]);
+
+  const [allSubCategories, setAllSubCategories] = useState([]);
+
   const [media, setMedia] = useState({
-    banner: [],
-    workImages: [],
-    workVideos: [],
+    banner: '',
+    workImages: '',
+    workVideos: '',
   });
   const [security, setSecurity] = useState({password: '', confirmPassword: ''});
   const [verification, setVerification] = useState({
@@ -51,8 +58,10 @@ const VendorPersonalDetails = ({navigation}) => {
   };
 
   const handleCategoriesNext = data => {
+    console.log('Selected categories:', data);
     setCategoriesSelected(data || []);
     setActiveStep(pre => pre + 1);
+    // step will move after subcategories are fetched
   };
 
   const handleSubCategoriesNext = data => {
@@ -62,9 +71,8 @@ const VendorPersonalDetails = ({navigation}) => {
 
   const handleMediaNext = data => {
     setMedia({
-      banner: data?.banner || [],
-      workImages: data?.workImages || [],
-      workVideos: data?.workVideos || [],
+      banner: data?.bannerImage,
+      workImages: data?.businessLogo,
     });
     setActiveStep(pre => pre + 1);
   };
@@ -84,91 +92,7 @@ const VendorPersonalDetails = ({navigation}) => {
     });
   };
 
-  const validateAll = () => {
-    // 1) Phone or Email required
-    const hasPhoneOrEmail =
-      Boolean(verification?.phoneNumber) || Boolean(verification?.email);
-    if (!hasPhoneOrEmail) {
-      showAlert('At least one of phone or email is required.');
-      return false;
-    }
-
-    // 2) No empty fields for the chosen path
-    if (selectedType === 'personal') {
-      const requiredPersonal = [
-        'firstName',
-        'lastName',
-        'email',
-        'contact',
-        'city',
-        'postalCode',
-        'address',
-        'cnicPassport',
-      ];
-      if (!personalInfo) {
-        showAlert('This field is required.');
-        return false;
-      }
-      for (const key of requiredPersonal) {
-        if (!personalInfo[key]) {
-          showAlert('This field is required.');
-          return false;
-        }
-      }
-    } else if (selectedType === 'business') {
-      const requiredBusiness = [
-        'companyName',
-        'businessType',
-        'companyEmail',
-        'contact',
-        'companyAddress',
-        'companyWebsite',
-      ];
-      if (!businessInfo) {
-        showAlert('This field is required.');
-        return false;
-      }
-      for (const key of requiredBusiness) {
-        if (!businessInfo[key]) {
-          showAlert('This field is required.');
-          return false;
-        }
-      }
-    }
-
-    // 3) Categories and SubCategories
-    const hasCategory = (categoriesSelected || []).length > 0;
-    const hasSubCategory =
-      selectedType === 'personal'
-        ? (subCategoriesSelected || []).length > 0
-        : true;
-    if (!hasCategory || !hasSubCategory) {
-      showAlert('Please select at least one category or subcategory.');
-      return false;
-    }
-
-    // 4) Media (at least one image) for business flow where media step exists
-    if (selectedType === 'business') {
-      const totalImages =
-        (media?.banner?.length || 0) + (media?.workImages?.length || 0);
-      if (totalImages < 1) {
-        showAlert('Please upload at least one image.');
-        return false;
-      }
-    }
-
-    // 5) Security: non-empty and match
-    if (!security?.password || !security?.confirmPassword) {
-      showAlert('This field is required.');
-      return false;
-    }
-    if (security.password !== security.confirmPassword) {
-      showAlert('Passwords do not match');
-      return false;
-    }
-
-    return true;
-  };
+  const validateAll = () => {};
 
   const handleVerifyNext = data => {
     setVerification({
@@ -176,27 +100,52 @@ const VendorPersonalDetails = ({navigation}) => {
       email: data?.email || '',
     });
 
-    const nextTick = () => {
-      if (!validateAll()) return;
-      const payload = {
-        vendorType,
-        personalInfo: selectedType === 'personal' ? personalInfo : null,
-        businessInfo: selectedType === 'business' ? businessInfo : null,
-        categories: categoriesSelected,
-        subCategories: selectedType === 'personal' ? subCategoriesSelected : [],
-        media:
-          selectedType === 'business'
-            ? media
-            : {banner: [], workImages: [], workVideos: []},
-        security,
-        verification,
-      };
-      // Final payload
-      // eslint-disable-next-line no-console
-      console.log('Final Vendor Registration Payload:', payload);
+    const nextTick = async () => {
+      // if (!validateAll()) return;
+      try {
+        const payload = {
+          vendorType,
+          personalInfo: selectedType === 'personal' ? personalInfo : null,
+          businessInfo: selectedType === 'business' ? businessInfo : null,
+          categories: categoriesSelected,
+          subCategories:
+            selectedType === 'personal' ? subCategoriesSelected : [],
+          media:
+            selectedType === 'business'
+              ? media
+              : {banner: [], workImages: [], workVideos: []},
+          security,
+          verification,
+        };
+
+        setIsLoading(true);
+        const response = await registerUser({email: verification?.email});
+        setIsLoading(false);
+        if (response?.status == 200 || response?.status == 201) {
+          modalRef.current.show({
+            status: 'ok',
+            message: response.data?.message,
+            handlePressOk: () => {
+              modalRef.current.hide();
+              navigation.navigate('RegistrationOtp', {
+                ...payload,
+                type: 'vendor',
+              });
+            },
+          });
+        } else {
+          modalRef.current.show({
+            status: 'error',
+            message: response?.data?.message,
+          });
+        }
+      } catch (error) {
+        console.log(error, 'errorerrorerrorerrorerror123123');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    // Ensure state is set before validation
     setTimeout(nextTick, 0);
   };
 
@@ -212,10 +161,7 @@ const VendorPersonalDetails = ({navigation}) => {
               borderRadius: width(5),
               paddingBottom: width(4),
               shadowColor: '#000',
-              shadowOffset: {
-                width: 0,
-                height: 1,
-              },
+              shadowOffset: {width: 0, height: 1},
               shadowOpacity: 0.18,
               shadowRadius: 1.0,
               elevation: 1,
@@ -255,10 +201,12 @@ const VendorPersonalDetails = ({navigation}) => {
 
               <ProgressStep removeBtnRow>
                 <SubCategories
+                  categoriesSelected={categoriesSelected}
                   onPressBack={() => setActiveStep(pre => pre - 1)}
                   handleNextStep={handleSubCategoriesNext}
                 />
               </ProgressStep>
+
               {selectedType === 'personal' ? (
                 <ProgressStep removeBtnRow>
                   <MultipleMediaUpload
@@ -278,6 +226,7 @@ const VendorPersonalDetails = ({navigation}) => {
 
               <ProgressStep removeBtnRow>
                 <VerifyTab
+                  setVerification={setVerification}
                   onPressBack={() => setActiveStep(pre => pre - 1)}
                   handleNextStep={handleVerifyNext}
                 />
@@ -286,6 +235,8 @@ const VendorPersonalDetails = ({navigation}) => {
           </View>
         </View>
       </ScrollView>
+      <Loader isLoading={isLoading} />
+      <CommonAlert ref={modalRef} />
     </Background>
   );
 };

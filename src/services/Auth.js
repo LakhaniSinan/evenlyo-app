@@ -7,13 +7,14 @@ export const registerUser = params => {
 export const register = params => {
   return Api(endPoints.register, params, requestType.POST);
 };
+export const vendorRegister = params => {
+  return Api(endPoints.vendorRegister, params, requestType.POST);
+};
 
 export const loginUser = params => {
   return Api(endPoints.login, params, requestType.POST);
 };
-export const loginVendor = params => {
-  return Api(endPoints.loginVendor, params, requestType.POST);
-};
+
 export const forgotUser = params => {
   return Api(endPoints.forgot, params, requestType.POST);
 };
@@ -22,4 +23,7 @@ export const verifyForgotOtp = params => {
 };
 export const resetPassword = params => {
   return Api(endPoints.reset, params, requestType.POST);
+};
+export const socialLogin = params => {
+  return Api(endPoints.socialLogin, params, requestType.POST);
 };

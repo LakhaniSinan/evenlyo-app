@@ -17,17 +17,17 @@ const AppHeader = ({
   isShowMenuIcon,
   setCommentType,
   commentType,
+  handleSelectOption,
 }) => {
   const {t} = useTranslation();
   const [openMenu, setOpenMenu] = useState(false);
   const [showCommentMenu] = useState(true);
 
-  const handleCloseMenu = useCallback(type => {
-    console.log(type, 'typetypetypetype');
-
+  const handleCloseMenu = type => {
     setOpenMenu(false);
     setCommentType(type);
-  }, []);
+    handleSelectOption(type);
+  };
 
   const renderMenuItems = useCallback(
     () => (
@@ -173,7 +173,7 @@ const AppHeader = ({
               borderRadius: 100,
               overflow: 'hidden',
             }}
-            source={chatHeaderData.Icon}
+            source={{uri: chatHeaderData.Icon}}
           />
           <View style={{flex: 1, padding: 10}}>
             <Text

@@ -21,6 +21,9 @@ export const getHomeData = (catID, subCatId) => {
 export const getAllListingData = () => {
   return Api(endPoints.listings, null, requestType.GET);
 };
+export const getVendorListingsById = vendorId => {
+  return Api(`${endPoints.vendorListings}/${vendorId}`, null, requestType.GET);
+};
 export const getVendorsBySubCategory = subCatId => {
   return Api(
     `${endPoints.vendor}?subcategory=${subCatId}`,
@@ -58,4 +61,15 @@ export const listingRemoveFromCart = id => {
 };
 export const getAccepetedBookings = () => {
   return Api(endPoints.accepetedBookings, null, requestType.GET);
+};
+
+export const createSaleItem = params => {
+  return Api(endPoints.createSaleItem, params, requestType.POST);
+};
+
+export const getVendorListings = params => {
+  return Api(endPoints.getSaleItem, params, requestType.GET);
+};
+export const getVendorBookingListings = () => {
+  return Api(endPoints.listingsItems, null, requestType.GET);
 };

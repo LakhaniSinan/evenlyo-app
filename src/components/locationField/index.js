@@ -26,16 +26,21 @@ const GooglePlacesInput = ({
   showRightIcon,
   callApi,
   lable,
+  bgcolor,
 }) => {
   const googleAPIKey = 'AIzaSyAvPVhgFVY2qv4c6kvukvIP2krPJe9dZGA';
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
+  console.log(
+    selectedLocation,
+    'selectedLocationselectedLocationselectedLocationasdasd',
+  );
 
   useEffect(() => {
-    if (selectedLocation?.userAddress) {
-      setQuery(selectedLocation.userAddress);
+    if (selectedLocation?.userAddress || selectedLocation?.fullAddress) {
+      setQuery(selectedLocation.userAddress || selectedLocation?.fullAddress);
     }
-  }, [selectedLocation?.userAddress]);
+  }, [selectedLocation?.userAddress || selectedLocation?.fullAddress]);
 
   const fetchPlaces = async text => {
     if (!text || text.length < 1) {
@@ -164,7 +169,7 @@ const GooglePlacesInput = ({
           flexDirection: 'row',
           alignItems: 'center',
           borderRadius: 12,
-          backgroundColor: COLORS.backgroundLight,
+          backgroundColor: bgcolor ? bgcolor : COLORS.backgroundLight,
           paddingHorizontal: width(3),
           borderWidth: 1,
           borderColor: COLORS.backgroundLight,
@@ -184,7 +189,7 @@ const GooglePlacesInput = ({
             flex: 1,
             fontSize: 14,
             color: COLORS.black,
-            backgroundColor: COLORS.backgroundLight,
+            backgroundColor: bgcolor ? bgcolor : COLORS.backgroundLight,
             fontFamily: fontFamly.PlusJakartaSansMedium,
             paddingVertical: 8,
             paddingHorizontal: 10,

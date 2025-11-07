@@ -21,7 +21,7 @@ import TextField from '../../components/textInput';
 import {COLORS, fontFamly, SIZES} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 import {setUserData} from '../../redux/slice/auth';
-import {loginUser, loginVendor} from '../../services/Auth';
+import {loginUser, loginVendor, socialLogin} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
 
 const LoginScreen = ({navigation, route}) => {
@@ -69,19 +69,20 @@ const LoginScreen = ({navigation, route}) => {
         let payload = {
           email: email,
           password: password,
+          userType: type,
         };
         setIsLoading(true);
-        const response =
-          type == 'vendor'
-            ? await loginVendor(payload)
-            : await loginUser(payload);
+        const response = await loginUser(payload);
+
+        console.log(response, 'responseresponseresponsesandaldada');
+
         let data = response?.data?.user;
         setIsLoading(false);
 
         if (response.status == 200 || response.status == 201) {
           await AsyncStorage.setItem(
             'token',
-            JSON.stringify(response?.data?.tokens?.access),
+            JSON.stringify(response?.data?.token),
           );
           await AsyncStorage.setItem('userData', JSON.stringify(data));
           dispatch(setUserData(data));
@@ -97,14 +98,45 @@ const LoginScreen = ({navigation, route}) => {
       }
     }
   };
-
   const handleGoogleSignIn = async () => {
     try {
+      setIsLoading(true);
       await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
       const userInfo = await GoogleSignin.signIn();
-      console.log(userInfo, 'userInfouserInfouserInfouserInfouserInfo');
+      let user = userInfo?.data?.user;
+
+      if (!user) {
+        return;
+      }
+
+      let params = {
+        firstName: user?.givenName || '',
+        lastName: user?.familyName || '',
+        email: user?.email || '',
+        loginType: 'google',
+        userType: type,
+        picture: user?.photo,
+      };
+      const response = await socialLogin({userData: params, type: 'App'});
+      if (response?.status === 200 || response?.status === 201) {
+        const data = response?.data?.user;
+        console.log('User data:', data);
+        await AsyncStorage.setItem(
+          'token',
+          JSON.stringify(response?.data?.tokens?.access),
+        );
+        await AsyncStorage.setItem('userData', JSON.stringify(data));
+        dispatch(setUserData(data));
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message || 'Login failed. Please try again.',
+        });
+      }
     } catch (error) {
-      console.log(error, 'errorerrorerrorerrorerror12312312');
+      console.log('Google Sign-In error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -201,23 +233,25 @@ const LoginScreen = ({navigation, route}) => {
           />
         </View>
         <View style={{height: 25}} />
-        <GradientButton
-          text={t('continueWithGoogle')}
-          onPress={handleGoogleSignIn}
-          type="outline"
-          styleProps={{backgroundColor: COLORS.backgroundLight}}
-          icon={ICONS.googleIcon}
-          iconPosition="left"
-        />
+        {type == 'client' && (
+          <GradientButton
+            text={t('continueWithGoogle')}
+            onPress={handleGoogleSignIn}
+            type="outline"
+            styleProps={{backgroundColor: COLORS.backgroundLight}}
+            icon={ICONS.googleIcon}
+            iconPosition="left"
+          />
+        )}
         <View style={{height: 10}} />
-        <GradientButton
+        {/* <GradientButton
           text={t('continueWithLinkedin')}
           onPress={() => {}}
           type="outline"
           styleProps={{backgroundColor: COLORS.backgroundLight}}
           icon={ICONS.linkedInIcon}
           iconPosition="left"
-        />
+        /> */}
         <View style={{height: 100}} />
         <View style={styles.footer}>
           <Text style={styles.footerText}>{t('dontHaveAccount')}</Text>

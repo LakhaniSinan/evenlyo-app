@@ -1,8 +1,7 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   Alert,
   FlatList,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -10,40 +9,50 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
+import SvgUri from 'react-native-svg-uri';
 import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
+import CommonAlert from '../../../components/commanAlert';
+import Loader from '../../../components/loder';
 import {COLORS, fontFamly, SIZES} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {fetchSubCategoriesByCategoryIds} from '../../../services/Categories';
 
 const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
 
-const categories = [
-  {
-    id: 1,
-    name: 'Entertainment & Attractions',
-    icon: ICONS.decoration4,
-    subCategories: [
-      {id: 1, name: 'DJ', icon: ICONS.decoration7},
-      {id: 2, name: 'Live Band', icon: ICONS.decoration6},
-      {id: 3, name: 'Photo Booth', icon: ICONS.decoration5},
-    ],
-  },
-  {
-    id: 2,
-    name: 'Decoration & Styling',
-    icon: ICONS.decoration4,
-    subCategories: [
-      {id: 4, name: 'LED Fairy Lights', icon: ICONS.decoration4},
-      {id: 5, name: 'Table Floral Centerpieces', icon: ICONS.decoration3},
-      {id: 6, name: 'Floral Chandelier', icon: ICONS.decoration2},
-      {id: 7, name: 'Helium Balloon Setup', icon: ICONS.decoration1},
-    ],
-  },
-];
-
-const SubCategories = ({onPressBack, handleNextStep}) => {
-  const {t} = useTranslation();
+const SubCategories = ({categoriesSelected, onPressBack, handleNextStep}) => {
+  const {t, currentLanguage} = useTranslation();
   const [selectedItems, setSelectedItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const modalRef = useRef(null);
+  const [allSubCategories, setAllSubCategories] = useState([]);
+
+  useEffect(() => {
+    handleGetAllSubCategories();
+  }, []);
+
+  const handleGetAllSubCategories = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetchSubCategoriesByCategoryIds({
+        categoryIds: categoriesSelected,
+      });
+      setIsLoading(false);
+
+      if (response?.status == 200 || response?.status == 201) {
+        setAllSubCategories(response?.data?.data || []);
+      } else {
+        modalRef.current?.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.log('Error fetching subcategories:', error);
+      modalRef.current?.showAlert('Error', 'Failed to load subcategories.');
+    }
+  }, []);
 
   const toggleSelect = useCallback(id => {
     setSelectedItems(prev =>
@@ -60,9 +69,9 @@ const SubCategories = ({onPressBack, handleNextStep}) => {
 
     return (
       <TouchableOpacity
-        key={subItem.id}
+        key={subItem._id}
         activeOpacity={0.8}
-        onPress={() => toggleSelect(subItem.id)}
+        onPress={() => toggleSelect(subItem._id)}
         style={styles.subCategoryWrapper}>
         {isSelected ? (
           <LinearGradient
@@ -71,24 +80,20 @@ const SubCategories = ({onPressBack, handleNextStep}) => {
             end={{x: 0, y: 1}}
             style={containerStyle}>
             <View style={styles.iconWrapper}>
-              <Image
-                resizeMode="contain"
-                source={subItem.icon}
-                style={styles.icon}
-              />
+              <SvgUri source={{uri: subItem.icon}} width={20} height={20} />
             </View>
-            <Text style={textStyle}>{subItem.name}</Text>
+            <Text style={textStyle}>
+              {currentLanguage == 'en' ? subItem?.name?.en : subItem?.name?.nl}
+            </Text>
           </LinearGradient>
         ) : (
           <View style={containerStyle}>
             <View style={[styles.iconWrapper, styles.iconSpacing]}>
-              <Image
-                resizeMode="contain"
-                source={subItem.icon}
-                style={styles.icon}
-              />
+              <SvgUri source={{uri: subItem.icon}} width={20} height={20} />
             </View>
-            <Text style={textStyle}>{subItem.name}</Text>
+            <Text style={textStyle}>
+              {currentLanguage == 'en' ? subItem?.name?.en : subItem?.name?.nl}
+            </Text>
           </View>
         )}
       </TouchableOpacity>
@@ -96,16 +101,22 @@ const SubCategories = ({onPressBack, handleNextStep}) => {
   };
 
   const renderItem = useCallback(
-    ({item}) => (
-      <View style={styles.categoryBox}>
-        <Text style={styles.roleTitle}>{item.name}</Text>
-        <View style={styles.subCategoryContainer}>
-          {item.subCategories.map(subItem =>
-            renderSubCategory(subItem, selectedItems.includes(subItem.id)),
-          )}
+    ({item}) => {
+      console.log(item, 'itemitemitemitemitem');
+
+      return (
+        <View style={styles.categoryBox}>
+          <Text style={styles.roleTitle}>
+            {currentLanguage == 'en' ? item.name?.en : item?.name?.nl}
+          </Text>
+          <View style={styles.subCategoryContainer}>
+            {item.subcategories?.map(subItem =>
+              renderSubCategory(subItem, selectedItems.includes(subItem._id)),
+            )}
+          </View>
         </View>
-      </View>
-    ),
+      );
+    },
     [selectedItems],
   );
 
@@ -113,7 +124,7 @@ const SubCategories = ({onPressBack, handleNextStep}) => {
     <View style={styles.form}>
       <Text style={styles.headerText}>Select Your Subcategories</Text>
       <FlatList
-        data={categories}
+        data={allSubCategories}
         renderItem={renderItem}
         scrollEnabled={false}
       />
@@ -131,7 +142,10 @@ const SubCategories = ({onPressBack, handleNextStep}) => {
           text={t('continue')}
           onPress={() => {
             if (!selectedItems?.length) {
-              Alert.alert('Error', 'Please select at least one category or subcategory.');
+              Alert.alert(
+                'Error',
+                'Please select at least one category or subcategory.',
+              );
               return;
             }
             handleNextStep(selectedItems);
@@ -141,6 +155,8 @@ const SubCategories = ({onPressBack, handleNextStep}) => {
           styleProps={{flex: 1}}
         />
       </View>
+      <Loader isLoading={isLoading} />
+      <CommonAlert ref={modalRef} />
     </View>
   );
 };

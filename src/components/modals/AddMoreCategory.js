@@ -1,109 +1,110 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import useCategories from '../../hooks/getCategories';
 import GradientButton from '../button';
 import GradientText from '../gradiantText';
+import Loader from '../loder';
 
 const AddMoreCategory = ({
   isVisible,
   onClose,
-  selectedOption,
+  selectedOption = [],
   handleSelect,
   handleNext,
 }) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
+  const {categories, loading, fetchCategories} = useCategories();
 
-  const options = [
-    {id: 1, label: 'Entertainment & Attractions'},
-    {id: 2, label: 'Food & Drinks'},
-    {id: 3, label: 'Decoration & Styling'},
-    {id: 4, label: 'Locations & Party Tents'},
-    {id: 5, label: 'Staff & Services'},
-  ];
+  useEffect(() => {
+    if (isVisible) fetchCategories();
+  }, [isVisible]);
+
+  // ✅ Function to check if category is selected
+  const isCategorySelected = id => {
+    // selectedOption could be array of objects or IDs
+    return selectedOption.some(item =>
+      typeof item === 'string' ? item === id : item?._id === id,
+    );
+  };
+
+  // ✅ Render category option
+  const renderCategoryOption = opt => {
+    const isSelected = isCategorySelected(opt._id);
+    const categoryName =
+      currentLanguage === 'en' ? opt?.name?.en : opt?.name?.nl;
+
+    return (
+      <TouchableOpacity
+        key={opt._id}
+        style={styles.optionRow}
+        onPress={() => handleSelect(opt)}>
+        <View
+          style={[
+            styles.checkbox,
+            isSelected && {
+              backgroundColor: COLORS.primary,
+              borderColor: COLORS.primary,
+            },
+          ]}>
+          {isSelected && (
+            <Icon name="checkmark" size={16} color={COLORS.white} />
+          )}
+        </View>
+        <Text style={styles.optionLabel}>{categoryName?.trim()}</Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <Modal
       isVisible={isVisible}
       onBackdropPress={onClose}
-      style={styles.modal}
-      backdropOpacity={0.5}>
+      backdropOpacity={0.5}
+      style={styles.modal}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>{t('Add More Category')}</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Icon name="close" size={24} color="#333" />
+          <TouchableOpacity onPress={onClose} hitSlop={10}>
+            <Icon name="close" size={24} color={COLORS.textDark} />
           </TouchableOpacity>
         </View>
 
-        {/* Subtitle */}
-        <Text style={styles.subTitle}>Main Category</Text>
+        <Text style={styles.subTitle}>{t('Main Category')}</Text>
 
-        {/* Options List */}
+        {/* Category List */}
         <View style={styles.optionWrapper}>
-          {options.map(opt => {
-            const isSelected = selectedOption?.includes(opt.id);
-            return (
-              <TouchableOpacity
-                key={opt.id}
-                style={styles.optionRow}
-                onPress={() => handleSelect(opt.id)}>
-                <View
-                  style={[
-                    styles.checkbox,
-                    isSelected && {backgroundColor: COLORS.primary},
-                  ]}>
-                  {isSelected && (
-                    <Icon name="checkmark" size={16} color={COLORS.white} />
-                  )}
-                </View>
-                <Text style={styles.optionLabel}>{opt.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
+          {categories?.length > 0 ? (
+            categories.map(renderCategoryOption)
+          ) : (
+            <Text style={styles.emptyText}>{t('No categories available')}</Text>
+          )}
         </View>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            position: 'absolute',
-            bottom: 20,
-            left: 20,
-            width: '100%',
-          }}>
-          <View style={{width: width(43)}}>
-            <TouchableOpacity
-              onPress={() => onClose()}
-              style={{
-                backgroundColor: COLORS.backgroundLight,
-                paddingVertical: 16,
-                paddingHorizontal: 24,
-                borderRadius: 20,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              activeOpacity={0.7}>
-              <GradientText text={'Cancel'} />
-            </TouchableOpacity>
-          </View>
-          <View style={{width: width(40)}}>
-            <GradientButton
-              text={t('Next')}
-              onPress={() => handleNext(4)}
-              type="filled"
-              textStyle={{
-                fontSize: 12,
-                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                color: 'white',
-              }}
-            />
-          </View>
+
+        {/* Footer */}
+        <View style={styles.footerContainer}>
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.cancelButton}
+            activeOpacity={0.7}>
+            <GradientText text={t('Cancel')} />
+          </TouchableOpacity>
+
+          <GradientButton
+            text={t('Next')}
+            onPress={() => handleNext(4)}
+            type="filled"
+            textStyle={styles.nextText}
+            styleProps={{width: width(40)}}
+          />
         </View>
       </View>
+      <Loader isLoading={loading} />
     </Modal>
   );
 };
@@ -112,7 +113,6 @@ const styles = StyleSheet.create({
   modal: {
     margin: 0,
     justifyContent: 'flex-end',
-    backgroundColor: '#8b8b8b66',
   },
   container: {
     height: '85%',
@@ -125,31 +125,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: width(4),
   },
   title: {
-    color: COLORS.textDark,
     fontSize: 20,
-    fontWeight: '700',
+    color: COLORS.textDark,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
   subTitle: {
     fontFamily: fontFamly.PlusJakartaSansBold,
     fontSize: 14,
-    marginBottom: 10,
+    marginBottom: width(2),
+    color: COLORS.textDark,
   },
   optionWrapper: {
-    marginTop: width(2),
     backgroundColor: COLORS.backgroundLight,
-    padding: width(4),
     borderRadius: width(4),
+    paddingVertical: width(2),
+    paddingHorizontal: width(3),
   },
   optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginBottom: 5,
+    paddingVertical: width(2),
   },
   checkbox: {
     height: 22,
@@ -165,6 +163,34 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
     fontSize: 14,
     color: COLORS.black,
+  },
+  emptyText: {
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+    color: COLORS.textLight,
+    textAlign: 'center',
+    paddingVertical: width(4),
+  },
+  footerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: COLORS.backgroundLight,
+    paddingVertical: 14,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: width(43),
+  },
+  nextText: {
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: COLORS.white,
   },
 });
 

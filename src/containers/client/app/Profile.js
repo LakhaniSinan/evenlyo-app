@@ -85,7 +85,7 @@ const Profile = () => {
   console.log(isLoggedIn, 'isLoggedInisLoggedInisLoggedInisLoggedIn');
 
   // modals
-  const [showLogin, setShowLogin] = useState(true);
+  const [showLogin, setShowLogin] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 

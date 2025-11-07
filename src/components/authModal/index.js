@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {
   ScrollView,
@@ -18,7 +17,7 @@ import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import {setUserData} from '../../redux/slice/auth';
-import {loginUser, loginVendor} from '../../services/Auth';
+import {loginUser, loginVendor, socialLogin} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
 
 import GradientButton from '../button';
@@ -30,7 +29,6 @@ import TextField from '../textInput';
 const LoginModal = ({onClose, isVisible, handlePressFun}) => {
   const {t} = useTranslation();
   const modalRef = useRef(null);
-  const navigation = useNavigation();
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.LoginSlice);
 
@@ -98,11 +96,48 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
 
   const handleGoogleSignIn = async () => {
     try {
+      setIsLoading(true);
       await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
       const userInfo = await GoogleSignin.signIn();
-      console.log('Google Sign-In Success:', userInfo);
+      let user = userInfo?.data?.user;
+      console.log(user, 'userInfouserInfouserInfouserInfo');
+
+      if (!user) {
+        return;
+      }
+
+      let params = {
+        firstName: user?.givenName || '',
+        lastName: user?.familyName || '',
+        email: user?.email || '',
+        loginType: 'google',
+        userType: type,
+        picture: user?.photo,
+      };
+      console.log(params, 'paramsparamsparamsparams');
+
+      const response = await socialLogin({userData: params, type: 'App'});
+      console.log(response, 'responseresponseresponseresponse');
+
+      if (response?.status === 200 || response?.status === 201) {
+        const data = response?.data?.user;
+        console.log('User data:', data);
+        await AsyncStorage.setItem(
+          'token',
+          JSON.stringify(response?.data?.tokens?.access),
+        );
+        await AsyncStorage.setItem('userData', JSON.stringify(data));
+        dispatch(setUserData(data));
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message || 'Login failed. Please try again.',
+        });
+      }
     } catch (error) {
-      console.log('Google Sign-In Error:', error);
+      console.log('Google Sign-In error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -175,14 +210,14 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
             iconPosition="left"
           />
           <View style={{height: width(2)}} />
-          <GradientButton
+          {/* <GradientButton
             text={t('continueWithLinkedin')}
             onPress={() => {}}
             type="outline"
             styleProps={styles.socialButton}
             icon={ICONS.linkedInIcon}
             iconPosition="left"
-          />
+          /> */}
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>{t('dontHaveAccount')}</Text>
@@ -191,7 +226,6 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
             </TouchableOpacity>
           </View>
         </ScrollView>
-
         <CommonAlert ref={modalRef} />
         <Loader isLoading={isLoading} />
       </View>

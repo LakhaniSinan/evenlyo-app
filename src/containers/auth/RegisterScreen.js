@@ -101,6 +101,7 @@ const RegisterScreen = ({navigation}) => {
         contactNumber: formData.contact,
         password: formData.password,
         confirmPassword: formData.confirmPassword,
+        type: 'client',
       };
       setIsLoading(true);
       const response = await registerUser(payload);

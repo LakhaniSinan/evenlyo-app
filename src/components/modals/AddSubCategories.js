@@ -1,17 +1,10 @@
-import React, {useCallback, useState} from 'react';
-import {
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React, {useCallback} from 'react';
+import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
 import Modal from 'react-native-modal';
+import SvgUri from 'react-native-svg-uri';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
@@ -19,87 +12,92 @@ import GradientText from '../gradiantText';
 
 const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
 
-const categories = [
-  {
-    id: 1,
-    name: 'Entertainment & Attractions',
-    icon: ICONS.decoration4,
-    subCategories: [
-      {id: 1, name: 'DJ', icon: ICONS.decoration7},
-      {id: 2, name: 'Live Band', icon: ICONS.decoration6},
-      {id: 3, name: 'Photo Booth', icon: ICONS.decoration5},
-    ],
-  },
-  {
-    id: 2,
-    name: 'Decoration & Styling',
-    icon: ICONS.decoration4,
-    subCategories: [
-      {id: 4, name: 'LED Fairy Lights', icon: ICONS.decoration4},
-      {id: 5, name: 'Table Floral Centerpieces', icon: ICONS.decoration3},
-      {id: 6, name: 'Floral Chandelier', icon: ICONS.decoration2},
-      {id: 7, name: 'Helium Balloon Setup', icon: ICONS.decoration1},
-    ],
-  },
-];
+const SubCategoriesModal = ({
+  allSubCategories = [],
+  isVisible,
+  onClose,
+  handleNextStep,
+  selectedItems,
+  setSelectedItems,
+}) => {
+  const {t, currentLanguage} = useTranslation();
 
-const SubCategoriesModal = ({isVisible, onClose, handleNextStep}) => {
-  const {t} = useTranslation();
-  const [selectedItems, setSelectedItems] = useState([]);
-
-  const toggleSelect = useCallback(id => {
-    setSelectedItems(prev =>
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id],
-    );
-  }, []);
-
-  const renderSubCategory = (subItem, isSelected) => (
-    <TouchableOpacity
-      key={subItem.id}
-      activeOpacity={0.8}
-      onPress={() => toggleSelect(subItem.id)}
-      style={styles.subCategoryWrapper}>
-      {isSelected ? (
-        <LinearGradient
-          colors={GRADIENT_COLORS}
-          start={{x: 0, y: 0}}
-          end={{x: 0, y: 1}}
-          style={styles.activeContainer}>
-          <View style={styles.iconWrapper}>
-            <Image
-              resizeMode="contain"
-              source={subItem.icon}
-              style={styles.icon}
-            />
-          </View>
-          <Text style={styles.activeText}>{subItem.name}</Text>
-        </LinearGradient>
-      ) : (
-        <View style={styles.inactiveContainer}>
-          <View style={[styles.iconWrapper, styles.iconSpacing]}>
-            <Image
-              resizeMode="contain"
-              source={subItem.icon}
-              style={styles.icon}
-            />
-          </View>
-          <Text style={styles.inactiveText}>{subItem.name}</Text>
-        </View>
-      )}
-    </TouchableOpacity>
+  console.log(
+    selectedItems,
+    'selectedItemsselectedItemsselectedItemsselectedItems',
   );
 
+  const toggleSelect = useCallback(data => {
+    setSelectedItems(prev => {
+      if (prev?.includes(data)) {
+        return prev.filter(item => item?._id !== data?._id);
+      } else {
+        let newObjjj = {
+          name: data?.name,
+          _id: data?._id,
+        };
+        return [...prev, newObjjj];
+      }
+    });
+  }, []);
+
+  const renderSubCategory = (subItem, isSelected) => {
+    console.log(subItem, 'subItemsubItemsubItem144trgsdf');
+
+    return (
+      <TouchableOpacity
+        key={subItem?._id}
+        activeOpacity={0.8}
+        onPress={() => toggleSelect(subItem)}
+        style={styles.subCategoryWrapper}>
+        {isSelected ? (
+          <LinearGradient
+            colors={GRADIENT_COLORS}
+            start={{x: 0, y: 0}}
+            end={{x: 0, y: 1}}
+            style={styles.activeContainer}>
+            <View style={styles.iconWrapper}>
+              <SvgUri height={10} width={10} source={{uri: subItem?.icon}} />
+            </View>
+            <Text style={styles.activeText}>
+              {currentLanguage == 'en' ? subItem?.name?.en : subItem?.name?.nl}
+            </Text>
+          </LinearGradient>
+        ) : (
+          <View style={styles.inactiveContainer}>
+            <View style={[styles.iconWrapper, styles.iconSpacing]}>
+              <SvgUri height={10} width={10} source={{uri: subItem?.icon}} />
+            </View>
+            <Text style={styles.inactiveText}>
+              {currentLanguage == 'en' ? subItem?.name?.en : subItem?.name?.nl}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  const isCategorySelected = id => {
+    return selectedItems.some(item =>
+      typeof item === 'string' ? item === id : item?._id === id,
+    );
+  };
+
   const renderItem = useCallback(
-    ({item}) => (
-      <View style={styles.categoryBox}>
-        <Text style={styles.roleTitle}>{item.name}</Text>
-        <View style={styles.subCategoryContainer}>
-          {item.subCategories.map(subItem =>
-            renderSubCategory(subItem, selectedItems.includes(subItem.id)),
-          )}
+    ({item}) => {
+      return (
+        <View style={styles.categoryBox}>
+          <Text style={styles.roleTitle}>
+            {currentLanguage == 'en' ? item?.name?.en : item?.name?.nl}
+          </Text>
+          <View style={styles.subCategoryContainer}>
+            {item.subcategories?.map(subItem =>
+              renderSubCategory(subItem, isCategorySelected(subItem._id)),
+            )}
+          </View>
         </View>
-      </View>
-    ),
+      );
+    },
     [selectedItems],
   );
 
@@ -120,9 +118,9 @@ const SubCategoriesModal = ({isVisible, onClose, handleNextStep}) => {
         <Text style={styles.subTitle}>Sub Category</Text>
 
         <FlatList
-          data={categories}
+          data={allSubCategories}
           renderItem={renderItem}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={item => item._id.toString()}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
         />
@@ -169,11 +167,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   title: {
+    color: COLORS.textDark,
     fontSize: 20,
     fontWeight: '700',
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
   subTitle: {
+    color: COLORS.textDark,
     fontFamily: fontFamly.PlusJakartaSansBold,
     fontSize: 14,
     marginBottom: 10,
@@ -246,11 +246,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    width: '100%',
-    paddingRight: 20,
+    paddingVertical: width(2),
   },
   cancelButton: {
     backgroundColor: COLORS.backgroundLight,
