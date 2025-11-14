@@ -5,16 +5,12 @@ import Carousel from 'react-native-snap-carousel';
 import {COLORS} from '../../constants';
 
 const CarouselComponent = ({data}) => {
-  console.log(data, 'datadatadatadataadasd');
-  const images = [data?.image] || data?.images || [];
-  console.log(images, 'imagesimagesimagesimages');
-
   const [activeSlide, setActiveSlide] = useState(0);
 
   const renderIndicators = () => {
     return (
       <View style={styles.indicatorContainer}>
-        {images?.map((_, index) => {
+        {data?.map((_, index) => {
           const isActive = index === activeSlide;
           return (
             <View
@@ -24,13 +20,13 @@ const CarouselComponent = ({data}) => {
                 paddingVertical: isActive ? width(2) : 0,
                 borderWidth: isActive ? 1 : 0,
                 borderRadius: 100,
-                borderColor: COLORS.white,
+                borderColor: COLORS.black,
               }}>
               <View
                 style={{
                   height: 7,
                   width: 7,
-                  backgroundColor: COLORS.white,
+                  backgroundColor: COLORS.black,
                   borderRadius: 10,
                   marginHorizontal: width(1),
                 }}
@@ -54,7 +50,7 @@ const CarouselComponent = ({data}) => {
   return (
     <View>
       <Carousel
-        data={images || []}
+        data={data || []}
         renderItem={renderItem}
         sliderWidth={width(100)}
         itemWidth={width(100)}
@@ -70,15 +66,11 @@ const CarouselComponent = ({data}) => {
 const styles = StyleSheet.create({
   card: {
     height: width(80),
-    backgroundColor: 'red',
-    width: width(90),
+    backgroundColor: COLORS.white,
+    width: width(85),
+    margin: width(2),
     borderRadius: width(5),
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   image: {
     height: '100%',

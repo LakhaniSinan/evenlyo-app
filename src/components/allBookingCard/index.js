@@ -6,7 +6,7 @@ import {useTranslation} from '../../hooks';
 
 const AllBookingCard = ({item}) => {
   const {t} = useTranslation();
-  const isGradient = item?.title === t('Total Items');
+  const isGradient = item?.title === t('Completed Bookings');
   const gradientColors = ['#FF295D', '#E31B95', '#C817AE'];
 
   return (
@@ -81,7 +81,7 @@ const CardContent = ({item, isDark = false}) => {
             backgroundColor:
               item?.title === t('Total Bookings')
                 ? COLORS.navyBlue
-                : item?.title == t('Request Bookings')
+                : item?.title == t('Request Booking')
                 ? COLORS.green
                 : item?.title == t('In Process')
                 ? COLORS.yellow
@@ -96,7 +96,7 @@ const CardContent = ({item, isDark = false}) => {
           color:
             item?.title === t('Total Bookings')
               ? COLORS.navyBlue
-              : item?.title == t('Request Bookings')
+              : item?.title == t('Request Booking')
               ? COLORS.green
               : item?.title == t('In Process')
               ? COLORS.yellow

@@ -36,12 +36,14 @@ import Loader from '../loder';
 import TextField from '../textInput';
 
 const EventListingModal = ({isVisible, onClose, toEditData}) => {
+  console.log(toEditData, 'toEditDatatoEditDatatoEditDatatoEditDatatoEditData');
+
   const {t} = useTranslation();
   const [formData, setFormData] = useState({
     title: {en: '', nl: ''},
     subTitle: {en: '', nl: ''},
     mainCategory: null,
-    subCategory: '',
+    subCategory: null,
     description: {en: '', nl: ''},
     pricingType: '',
     cost: '',
@@ -54,14 +56,10 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
     productImage: [],
   });
 
-  console.log(formData, 'formDataformDataformDataformData');
-
   const [selectedLang, setSelectedLang] = useState('en');
   const [isLoading, setIsLoading] = useState(false);
   const [allSubCategories, setAllSubCategories] = useState([]);
   const {user} = useSelector(state => state.LoginSlice);
-  const [workImages, setWorkImages] = useState([]);
-  const [workVideos, setWorkVideos] = useState([]);
   const [isCheck, setIsCheck] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [vendorsCategories, setVendorsCategory] = useState(null);
@@ -70,16 +68,13 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
   const [endTime, setEndTime] = useState(null);
   const [isStartPickerOpen, setIsStartPickerOpen] = useState(false);
   const [isEndPickerOpen, setIsEndPickerOpen] = useState(false);
-
   const modalRef = useRef(null);
-
   const pricingType = [
     {name: 'Per Hour'},
     {name: 'Per Day'},
     {name: 'Per Event'},
     {name: 'Fixed Price'},
   ];
-
   const daysData = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
   useEffect(() => {
@@ -97,90 +92,88 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
 
   useEffect(() => {
     handleGetVendorCategories();
-  }, []);
+  }, [isVisible]);
 
   useEffect(() => {
-    if (isVisible && toEditData) {
-      let selectedCats = vendorsCategories?.find(
-        item => item?.name?.en || item?.name?.nl === toEditData?.category,
-      );
-      let selectedSubCats = allSubCategories?.find(
-        item => item?.name?.en || item?.name?.nl === toEditData?.subCategory,
+    if (isVisible && toEditData && vendorsCategories?.length > 0) {
+      // ✅ find selected main category
+      const selectedCat = vendorsCategories.find(
+        cat => cat?._id === toEditData?.category?._id,
       );
 
-      let priceType = pricingType?.find(
-        price => price?.name?.toLowerCase() == toEditData?.pricing?.type,
-      );
+      // ✅ load subcategories first, then preselect subcategory
+      (async () => {
+        if (selectedCat?._id) {
+          const res = await fetchSubCategoriesByCategoryIds({
+            categoryIds: [selectedCat._id],
+          });
+          const subs = res?.data?.data?.[0]?.subcategories || [];
+          setAllSubCategories(subs);
 
-      setIsCheck(toEditData?.pricing?.securityFee > 0);
-      setWorkImages(toEditData?.images || []);
-      setAvailableDays(toEditData?.availability?.availableDays || []);
+          const selectedSubCat = subs.find(
+            sub => sub?._id === toEditData?.subCategory?._id,
+          );
 
-      if (
-        toEditData?.availability?.availableTimeSlots &&
-        toEditData?.availability?.availableTimeSlots?.length > 0
-      ) {
-        const slot = toEditData?.availability?.availableTimeSlots[0];
-        if (slot?.startTime) {
-          setStartTime(moment(slot.startTime, 'hh:mm A').toDate());
+          // ✅ match pricing type from list
+          const priceType = pricingType.find(price => {
+            const name = price.name.toLowerCase().replace(/\s+/g, '');
+            const type = toEditData?.pricing?.type
+              ?.toLowerCase()
+              .replace(/\s+/g, '');
+            return name === type;
+          });
+
+          // ✅ Set initial formData with pre-filled values
+          setFormData({
+            title: toEditData?.title || {en: '', nl: ''},
+            subTitle: toEditData?.subtitle || {en: '', nl: ''},
+            description: toEditData?.description || {en: '', nl: ''},
+            mainCategory: selectedCat || null,
+            subCategory: selectedSubCat || null,
+            pricingType: priceType?.name || '',
+            cost: toEditData?.pricing?.amount?.toString() || '',
+            extraTimeCost: toEditData?.pricing?.extratimeCost?.toString() || '',
+            perKm: toEditData?.pricing?.pricePerKm?.toString() || '',
+            securityFeeAmount:
+              toEditData?.pricing?.securityFee?.toString() || '',
+            selectedCoords: toEditData?.location || null,
+            productImage: toEditData?.images || [],
+            termsAccepted: true,
+            autoAcceptOrder: toEditData?.autoAcceptOrder || false,
+          });
+
+          // ✅ preselect security fee toggle and available days
+          setIsCheck(toEditData?.pricing?.securityFee > 0);
+          setAvailableDays(toEditData?.availability?.availableDays || []);
+
+          // ✅ preselect time slots if available
+          if (
+            toEditData?.availability?.availableTimeSlots &&
+            toEditData?.availability?.availableTimeSlots.length > 0
+          ) {
+            const slot = toEditData.availability.availableTimeSlots[0];
+            if (slot.startTime) {
+              setStartTime(moment(slot.startTime, 'HH:mm').toDate());
+            }
+            if (slot.endTime) {
+              setEndTime(moment(slot.endTime, 'HH:mm').toDate());
+            }
+          }
         }
-        if (slot?.endTime) {
-          setEndTime(moment(slot.endTime, 'HH:mm A').toDate());
-        }
-      }
-
-      setFormData({
-        title: {
-          en:
-            typeof toEditData?.title === 'string'
-              ? toEditData?.title
-              : toEditData?.title?.en || '',
-          nl: toEditData?.title?.nl || '',
-        },
-        subTitle: {
-          en:
-            toEditData?.subtitle?.en ||
-            (typeof toEditData?.subtitle === 'string'
-              ? toEditData?.subtitle
-              : ''),
-          nl: toEditData?.subtitle?.nl || '',
-        },
-        mainCategory: selectedCats,
-        subCategory: selectedSubCats || '',
-        description: {
-          en:
-            typeof toEditData?.description === 'string'
-              ? toEditData?.description
-              : toEditData?.description?.en || '',
-          nl: toEditData?.description?.nl || '',
-        },
-        pricingType: priceType?.name || '',
-        cost: toEditData?.pricing?.amount?.toString() || '',
-        extraTimeCost: toEditData?.pricing?.extratimeCost?.toString() || '',
-        perKm: toEditData?.pricing?.pricePerKm?.toString() || '',
-        securityFeeAmount: toEditData?.pricing?.securityFee?.toString() || '',
-        autoAcceptOrder: toEditData?.autoAcceptOrder || false,
-        selectedCoords: toEditData?.location,
-        termsAccepted: true,
-        productImage: toEditData?.images || [],
-      });
-
-      if (toEditData?.mainCategory?._id) {
-        handleGetAllSubCategories([toEditData.mainCategory._id]);
-      }
+      })();
     }
-  }, [isVisible, toEditData]);
+  }, [isVisible, toEditData, vendorsCategories]);
 
-  useEffect(() => {
-    let selectedSubCats = allSubCategories?.find(
-      item => item?.name?.en || item?.name?.nl === toEditData?.subCategory,
-    );
+  // useEffect(() => {
+  //   let selectedSubCats = allSubCategories?.find(
+  //     item => item?.name?.en || item?.name?.nl === toEditData?.subCategory,
+  //   );
 
-    setFormData({
-      ...formData,
-      subCategory: selectedSubCats || '',
-    });
-  }, [allSubCategories]);
+  //   setFormData({
+  //     ...formData,
+  //     subCategory: selectedSubCats || '',
+  //   });
+  // }, [allSubCategories]);
 
   const handleGetVendorCategories = async () => {
     try {
@@ -305,77 +298,38 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
     // ✅ Build Final Payload
     const payload = {
       title,
-      subTitle,
+      subtitle: subTitle,
       description,
-      mainCategoryId: mainCategory?._id || '',
       category: mainCategory?._id || '',
-      subCategoryId: subCategory?._id || '',
       subCategory: subCategory?._id || '',
       pricing: {
         type: pricingType,
-        amount: cost,
-        extraTimeCost: extraTimeCost || '',
-        perKm: perKm || '',
-        securityFee: isCheck ? securityFeeAmount : '0',
+        amount: Number(cost),
+        extratimeCost: Number(extraTimeCost) || '',
+        pricePerKm: Number(perKm) || '',
+        securityFee: isCheck ? Number(securityFeeAmount) : 0,
       },
       images: formData.productImage || [],
-      videos: workVideos || [],
-      location: selectedCoords || {},
-      availability: {
-        availableDays: availableDays || [],
-        startTime: startTime ? moment(startTime).format('HH:mm') : '',
-        endTime: endTime ? moment(endTime).format('HH:mm') : '',
-      },
-      autoAcceptOrder: formData.autoAcceptOrder,
-      termsAccepted: formData.termsAccepted,
-    };
-
-    let payloadsss = {
-      title: {
-        en: 'asdasda',
-        nl: '',
-      },
-      subtitle: {
-        en: 'asdasda',
-        nl: '',
-      },
-      description: {
-        en: 'sdasdasds',
-        nl: '',
-      },
-      category: '68943d2ba1a765a1f78a6338',
-      subCategory: '68943d2ca1a765a1f78a6346',
-      pricing: {
-        type: 'perday',
-        amount: 123,
-        extratimeCost: 132,
-        pricePerKm: 132,
-        securityFee: 132,
-      },
       location: {
-        fullAddress:
-          'Karachi - Hyderabad Motorway, Sadaf CHS Gulzar E Hijri Scheme 33, Karachi, Pakistan',
+        userAddress: selectedCoords?.userAddress || '',
         coordinates: {
-          lat: 24.9614333,
-          lng: 67.106703,
+          latitude: selectedCoords?.latLng?.latitude,
+          longitude: selectedCoords?.latLng?.longitude,
         },
       },
       availability: {
         isAvailable: true,
-        availableDays: ['mon', 'tue', 'thu', 'fri'],
+        availableDays: availableDays,
         availableTimeSlots: [
           {
-            startTime: '07:00',
-            endTime: '22:00',
+            startTime: startTime ? moment(startTime).format('HH:mm') : '',
+            endTime: endTime ? moment(endTime).format('HH:mm') : '',
           },
         ],
       },
-      vendor: '68ff136bd7123d389058b085',
+      vendorId: user?.id,
       status: 'active',
       isActive: true,
-      images: [
-        'https://res.cloudinary.com/dv0imczul/image/upload/v1762525563/owyoptjaafunb9wjqe6a.png',
-      ],
     };
 
     try {
@@ -524,14 +478,16 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
     setAvailableDays([]);
     setStartTime('');
     setEndTime('');
-    setWorkVideos([]);
     setIsCheck(false);
   };
 
   return (
     <Modal
       isVisible={isVisible}
-      onBackdropPress={onClose}
+      onBackdropPress={() => {
+        resetForm();
+        onClose();
+      }}
       style={styles.modal}
       backdropOpacity={0.5}
       avoidKeyboard
@@ -873,7 +829,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
               <GradientButton
                 icon={ICONS.uploadIcon}
                 iconTintColor={COLORS.white}
-                text={t('Update Listing')}
+                text={toEditData ? t('Update Listing') : t('Add Listing')}
                 onPress={handleSubmit}
                 type="filled"
                 textStyle={styles.applyText}

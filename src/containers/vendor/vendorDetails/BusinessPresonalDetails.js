@@ -1,6 +1,5 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   ScrollView,
   StyleSheet,
@@ -10,257 +9,217 @@ import {
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
+import CommonAlert from '../../../components/commanAlert';
 import CustomPicker from '../../../components/customPicker';
-import ContactNumberInput from '../../../components/phoneInput';
 import TextField from '../../../components/textInput';
 import {COLORS, fontFamly, SIZES} from '../../../constants';
 import {useTranslation} from '../../../hooks';
-import CommonAlert from '../../../components/commanAlert';
 
-const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
-  const phoneInput = useRef(null);
-  const selecctSizeRef = useRef(null);
+const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
+  const {t, currentLanguage} = useTranslation();
   const modalRef = useRef(null);
-  const teamWorkRef = useRef(null);
-  const {t} = useTranslation();
+  const workTypeRef = useRef(null);
+  const teamSizeRef = useRef(null);
+
   const [formData, setFormData] = useState({
     companyName: '',
-    businessType: '',
     companyEmail: '',
     contact: '',
     companyAddress: '',
     companyWebsite: '',
-    selecctSizeRef: '',
-    teamWorkRef: '',
+    passportNumber: '',
+    kvknumber: '',
+    workType: '',
+    teamSize: '',
+    tagline: {en: '', nl: ''},
+    description: {en: '', nl: ''},
   });
 
-  const [selectedRole, setSelectedRole] = useState(null);
+  // populate form data from props
+  useEffect(() => {
+    if (businessInfo) {
+      setFormData({
+        companyName: businessInfo?.companyName || '',
+        companyEmail: businessInfo?.companyEmail || '',
+        contact: businessInfo?.contact || '',
+        companyAddress: businessInfo?.companyAddress || '',
+        companyWebsite: businessInfo?.companyWebsite || '',
+        passportNumber: businessInfo?.passportNumber || '',
+        kvknumber: businessInfo?.kvknumber || '',
+        workType: businessInfo?.workType || '',
+        teamSize: businessInfo?.teamSize || '',
+        tagline: businessInfo?.tagline || {en: '', nl: ''},
+        description: businessInfo?.description || {en: '', nl: ''},
+      });
+    }
+  }, [businessInfo]);
 
+  // generic text handler
   const handleInputChange = (field, value) => {
     setFormData(prev => ({...prev, [field]: value}));
   };
 
-  const handleRegister = async () => {
-    const {name, email, password, contact, confirmPassword} = formData;
-
-    // Validation
-    if (!name || !email || !contact || !password || !confirmPassword) {
-      Alert.alert(t('Error'), t('Please fill all fields'));
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert(t('Error'), t('Passwords do not match'));
-      return;
-    }
-
-    if (!selectedRole) {
-      Alert.alert(t('Error'), t('Please select your role'));
-      return;
-    }
+  // language-based tagline & description handler
+  const handleLangBasedInput = (field, text) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: {
+        ...prev[field],
+        [currentLanguage]: text,
+      },
+    }));
   };
 
-  const handleOpenWorkTypeModal = params => {
-    console.log('handleOpenWorkTypeModal called with:', params);
-    if (teamWorkRef?.current) {
-      teamWorkRef.current.show(params);
-    } else {
-      console.warn('main Category ref is not available');
-    }
-  };
-
-  const handleOpenSelection = params => {
-    console.log('handleOpenWorkTypeModal called with:', params);
-    if (selecctSizeRef?.current) {
-      selecctSizeRef.current.show(params);
-    } else {
-      console.warn('main Category ref is not available');
-    }
-  };
-
+  // select value handler for dropdowns
   const handleSelectValue = (name, value) => {
-    console.log('handleSelectValue called:', name, value);
-    if (setFormData && typeof setFormData === 'function') {
-      setFormData(prevState => ({
-        ...prevState,
-        [name]: value?.name || value,
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: value?.name || value,
+    }));
   };
 
+  // validation and next
   const handleContinue = () => {
-    // safe string values
-    const companyName = String(formData.companyName || '').trim();
-    const businessType = String(formData.businessType || '').trim();
-    const companyEmail = String(formData.companyEmail || '').trim();
-    const contact = String(formData.contact || '').trim();
-    const companyAddress = String(formData.companyAddress || '').trim();
-    const companyWebsite = String(formData.companyWebsite || '').trim();
-    const workType = String(formData.selecctSizeRef || '').trim();
-    const teamSize = String(formData.teamWorkRef || '').trim();
+    const {
+      companyName,
+      companyEmail,
+      contact,
+      companyAddress,
+      companyWebsite,
+      workType,
+      teamSize,
+    } = formData;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // sequential checks (one-by-one) with modal messages
-    if (companyName === '') {
-      modalRef.current?.show({
-        status: 'error',
-        message: 'Please enter Company Name.',
-      });
-    } else if (businessType === '') {
-      modalRef.current?.show({
-        status: 'error',
-        message: 'Please select Business Type.',
-      });
-    } else if (companyEmail === '') {
-      modalRef.current?.show({
-        status: 'error',
-        message: 'Please enter Company Email.',
-      });
-    } else if (!emailRegex.test(companyEmail)) {
-      modalRef.current?.show({
-        status: 'error',
-        message: 'Please enter a valid email address.',
-      });
-    } else if (contact === '') {
-      modalRef.current?.show({
-        status: 'error',
-        message: 'Please enter Contact Number.',
-      });
-    } else if (contact.replace(/\D/g, '').length < 7) {
-      modalRef.current?.show({
-        status: 'error',
-        message: 'Please enter a valid contact number.',
-      });
-    } else if (companyAddress === '') {
-      modalRef.current?.show({
-        status: 'error',
-        message: 'Please enter Company Address.',
-      });
-    } else if (companyWebsite === '') {
-      modalRef.current?.show({
-        status: 'error',
-        message: 'Please enter Company Website.',
-      });
-    } else if (workType === '') {
-      modalRef.current?.show({
-        status: 'error',
-        message: 'Please select your Work Type.',
-      });
-    } else if (teamSize === '') {
-      modalRef.current?.show({
-        status: 'error',
-        message: 'Please select your Team Size.',
-      });
-    } else {
-      // all validations passed
-      handleNextStep(formData);
-    }
+    const showError = message =>
+      modalRef.current?.show({status: 'error', message});
+
+    if (!companyName) return showError('Please enter Company Name.');
+    if (!companyEmail) return showError('Please enter Company Email.');
+    if (!emailRegex.test(companyEmail))
+      return showError('Please enter a valid email address.');
+    if (!contact) return showError('Please enter Contact Number.');
+    if (contact.replace(/\D/g, '').length < 7)
+      return showError('Please enter a valid contact number.');
+    if (!companyAddress) return showError('Please enter Company Address.');
+    if (!companyWebsite) return showError('Please enter Company Website.');
+    if (!workType) return showError('Please select your Work Type.');
+    if (!teamSize) return showError('Please select your Team Size.');
+
+    handleNextStep(formData);
   };
 
   return (
     <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
       <View style={styles.form}>
-        <Text
-          style={{
-            fontSize: 20,
-            fontFamily: fontFamly.PlusJakartaSansBold,
-            color: COLORS.black,
-            textAlign: 'center',
-          }}>
-          Your Business Info
-        </Text>
+        <Text style={styles.titleText}>Your Business Info</Text>
+
         <KeyboardAvoidingView>
+          {/* Company Name */}
           <TextField
-            label={t('Company  Name')}
-            placeholder={t('Company Name')}
-            bgColor={COLORS.white}
+            label={t('Company Name')}
+            placeholder={t('Enter Company Name')}
             value={formData.companyName}
-            onChangeText={value => handleInputChange('companyName', value)}
-            keyboardType="default"
-            autoCapitalize="words"
-          />
-
-          <View style={{height: 10}} />
-          <TextField
-            label={t('Business type')}
-            placeholder={t('Business type')}
+            onChangeText={val => handleInputChange('companyName', val)}
             bgColor={COLORS.white}
-            value={formData.businessType}
-            onChangeText={value => handleInputChange('businessType', value)}
-            keyboardType="default"
-            autoCapitalize="words"
           />
 
-          <View style={{height: 10}} />
+          <Spacing />
+
+          {/* Company Email */}
           <TextField
-            label={t('Company  Email Address')}
-            placeholder={t('Company  Email Address')}
+            label={t('Company Email')}
+            placeholder={t('Enter Company Email')}
             value={formData.companyEmail}
-            onChangeText={value => handleInputChange('companyEmail', value)}
-            bgColor={COLORS.white}
+            onChangeText={val => handleInputChange('companyEmail', val)}
             keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <View style={{height: 10}} />
-          <ContactNumberInput
-            labelText={t('Company Number')}
-            labelColor={'#000'}
-            phoneNumber={formData.contact}
-            onChange={value => handleInputChange('contact', value)}
-            ref={phoneInput}
-            containerStyle={{
-              backgroundColor: COLORS.white,
-            }}
+            bgColor={COLORS.white}
           />
 
-          <View style={{height: 10}} />
+          <Spacing />
+
+          {/* Contact */}
+          <TextField
+            label={t('Company Number')}
+            placeholder={t('0000*****')}
+            value={formData.contact}
+            onChangeText={val => handleInputChange('contact', val)}
+            keyboardType="phone-pad"
+            bgColor={COLORS.white}
+          />
+
+          <Spacing />
+
+          {/* Address */}
           <TextField
             label={t('Company Address')}
-            placeholder={t('Company Address')}
-            bgColor={COLORS.white}
+            placeholder={t('Enter Company Address')}
             value={formData.companyAddress}
-            onChangeText={value => handleInputChange('companyAddress', value)}
-            keyboardType="default"
-            autoCapitalize="sentences"
+            onChangeText={val => handleInputChange('companyAddress', val)}
+            bgColor={COLORS.white}
           />
-          <View style={{height: 10}} />
 
+          <Spacing />
+
+          {/* Website */}
           <TextField
             label={t('Company Website')}
-            placeholder={t('URL')}
-            bgColor={COLORS.white}
+            placeholder={t('Enter Website URL')}
             value={formData.companyWebsite}
-            onChangeText={value => handleInputChange('companyWebsite', value)}
+            onChangeText={val => handleInputChange('companyWebsite', val)}
             keyboardType="url"
-            autoCapitalize="none"
+            bgColor={COLORS.white}
           />
-          <View style={{height: 10}} />
+
+          <Spacing />
+
+          {/* KVK Number */}
+          <TextField
+            label={t('KVK Number')}
+            placeholder={t('Enter KVK Number')}
+            value={formData.kvknumber}
+            onChangeText={val => handleInputChange('kvknumber', val)}
+            bgColor={COLORS.white}
+            keyboardType="phone-pad"
+          />
+
+          <Spacing />
+
+          {/* Passport */}
+          <TextField
+            label={t('Passport Number')}
+            placeholder={t('Enter Passport Number')}
+            value={formData.passportNumber}
+            onChangeText={val => handleInputChange('passportNumber', val)}
+            bgColor={COLORS.white}
+            keyboardType="phone-pad"
+          />
+
+          <Spacing />
+
+          {/* Work Type */}
           <CustomPicker
-            ref={selecctSizeRef}
-            label="Your Work Type "
-            labelll="Your Work Type"
-            handleOpenModal={handleOpenSelection}
-            value={formData?.selecctSizeRef || ''}
-            dropdownContainerStyle={{
-              backgroundColor: COLORS.white,
-            }}
+            ref={workTypeRef}
+            labelll={t('Your Work Type')}
+            label={t('Your Work Type')}
+            value={formData.workType}
             listData={[{name: 'Single'}, {name: 'Team'}]}
-            name="selecctSizeRef"
+            name="workType"
             handleSelectValue={handleSelectValue}
+            dropdownContainerStyle={{backgroundColor: COLORS.white}}
           />
-          <View style={{height: 15}} />
+
+          <Spacing />
+
+          {/* Team Size */}
           <CustomPicker
-            ref={teamWorkRef}
-            label="Selection"
-            labelll="1-5"
-            handleOpenModal={handleOpenWorkTypeModal}
-            value={formData?.teamWorkRef || ''}
-            dropdownContainerStyle={{
-              backgroundColor: COLORS.white,
-            }}
+            ref={teamSizeRef}
+            labelll={t('Team Size')}
+            label={t('Team Size')}
+            value={formData.teamSize}
             listData={[
-              {name: "it's Just Me"},
+              {name: "It's Just Me"},
               {name: '1-5'},
               {name: '11-20'},
               {name: '21-50'},
@@ -270,25 +229,58 @@ const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
               {name: '501-1000'},
               {name: '1001-2000'},
             ]}
-            name="teamWorkRef"
+            name="teamSize"
             handleSelectValue={handleSelectValue}
+            disable={formData.workType === 'Single'}
+            dropdownContainerStyle={{backgroundColor: COLORS.white}}
           />
-          <View style={{height: 15}} />
+
+          <Spacing />
+
+          {/* Tagline */}
+          <TextField
+            label={t('Tagline')}
+            placeholder={t('Add Why Choose Us')}
+            value={
+              currentLanguage === 'en'
+                ? formData.tagline.en
+                : formData.tagline.nl
+            }
+            onChangeText={text => handleLangBasedInput('tagline', text)}
+            bgColor={COLORS.white}
+          />
+
+          <Spacing />
+
+          {/* Description */}
+          <TextField
+            label={t('Description')}
+            placeholder={t(
+              'Focused on creating vibes through immersive sound...',
+            )}
+            value={
+              currentLanguage === 'en'
+                ? formData.description.en
+                : formData.description.nl
+            }
+            onChangeText={text => handleLangBasedInput('description', text)}
+            bgColor={COLORS.white}
+            multiline
+            numberOfLines={3}
+          />
+
+          {/* Buttons */}
           <View style={styles.buttonContainer}>
             <GradientButton
-              text={t('back')}
-              useGradient={true}
-              onPress={() => onPressBack()}
+              text={t('Back')}
+              onPress={onPressBack}
               type="outline"
-              styleProps={{
-                paddingVertical: 14,
-              }}
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
               icon={ICONS.backIcon}
+              styleProps={{paddingVertical: 14}}
             />
-
             <GradientButton
-              text={t('continue')}
+              text={t('Continue')}
               onPress={handleContinue}
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
@@ -297,113 +289,23 @@ const BusinessPersonalInfo = ({onPressBack, handleNextStep}) => {
           </View>
         </KeyboardAvoidingView>
       </View>
+
       <CommonAlert ref={modalRef} />
     </ScrollView>
   );
 };
 
+// simple spacing component
+const Spacing = () => <View style={{height: 10}} />;
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: SIZES.lg,
-    paddingTop: SIZES.xl,
-    paddingBottom: SIZES.lg,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: COLORS.text,
+  scrollView: {flex: 1},
+  form: {marginBottom: SIZES.lg, marginTop: 20},
+  titleText: {
+    fontSize: 20,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.black,
     textAlign: 'center',
-    marginBottom: SIZES.sm,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.textLight,
-    textAlign: 'center',
-    marginBottom: SIZES.xl,
-  },
-  form: {
-    marginBottom: SIZES.lg,
-    marginTop: 20,
-  },
-  input: {
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: 12,
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.md,
-    fontSize: 16,
-    color: COLORS.text,
-    marginBottom: SIZES.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  roleTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: SIZES.md,
-    marginTop: SIZES.sm,
-  },
-  roleContainer: {
-    marginBottom: SIZES.lg,
-  },
-  roleButton: {
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: 12,
-    padding: SIZES.md,
-    marginBottom: SIZES.sm,
-    borderWidth: 2,
-    borderColor: COLORS.border,
-  },
-  roleButtonSelected: {
-    borderColor: COLORS.primary,
-    backgroundColor: `${COLORS.primary}10`,
-  },
-  roleButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: width(1),
-  },
-  roleButtonTextSelected: {
-    color: COLORS.primary,
-  },
-  roleDescription: {
-    fontSize: 14,
-    color: COLORS.textLight,
-  },
-  registerButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    paddingVertical: SIZES.md,
-    marginTop: SIZES.md,
-  },
-  registerButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: width(2),
-  },
-  footerText: {
-    color: COLORS.textLight,
-    fontSize: 14,
-  },
-  signInText: {
-    color: COLORS.primary,
-    fontSize: 14,
-    fontWeight: '600',
   },
   buttonContainer: {
     flexDirection: 'row',

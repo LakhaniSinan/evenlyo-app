@@ -17,27 +17,15 @@ const statusColors = {
   accepted: '#32CD32', // Green
   rejected: '#FF4C4C', // Red
   completed: '#0080FF', // Blue
+  paid: '#0080FF', // same as completed
   default: '#808080', // Gray
 };
 
-const timeSlots = [
-  '07:00 am',
-  '08:00 am',
-  '09:00 am',
-  '10:00 am',
-  '11:00 am',
-  '12:00 pm',
-  '01:00 pm',
-  '02:00 pm',
-  '03:00 pm',
-  '04:00 pm',
-  '05:00 pm',
-  '06:00 pm',
-  '07:00 pm',
-  '08:00 pm',
-  '09:00 pm',
-  '10:00 pm',
-];
+const timeSlots = Array.from({length: 24}, (_, i) => {
+  const hour = i % 12 === 0 ? 12 : i % 12;
+  const ampm = i < 12 ? 'am' : 'pm';
+  return `${hour.toString().padStart(2, '0')}:00 ${ampm}`;
+});
 
 function DailyCalendar({
   listingCartData = [],
@@ -45,18 +33,16 @@ function DailyCalendar({
   selectedDate,
   goBack,
 }) {
-  const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
-  const dayName = moment(selectedDate).format('dddd');
-  const showDate = moment(selectedDate).format('DD/MM/YYYY');
+  const selected = moment(selectedDate).startOf('day');
+  const dayName = selected.format('dddd');
+  const showDate = selected.format('DD/MM/YYYY');
 
-  // ✅ Filter bookings based on selected date
-  const filteredBookings = listingCartData.filter(
-    item => moment(item.startDate).format('YYYY-MM-DD') === formattedDate,
+  const filteredBookings = listingCartData.filter(item =>
+    moment.utc(item.startDate).local().isSame(selected, 'day'),
   );
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <TouchableOpacity onPress={goBack}>
@@ -71,13 +57,17 @@ function DailyCalendar({
         <Text style={styles.dateText}>{showDate}</Text>
       </View>
 
-      {/* Time Slots */}
       <ScrollView style={{flex: 1}}>
         {timeSlots.map((slot, index) => {
-          // ✅ Match bookings only by startTime
-          const slotEvents = filteredBookings.filter(event =>
-            event?.startTime?.startsWith(slot.split(' ')[0]),
-          );
+          const slotTime = moment(slot, ['hh:mm a']).format('HH:mm');
+          const slotEvents = filteredBookings.filter(event => {
+            if (!event.startTime) return index === 0;
+            const eventTime = moment(event.startTime, [
+              'hh:mm a',
+              'HH:mm',
+            ]).format('HH:mm');
+            return eventTime === slotTime;
+          });
 
           return (
             <View key={index} style={styles.timeRow}>
@@ -101,9 +91,8 @@ function DailyCalendar({
                           {event?.title?.en || 'Untitled'} — {event?.status}
                         </Text>
 
-                        {/* ✅ Show only startTime now */}
                         <Text style={[styles.eventTime, {color}]}>
-                          {event?.startTime || 'N/A'}
+                          {event?.startTime || 'All Day'}
                         </Text>
 
                         <Text style={styles.location}>

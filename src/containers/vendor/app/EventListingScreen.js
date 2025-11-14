@@ -32,6 +32,7 @@ import {
   getVendorCategories,
 } from '../../../services/Categories';
 import {
+  deleteSaleItem,
   getVendorBookingListings,
   getVendorListings,
 } from '../../../services/ListingsItem';
@@ -62,6 +63,13 @@ const EventListingScreen = ({navigation}) => {
   const [eventModal, setEventModal] = useState(false);
   const [vendroBookingListings, setVendorBookingListings] = useState([]);
   const [editData, setEditData] = useState(null);
+
+  console.log(
+    vendroBookingListings,
+    'editDataeditDataeditDataeditDataeditDatasada',
+  );
+
+  const [editSaleData, setEditSaleData] = useState(null);
   const [showAddSaleItem, setShowAddSaleItem] = useState(false);
   const {user} = useSelector(state => state.LoginSlice);
 
@@ -243,7 +251,6 @@ const EventListingScreen = ({navigation}) => {
   };
 
   const handleDeleteBooking = async item => {
-    console.log(item, 'itemitemitemitemitemddelte');
     modalRef.current.show({
       status: 'alert',
       message: 'Are you sure you want to delete this listing?',
@@ -277,7 +284,52 @@ const EventListingScreen = ({navigation}) => {
   const handleEditBooking = async item => {
     setEventModal(true);
     setEditData(item);
-    console.log(item, 'itemitemitemitemitemEdti');
+  };
+  const handleDeleteSaleItem = async item => {
+    modalRef.current.show({
+      status: 'alert',
+      message: 'Are you sure you want to delete this sale item?',
+      handlePressOk: async () => {
+        try {
+          setIsLoading(true);
+          const response = await deleteSaleItem(item?.itemId);
+          if (response.status == 200 || response.status == 201) {
+            modalRef.current.show({
+              status: 'ok',
+              message: response.data?.message,
+              handlePressOk: () => {
+                modalRef.current.hide();
+                handleGetAllBookingListings();
+              },
+            });
+          } else {
+            modalRef.current.show({
+              status: 'error',
+              message: response.data?.message,
+            });
+          }
+        } catch (error) {
+          console.log(error, 'errorerrorerrorerrorerrormaslkdnasd');
+        } finally {
+          setIsLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleEditSaleItem = async item => {
+    setEditSaleData(item);
+    setShowAddSaleItem(true);
+  };
+
+  const handleCloseAddSaleItem = () => {
+    setShowAddSaleItem(!showAddSaleItem);
+    handleGetAllListings();
+  };
+
+  const handleCloseListingModal = () => {
+    setEventModal(!eventModal);
+    handleGetAllBookingListings();
   };
 
   return (
@@ -405,7 +457,11 @@ const EventListingScreen = ({navigation}) => {
                 onEditIconPress={handleEditBooking}
               />
             ) : (
-              <EventListingCard item={item} />
+              <EventListingCard
+                item={item}
+                onDeleteIconPress={handleDeleteSaleItem}
+                onEditIconPress={handleEditSaleItem}
+              />
             )
           }
           contentContainerStyle={{
@@ -463,11 +519,12 @@ const EventListingScreen = ({navigation}) => {
       <EventListingModal
         toEditData={editData}
         isVisible={eventModal}
-        onClose={() => setEventModal(!eventModal)}
+        onClose={handleCloseListingModal}
       />
       <AddNewSaleItems
+        editSaleData={editSaleData}
         isVisible={showAddSaleItem}
-        onClose={() => setShowAddSaleItem(!showAddSaleItem)}
+        onClose={handleCloseAddSaleItem}
       />
       <CategoryEditSuccess visible={showSucessModal} />
       <CommonAlert ref={modalRef} />

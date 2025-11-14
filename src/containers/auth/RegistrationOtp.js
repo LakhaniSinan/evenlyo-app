@@ -9,25 +9,22 @@ import Loader from '../../components/loder';
 import OTPInputScreen from '../../components/otpScreen';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
-import {register, registerUser, vendorRegister} from '../../services/Auth';
+import {registerUser, vendorRegister} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
 
 const RegistrationOtp = ({route, navigation}) => {
   const data = route.params;
-
-  console.log(data, 'datadatadatadatadatadata123123123');
-
-  const [otp, setOtp] = useState(0);
   const modalRef = useRef(null);
   const {t} = useTranslation();
+  const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  console.log(data, 'data data data data data');
 
   const handleVerifyOtp = async () => {
     try {
-      const payload = {...data, otp: otp};
+      setIsLoading(true);
 
-      const vendorPayload = {
+      // vendor with personal info
+      const vendorPersonalPayload = {
         accountType: data?.vendorType,
         firstName: data?.personalInfo?.firstName,
         lastName: data?.personalInfo?.lastName,
@@ -37,38 +34,68 @@ const RegistrationOtp = ({route, navigation}) => {
         postalCode: data?.personalInfo?.postalCode,
         fullAddress: data?.personalInfo?.address,
         passportDetails: data?.personalInfo?.cnicPassport,
-        mainCategories: data.categories,
+        mainCategories: data?.categories,
         subCategories: data?.subCategories,
-        businessLogo: data?.media?.workImages[0],
-        bannerImage: data?.media?.banner,
+        businessLogo: data?.media?.workImages,
+        businessImage: data?.media?.banner,
+        description: data?.personalInfo?.description,
+        tagline: data?.personalInfo?.tagline,
         password: data?.security?.password,
         confirmPassword: data?.security?.confirmPassword,
-        otp: otp,
+        otp,
       };
-      setIsLoading(true);
 
-      const response =
-        data?.type == 'vendor'
-          ? await vendorRegister(vendorPayload)
-          : await register(payload);
+      // vendor with business info
+      const vendorBusinessPayload = {
+        accountType: data?.vendorType,
+        businessName: data?.businessInfo?.companyName,
+        teamType: data?.businessInfo?.workType,
+        businessNumber: data?.businessInfo?.contact,
+        businessWebsite: data?.businessInfo?.companyWebsite,
+        teamSize: data?.businessInfo?.teamSize,
+        businessEmail: data?.businessInfo?.companyEmail,
+        businessLogo: data?.media?.workImages,
+        businessImage: data?.media?.banner,
+        mainCategories: data?.categories,
+        subCategories: data?.subCategories,
+        city: data?.businessInfo?.companyAddress,
+        fullAddress: data?.businessInfo?.companyAddress,
+        description: data?.businessInfo?.description,
+        tagline: data?.businessInfo?.tagline,
+        kvkNumber: data?.businessInfo?.kvknumber,
+        passportDetails: data?.businessInfo?.passportNumber,
+        postalCode: data?.businessInfo?.postalCode || '0000',
+        password: data?.security?.password,
+        confirmPassword: data?.security?.password,
+        otp,
+      };
+
+      const vendorPayload =
+        data?.vendorType == 'business'
+          ? vendorBusinessPayload
+          : vendorPersonalPayload;
+
+      const response = await vendorRegister(vendorPayload);
+
       setIsLoading(false);
 
-      console.log(response, 'responseresponseresponse');
-
-      if (response?.status == 200 || response?.status == 201) {
+      if (response?.status === 200 || response?.status === 201) {
         navigation.navigate('AuthSuccess', {
           type: 'register',
           message: response?.data?.message,
         });
       } else {
-        modalRef.current.show({
+        modalRef.current?.show({
           status: 'error',
-          message: response?.data?.message,
+          message: response?.data?.message || 'Something went wrong.',
         });
       }
     } catch (error) {
-      setIsLoading(false);
-      console.log(error, 'errorerrorerrorerror3452343 ');
+      console.log('Registration error:', error);
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Something went wrong, please try again.',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -77,24 +104,20 @@ const RegistrationOtp = ({route, navigation}) => {
   const handleResendCode = async () => {
     try {
       setIsLoading(true);
-      const response = await registerUser({
-        email: data?.type == 'vendor' ? data?.personalInfo?.email : data.email,
-      });
-
+      const email =
+        data?.type !== 'vendor'
+          ? data?.personalInfo?.email
+          : data?.businessInfo?.companyEmail;
+      const response = await registerUser({email});
       setIsLoading(false);
-      if (response?.status == 200 || response?.status == 201) {
-        modalRef.current.show({
-          status: 'ok',
-          message: response.data?.message,
-        });
-      } else {
-        modalRef.current.show({
-          status: 'error',
-          message: response?.data?.message,
-        });
-      }
+
+      modalRef.current?.show({
+        status:
+          response?.status === 200 || response?.status === 201 ? 'ok' : 'error',
+        message: response?.data?.message || 'Failed to resend code.',
+      });
     } catch (error) {
-      console.log(error, 'errorerrorerrorerrorerror123123234');
+      console.log('Resend code error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -119,7 +142,9 @@ const RegistrationOtp = ({route, navigation}) => {
               style={[globalStyles.title, {fontSize: 20, textAlign: 'center'}]}>
               {t('enterCode')}
             </Text>
+
             <OTPInputScreen onResendPress={handleResendCode} setOtp={setOtp} />
+
             <View style={{marginTop: width(4)}}>
               <GradientButton
                 onPress={handleVerifyOtp}
@@ -127,13 +152,14 @@ const RegistrationOtp = ({route, navigation}) => {
                 textStyle={{
                   fontSize: 12,
                   fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                  color: 'white',
+                  color: COLORS.white,
                 }}
               />
             </View>
           </View>
         </View>
       </ScrollView>
+
       <Loader isLoading={isLoading} />
       <CommonAlert ref={modalRef} />
     </Background>

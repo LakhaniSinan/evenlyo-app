@@ -5,30 +5,47 @@ import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {ICONS} from '../../assets';
 
-const EventListingCard = ({item}) => {
+const EventListingCard = ({onEditIconPress, item, onDeleteIconPress}) => {
   const navigation = useNavigation();
   const {t} = useTranslation();
 
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate('EventDetails', {booking: item})}
+      // onPress={() => navigation.navigate('EventDetails', {booking: item})}
       style={styles.card}>
       <Image source={{uri: item.image}} style={styles.image} />
       <View style={styles.infoContainer}>
         <View style={styles.topSection}>
           <View style={styles.headerRow}>
-            {item.mainCategory && (
-              <Text style={styles.tag}>• {item.mainCategory}</Text>
-            )}
             <View style={styles.statusBadge}>
               <Text style={styles.statusText}>
                 {moment(item?.date).format('MMM DD,YYYY')}
               </Text>
+              <View style={{flexDirection: 'row'}}>
+                <TouchableOpacity
+                  style={{marginRight: width(2)}}
+                  onPress={() => onDeleteIconPress(item)}>
+                  <Image
+                    resizeMode="contain"
+                    source={ICONS.deleteIcon}
+                    style={{height: width(5), width: width(5)}}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => onEditIconPress(item)}>
+                  <Image
+                    resizeMode="contain"
+                    source={ICONS.editIcon}
+                    style={{height: width(5), width: width(5)}}
+                    tintColor={COLORS.primary}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
           <Text style={styles.name} numberOfLines={2}>
-            {item.title}
+            {item.title?.en}
           </Text>
           <Text style={styles.buttonText}>Available Stock: {item?.Stock}</Text>
           <Text style={styles.buttonText}>
@@ -36,9 +53,6 @@ const EventListingCard = ({item}) => {
           </Text>
         </View>
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>{t('View Details')}</Text>
-          </TouchableOpacity>
           <View style={styles.priceContainer}>
             <Text style={styles.price}>{item.SellingPrice}</Text>
             <Text style={styles.perEvent}>/Dar</Text>
@@ -89,6 +103,9 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
   },
   statusBadge: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10,
@@ -114,8 +131,8 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
+    width: '100%',
   },
   button: {
     backgroundColor: COLORS.white,

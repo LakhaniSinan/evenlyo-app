@@ -31,6 +31,7 @@ export const endPoints = {
   subcategories: '/subcategories/category',
   profilePicture: '/settings/profile-picture',
   vendorsCategories: '/vendor/profile/get-main-category',
+  changePassword: '/settings/change-password',
 
   //Listings
   listings: '/listings',
@@ -50,7 +51,9 @@ export const endPoints = {
   getCartListings: '/cart',
   accepetedBookings: '/booking/accepted',
   createSaleItem: '/vendor/items/create',
+  updateSaleItem: '/vendor/items/update',
   getSaleItem: '/vendor/items/overview',
+  deleteSaleItem: '/vendor/items/delete',
   listingsItems: '/vendor/listings/overview',
 
   //Notifications
@@ -60,6 +63,7 @@ export const endPoints = {
   //Dashboard
 
   updateVendor: '/vendor/profile/update',
+  getVendor: '/vendor/profile',
 
   dashboard: '/vendor/dashboard/analytics',
 
@@ -79,9 +83,13 @@ export const endPoints = {
   checkIsChatedBefore: '/conversations/single',
   createConversation: '/conversations',
   //Vendor Listing
+  updateStatus: '/vendor/listings',
   updateListing: '/vendor/listings/update',
   createListing: '/vendor/listings/create',
   deleteListing: '/vendor/listings/delete',
+
+  //FAQs
+  faqs: '/faqs',
 
   messages: {
     all: (id, userId) => `/messages/${id}/${userId}`,

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   KeyboardAvoidingView,
   ScrollView,
@@ -13,10 +13,17 @@ import TextField from '../../../components/textInput';
 import {COLORS, fontFamly, SIZES} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 
-const SecurityTab = ({onPressBack, handleNextStep}) => {
+const SecurityTab = ({enteredPass, onPressBack, handleNextStep}) => {
   const {t} = useTranslation();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  useEffect(() => {
+    if (enteredPass) {
+      setPassword(enteredPass?.password);
+      setConfirmPassword(enteredPass?.confirmPassword);
+    }
+  }, [enteredPass]);
 
   return (
     <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -66,7 +73,7 @@ const SecurityTab = ({onPressBack, handleNextStep}) => {
 
             <GradientButton
               text={t('continue')}
-              onPress={() => handleNextStep({ password, confirmPassword })}
+              onPress={() => handleNextStep({password, confirmPassword})}
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
               styleProps={{flex: 1}}

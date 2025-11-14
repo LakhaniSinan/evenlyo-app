@@ -28,8 +28,6 @@ const VendorPersonalDetails = ({navigation}) => {
   const [categoriesSelected, setCategoriesSelected] = useState([]);
   const [subCategoriesSelected, setSubCategoriesSelected] = useState([]);
 
-  const [allSubCategories, setAllSubCategories] = useState([]);
-
   const [media, setMedia] = useState({
     banner: '',
     workImages: '',
@@ -65,6 +63,8 @@ const VendorPersonalDetails = ({navigation}) => {
   };
 
   const handleSubCategoriesNext = data => {
+    console.log(data, 'datadatadata12312');
+
     setSubCategoriesSelected(data || []);
     setActiveStep(pre => pre + 1);
   };
@@ -105,21 +105,19 @@ const VendorPersonalDetails = ({navigation}) => {
       try {
         const payload = {
           vendorType,
-          personalInfo: selectedType === 'personal' ? personalInfo : null,
-          businessInfo: selectedType === 'business' ? businessInfo : null,
+          personalInfo: personalInfo,
+          businessInfo: businessInfo,
           categories: categoriesSelected,
-          subCategories:
-            selectedType === 'personal' ? subCategoriesSelected : [],
-          media:
-            selectedType === 'business'
-              ? media
-              : {banner: [], workImages: [], workVideos: []},
+          subCategories: subCategoriesSelected,
+          media: media,
           security,
           verification,
         };
 
+        console.log(payload, 'payloadpayloadpayloadpayloadpayload');
+
         setIsLoading(true);
-        const response = await registerUser({email: verification?.email});
+        const response = await registerUser({email: data?.email});
         setIsLoading(false);
         if (response?.status == 200 || response?.status == 201) {
           modalRef.current.show({
@@ -145,7 +143,6 @@ const VendorPersonalDetails = ({navigation}) => {
         setIsLoading(false);
       }
     };
-
     setTimeout(nextTick, 0);
   };
 
@@ -180,6 +177,7 @@ const VendorPersonalDetails = ({navigation}) => {
               {selectedType === 'personal' ? (
                 <ProgressStep removeBtnRow>
                   <PersonalInfo
+                    personalInfo={personalInfo}
                     onPressBack={() => setActiveStep(pre => pre - 1)}
                     handleNextStep={handlePersonalNext}
                   />
@@ -187,6 +185,7 @@ const VendorPersonalDetails = ({navigation}) => {
               ) : (
                 <ProgressStep removeBtnRow>
                   <BusinessPersonalInfo
+                    businessInfo={businessInfo}
                     onPressBack={() => setActiveStep(pre => pre - 1)}
                     handleNextStep={handleBusinessNext}
                   />
@@ -194,6 +193,7 @@ const VendorPersonalDetails = ({navigation}) => {
               )}
               <ProgressStep removeBtnRow>
                 <Categories
+                  selectedCat={categoriesSelected}
                   onPressBack={() => setActiveStep(pre => pre - 1)}
                   handleNextStep={handleCategoriesNext}
                 />
@@ -201,24 +201,24 @@ const VendorPersonalDetails = ({navigation}) => {
 
               <ProgressStep removeBtnRow>
                 <SubCategories
+                  selectedSubCat={subCategoriesSelected}
                   categoriesSelected={categoriesSelected}
                   onPressBack={() => setActiveStep(pre => pre - 1)}
                   handleNextStep={handleSubCategoriesNext}
                 />
               </ProgressStep>
 
-              {selectedType === 'personal' ? (
-                <ProgressStep removeBtnRow>
-                  <MultipleMediaUpload
-                    onPressBack={() => setActiveStep(pre => pre - 1)}
-                    handleNextStep={handleMediaNext}
-                  />
-                </ProgressStep>
-              ) : (
-                <View />
-              )}
+              <ProgressStep removeBtnRow>
+                <MultipleMediaUpload
+                  media={media}
+                  onPressBack={() => setActiveStep(pre => pre - 1)}
+                  handleNextStep={handleMediaNext}
+                />
+              </ProgressStep>
+
               <ProgressStep removeBtnRow>
                 <SecurityTab
+                  enteredPass={security}
                   onPressBack={() => setActiveStep(pre => pre - 1)}
                   handleNextStep={handleSecurityNext}
                 />

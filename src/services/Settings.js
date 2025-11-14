@@ -7,3 +7,6 @@ export const getProfile = () => {
 export const updateProfile = parmas => {
   return Api(endPoints.profile, parmas, requestType.PUT);
 };
+export const handleChangePassword = parmas => {
+  return Api(endPoints.changePassword, parmas, requestType.POST);
+};

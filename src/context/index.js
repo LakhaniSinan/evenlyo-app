@@ -2,8 +2,8 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import io from 'socket.io-client';
 
-const SOCKET_URL = 'https://evenlyo-backend-20036df510ad.herokuapp.com'; // e.g. 'http://192.168.x.x:3000'
-// const SOCKET_URL = 'https://1qsx0vd0-5000.inc1.devtunnels.ms'; // e.g. 'http://192.168.x.x:3000'
+// const SOCKET_URL = 'https://evenlyo-backend-20036df510ad.herokuapp.com'; // e.g. 'http://192.168.x.x:3000'
+const SOCKET_URL = 'https://1qsx0vd0-5000.inc1.devtunnels.ms'; // e.g. 'http://192.168.x.x:3000'
 export const SocketContext = createContext();
 
 export const SocketProvider = ({children}) => {

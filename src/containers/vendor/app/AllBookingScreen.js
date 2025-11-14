@@ -63,24 +63,22 @@ function AllBookingScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [statusData, setStatusData] = useState([]);
+  const [stats, setStats] = useState(null);
 
   const handleGetCartListing = useCallback(async () => {
     try {
       setRefreshing(true);
       setLoading(true);
-
       const response = await getBookingAnalytics();
-      console.log(response, 'responseresponseresponseresponse');
-
       if (response?.status === 200 || response?.status === 201) {
         const bookings = response?.data?.bookings || [];
+        const stats = response?.data?.stats || [];
 
         const filteredBookings = bookings.filter(
           item => item?.status && item?.startDate,
         );
-
+        setStats(stats);
         setListingCartData(filteredBookings);
-
         const counts = countBookingsByStatus(filteredBookings);
         const formattedStatusData = getStatusData(counts);
         setStatusData(formattedStatusData);
@@ -99,28 +97,29 @@ function AllBookingScreen() {
     {
       title: t('Total Bookings'),
       icon: ICONS.groupIcon,
-      value: 10,
+      value: stats?.totalBookings,
       percentage: 12,
     },
     {
-      title: t('Total Items'),
-      icon: ICONS.whiteCartIcon,
-      value: 3,
+      title: t('Completed Bookings'),
+      icon: ICONS.checkIcon,
+      value: stats?.completedBookings,
       percentage: 10,
     },
     {
-      title: t('Request Bookings'),
-      icon: ICONS.checkIcon,
-      value: 7,
+      title: t('Request Booking'),
+      icon: ICONS.whiteCartIcon,
+      value: stats?.requestBookings,
       percentage: 10,
     },
     {
       title: t('In Process'),
       icon: ICONS.earningIcon,
-      value: 10,
+      value: stats?.inProcessBookings,
       percentage: 10,
     },
   ];
+
   useEffect(() => {
     handleGetCartListing();
   }, [handleGetCartListing]);
@@ -154,7 +153,8 @@ function AllBookingScreen() {
       const booking = listingCartData.find(
         b => moment(b.startDate).format('YYYY-MM-DD') === dateStr,
       );
-      Alert.alert('Booking Selected', booking?.title?.en || 'Booking found');
+
+      console.log(booking, 'bookingbookingbookingbooking');
     } else {
       Alert.alert('Not Allowed', 'You can only select booked start dates.');
     }
@@ -242,9 +242,11 @@ function AllBookingScreen() {
             listingCartData={listingCartData}
             goBack={() => setSelectedDate('')}
             selectedDate={selectedDate}
-            onEventPress={event =>
-              navigation.navigate('BookingsByStatus', event)
-            }
+            onEventPress={event => {
+              console.log(event, 'eventeventeventevent');
+
+              navigation.navigate('BookingsByStatus', event);
+            }}
           />
         )}
 

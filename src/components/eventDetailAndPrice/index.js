@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {Image, StyleSheet, Switch, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
@@ -11,14 +11,13 @@ const EventAndPriceDetails = ({
   showrating,
   showDiscount,
   showSwitch,
+  isLive,
   currentLanguage,
+  onStatusChange,
 }) => {
   const locationData = useSelector(state => state.LocationSlice);
   const {coords} = locationData;
-
-  const [emailNotification, setEmailNotification] = useState(false);
   const {distance} = getDistance(data?.location?.coordinates, coords);
-  console.log(data, 'distancedistancedistancedistancedistance');
 
   return (
     <View
@@ -35,7 +34,7 @@ const EventAndPriceDetails = ({
             color: COLORS.semiLightText,
             fontSize: 12,
           }}>
-          {data?.location?.fullAddress || data?.vendor?.businessLocation}
+          {data?.location?.userAddress || data?.vendor?.businessLocation}
         </Text>
         <Text
           style={{
@@ -59,7 +58,7 @@ const EventAndPriceDetails = ({
               color: COLORS.semiLightText,
               fontSize: 11,
             }}>
-            {distance}
+            {distance} Km Away
           </Text>
         </View>
         {showrating && (
@@ -124,13 +123,13 @@ const EventAndPriceDetails = ({
             </Text>
 
             <Switch
-              value={emailNotification}
-              onValueChange={value => setEmailNotification(value)}
+              value={data?.isActive}
+              onValueChange={onStatusChange}
               trackColor={{
                 false: '#E5E5E5',
                 true: COLORS.primary,
               }}
-              thumbColor={emailNotification ? '#FFFFFF' : '#FFFFFF'}
+              thumbColor={isLive ? '#FFFFFF' : '#FFFFFF'}
               ios_backgroundColor="#E5E5E5"
               style={styles.switch}
             />
@@ -142,7 +141,7 @@ const EventAndPriceDetails = ({
             color: '#000',
             fontSize: 15,
           }}>
-          $ {data?.pricing?.totalPrice || data?.sellingPrice}
+          $ {data?.pricing?.totalPrice}
         </Text>
         <Text
           style={{

@@ -1,3 +1,4 @@
+import moment from 'moment';
 import React, {useCallback, useEffect, useState} from 'react';
 import {
   ActivityIndicator,
@@ -11,16 +12,12 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
-import {ICONS} from '../../../assets';
-import AppHeader from '../../../components/appHeader';
-import {COLORS, fontFamly} from '../../../constants';
-import {
-  getBookingAnalytics,
-  getBookingByStatus,
-} from '../../../services/BookingItem';
-import {useTranslation} from '../../../hooks';
 import {useSelector} from 'react-redux';
-import moment from 'moment';
+import {COLORS, fontFamly} from '../../../constants';
+import {useTranslation} from '../../../hooks';
+import {getBookingByStatus} from '../../../services/BookingItem';
+import AppHeader from '../../../components/appHeader';
+import {ICONS} from '../../../assets';
 
 const TABS = ['Booking Items', 'Sale Items'];
 
@@ -34,7 +31,9 @@ const TabButton = ({tab, isActive, onPress}) => (
 
 const BookingsByStatus = ({navigation, route}) => {
   const {t, currentLanguage} = useTranslation();
-  const {title} = route.params;
+  const event = route.params;
+  console.log(event, 'titletitletitletitletitletitle');
+
   const [activeTab, setActiveTab] = useState(TABS[0]);
   const [listingCartData, setListingCartData] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -47,10 +46,13 @@ const BookingsByStatus = ({navigation, route}) => {
       setLoading(true);
 
       const response = await getBookingByStatus({
-        status: title.toLowerCase(),
-        vendorId: user?.vendorId,
+        status: event?.status.toLowerCase(),
+        vendorId: user?.id,
       });
-      console.log(response, 'responseresponseresponseresponse');
+      console.log(
+        response,
+        'responseresponseresponseresponseasdasdsadsaderfwetr',
+      );
 
       if (response?.status === 200 || response?.status === 201) {
         let data = response?.data?.data || [];
@@ -123,18 +125,15 @@ const BookingsByStatus = ({navigation, route}) => {
               : item?.listingDetails?.title?.nl || 'Untitled'}
           </Text>
 
-          {/* 📍 Location */}
           <Text style={styles.bookingId}>
             Location:{' '}
             {item?.listingDetails?.location?.fullAddress || 'Not specified'}
           </Text>
 
-          {/* 🧾 Tracking ID */}
           <Text style={styles.bookingId}>
             Booking ID: {item?.trackingId || 'N/A'}
           </Text>
 
-          {/* 🗓️ Dates */}
           <View style={styles.dateTimeWrapper}>
             <Text style={styles.dateTime}>
               Start: {moment(item?.details?.startDate).format('MMMM DD, YYYY')}
@@ -145,18 +144,21 @@ const BookingsByStatus = ({navigation, route}) => {
     );
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <View style={styles.loaderContainer}>
+  //       <ActivityIndicator size="large" color={COLORS.primary} />
+  //     </View>
+  //   );
+  // }
 
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader
-        headingText={title}
+        headingText={`${
+          event?.status?.charAt(0).toUpperCase() +
+          event?.status?.slice(1).toLowerCase()
+        } Booking`}
         leftIcon={ICONS.leftArrowIcon}
         rightIcon={ICONS.notificationIcon}
         onLeftIconPress={() => navigation.goBack()}
@@ -183,7 +185,10 @@ const BookingsByStatus = ({navigation, route}) => {
         }
         ListEmptyComponent={
           <Text style={styles.emptyText}>
-            No items found for "{title}" in {activeTab}.
+            No items found for "
+            {event?.status?.charAt(0).toUpperCase() +
+              event?.status?.slice(1).toLowerCase()}
+            " in {activeTab}.
           </Text>
         }
         contentContainerStyle={{paddingBottom: 20}}

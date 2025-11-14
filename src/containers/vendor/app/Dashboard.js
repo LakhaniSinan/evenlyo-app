@@ -20,12 +20,14 @@ import RecentClientsCard from '../../../components/recentClientsCard';
 import {COLORS, fontFamly} from '../../../constants';
 import {getDashboard} from '../../../services/Dashboard';
 
-const ViewMoreButton = React.memo(({heading, onPress}) => (
+const ViewMoreButton = React.memo(({heading, onPress, showViewAll}) => (
   <View style={styles.viewMoreContainer}>
     <Text style={styles.viewMoreHeading}>{heading}</Text>
-    <TouchableOpacity onPress={onPress}>
-      <Text style={styles.viewMoreText}>View All</Text>
-    </TouchableOpacity>
+    {showViewAll && (
+      <TouchableOpacity onPress={onPress}>
+        <Text style={styles.viewMoreText}>View All</Text>
+      </TouchableOpacity>
+    )}
   </View>
 ));
 
@@ -188,6 +190,7 @@ const Dashboard = () => {
         <View style={styles.sectionContainer}>
           <ViewMoreButton
             heading="Recent Bookings Offers"
+            showViewAll={dashboardData?.activityLog?.length > 3}
             onPress={() =>
               navigation.navigate(
                 'AllRecentBookings',
@@ -204,6 +207,7 @@ const Dashboard = () => {
 
         <View style={styles.sectionContainer}>
           <ViewMoreButton
+            showViewAll={dashboardData?.activityLog?.length > 3}
             heading="Activity Log"
             onPress={() =>
               navigation.navigate('AllActivityLog', dashboardData?.activityLog)
@@ -218,6 +222,7 @@ const Dashboard = () => {
 
         <View style={styles.sectionContainer}>
           <ViewMoreButton
+            showViewAll={dashboardData?.recentClients?.length > 3}
             heading="Recently Joined Clients"
             onPress={() =>
               navigation.navigate(

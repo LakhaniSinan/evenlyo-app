@@ -21,11 +21,13 @@ import TextField from '../../components/textInput';
 import {COLORS, fontFamly, SIZES} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 import {setUserData} from '../../redux/slice/auth';
-import {loginUser, loginVendor, socialLogin} from '../../services/Auth';
+import {loginUser, socialLogin} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
 
 const LoginScreen = ({navigation, route}) => {
   const {type} = route.params;
+  console.log(type, 'typetypetypetypetype');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(true);
@@ -34,10 +36,10 @@ const LoginScreen = ({navigation, route}) => {
   const dispatch = useDispatch();
   const {t} = useTranslation();
   const navigateToRegister = () => {
-    if (type == 'vendor') {
-      navigation.navigate('VendorDetailStack');
-    } else {
+    if (type == 'client') {
       navigation.navigate('Register');
+    } else {
+      navigation.navigate('VendorDetailStack');
     }
   };
 
@@ -73,8 +75,6 @@ const LoginScreen = ({navigation, route}) => {
         };
         setIsLoading(true);
         const response = await loginUser(payload);
-
-        console.log(response, 'responseresponseresponsesandaldada');
 
         let data = response?.data?.user;
         setIsLoading(false);

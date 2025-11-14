@@ -47,7 +47,6 @@ const RegisterScreen = ({navigation}) => {
     setFormData(prev => ({...prev, [field]: value}));
   };
 
-  // ✅ Validation helper
   const validateFields = fields => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -75,7 +74,6 @@ const RegisterScreen = ({navigation}) => {
     return null; // no errors
   };
 
-  // ✅ Registration
   const handleRegister = async () => {
     const error = validateFields([
       'firstName',

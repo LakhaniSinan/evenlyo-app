@@ -9,7 +9,6 @@ import VendorDetailStack from './vendorStack/VendorDetailStack';
 
 const AppNavigator = () => {
   const {user} = useSelector(state => state.LoginSlice);
-  console.log(user, 'useruseruseruseruseruser');
   const {fetchProfile} = useProfile();
 
   useEffect(() => {

@@ -4,6 +4,9 @@ import Api from './index';
 export const getVendorDetails = id => {
   return Api(`${endPoints.vendorDetailsById}/${id}`, null, requestType.GET);
 };
+export const getVendorProfile = () => {
+  return Api(endPoints.getVendor, null, requestType.GET);
+};
 
 export const updateVendorDetails = params => {
   return Api(endPoints.updateVendor, params, requestType.PUT);

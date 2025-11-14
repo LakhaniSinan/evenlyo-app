@@ -148,17 +148,19 @@ const styles = StyleSheet.create({
     paddingBottom: width(5),
   },
   title: {
+    color: COLORS.black,
     fontSize: 20,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
   subTitleDescription: {
     fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-    color: COLORS.textGray,
+    color: COLORS.black,
   },
   subTitle: {
     fontSize: 14,
     fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.black,
   },
 
   switch: {

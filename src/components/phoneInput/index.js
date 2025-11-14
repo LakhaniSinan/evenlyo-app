@@ -7,6 +7,7 @@ import {fontFamly} from '../../constants';
 const ContactNumberInput = ({
   labelColor,
   phoneNumber,
+  value, // ✅ controlled value
   ref,
   containerStyle,
   onChange,
@@ -23,14 +24,15 @@ const ContactNumberInput = ({
         }}>
         {labelText}
       </Text>
+
       <PhoneInput
         ref={ref}
-        defaultValue={phoneNumber}
         defaultCode="US"
         layout="first"
         withShadow={false}
         withDarkTheme={false}
         placeholder="0000******"
+        value={value || phoneNumber} // ✅ controlled
         onChangeFormattedText={text => onChange(text)}
         containerStyle={[styles.phoneContainer, {...containerStyle}]}
         textContainerStyle={styles.textInput}
@@ -41,6 +43,7 @@ const ContactNumberInput = ({
           placeholderTextColor: '#aaa',
         }}
       />
+
       {endIcon && <View>{endIcon}</View>}
     </View>
   );
@@ -49,11 +52,6 @@ const ContactNumberInput = ({
 const styles = StyleSheet.create({
   container: {
     gap: width(4),
-  },
-
-  label: {
-    fontSize: 12,
-    fontFamily: fontFamly.PlusJakartaSansBold,
   },
 
   phoneContainer: {
@@ -70,6 +68,11 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
 
+  textInputStyle: {
+    fontSize: 14,
+    color: '#000',
+  },
+
   flagButton: {
     width: 45,
     height: 45,
@@ -78,12 +81,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 5,
-  },
-
-  countryPickerStyle: {
-    borderRadius: 30,
-    overflow: 'hidden',
-    marginRight: 10,
   },
 
   codeTextStyle: {

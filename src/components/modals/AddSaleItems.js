@@ -25,6 +25,7 @@ import {
 import {
   createSaleItem,
   getVendorListingsById,
+  updateSaleItem,
 } from '../../services/ListingsItem';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
@@ -32,7 +33,9 @@ import DualLanguageCustomPicker from '../dualLanguagePicker';
 import Loader from '../loder';
 import TextField from '../textInput';
 
-const AddNewSaleItems = ({isVisible, onClose, nestedFilter}) => {
+const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
+  console.log(editSaleData, 'editSaleDataeditSaleDataeditSaleData');
+
   const {t} = useTranslation();
   const {user} = useSelector(state => state.LoginSlice);
   const modalRef = useRef(null);
@@ -42,10 +45,14 @@ const AddNewSaleItems = ({isVisible, onClose, nestedFilter}) => {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [allSubCategories, setAllSubCategories] = useState([]);
   const [vendorsCategories, setVendorsCategory] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+
   console.log(
-    allSubCategories,
-    'vendorsCategoriesvendorsCategoriesvendorsCategoriezs',
+    vendorsCategories,
+    'vendorsCategoriesvendorsCategoriesvendorsCategories',
   );
+
+  const [vendorListing, setVendorListing] = useState([]);
 
   const [formData, setFormData] = useState({
     selectedType: 'Others',
@@ -58,6 +65,8 @@ const AddNewSaleItems = ({isVisible, onClose, nestedFilter}) => {
     subCategory: '',
     listingName: '',
   });
+
+  console.log(formData, 'formDataformDataformDataformDataformData');
 
   const onSuccess = () => {
     setFormData({
@@ -94,12 +103,113 @@ const AddNewSaleItems = ({isVisible, onClose, nestedFilter}) => {
       handleGetVendorListings();
     }
   }, [formData?.selectedType]);
+  useEffect(() => {
+    if (!isVisible) setIsInitialized(false);
+  }, [isVisible]);
+
+  // ✅ Fix: Set selected lsisting after vendorListing is loaded
+  useEffect(() => {
+    if (editSaleData && vendorListing?.length > 0) {
+      const selectedListing = vendorListing.find(
+        listing =>
+          listing?._id?.toString()?.trim() ===
+          editSaleData?.linkedListing?.toString()?.trim(),
+      );
+
+      if (selectedListing) {
+        setFormData(prev => ({
+          ...prev,
+          listingName: selectedListing,
+        }));
+      }
+    }
+  }, [vendorListing, editSaleData]);
+
+  useEffect(() => {
+    const initFormData = async () => {
+      if (!isVisible || isInitialized) return; // ✅ prevent reinitialization after first run
+
+      if (editSaleData) {
+        const saleItemType =
+          editSaleData?.linkedListing !== null ? 'Listing' : 'Others';
+
+        let selectedMainCategory = vendorsCategories?.find(
+          cat =>
+            cat?._id?.toString()?.trim() ===
+            editSaleData?.mainCategory?._id?.toString()?.trim(),
+        );
+
+        let subCategories = [];
+        let selectedSubCategory = null;
+
+        if (selectedMainCategory?._id) {
+          try {
+            setIsLoading(true);
+            const response = await fetchSubCategoriesByCategoryIds({
+              categoryIds: [selectedMainCategory._id],
+            });
+            if (response?.status === 200 || response?.status === 201) {
+              subCategories = response?.data?.data?.[0]?.subcategories || [];
+              selectedSubCategory = subCategories.find(
+                sub =>
+                  sub?._id?.toString()?.trim() ===
+                  editSaleData?.subCategory?._id?.toString()?.trim(),
+              );
+              setAllSubCategories(subCategories);
+            }
+          } catch (err) {
+            console.log('Error fetching subcategories:', err);
+          } finally {
+            setIsLoading(false);
+          }
+        }
+
+        setFormData(prev => ({
+          ...prev,
+          selectedType: saleItemType,
+          title: {
+            en: editSaleData?.title?.en || '',
+            nl: editSaleData?.title?.nl || '',
+          },
+          purchasePrice: editSaleData?.PurchasePrice?.toString() || '',
+          sellingPrice: editSaleData?.SellingPrice?.toString() || '',
+          stockQuantity: editSaleData?.Stock?.toString() || '',
+          productImage: editSaleData?.image || '',
+          mainCategory: selectedMainCategory || '',
+          subCategory: selectedSubCategory || '',
+        }));
+      } else {
+        // New item
+        setFormData({
+          selectedType: 'Others',
+          title: {en: '', nl: ''},
+          purchasePrice: '',
+          sellingPrice: '',
+          stockQuantity: '',
+          productImage: '',
+          mainCategory: '',
+          subCategory: '',
+          listingName: '',
+        });
+      }
+
+      setIsInitialized(true); // ✅ mark initialization done
+    };
+
+    initFormData();
+  }, [isVisible, editSaleData, vendorsCategories]);
 
   const handleGetVendorListings = async () => {
     try {
       const response = await getVendorListingsById(user?.id);
-
-      console.log(response, 'responseresponseresponseresponseresponseasdasda');
+      if (response.status == 200 || response.status == 201) {
+        let data = response.data?.data;
+        let result = data?.map(item => ({
+          name: item?.title,
+          _id: item?._id,
+        }));
+        setVendorListing(result);
+      }
     } catch (error) {
       console.log(error, 'errorerrorerrorerrorerrorasdasdzz');
     }
@@ -120,7 +230,7 @@ const AddNewSaleItems = ({isVisible, onClose, nestedFilter}) => {
     }
   };
 
-  const handleSelectValue = (key, value, lang) => {
+  const handleSelectValue = async (key, value, lang) => {
     if (key === 'title') {
       setFormData(prev => ({
         ...prev,
@@ -128,6 +238,38 @@ const AddNewSaleItems = ({isVisible, onClose, nestedFilter}) => {
       }));
     } else {
       setFormData(prev => ({...prev, [key]: value}));
+    }
+
+    // ✅ When a main category is selected — fetch subcategories automatically
+    if (key === 'mainCategory' && value?._id) {
+      setIsLoading(true);
+      try {
+        const response = await fetchSubCategoriesByCategoryIds({
+          categoryIds: [value._id],
+        });
+
+        if (response?.status === 200 || response?.status === 201) {
+          const subs = response?.data?.data?.[0]?.subcategories || [];
+          setAllSubCategories(subs);
+
+          // reset previously selected subcategory if new main category chosen
+          setFormData(prev => ({...prev, subCategory: ''}));
+        } else {
+          modalRef.current?.show({
+            status: 'error',
+            message:
+              response?.data?.message || 'Failed to fetch subcategories.',
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching subcategories:', err);
+        modalRef.current?.show({
+          status: 'error',
+          message: 'Error loading subcategories.',
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -212,7 +354,7 @@ const AddNewSaleItems = ({isVisible, onClose, nestedFilter}) => {
   };
 
   const handleUpdateListing = async () => {
-    if (!validateForm()) return;
+    // if (!validateForm()) return;
 
     const {
       selectedType,
@@ -234,16 +376,20 @@ const AddNewSaleItems = ({isVisible, onClose, nestedFilter}) => {
       image: productImage,
       stockQuantity,
       type: selectedType,
-      ...(selectedType === 'Listing' && {
-        mainCategory,
-        subCategory,
-        listingName,
-      }),
+      mainCategory:
+        formData?.selectedType == 'Others' ? '' : mainCategory?._id || '',
+      subCategory:
+        formData?.selectedType == 'Others' ? '' : subCategory?._id || '',
+      linkedListing:
+        formData?.selectedType == 'Others' ? null : listingName?._id || '',
     };
 
     try {
       setIsLoading(true);
-      const response = await createSaleItem(params);
+      const response = editSaleData
+        ? await updateSaleItem(editSaleData?.itemId, params)
+        : await createSaleItem(params);
+
       setIsLoading(false);
       if (response.status == 200 || response?.status == 201) {
         modalRef.current.show({
@@ -281,38 +427,6 @@ const AddNewSaleItems = ({isVisible, onClose, nestedFilter}) => {
     subCategory,
     listingName,
   } = formData;
-
-  useEffect(() => {
-    if (mainCategory) {
-      handleGetAllSubCategories();
-    }
-  }, [mainCategory]);
-
-  const handleGetAllSubCategories = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetchSubCategoriesByCategoryIds({
-        categoryIds: [mainCategory?._id],
-      });
-
-      console.log(response, 'responseresponseresponseasdadsd');
-
-      setIsLoading(false);
-
-      if (response?.status == 200 || response?.status == 201) {
-        setAllSubCategories(response?.data?.data?.[0]?.subcategories || []);
-      } else {
-        modalRef.current?.show({
-          status: 'error',
-          message: response?.data?.message,
-        });
-      }
-    } catch (error) {
-      setIsLoading(false);
-      console.log('Error fetching subcategories:', error);
-      modalRef.current?.showAlert('Error', 'Failed to load subcategories.');
-    }
-  }, []);
 
   return (
     <Modal
@@ -459,11 +573,7 @@ const AddNewSaleItems = ({isVisible, onClose, nestedFilter}) => {
                   labelll="Select Listing"
                   value={listingName}
                   dropdownContainerStyle={{backgroundColor: COLORS.white}}
-                  listData={[
-                    {name: {en: 'Wedding DJ'}},
-                    {name: {en: 'Birthday Setup'}},
-                    {name: {en: 'Photography'}},
-                  ]}
+                  listData={vendorListing}
                   name="listingName"
                   handleSelectValue={handleSelectValue}
                 />
@@ -501,17 +611,17 @@ const AddNewSaleItems = ({isVisible, onClose, nestedFilter}) => {
 
         {!isKeyboardVisible && (
           <View style={styles.buttonRow}>
-            {!nestedFilter && (
-              <View style={{width: width(40)}}>
-                <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
-                  <Text style={styles.cancelButtonText}>{t('Cancel')}</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            <View style={{width: width(40)}}>
+            <View style={{width: width(43)}}>
+              <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
+                <Text style={styles.cancelButtonText}>{t('Cancel')}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{width: width(43)}}>
               <GradientButton
                 iconTintColor={COLORS.white}
-                text={t('Add New Listing')}
+                text={
+                  editSaleData ? t('Update New Listing') : t('Add New Listing')
+                }
                 onPress={handleUpdateListing}
                 type="filled"
                 textStyle={styles.applyText}

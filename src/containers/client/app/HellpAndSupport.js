@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   Image,
   SafeAreaView,
@@ -17,6 +17,9 @@ import GradientButton from '../../../components/button';
 import CustomerSupport from '../../../components/modals/CustomerSupport';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {getFaqs} from '../../../services/Faqs';
+import Loader from '../../../components/loder';
+import CommonAlert from '../../../components/commanAlert';
 
 const faqData = [
   {
@@ -71,16 +74,31 @@ const faqData = [
 
 const HelpAndSupport = ({navigation}) => {
   const {t} = useTranslation();
+  const modalRef = useRef(null);
   const [collapsedItems, setCollapsedItems] = useState({});
   const [isVisible, setIsVisible] = useState(false);
   const insets = useSafeAreaInsets();
+  const [isLoading, setIsLoading] = useState(false);
   const toggleCollapse = id => {
     setCollapsedItems(prev => ({
       ...prev,
       [id]: !prev[id],
     }));
   };
+  useEffect(() => {
+    handleGetFAQs();
+  }, []);
 
+  const handleGetFAQs = () => {
+    try {
+      setIsLoading(true);
+      const response = getFaqs();
+      console.log(response, 'responseresponseresponseresponse');
+    } catch {
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const renderFAQItem = item => {
     const isCollapsed = collapsedItems[item.id] !== false;
     return (
@@ -177,6 +195,8 @@ const HelpAndSupport = ({navigation}) => {
         onClose={() => setIsVisible(false)}
       />
       <View style={{height: insets.bottom}} />
+      <Loader isLoading={isLoading} />
+      <CommonAlert ref={modalRef} />
     </SafeAreaView>
   );
 };

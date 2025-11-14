@@ -43,13 +43,13 @@ const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
             </View>
           </View>
           <Text style={styles.name} numberOfLines={1}>
-            {item.title}
+            {currentLanguage ? item?.title?.en : item?.title?.nl}
           </Text>
           <Text style={styles.buttonText} numberOfLines={1}>
             {currentLanguage ? item?.subtitle?.en : item?.subtitle?.nl}
           </Text>
           <Text style={styles.buttonText} numberOfLines={2}>
-            {item?.description}
+            {currentLanguage ? item?.description?.en : item?.description?.nl}
           </Text>
         </View>
         <View style={styles.footer}>
@@ -145,6 +145,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    width: '100%',
   },
   button: {
     backgroundColor: COLORS.white,

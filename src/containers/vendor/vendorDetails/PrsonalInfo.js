@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   KeyboardAvoidingView,
   ScrollView,
@@ -10,15 +10,16 @@ import {width} from 'react-native-dimension';
 import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
 import CommonAlert from '../../../components/commanAlert';
-import ContactNumberInput from '../../../components/phoneInput';
 import TextField from '../../../components/textInput';
 import {COLORS, fontFamly, SIZES} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 
-const PersonalInfo = ({onPressBack, handleNextStep}) => {
+const PersonalInfo = ({personalInfo, onPressBack, handleNextStep}) => {
   const modalRef = useRef(null);
   const phoneInput = useRef(null);
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
+  console.log(personalInfo, 'personalInfopersonalInfopersonalInfo');
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -28,9 +29,26 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
     postalCode: '',
     address: '',
     cnicPassport: '',
+    tagline: {en: '', nl: ''},
+    description: {en: '', nl: ''},
   });
 
-  const [selectedRole, setSelectedRole] = useState(null);
+  useEffect(() => {
+    if (personalInfo) {
+      setFormData({
+        firstName: personalInfo?.firstName || '',
+        lastName: personalInfo?.lastName || '',
+        email: personalInfo?.email || '',
+        contact: personalInfo?.contact || '',
+        city: personalInfo?.city || '',
+        postalCode: personalInfo?.postalCode || 0,
+        address: personalInfo?.address || '',
+        cnicPassport: personalInfo?.cnicPassport || '',
+        tagline: personalInfo?.tagline || {en: '', nl: ''},
+        description: personalInfo?.description || {en: '', nl: ''},
+      });
+    }
+  }, [personalInfo]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({...prev, [field]: value}));
@@ -64,6 +82,13 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
       });
     }
     handleNextStep(formData);
+  };
+  const handleLangBasedInput = (field, text) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]:
+        currentLanguage === 'en' ? {en: text, nl: ''} : {en: '', nl: text},
+    }));
   };
 
   return (
@@ -110,16 +135,16 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
             keyboardType="email-address"
             autoCapitalize="none"
           />
+
           <View style={{height: 10}} />
-          <ContactNumberInput
-            labelText={t('contactNumber')}
-            labelColor={'#000'}
-            phoneNumber={formData.contact}
-            onChange={value => handleInputChange('contact', value)}
-            ref={phoneInput}
-            containerStyle={{
-              backgroundColor: COLORS.white,
-            }}
+          <TextField
+            label={t('contactNumber')}
+            placeholder={t('00000*****')}
+            value={formData.contact}
+            onChangeText={value => handleInputChange('contact', value)}
+            bgColor={COLORS.white}
+            keyboardType="numeric"
+            autoCapitalize="none"
           />
 
           <View style={{height: 10}} />
@@ -132,8 +157,8 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
             keyboardType="default"
             autoCapitalize="words"
           />
-          <View style={{height: 10}} />
 
+          <View style={{height: 10}} />
           <TextField
             label={t('Postal Code')}
             placeholder={t('Enter Your Postal Code')}
@@ -143,8 +168,8 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
             keyboardType="numeric"
             autoCapitalize="none"
           />
-          <View style={{height: 10}} />
 
+          <View style={{height: 10}} />
           <TextField
             label={t('Address')}
             placeholder={t('Enter Your Address')}
@@ -154,16 +179,46 @@ const PersonalInfo = ({onPressBack, handleNextStep}) => {
             keyboardType="default"
             autoCapitalize="sentences"
           />
-          <View style={{height: 10}} />
 
+          <View style={{height: 10}} />
           <TextField
             label={t('CNIC / Passport Details')}
             placeholder={t('Enter Your CNIC / Passport Details')}
             bgColor={COLORS.white}
             value={formData.cnicPassport}
             onChangeText={value => handleInputChange('cnicPassport', value)}
-            keyboardType="default"
+            keyboardType="numeric"
             autoCapitalize="characters"
+          />
+
+          <View style={{height: 10}} />
+          <TextField
+            label={t('Tagline')}
+            placeholder={t('Add Why Choose Us')}
+            value={
+              currentLanguage === 'en'
+                ? formData.tagline.en
+                : formData.tagline.nl
+            }
+            bgColor={COLORS.white}
+            onChangeText={text => handleLangBasedInput('tagline', text)}
+          />
+
+          <View style={{height: 10}} />
+          <TextField
+            label={t('description')}
+            placeholder={t(
+              'Focused on creating vibes through immersive sound...',
+            )}
+            multiline
+            numberOfLines={3}
+            bgColor={COLORS.white}
+            value={
+              currentLanguage === 'en'
+                ? formData.description.en
+                : formData.description.nl
+            }
+            onChangeText={text => handleLangBasedInput('description', text)}
           />
           <View style={styles.buttonContainer}>
             <GradientButton

@@ -12,7 +12,6 @@ import FastImage from 'react-native-fast-image';
 import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
 import CommonAlert from '../../../components/commanAlert';
-import Loader from '../../../components/loder';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import useCategories from '../../../hooks/getCategories';
@@ -63,7 +62,7 @@ const CategoryItem = memo(({item, isSelected, onSelect, currentLanguage}) => {
   );
 });
 
-const Categories = ({onPressBack, handleNextStep}) => {
+const Categories = ({selectedCat, onPressBack, handleNextStep}) => {
   const {t, currentLanguage} = useTranslation();
   const modalRef = useRef(null);
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -74,6 +73,12 @@ const Categories = ({onPressBack, handleNextStep}) => {
   useEffect(() => {
     loadCategories();
   }, [fetchCategories]);
+
+  useEffect(() => {
+    if (selectedCat) {
+      setSelectedCategories(selectedCat);
+    }
+  }, [selectedCat]);
 
   const loadCategories = async () => {
     try {
@@ -120,8 +125,6 @@ const Categories = ({onPressBack, handleNextStep}) => {
   return (
     <View style={styles.form}>
       <Text style={styles.headerText}>{t('Select Your Categories')}</Text>
-
-      <Loader isLoading={isLoading} />
       <CommonAlert ref={modalRef} />
 
       <FlatList

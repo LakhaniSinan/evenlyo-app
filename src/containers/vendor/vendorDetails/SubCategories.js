@@ -20,12 +20,23 @@ import {fetchSubCategoriesByCategoryIds} from '../../../services/Categories';
 
 const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
 
-const SubCategories = ({categoriesSelected, onPressBack, handleNextStep}) => {
+const SubCategories = ({
+  selectedSubCat,
+  categoriesSelected,
+  onPressBack,
+  handleNextStep,
+}) => {
   const {t, currentLanguage} = useTranslation();
   const [selectedItems, setSelectedItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef(null);
   const [allSubCategories, setAllSubCategories] = useState([]);
+
+  useEffect(() => {
+    if (selectedSubCat) {
+      setSelectedItems(selectedSubCat);
+    }
+  }, [selectedSubCat]);
 
   useEffect(() => {
     handleGetAllSubCategories();

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Alert,
   Image,
@@ -12,18 +12,25 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {ICONS, IMAGES} from '../../../assets';
+import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
 import Loader from '../../../components/loder';
 import {COLORS, fontFamly} from '../../../constants';
 import {helper} from '../../../helper';
 import {useTranslation} from '../../../hooks';
 
-const MultipleMediaUpload = ({onPressBack, handleNextStep}) => {
+const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
   const [businessLogo, setBusinessLogo] = useState('');
   const [bannerImage, setBannerImage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const {t} = useTranslation();
+
+  useEffect(() => {
+    if (media) {
+      setBannerImage(media?.banner);
+      setBusinessLogo(media?.workImages);
+    }
+  }, [media]);
 
   const requestStoragePermission = async () => {
     if (Platform.OS === 'android') {
@@ -38,6 +45,7 @@ const MultipleMediaUpload = ({onPressBack, handleNextStep}) => {
     }
     return true;
   };
+
   const handleUpload = async setter => {
     const hasPermission = await requestStoragePermission();
     if (!hasPermission) return;

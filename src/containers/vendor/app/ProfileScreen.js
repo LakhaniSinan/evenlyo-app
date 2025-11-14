@@ -1,5 +1,6 @@
-import {useNavigation} from '@react-navigation/native';
-import React from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   Image,
   SafeAreaView,
@@ -11,12 +12,14 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import {useDispatch, useSelector} from 'react-redux';
-import {ICONS, IMAGES} from '../../../assets';
+import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
+import Loader from '../../../components/loder';
 import {COLORS, fontFamly} from '../../../constants';
+import useProfile from '../../../hooks/getProfileData';
 import useTranslation from '../../../hooks/useTranslation';
 import {setUserData} from '../../../redux/slice/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {getVendorDetails, getVendorProfile} from '../../../services/Vendor';
 
 const getProfileMenuData = t => [
   {
@@ -59,6 +62,17 @@ const ProfileScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.LoginSlice);
+  const {fetchProfile, profileData} = useProfile();
+  const [vendorDetails, setVendorDetails] = useState(null);
+  console.log(vendorDetails, 'asdalskdnaskdnalsdknalsdkl');
+
+  const [isLoading, setIsLoading] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+      getVendorDetailsByID();
+    }, []),
+  );
 
   const data = getProfileMenuData(t);
   const data2 = getHelpSupportMenuData(t);
@@ -73,6 +87,28 @@ const ProfileScreen = () => {
     }
   };
 
+  const getVendorDetailsByID = async () => {
+    try {
+      setIsLoading(true);
+      const responce = await getVendorProfile();
+      console.log(responce, 'responceresponceresponceresponceresponce');
+
+      setIsLoading(false);
+      if (responce?.status == 200 || responce.status == 201) {
+        let data = responce?.data;
+        setVendorDetails(data);
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: responce?.data?.message,
+        });
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.log('errorerrorerrorerrorerrorerror');
+    }
+  };
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <ScrollView style={styles.container}>
@@ -84,7 +120,7 @@ const ProfileScreen = () => {
               width: 100,
               borderRadius: 200,
             }}
-            source={IMAGES.backgroundImage}
+            source={{uri: vendorDetails?.businessLogo}}
           />
           <Text
             style={{
@@ -94,8 +130,8 @@ const ProfileScreen = () => {
               fontFamily: fontFamly.PlusJakartaSansSemiBold,
             }}>
             <Text>
-              {user?.businessName
-                ? user.businessName.replace(/\b\w/g, char => char.toUpperCase())
+              {user?.firstName
+                ? user.firstName.replace(/\b\w/g, char => char.toUpperCase())
                 : ''}
             </Text>
           </Text>
@@ -122,7 +158,9 @@ const ProfileScreen = () => {
           {data.map(item => {
             return (
               <TouchableOpacity
-                onPress={() => navigation.navigate(item.navigate)}
+                onPress={() =>
+                  navigation.navigate(item.navigate, vendorDetails)
+                }
                 style={{
                   borderRadius: 10,
                   marginTop: width(4),
@@ -227,6 +265,7 @@ const ProfileScreen = () => {
           })}
         </View>
       </ScrollView>
+      <Loader isLoading={isLoading} />
     </SafeAreaView>
   );
 };

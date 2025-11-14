@@ -1,3 +1,4 @@
+import {useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Image, SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
@@ -6,7 +7,6 @@ import AppHeader from '../../../components/appHeader';
 import ChangeLanguageModal from '../../../components/modals/ChangeLanguageModal';
 import NotificationPopup from '../../../components/modals/NotificationDetails';
 import {COLORS, fontFamly} from '../../../constants';
-import {useState} from 'react';
 
 const getSettingsData = t => [
   {
@@ -46,7 +46,7 @@ const Settings = ({navigation}) => {
         headingText={t('Settings')}
         onLeftIconPress={() => navigation.goBack()}
       />
-      {/* {data.map((item, index) => {
+      {data.map((item, index) => {
         return (
           <TouchableOpacity
             key={index}
@@ -68,6 +68,7 @@ const Settings = ({navigation}) => {
             />
             <Text
               style={{
+                color: COLORS.black,
                 fontSize: 13,
                 fontFamily: fontFamly.PlusJakartaSansSemiBold,
                 marginLeft: 15,
@@ -91,7 +92,7 @@ const Settings = ({navigation}) => {
             </View>
           </TouchableOpacity>
         );
-      })} */}
+      })}
 
       <ChangeLanguageModal
         visible={showLanguageModal}
