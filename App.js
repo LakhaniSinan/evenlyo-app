@@ -17,21 +17,21 @@ const AppContent = () => {
   const insets = useSafeAreaInsets();
   const {fetchNotifications} = useNotifications();
 
-  useEffect(() => {
-    dispatch(initializeLanguageFromStorage());
-    fetchNotifications();
-    // Initialize Google Signin
-    try {
-      GoogleSignin.configure({
-        webClientId:
-          '800391339545-djf87tvnfk7asv6rq303nrmet07seacf.apps.googleusercontent.com',
-        offlineAccess: true,
-      });
-      console.log('GoogleSignin configured');
-    } catch (e) {
-      console.log('GoogleSignin init error', e);
-    }
-  }, [dispatch, fetchNotifications]);
+  // useEffect(() => {
+  //   dispatch(initializeLanguageFromStorage());
+  //   fetchNotifications();
+  //   // Initialize Google Signin
+  //   try {
+  //     GoogleSignin.configure({
+  //       webClientId:
+  //         '800391339545-djf87tvnfk7asv6rq303nrmet07seacf.apps.googleusercontent.com',
+  //       offlineAccess: true,
+  //     });
+  //     console.log('GoogleSignin configured');
+  //   } catch (e) {
+  //     console.log('GoogleSignin init error', e);
+  //   }
+  // }, [dispatch, fetchNotifications]);
 
   return (
     <SafeAreaView
