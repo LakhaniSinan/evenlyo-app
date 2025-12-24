@@ -124,6 +124,7 @@ const BottomTabStack = () => {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
+        tabBarHideOnKeyboard: true, 
         tabBarStyle: {
           height: 50,
           paddingBottom: 10,

@@ -99,20 +99,19 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
       setIsLoading(true);
       await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
       const userInfo = await GoogleSignin.signIn();
-      let user = userInfo?.data?.user;
-      console.log(user, 'userInfouserInfouserInfouserInfo');
-
-      if (!user) {
+      let userData = userInfo?.data?.user;
+      console.log(userData, 'userInfouserInfouserInfouserInfo');
+      if (!userData) {
         return;
       }
 
       let params = {
-        firstName: user?.givenName || '',
-        lastName: user?.familyName || '',
-        email: user?.email || '',
+        firstName: userData?.givenName || '',
+        lastName: userData?.familyName || '',
+        email: userData?.email || '',
         loginType: 'google',
-        userType: type,
-        picture: user?.photo,
+        userType: user?.userType,
+        picture: userData?.photo,
       };
       console.log(params, 'paramsparamsparamsparams');
 
@@ -128,6 +127,7 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
         );
         await AsyncStorage.setItem('userData', JSON.stringify(data));
         dispatch(setUserData(data));
+        onClose();
       } else {
         modalRef.current.show({
           status: 'error',

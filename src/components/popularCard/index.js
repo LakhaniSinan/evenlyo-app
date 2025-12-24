@@ -8,225 +8,92 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
-import {ICONS, IMAGES} from '../../assets';
+import LinearGradient from 'react-native-linear-gradient';
+import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
-const PopularCard = ({data, onCardPress, type}) => {
-  const {t, currentLanguage} = useTranslation();
-  const [isActiveHeart, setIsActiveHeart] = useState(false);
+const PopularCard = ({data, onCardPress, type, handleAddToCart}) => {
+  const {currentLanguage} = useTranslation();
+  const [activeHeart, setActiveHeart] = useState(null);
+
+  const renderItem = ({item, index}) => {
+    const imageUri = item?.images?.length > 0 ? item.images[0] : item?.image;
+
+    return (
+      <View
+        activeOpacity={0.9}
+        // onPress={() => onCardPress({...item, type})}
+        style={styles.card}>
+        <View style={styles.imageWrapper}>
+          <Image source={{uri: imageUri}} style={styles.image} />
+
+          <View style={styles.stockBadge}>
+            <View style={styles.dot} />
+            <Text style={styles.stockText}>In Stock</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.heartBtn}
+            onPress={() =>
+              setActiveHeart(activeHeart === index ? null : index)
+            }>
+            <Image
+              source={
+                activeHeart === index
+                  ? ICONS.activeHeartIocn
+                  : ICONS.inactiveHeartIcon
+              }
+              style={styles.heartIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.content}>
+          <Text numberOfLines={1} style={styles.title}>
+            {currentLanguage === 'en' ? item?.title?.en : item?.title?.nl}
+          </Text>
+
+          <Text style={styles.price}>
+            ${item?.pricing?.totalPrice || item?.sellingPrice || 0}
+          </Text>
+
+          <TouchableOpacity onPress={() => handleAddToCart(item)}>
+            <LinearGradient
+              colors={['#ff2d95', '#c800c8']}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}
+              style={styles.buyBtn}>
+              <Text style={styles.buyText}>Buy Now</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <FlatList
-      data={data}
       horizontal
+      data={data}
+      renderItem={renderItem}
       keyExtractor={(item, index) => index.toString()}
-      contentContainerStyle={{paddingHorizontal: 10}}
       showsHorizontalScrollIndicator={false}
-      renderItem={({item, index}) => {
-        console.log(
-          item?.vendor?.businessLocation,
-          'datadatadatadatadata12312',
-        );
-        return (
-          <TouchableOpacity
-            onPress={() => onCardPress({...item, type})}
-            style={styles.cardWrapper}>
-            {item?.images?.length > 0 ? (
-              <Image
-                resizeMode="cover"
-                style={styles.image}
-                source={{uri: `${item?.images[0]}`}}
-              />
-            ) : (
-              <Image
-                resizeMode="cover"
-                style={styles.image}
-                source={{uri: item?.image}}
-              />
-            )}
-            <View
-              style={{
-                height: width(10),
-                width: '100%',
-                position: 'absolute',
-                zIndex: 99,
-                justifyContent: type == 'home' ? 'space-between' : 'flex-end',
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: width(4),
-                marginTop: width(3),
-              }}>
-              <View
-                style={{
-                  height: width(5),
-                  borderRadius: 10,
-                  flexDirection: 'row',
-                  backgroundColor: '#04c37448',
-                  alignItems: 'center',
-                  paddingHorizontal: width(2),
-                }}>
-                <View
-                  style={{
-                    borderRadius: 100,
-                    padding: width(0.5),
-                    backgroundColor: '#04c374ff',
-                    marginRight: width(1),
-                    marginTop: width(0.5),
-                  }}
-                />
-                <Text
-                  style={{
-                    fontFamily: fontFamly.PlusJakartaSansBold,
-                    fontSize: 8,
-                    color: COLORS.green,
-                  }}>
-                  Available
-                </Text>
-              </View>
-              {type == 'home' && (
-                <TouchableOpacity
-                  onPress={() => setIsActiveHeart(!isActiveHeart)}
-                  style={{
-                    height: width(8),
-                    width: width(8),
-                    borderRadius: 9,
-                    backgroundColor: 'hsla(0, 0%, 0%, 0.45)',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                  <Image
-                    source={
-                      isActiveHeart
-                        ? ICONS.activeHeartIocn
-                        : ICONS.inactiveHeartIcon
-                    }
-                    style={{height: width(4), width: width(4)}}
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-            <View style={styles.blurContainer}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}>
-                <View style={{flex: 1}}>
-                  <Text style={styles.text} numberOfLines={1}>
-                    {currentLanguage == 'en'
-                      ? item?.title?.en
-                      : item?.title?.nl}
-                  </Text>
-                  {item?.location?.fullAddress ? (
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        marginTop: 4,
-                      }}>
-                      <Image
-                        source={ICONS.locationWithoutBg}
-                        resizeMode="contain"
-                        style={{height: 10.89, width: 8.91}}
-                      />
-                      <Text
-                        style={{
-                          fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                          color: COLORS.white,
-                          fontSize: 10,
-                          marginLeft: 5,
-                          lineHeight: 12,
-                        }}>
-                        {item?.location?.fullAddress}
-                      </Text>
-                    </View>
-                  ) : item?.location ? (
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        marginTop: 4,
-                      }}>
-                      <Image
-                        source={ICONS.locationWithoutBg}
-                        resizeMode="contain"
-                        style={{height: 10.89, width: 8.91}}
-                      />
-                      <Text
-                        style={{
-                          fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                          color: COLORS.white,
-                          fontSize: 10,
-                          marginLeft: 5,
-                          lineHeight: 12,
-                        }}>
-                        {item?.location}
-                      </Text>
-                    </View>
-                  ) : item?.vendor?.businessLocation ? (
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        marginTop: 4,
-                      }}>
-                      <Image
-                        source={ICONS.locationWithoutBg}
-                        resizeMode="contain"
-                        style={{height: 10.89, width: 8.91}}
-                      />
-                      <Text
-                        style={{
-                          fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                          color: COLORS.white,
-                          fontSize: 10,
-                          marginLeft: 5,
-                          lineHeight: 12,
-                        }}>
-                        {item?.vendor?.businessLocation}
-                      </Text>
-                    </View>
-                  ) : null}
-                </View>
-
-                <View style={{alignItems: 'flex-end'}}>
-                  <Text style={styles.text}>
-                    ${item?.pricing?.totalPrice || item?.sellingPrice || 0}
-                  </Text>
-                  <Text
-                    style={{
-                      fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                      color: COLORS.white,
-                      fontSize: 9,
-                      lineHeight: 11,
-                      marginTop: 2,
-                    }}>
-                    {item?.pricing?.type && t(`/${item?.pricing?.type}`)}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </TouchableOpacity>
-        );
-      }}
+      contentContainerStyle={{paddingHorizontal: 10}}
       ListEmptyComponent={
         <View
           style={{
-            height: width(10),
-            width: width(90),
-            alignItems: 'center',
-            justifyContent: 'center',
+            flex: 1,
+            width: width(100),
           }}>
           <Text
             style={{
-              fontSize: 12,
-              color: COLORS.textLight,
               fontFamily: fontFamly.PlusJakartaSansBold,
+              color: COLORS.textLight,
+              textAlign: 'center',
             }}>
-            No Popular Items Found.
+            No Product Found.
           </Text>
         </View>
       }
@@ -234,48 +101,104 @@ const PopularCard = ({data, onCardPress, type}) => {
   );
 };
 
+export default PopularCard;
+
 const styles = StyleSheet.create({
-  cardWrapper: {
+  card: {
+    width: width(60),
+    marginVertical: width(2),
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    marginHorizontal: 8,
     marginTop: 10,
-    height: 214,
-    width: 258,
-    marginHorizontal: 5,
-    borderRadius: 15,
-    overflow: 'hidden',
-    position: 'relative',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 5,
   },
+
+  imageWrapper: {
+    height: width(45),
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    overflow: 'hidden',
+  },
+
   image: {
     width: '100%',
     height: '100%',
-    borderRadius: 15,
-  },
-  blurContainer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 16,
-    right: 16,
-    backgroundColor: 'hsla(0, 0%, 0%, 0.45)',
-    borderRadius: 15,
-    padding: 15,
-    justifyContent: 'center',
-    minHeight: 80,
   },
 
-  text: {
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    color: COLORS.white,
-    fontSize: 12,
-    zIndex: 1,
-    textAlign: 'left',
-    lineHeight: 20,
+  stockBadge: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    backgroundColor: '#E9FFF2',
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
-  text2: {
-    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+
+  dot: {
+    height: 8,
+    width: 8,
+    borderRadius: 8,
+    backgroundColor: '#22c55e',
+    marginRight: 6,
+  },
+
+  stockText: {
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
+    color: '#22c55e',
+  },
+
+  heartBtn: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    height: 36,
+    width: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.textLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  heartIcon: {
+    height: 18,
+    width: 18,
+  },
+
+  content: {
+    padding: 16,
+  },
+
+  title: {
+    fontSize: 16,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.black,
+    marginBottom: 8,
+  },
+
+  price: {
+    fontSize: 16,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: '#d100c9',
+    marginBottom: 14,
+  },
+
+  buyBtn: {
+    borderRadius: 14,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+
+  buyText: {
     color: COLORS.white,
-    fontSize: 14,
-    zIndex: 1,
-    marginRight: 10,
+    fontSize: 16,
+    fontFamily: fontFamly.PlusJakartaSansBold,
   },
 });
-
-export default PopularCard;

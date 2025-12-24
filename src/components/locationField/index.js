@@ -31,10 +31,6 @@ const GooglePlacesInput = ({
   const googleAPIKey = 'AIzaSyAvPVhgFVY2qv4c6kvukvIP2krPJe9dZGA';
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
-  console.log(
-    selectedLocation,
-    'selectedLocationselectedLocationselectedLocationasdasd',
-  );
 
   useEffect(() => {
     if (selectedLocation?.userAddress || selectedLocation?.fullAddress) {

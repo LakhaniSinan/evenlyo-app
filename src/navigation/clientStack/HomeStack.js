@@ -1,4 +1,4 @@
-import {createStackNavigator} from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import EventDetails from '../../containers/client/app/EventDetails';
 import EventListingScreen from '../../containers/client/app/EventListingScreen';
@@ -6,10 +6,10 @@ import Home from '../../containers/client/app/Home';
 import Messages from '../../containers/client/app/Messages';
 import Notification from '../../containers/client/app/Notification';
 import NotificationDetails from '../../containers/client/app/NotificationDetails';
+import SalesItems from '../../containers/client/app/SalesItem';
 import TrackDirections from '../../containers/client/app/TrackDirections';
 import TrackingDetails from '../../containers/client/app/TrackingDetails';
 import VendorDetails from '../../containers/client/app/VendorDetails';
-import SalesItems from '../../containers/client/app/SalesItem';
 
 const Stack = createStackNavigator();
 

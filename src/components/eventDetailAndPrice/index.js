@@ -16,8 +16,10 @@ const EventAndPriceDetails = ({
   onStatusChange,
 }) => {
   const locationData = useSelector(state => state.LocationSlice);
+
   const {coords} = locationData;
   const {distance} = getDistance(data?.location?.coordinates, coords);
+  // console.log(data, 'datadatadatadatadatadatadataasdad');
 
   return (
     <View
@@ -141,7 +143,7 @@ const EventAndPriceDetails = ({
             color: '#000',
             fontSize: 15,
           }}>
-          $ {data?.pricing?.totalPrice}
+          $ {data?.pricing?.amount}
         </Text>
         <Text
           style={{

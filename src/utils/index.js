@@ -184,7 +184,7 @@ export function formatRelativeTime(isoDateString) {
 }
 export const getDistance = (coords1, coords2) => {
   if (!coords1 || !coords2) {
-    return {distance: '0 km away'};
+    return {distance: '0'};
   }
 
   const toRad = value => (value * Math.PI) / 180;

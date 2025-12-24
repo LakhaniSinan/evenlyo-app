@@ -1,4 +1,3 @@
-// FilterModal.js
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
@@ -13,7 +12,6 @@ import {
 import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
-import RangeSlider from 'rn-range-slider';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
@@ -21,11 +19,13 @@ import GradientButton from '../button';
 import CustomPicker from '../customPicker';
 import DateSelector from '../dateSelector';
 import GradientText from '../gradiantText';
+import RangeSliderComponent from '../rangeSliderComponent';
 import TextField from '../textInput';
 
 const FilterModal = ({isVisible, onClose, nestedFilter, showOtherCheckBox}) => {
   const {t} = useTranslation();
-  const [priceRange, setPriceRange] = useState({min: 0, max: 500});
+  const [priceRange, setPriceRange] = useState({min: 18, max: 60});
+  const [isSliding, setIsSliding] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const lastValuesRef = useRef({min: 0, max: 500});
@@ -117,7 +117,11 @@ const FilterModal = ({isVisible, onClose, nestedFilter, showOtherCheckBox}) => {
             <Icon name="close" size={24} color="#333" />
           </TouchableOpacity>
         </View>
-        <ScrollView style={{flex: 1}}>
+        <ScrollView
+          style={{flex: 1}}
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled={true}
+          scrollEnabled={!isSliding}>
           {nestedFilter && (
             <>
               <CustomPicker
@@ -230,23 +234,22 @@ const FilterModal = ({isVisible, onClose, nestedFilter, showOtherCheckBox}) => {
             <Text style={styles.label}>{t('Price Range')}</Text>
 
             <View style={styles.priceLabelsContainer}>
-              <Text style={styles.priceLabel}>$0</Text>
-              <Text style={styles.priceLabel}>$500</Text>
+              <Text style={styles.priceLabel}>$18</Text>
+              <Text style={styles.priceLabel}>$60</Text>
             </View>
 
-            <View style={styles.sliderContainer} pointerEvents="auto">
-              <RangeSlider
-                style={styles.slider}
-                min={0}
-                max={500}
-                step={10}
+            <View style={styles.sliderContainer}>
+              <RangeSliderComponent
+                minValue={18}
+                maxValue={60}
+                step={1}
+                minRange={5}
                 low={priceRange.min}
                 high={priceRange.max}
-                floatingLabel
-                renderThumb={() => <View style={styles.thumb} />}
-                renderRail={() => <View style={styles.rail} />}
-                renderRailSelected={() => <View style={styles.railSelected} />}
-                onValueChanged={handlePriceRangeChange}
+                sliderLength={width(100) - 40}
+                onSlidingStart={() => setIsSliding(true)}
+                onSlidingEnd={() => setIsSliding(false)}
+                onChange={range => setPriceRange(range)}
               />
             </View>
 
@@ -385,13 +388,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
+    color: COLORS.black,
   },
   section: {
     marginBottom: 20,
   },
   label: {
-    fontWeight: '600',
+    fontFamily: fontFamly.PlusJakartaSansBold,
     marginBottom: 8,
+    color: COLORS.black,
   },
   input: {
     borderRadius: 10,
@@ -425,7 +430,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     marginVertical: 5,
-    zIndex: 1000,
+    pointerEvents: 'auto',
   },
   slider: {
     width: '100%',

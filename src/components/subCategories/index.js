@@ -1,17 +1,9 @@
 import React from 'react';
-import {
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import {ICONS} from '../../assets';
+import {SvgUri} from 'react-native-svg';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
-import SvgUri from 'react-native-svg-uri';
 
 const SubCategories = ({data, subSelected, setsubSelected}) => {
   const {currentLanguage} = useTranslation();
@@ -37,13 +29,7 @@ const SubCategories = ({data, subSelected, setsubSelected}) => {
             ]}>
             <View style={styles.iconWrapper}>
               <Text style={{color: isSelected ? COLORS.white : COLORS.black}}>
-                <SvgUri
-                  width={20}
-                  height={20}
-                  source={{
-                    uri: item?.icon,
-                  }}
-                />
+                <SvgUri width={20} height={20} uri={item?.icon} />
               </Text>
             </View>
             <Text

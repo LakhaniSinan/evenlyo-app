@@ -30,9 +30,9 @@ const CartCard = ({item, onBookNow, onRemoveItemFromCart}) => {
           <View style={styles.headerRow}>
             <View style={styles.titleSection}>
               <Text style={styles.title}>
-                {currentLanguage
+                {currentLanguage == 'en'
                   ? item?.listingId?.title?.en
-                  : item?.listingId?.title?.nl || currentLanguage
+                  : item?.listingId?.title?.nl || currentLanguage == 'en'
                   ? item?.listingDetails?.title?.en
                   : item?.listingDetails?.title?.nl}
               </Text>

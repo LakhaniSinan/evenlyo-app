@@ -1,10 +1,9 @@
 import {useEffect} from 'react';
 import {Platform} from 'react-native';
+import {PERMISSIONS, request, RESULTS} from 'react-native-permissions';
 import {useDispatch} from 'react-redux';
-import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
-import {setLocation} from '../redux/slice/location';
 import {helper} from '../helper';
-import store from '../redux';
+import {setLocation} from '../redux/slice/location';
 
 export const useLocation = () => {
   const dispatch = useDispatch();
@@ -61,14 +60,6 @@ export const useLocation = () => {
 
             fullAddress = data.results[0].formatted_address;
 
-            console.log('Geocoding response:', {
-              fullAddress,
-              city,
-              state,
-              rawData: data.results[0],
-            });
-
-            // Construct the location data with real address
             const locationData = {
               coords: {
                 latitude: position.coords.latitude,

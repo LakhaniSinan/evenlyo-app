@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Image, Text, TouchableOpacity, View} from 'react-native';
+import {Image, Switch, Text, TouchableOpacity, View} from 'react-native';
 import {Calendar} from 'react-native-calendars';
 import {width} from 'react-native-dimension';
 import MapView, {Marker} from 'react-native-maps';
@@ -9,9 +9,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
 import LoginModal from '../../../components/authModal';
 import GradientButton from '../../../components/button';
-import CarouselComponent from '../../../components/carousel';
 import CommonAlert from '../../../components/commanAlert';
-import EventAndPriceDetails from '../../../components/eventDetailAndPrice';
 import GradientText from '../../../components/gradiantText';
 import Loader from '../../../components/loder';
 import OrderBooking from '../../../components/modals/OrderBookingModal';
@@ -23,6 +21,8 @@ import {
   listingAddToCart,
   sendBookingRequest,
 } from '../../../services/ListingsItem';
+import {getDistance} from '../../../utils';
+import {Rating} from 'react-native-ratings';
 
 const getInitialMarkedDates = availableDays => {
   let marked = {};
@@ -57,6 +57,8 @@ const getInitialMarkedDates = availableDays => {
 };
 
 const DetailsContent = ({data, selectedTab, navigation}) => {
+  console.log(data, 'datadatadatadatadatadatadata');
+
   const {cartData} = useSelector(state => state.CartSlice);
   const dispatch = useDispatch(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -351,10 +353,35 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     }
   };
 
+  const locationData = useSelector(state => state.LocationSlice);
+
+  const {coords} = locationData;
+  let coLatLng = {
+    latitude: data?.location?.coordinates?.lat,
+    longitude: data?.location?.coordinates?.lng,
+  };
+  const {distance} = getDistance(coLatLng, coords);
   return (
     <>
       {selectedTab === 'gallery' ? (
-        <CarouselComponent data={data} />
+        // <CarouselComponent data={data} />
+        <View
+          style={{
+            height: width(80),
+            backgroundColor: COLORS.white,
+            margin: width(2),
+            borderRadius: width(5),
+            overflow: 'hidden',
+          }}>
+          <Image
+            source={{uri: data?.image}}
+            resizeMode="cover"
+            style={{
+              height: '100%',
+              width: '100%',
+            }}
+          />
+        </View>
       ) : (
         <>
           <Calendar
@@ -391,12 +418,92 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         </>
       )}
       <View style={{marginHorizontal: 10, marginTop: width(3)}}>
-        <EventAndPriceDetails
-          data={data}
-          showrating={true}
-          showDiscount={false}
-          currentLanguage={currentLanguage}
-        />
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: width(3),
+          }}>
+          <View style={{width: width(60)}}>
+            <Text
+              style={{
+                fontFamily: fontFamly.PlusJakartaSansSemiBold,
+                color: COLORS.semiLightText,
+                fontSize: 12,
+              }}>
+              {data?.location?.userAddress ||
+                data?.location?.fullAddress ||
+                data?.vendor?.businessLocation}
+            </Text>
+            <Text
+              style={{
+                fontFamily: fontFamly.PlusJakartaSansBold,
+                color: COLORS.textDark,
+                fontSize: 15,
+              }}>
+              {currentLanguage == 'en' ? data?.title?.en : data?.title?.nl}
+            </Text>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <Image
+                source={ICONS.locationWithoutBg}
+                resizeMode="contain"
+                style={{height: 10, width: 10}}
+                tintColor={COLORS.semiLightText}
+              />
+              <Text
+                style={{
+                  fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                  marginLeft: width(2),
+                  color: COLORS.semiLightText,
+                  fontSize: 11,
+                }}>
+                {distance} Km Away
+              </Text>
+            </View>
+            <View
+              style={{
+                alignItems: 'flex-start',
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+              <Rating
+                ratingCount={5}
+                minValue={data?.rating?.totalReviews}
+                readonly={true}
+                imageSize={15}
+                style={{}}
+              />
+              <Text
+                style={{
+                  fontFamily: fontFamly.PlusJakartaSansSemiMedium,
+                  fontSize: 12,
+                  marginLeft: width(2),
+                  color: COLORS.semiLightText,
+                }}>
+                {data?.rating?.average}
+              </Text>
+            </View>
+          </View>
+          <View style={{}}>
+            <Text
+              style={{
+                fontFamily: fontFamly.PlusJakartaSansBold,
+                color: '#000',
+                fontSize: 15,
+              }}>
+              $ {data?.sellingPrice}
+            </Text>
+            <Text
+              style={{
+                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                color: '#000',
+                fontSize: 9,
+              }}>
+              {data?.pricing?.type && ` /${data?.pricing?.type?.toUpperCase()}`}
+            </Text>
+          </View>
+        </View>
       </View>
 
       <View
@@ -419,7 +526,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
               fontSize: 15,
               fontFamily: fontFamly.PlusJakartaSansSemiBold,
             }}>
-            {data?.vendor?.businessName}
+            {data?.vendor?.businessName || data?.vendor?.fullName}
           </Text>
           <Text
             style={{
@@ -427,7 +534,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
               fontSize: 10,
               fontFamily: fontFamly.PlusJakartaSansSemiRegular,
             }}>
-            {data?.vendor?.businessEmail}
+            {data?.vendor?.businessEmail || data?.vendor?.email}
           </Text>
         </View>
         <TouchableOpacity

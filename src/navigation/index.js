@@ -12,8 +12,10 @@ const AppNavigator = () => {
   const {fetchProfile} = useProfile();
 
   useEffect(() => {
-    fetchProfile();
+    user && fetchProfile();
   }, []);
+
+  console.log(user, 'useruseruseruseruseruserasdasds');
 
   return (
     <NavigationContainer>
@@ -24,7 +26,7 @@ const AppNavigator = () => {
       ) : user?.userType == 'vendor' && user?.vendorDetails !== null ? (
         <VendorAppStack />
       ) : (
-        <AuthStack />
+        <VendorDetailStack />
       )}
     </NavigationContainer>
   );

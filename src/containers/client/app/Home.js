@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FlatList, Image, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   getBookingItems,
   getHomeData,
@@ -28,10 +28,12 @@ import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import useCategories from '../../../hooks/getCategories';
 import useTranslation from '../../../hooks/useTranslation';
+import {setCartData} from '../../../redux/slice/cart';
 
-const Home = ({navigation}) => {
+const Home = ({navigation, route}) => {
   const modalRef = useRef();
   const {t} = useTranslation();
+  const dispatch = useDispatch();
   const locationData = useSelector(state => state.LocationSlice);
   const {address, city, state: regionState} = locationData;
   const [bookingItems, setBookingItems] = useState([]);
@@ -105,6 +107,8 @@ const Home = ({navigation}) => {
     try {
       const res = await getHomeData(selected?._id, subCategoriesSelected?._id);
 
+      console.log(res, 'resresresresresresresresresresresresresasdadas');
+
       if (res.status === 200 || res.status === 201) {
         setHomeData(res?.data?.data || []);
         setOtherSaleItems(res?.data?.otherSaleItems || []);
@@ -151,9 +155,74 @@ const Home = ({navigation}) => {
   const onBookingCardPress = item => {
     navigation.navigate('EventDetails', item);
   };
+  const {cartData} = useSelector(state => state.CartSlice);
 
-  const handleGoToDetails = item => {
-    navigation.navigate('EventDetails', item);
+  const handleAddToCart = async item => {
+    console.log(item, 'itemitemitemitemitemitemitem');
+
+    try {
+      let updatedCart = JSON.parse(JSON.stringify(cartData || []));
+      const vendorId = item?.vendor?._id;
+
+      const vendorIndex = updatedCart.findIndex(v => v.vendorId === vendorId);
+
+      const productObject = {
+        _id: item?._id,
+        title: item?.title,
+        image: item?.image,
+        sellingPrice: item?.sellingPrice,
+        quantity: 1,
+        stockQuantity: item?.stockQuantity,
+        vendor: {
+          ...item?.vendor,
+          _id: item?.vendor?._id,
+          businessName: item?.vendor?.fullName,
+          businessLogo: item?.vendor?.businessLogo,
+          location: item?.location,
+        },
+        linkedListing: item?.linkedListing,
+        orderStatus: 'Pending',
+        type: 'saleItem',
+        createdAt: new Date().toISOString(),
+      };
+
+      if (vendorIndex !== -1) {
+        const alreadyExists = updatedCart[vendorIndex].products.some(
+          p => p._id === item._id,
+        );
+
+        if (alreadyExists) {
+          modalRef.current.show({
+            status: 'error',
+            message: 'Item already exists in your cart',
+          });
+          return;
+        } else {
+          updatedCart[vendorIndex].products.push(productObject);
+        }
+      } else {
+        updatedCart.push({
+          vendorId: vendorId,
+          products: [productObject],
+          vendorName: item?.vendor?.fullName,
+          businessLocation: item?.location?.fullAddress,
+        });
+      }
+
+      dispatch(setCartData(updatedCart));
+      await AsyncStorage.setItem('cartData', JSON.stringify(updatedCart));
+
+      modalRef.current.show({
+        status: 'ok',
+        message: 'Item added to cart successfully!',
+      });
+    } catch (error) {
+      console.log('Add to Cart Error:', error);
+      modalRef.current.show({
+        status: 'error',
+        message: 'Something went wrong while adding to cart',
+      });
+    }
   };
 
   const handleAddToWishList = async listingId => {
@@ -368,7 +437,7 @@ const Home = ({navigation}) => {
             <PopularCard
               type={'saleItem'}
               data={homedata?.saleItems?.data || []}
-              onCardPress={handleGoToDetails}
+              handleAddToCart={handleAddToCart}
             />
           </>
         );
@@ -384,7 +453,7 @@ const Home = ({navigation}) => {
             <PopularCard
               type={'saleItem'}
               data={otherSaleItems || []}
-              onCardPress={handleGoToDetails}
+              handleAddToCart={handleAddToCart}
             />
           </>
         );

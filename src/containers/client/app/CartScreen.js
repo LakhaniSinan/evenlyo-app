@@ -45,8 +45,6 @@ function CartScreen({navigation}) {
   const [accepetedBookings, setAccepetedBookings] = useState([]);
   const [bookingData, setBookingData] = useState(null);
 
-  console.log(bookingData, 'bookingDatabookingDatabookingData');
-
   useFocusEffect(
     useCallback(() => {
       handleGetCartListing();
@@ -61,8 +59,6 @@ function CartScreen({navigation}) {
         getCartListings(),
         getAccepetedBookings(),
       ]);
-
-      console.log(responseCart, 'responseCartresponseCartresponseCart');
 
       setIsLoadding(false);
 
@@ -145,12 +141,7 @@ function CartScreen({navigation}) {
     />
   );
 
-  const renderSaleItemCart = ({item}) => (
-    <SaleItemCard
-      onBookNow={handleBookNow}
-      onCancelBooking={handleRemoveFromCart}
-    />
-  );
+  const renderSaleItemCart = ({item}) => <SaleItemCard />;
 
   const renderSection = (title, data, onSeeAllPress) => {
     if (!data?.length) return null;
@@ -170,7 +161,7 @@ function CartScreen({navigation}) {
                 styles.sectionTitle,
                 {fontSize: 10, color: COLORS.primary},
               ]}>
-              See All
+              {/* See All */}
             </Text>
           </TouchableOpacity>
         </View>
@@ -256,27 +247,6 @@ function CartScreen({navigation}) {
             {renderSection('Accepted Order', accepetedBookings, () =>
               navigation.navigate('SeeAllRequestCart'),
             )}
-            {/* <View style={styles.progressNotesCard}>
-              <View style={styles.itemsList}>
-                {[
-                  {label: 'Subtotal', value: '$600'},
-                  {label: 'Security Fee', value: '$25'},
-                  {label: 'Kilometre Fee', value: '$5'},
-                  {label: 'Service Charges', value: '$60'},
-                  {label: 'Evenlyo Protect', value: '$25'},
-                ].map((item, idx) => (
-                  <View key={idx} style={styles.itemRow}>
-                    <Text style={styles.itemName}>{item.label}</Text>
-                    <Text style={styles.itemPrice}>{item.value}</Text>
-                  </View>
-                ))}
-                <View
-                  style={[styles.itemRow, {borderBottomColor: COLORS.white}]}>
-                  <Text style={styles.totalText}>Total</Text>
-                  <Text style={styles.totalAmount}>$690</Text>
-                </View>
-              </View>
-            </View> */}
 
             <View style={{margin: width(3)}}>
               <GradientButton

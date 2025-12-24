@@ -2,12 +2,11 @@ import React from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
-import {IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
 const EventCard = ({item, navigation}) => {
-  const {t} = useTranslation();
+  const {currentLanguage, t} = useTranslation();
 
   return (
     <TouchableOpacity
@@ -46,7 +45,7 @@ const EventCard = ({item, navigation}) => {
               fontSize: 14,
               // width: '60%',
             }}>
-            {item?.businessName || 'Pulse Events & Entertainment'}
+            {item?.businessName}
           </Text>
           {/* <View
             style={{
@@ -71,7 +70,7 @@ const EventCard = ({item, navigation}) => {
             color: COLORS.textLight,
             fontSize: 12,
           }}>
-          {item?.businessLocation || 'Greater Los Angeles, Orange County'}
+          {item?.businessLocation}
         </Text>
         <View
           style={{
@@ -108,7 +107,9 @@ const EventCard = ({item, navigation}) => {
             fontSize: 12,
             marginLeft: 5,
           }}>
-          {item?.businessDescription}
+          {currentLanguage === 'en'
+            ? item?.businessDescription?.en
+            : item?.businessDescription?.nl}
         </Text>
       </View>
     </TouchableOpacity>
