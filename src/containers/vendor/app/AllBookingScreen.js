@@ -24,6 +24,7 @@ import {
 } from 'react-native';
 import {Calendar} from 'react-native-calendars';
 import {width} from 'react-native-dimension';
+import LinearGradient from 'react-native-linear-gradient';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 
@@ -177,10 +178,10 @@ function AllBookingScreen() {
       const start = moment(item.startDate).format('YYYY-MM-DD');
       marks[start] = {
         selected: true,
-        selectedColor: COLORS.primary,
+        selectedColor: '#FF295D',
         customStyles: {
           container: {
-            backgroundColor: COLORS.primary,
+            backgroundColor: '#FF295D',
             borderRadius: 8,
           },
           text: {
@@ -415,15 +416,35 @@ function AllBookingScreen() {
 
   /* -------------------- UI -------------------- */
 
-  const TabButton = ({label}) => (
-    <TouchableOpacity
-      style={[styles.tabButton, activeTab === label && styles.activeTab]}
-      onPress={() => setActiveTab(label)}>
-      <Text style={[styles.tabText, activeTab === label && styles.activeText]}>
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
+  const TabButton = ({label}) => {
+    if (activeTab === label) {
+      return (
+        <LinearGradient
+          colors={['#FF295D', '#E31B95', '#C817AE']}
+          start={{x: 0, y: 0}}
+          end={{x: 0, y: 1}}
+          style={styles.tabButton}>
+          <TouchableOpacity
+            style={styles.tabButtonTouchable}
+            onPress={() => setActiveTab(label)}>
+            <Text style={[styles.tabText, styles.activeText]}>
+              {label}
+            </Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      );
+    } else {
+      return (
+        <TouchableOpacity
+          style={styles.tabButton}
+          onPress={() => setActiveTab(label)}>
+          <Text style={styles.tabText}>
+            {label}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+  };
 
   const SaleRow = ({item}) => {
     const checked = selectedRows.includes(item._id);
@@ -488,7 +509,10 @@ function AllBookingScreen() {
           onPress={() => downloadPdf(item)}
           style={styles.actionCell}
           disabled={pdfLoadingId === item._id}>
-          <View
+          <LinearGradient
+            colors={['#FF295D', '#E31B95', '#C817AE']}
+            start={{x: 0, y: 0}}
+            end={{x: 0, y: 1}}
             style={[
               styles.pdfButton,
               pdfLoadingId === item._id && styles.disabledBtn,
@@ -496,7 +520,7 @@ function AllBookingScreen() {
             <Text style={styles.pdfText}>
               {pdfLoadingId === item._id ? '...' : 'PDF'}
             </Text>
-          </View>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     );
@@ -580,8 +604,8 @@ function AllBookingScreen() {
               markingType="custom"
               markedDates={markedDates}
               theme={{
-                todayTextColor: COLORS.primary,
-                arrowColor: COLORS.primary,
+                todayTextColor: '#FF295D',
+                arrowColor: '#FF295D',
               }}
             />
           ) : (
@@ -681,14 +705,20 @@ function AllBookingScreen() {
           </View>
 
           <View style={styles.tableControls}>
-            <TouchableOpacity
-              onPress={exportCSV}
-              style={[styles.exportBtn, exportLoading && styles.disabledBtn]}
-              disabled={exportLoading}>
-              <Text style={styles.exportBtnText}>
-                {exportLoading ? 'Exporting...' : 'Export CSV'}
-              </Text>
-            </TouchableOpacity>
+            <LinearGradient
+              colors={['#FF295D', '#E31B95', '#C817AE']}
+              start={{x: 0, y: 0}}
+              end={{x: 0, y: 1}}
+              style={[styles.exportBtn, exportLoading && styles.disabledBtn]}>
+              <TouchableOpacity
+                onPress={exportCSV}
+                style={styles.exportBtnTouchable}
+                disabled={exportLoading}>
+                <Text style={styles.exportBtnText}>
+                  {exportLoading ? 'Exporting...' : 'Export CSV'}
+                </Text>
+              </TouchableOpacity>
+            </LinearGradient>
             <Text style={styles.totalText}>
               Total: {filteredSaleOrders.length} items
             </Text>
@@ -733,31 +763,43 @@ function AllBookingScreen() {
           {/* Pagination */}
           {totalPages > 1 && (
             <View style={styles.pagination}>
-              <TouchableOpacity
-                onPress={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
+              <LinearGradient
+                colors={['#FF295D', '#E31B95', '#C817AE']}
+                start={{x: 0, y: 0}}
+                end={{x: 0, y: 1}}
                 style={[
                   styles.pageBtn,
                   currentPage === 1 && styles.disabledBtn,
                 ]}>
-                <Text style={styles.pageBtnText}>Prev</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  style={styles.pageBtnTouchable}>
+                  <Text style={styles.pageBtnText}>Prev</Text>
+                </TouchableOpacity>
+              </LinearGradient>
 
               <Text style={styles.pageInfo}>
                 Page {currentPage} of {totalPages}
               </Text>
 
-              <TouchableOpacity
-                onPress={() =>
-                  setCurrentPage(Math.min(totalPages, currentPage + 1))
-                }
-                disabled={currentPage === totalPages}
+              <LinearGradient
+                colors={['#FF295D', '#E31B95', '#C817AE']}
+                start={{x: 0, y: 0}}
+                end={{x: 0, y: 1}}
                 style={[
                   styles.pageBtn,
                   currentPage === totalPages && styles.disabledBtn,
                 ]}>
-                <Text style={styles.pageBtnText}>Next</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  style={styles.pageBtnTouchable}>
+                  <Text style={styles.pageBtnText}>Next</Text>
+                </TouchableOpacity>
+              </LinearGradient>
             </View>
           )}
         </ScrollView>
@@ -841,8 +883,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
   },
+  tabButtonTouchable: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   activeTab: {
-    backgroundColor: COLORS.primary,
+    // Removed backgroundColor as it's now handled by LinearGradient
   },
   tabText: {
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
@@ -866,17 +913,17 @@ const styles = StyleSheet.create({
     padding: width(3),
     borderRadius: width(2),
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: '#FF295D',
     backgroundColor: COLORS.backgroundLight,
   },
   filterIcon: {
     width: 18,
     height: 18,
     marginRight: 8,
-    tintColor: COLORS.primary,
+    tintColor: '#FF295D',
   },
   filterText: {
-    color: COLORS.primary,
+    color: '#FF295D',
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
 
@@ -907,7 +954,7 @@ const styles = StyleSheet.create({
   arrow: {
     width: 12,
     height: 12,
-    tintColor: COLORS.primary,
+    tintColor: '#FF295D',
   },
 
   /* ---------------- Sale Filter Tabs ---------------- */
@@ -928,7 +975,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   saleFilterTextActive: {
-    color: COLORS.primary,
+    color: '#FF295D',
     fontFamily: fontFamly.PlusJakartaSansBold,
     fontSize: 14,
   },
@@ -942,10 +989,13 @@ const styles = StyleSheet.create({
     marginBottom: width(2),
   },
   exportBtn: {
-    backgroundColor: COLORS.primary,
     paddingVertical: width(2),
     paddingHorizontal: width(4),
     borderRadius: width(2),
+  },
+  exportBtnTouchable: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   exportBtnText: {
     color: COLORS.white,
@@ -1043,14 +1093,14 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: COLORS.primary,
+    borderColor: '#FF295D',
     borderRadius: 4,
     backgroundColor: COLORS.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxChecked: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#FF295D',
   },
   checkmark: {
     color: COLORS.white,
@@ -1060,11 +1110,12 @@ const styles = StyleSheet.create({
 
   /* ---------------- PDF Button ---------------- */
   pdfButton: {
-    backgroundColor: COLORS.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
     minWidth: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   pdfText: {
     color: COLORS.white,
@@ -1077,7 +1128,7 @@ const styles = StyleSheet.create({
   actionIcon: {
     width: 18,
     height: 18,
-    tintColor: COLORS.primary,
+    tintColor: '#FF295D',
   },
 
   /* ---------------- Pagination ---------------- */
@@ -1090,10 +1141,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.backgroundLight,
   },
   pageBtn: {
-    backgroundColor: COLORS.primary,
     paddingVertical: width(2),
     paddingHorizontal: width(4),
     borderRadius: width(2),
+  },
+  pageBtnTouchable: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   disabledBtn: {
     backgroundColor: COLORS.textLight,
@@ -1150,8 +1204,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.backgroundLight,
   },
   statusOptionSelected: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: '#FF295D',
+    borderColor: '#FF295D',
   },
   statusOptionText: {
     fontSize: 14,
