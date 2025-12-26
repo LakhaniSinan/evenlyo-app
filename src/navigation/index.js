@@ -15,7 +15,7 @@ const AppNavigator = () => {
     user && fetchProfile();
   }, []);
 
-  console.log(user, 'useruseruseruseruseruserasdasds');
+  console.log(user, 'useruseruseruseruseruser');
 
   return (
     <NavigationContainer>
@@ -23,10 +23,12 @@ const AppNavigator = () => {
         <AuthStack />
       ) : user?.userType == 'client' ? (
         <ClientAppStack />
-      ) : user?.userType == 'vendor' && user?.vendorDetails !== null ? (
+      ) : user?.userType == 'vendor' && user?.vendorDetails == null ? (
+        <VendorDetailStack />
+      ) : user?.userType == 'vendor' ? (
         <VendorAppStack />
       ) : (
-        <VendorDetailStack />
+        <AuthStack />
       )}
     </NavigationContainer>
   );

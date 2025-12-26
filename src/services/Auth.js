@@ -11,8 +11,11 @@ export const vendorRegister = params => {
   return Api(endPoints.vendorRegister, params, requestType.POST);
 };
 
-export const loginUser = params => {
-  return Api(endPoints.login, params, requestType.POST);
+export const loginVendor = params => {
+  return Api(endPoints.loginVendor, params, requestType.POST);
+};
+export const loginClient = params => {
+  return Api(endPoints.loginUser, params, requestType.POST);
 };
 
 export const forgotUser = params => {

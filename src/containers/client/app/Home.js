@@ -38,6 +38,7 @@ const Home = ({navigation, route}) => {
   const {address, city, state: regionState} = locationData;
   const [bookingItems, setBookingItems] = useState([]);
   const [vendorsBySubCat, setVendorsBySubCat] = useState([]);
+  const [platformFeePercentage, setPlatformFeePercentage] = useState(0);
   const [popularData, setPopularData] = useState([]);
   const [homedata, setHomeData] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -107,11 +108,12 @@ const Home = ({navigation, route}) => {
     try {
       const res = await getHomeData(selected?._id, subCategoriesSelected?._id);
 
-      console.log(res, 'resresresresresresresresresresresresresasdadas');
-
       if (res.status === 200 || res.status === 201) {
         setHomeData(res?.data?.data || []);
         setOtherSaleItems(res?.data?.otherSaleItems || []);
+        setPlatformFeePercentage(
+          res?.data?.data?.saleItems?.platformFeePercentage || 0,
+        );
       } else {
         modalRef.current?.show({status: 'error', message: res?.data?.message});
       }
@@ -158,8 +160,6 @@ const Home = ({navigation, route}) => {
   const {cartData} = useSelector(state => state.CartSlice);
 
   const handleAddToCart = async item => {
-    console.log(item, 'itemitemitemitemitemitemitem');
-
     try {
       let updatedCart = JSON.parse(JSON.stringify(cartData || []));
       const vendorId = item?.vendor?._id;
@@ -173,6 +173,8 @@ const Home = ({navigation, route}) => {
         sellingPrice: item?.sellingPrice,
         quantity: 1,
         stockQuantity: item?.stockQuantity,
+        extraDeliveryCharges: item?.extraDeliveryCharges || 0,
+        platformFeePercentage: platformFeePercentage || 10,
         vendor: {
           ...item?.vendor,
           _id: item?.vendor?._id,

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
+import {useDispatch} from 'react-redux';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
@@ -32,6 +33,7 @@ import {
 } from '../../../services/ListingsItem';
 
 function CartScreen({navigation}) {
+  const dispatch = useDispatch();
   const {t} = useTranslation();
   const modalRef = useRef(null);
   const [orderBookingForm, setOrderBookingForm] = useState(false);
@@ -41,6 +43,8 @@ function CartScreen({navigation}) {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [activeTab, setActiveTab] = useState('bookingItem');
   const [isLoadding, setIsLoadding] = useState(false);
+  console.log(isLoadding, 'isLoaddingisLoaddingisLoaddingisLoadding');
+
   const [listingCartData, setListingCartData] = useState([]);
   const [accepetedBookings, setAccepetedBookings] = useState([]);
   const [bookingData, setBookingData] = useState(null);
@@ -141,7 +145,9 @@ function CartScreen({navigation}) {
     />
   );
 
-  const renderSaleItemCart = ({item}) => <SaleItemCard />;
+  const renderSaleItemCart = ({item}) => (
+    <SaleItemCard setIsLoading={setIsLoadding} />
+  );
 
   const renderSection = (title, data, onSeeAllPress) => {
     if (!data?.length) return null;
@@ -402,3 +408,48 @@ const saleItem = [
     isSelected: false,
   },
 ];
+
+const asdas = {
+  items: [
+    {
+      itemId: '69391a3bdd06af376b986bc9',
+      title: {
+        en: 'New Meat 500 kg en',
+        nl: 'New Meat 500 kg nl',
+      },
+      image:
+        'https://res.cloudinary.com/dv0imczul/image/upload/v1765349936/nj8azol4fzqen03omeox.png',
+      quantity: 1,
+      price: 800,
+      extraDeliveryCharges: 50,
+      index: 0,
+    },
+  ],
+  itemLocation: {
+    coordinates: {
+      lat: 33.9781784,
+      lng: 72.9117983,
+    },
+    fullAddress: 'Haripur University Rd, Darvesh, Harīpur, Pakistan',
+    _id: '69391a3bdd06af376b986bca',
+  },
+  totalAmount: 935,
+  deliveryAmount: 50,
+  platformFee: 85,
+  platformFeePercentage: 10,
+  deliveryLocation: {
+    coordinates: {
+      lat: 31.3707665,
+      lng: 74.25815829999999,
+    },
+    fullAddress: 'Lahore City, Pakistan',
+  },
+  totalKms: 437,
+  vendorId: '69130c3dac4721065935aa6f',
+  customerInfo: {
+    name: 'Saima Qadeer',
+    email: 'saimaqadeer@gmail.com',
+    phone: '+10000000000',
+  },
+  paymentIntentId: 'pi_3SiB5BJpLBz7gvja18fVZBFL',
+};

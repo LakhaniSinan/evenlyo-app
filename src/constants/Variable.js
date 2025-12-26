@@ -1,3 +1,5 @@
+import {vendorOrderHistory} from '../services/BookingItem';
+
 export const requestType = {
   POST: 'post',
   GET: 'get',
@@ -16,7 +18,8 @@ export const apiHeaders = {
 
 export const endPoints = {
   //Authentication
-  login: '/auth/vendor/login',
+  loginVendor: '/auth/vendor/login',
+  loginUser: '/auth/client/login',
   register: '/auth/client/register',
   vendorRegister: '/auth/vendor/register',
   registerOtp: '/auth/send-otp',
@@ -45,6 +48,7 @@ export const endPoints = {
   vendorDetailsById: '/vendor/details',
   booking: '/booking',
   bookingHistory: '/booking/history?status=',
+  saleItemHistory: '/sale-item-history',
   addListingToCart: '/cart/add',
   addListingToggelCart: '/cart/wishlist',
   removeListingToCart: '/cart/remove',
@@ -55,6 +59,7 @@ export const endPoints = {
   getSaleItem: '/vendor/items/overview',
   deleteSaleItem: '/vendor/items/delete',
   listingsItems: '/vendor/listings/overview',
+  updateOrderStatus: '/update-order-status',
 
   //Notifications
   notifications: '/notifications',
@@ -75,6 +80,7 @@ export const endPoints = {
   //Analytics
   bookingAnalytics: '/vendor/bookings/analytics',
   analyticsReport: '/vendor/earnings/analytics',
+  orderHistory: '/vendor-order-history',
 
   //subCategories by category Ids
   subCategoriesByCategoryIds: '/vendor/profile/get-sub-category-by-categoryIds',
@@ -90,6 +96,10 @@ export const endPoints = {
 
   //FAQs
   faqs: '/faqs',
+
+  //Payment
+  createPaymentIntent: '/vendor/bookings/create-payment-intent',
+  buySaleItem: '/sale-item-purchase',
 
   messages: {
     all: (id, userId) => `/messages/${id}/${userId}`,

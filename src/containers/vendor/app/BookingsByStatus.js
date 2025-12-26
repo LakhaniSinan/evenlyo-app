@@ -1,7 +1,6 @@
 import moment from 'moment';
 import React, {useCallback, useEffect, useState} from 'react';
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   RefreshControl,
@@ -13,21 +12,11 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import {useSelector} from 'react-redux';
+import {ICONS} from '../../../assets';
+import AppHeader from '../../../components/appHeader';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {getBookingByStatus} from '../../../services/BookingItem';
-import AppHeader from '../../../components/appHeader';
-import {ICONS} from '../../../assets';
-
-const TABS = ['Booking Items', 'Sale Items'];
-
-const TabButton = ({tab, isActive, onPress}) => (
-  <TouchableOpacity
-    style={[styles.tabButton, isActive && styles.activeTab]}
-    onPress={onPress}>
-    <Text style={[styles.tabText, isActive && styles.activeText]}>{tab}</Text>
-  </TouchableOpacity>
-);
 
 const BookingsByStatus = ({navigation, route}) => {
   const {t, currentLanguage} = useTranslation();
@@ -157,24 +146,15 @@ const BookingsByStatus = ({navigation, route}) => {
       <AppHeader
         headingText={`${
           event?.status?.charAt(0).toUpperCase() +
-          event?.status?.slice(1).toLowerCase()
+            event?.status?.slice(1).toLowerCase() ||
+          event?.title?.charAt(0).toUpperCase() +
+            event?.title?.slice(1).toLowerCase()
         } Booking`}
         leftIcon={ICONS.leftArrowIcon}
         rightIcon={ICONS.notificationIcon}
         onLeftIconPress={() => navigation.goBack()}
         onRightIconPress={() => navigation.navigate('Notifications')}
       />
-
-      <View style={styles.tabContainer}>
-        {TABS.map(tab => (
-          <TabButton
-            key={tab}
-            tab={tab}
-            isActive={activeTab === tab}
-            onPress={() => setActiveTab(tab)}
-          />
-        ))}
-      </View>
 
       <FlatList
         data={listingCartData}
@@ -187,7 +167,9 @@ const BookingsByStatus = ({navigation, route}) => {
           <Text style={styles.emptyText}>
             No items found for "
             {event?.status?.charAt(0).toUpperCase() +
-              event?.status?.slice(1).toLowerCase()}
+              event?.status?.slice(1).toLowerCase() ||
+              event?.title?.charAt(0).toUpperCase() +
+                event?.title?.slice(1).toLowerCase()}
             " in {activeTab}.
           </Text>
         }
@@ -218,23 +200,7 @@ const styles = StyleSheet.create({
     borderRadius: width(4),
     marginTop: width(2),
   },
-  tabButton: {
-    paddingVertical: 16,
-    width: width(44.5),
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  activeTab: {
-    backgroundColor: COLORS.primary,
-  },
-  tabText: {
-    color: COLORS.textDark,
-    fontSize: 13,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-  },
-  activeText: {
-    color: COLORS.white,
-  },
+
   card: {
     flexDirection: 'row',
     borderRadius: 15,

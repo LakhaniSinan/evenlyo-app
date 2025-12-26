@@ -62,10 +62,10 @@ const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
           </TouchableOpacity>
           <View style={styles.priceContainer}>
             <Text style={styles.price}>
-              {item.pricing?.totalPrice.toFixed(2)}
+              {item.pricing?.totalPrice?.toFixed(2)}
             </Text>
             <Text style={styles.perEvent}>
-              {item?.pricing?.type.toUpperCase()}
+              {item?.pricing?.type?.toUpperCase()}
             </Text>
           </View>
         </View>

@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
-import SvgUri from 'react-native-svg-uri';
+import { SvgUri } from 'react-native-svg';
+
 import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
 import CommonAlert from '../../../components/commanAlert';
@@ -71,50 +72,50 @@ const SubCategories = ({
     );
   }, []);
 
-  const renderSubCategory = (subItem, isSelected) => {
-    const containerStyle = isSelected
-      ? styles.activeContainer
-      : styles.inactiveContainer;
+  const renderSubCategory = useCallback(
+    (subItem, isSelected) => {
+      const containerStyle = isSelected
+        ? styles.activeContainer
+        : styles.inactiveContainer;
 
-    const textStyle = isSelected ? styles.activeText : styles.inactiveText;
+      const textStyle = isSelected ? styles.activeText : styles.inactiveText;
 
-    return (
-      <TouchableOpacity
-        key={subItem._id}
-        activeOpacity={0.8}
-        onPress={() => toggleSelect(subItem._id)}
-        style={styles.subCategoryWrapper}>
-        {isSelected ? (
-          <LinearGradient
-            colors={GRADIENT_COLORS}
-            start={{x: 0, y: 0}}
-            end={{x: 0, y: 1}}
-            style={containerStyle}>
-            <View style={styles.iconWrapper}>
-              <SvgUri source={{uri: subItem.icon}} width={20} height={20} />
+      const iconUri = subItem?.icon;
+      const name = currentLanguage == 'en' ? subItem?.name?.en : subItem?.name?.nl;
+
+      return (
+        <TouchableOpacity
+          key={subItem._id}
+          activeOpacity={0.8}
+          onPress={() => toggleSelect(subItem._id)}
+          style={styles.subCategoryWrapper}>
+          {isSelected ? (
+            <LinearGradient
+              colors={GRADIENT_COLORS}
+              start={{x: 0, y: 0}}
+              end={{x: 0, y: 1}}
+              style={containerStyle}>
+              <View style={styles.iconWrapper}>
+                <SvgUri width={20} height={20} uri={iconUri} />
+              </View>
+              <Text style={textStyle}>{name}</Text>
+            </LinearGradient>
+          ) : (
+            <View style={containerStyle}>
+              <View style={[styles.iconWrapper, styles.iconSpacing]}>
+                <SvgUri width={20} height={20} uri={iconUri} />
+              </View>
+              <Text style={textStyle}>{name}</Text>
             </View>
-            <Text style={textStyle}>
-              {currentLanguage == 'en' ? subItem?.name?.en : subItem?.name?.nl}
-            </Text>
-          </LinearGradient>
-        ) : (
-          <View style={containerStyle}>
-            <View style={[styles.iconWrapper, styles.iconSpacing]}>
-              <SvgUri source={{uri: subItem.icon}} width={20} height={20} />
-            </View>
-            <Text style={textStyle}>
-              {currentLanguage == 'en' ? subItem?.name?.en : subItem?.name?.nl}
-            </Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    );
-  };
+          )}
+        </TouchableOpacity>
+      );
+    },
+    [currentLanguage, toggleSelect],
+  );
 
   const renderItem = useCallback(
     ({item}) => {
-      console.log(item, 'itemitemitemitemitem');
-
       return (
         <View style={styles.categoryBox}>
           <Text style={styles.roleTitle}>
@@ -128,7 +129,7 @@ const SubCategories = ({
         </View>
       );
     },
-    [selectedItems],
+    [selectedItems, renderSubCategory, currentLanguage],
   );
 
   return (
@@ -137,6 +138,7 @@ const SubCategories = ({
       <FlatList
         data={allSubCategories}
         renderItem={renderItem}
+        keyExtractor={item => item._id}
         scrollEnabled={false}
       />
       <View style={styles.buttonContainer}>

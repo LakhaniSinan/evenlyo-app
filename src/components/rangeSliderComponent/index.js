@@ -1,8 +1,5 @@
 import React, {useCallback} from 'react';
-import {StyleSheet, TouchableOpacity, View} from 'react-native';
-import {width} from 'react-native-dimension';
-import RangeSlider from 'react-native-sticky-range-slider';
-import {COLORS} from '../../constants';
+import {StyleSheet, View} from 'react-native';
 
 const RangeSliderComponent = ({
   minValue = 0,
@@ -15,40 +12,40 @@ const RangeSliderComponent = ({
   onSlidingStart = () => {},
   onSlidingEnd = () => {},
   disableRange = false,
+  sliderLength = 280,
 }) => {
-  const handleValueChange = useCallback((newLow, newHigh) => {
-    onChange({min: newLow, max: newHigh});
+  const handleValueChange = useCallback(values => {
+    onChange({min: values[0], max: values[1]});
   }, []);
 
-  const Thumb = type => (
-    <TouchableOpacity
-      style={[
-        styles.thumb,
-        {backgroundColor: type === 'high' ? '#ffffffff' : '#ffffffff'},
-      ]}
-    />
+  const CustomMarkerLeft = () => (
+    <View style={[styles.thumb, {backgroundColor: '#8A2BE2'}]} />
   );
 
-  const Rail = () => <View style={styles.rail} />;
-  const RailSelected = () => <View style={styles.railSelected} />;
+  const CustomMarkerRight = () => (
+    <View style={[styles.thumb, {backgroundColor: '#6AFF6A'}]} />
+  );
 
   return (
-    <RangeSlider
-      min={minValue}
-      max={maxValue}
-      step={step}
-      minRange={minRange}
-      low={low}
-      high={high}
-      onValueChanged={handleValueChange}
-      onSlidingStart={onSlidingStart}
-      onSlidingEnd={onSlidingEnd}
-      renderThumb={Thumb}
-      renderRail={Rail}
-      renderRailSelected={RailSelected}
-      disableRange={disableRange}
-      pannableAreaStyle={{height: 50}}
-    />
+    <></>
+    // <MultiSlider
+    //   values={[low, high]}
+    //   min={minValue}
+    //   max={maxValue}
+    //   step={step}
+    //   sliderLength={sliderLength}
+    //   onValuesChange={handleValueChange}
+    //   onValuesChangeStart={onSlidingStart}
+    //   onValuesChangeFinish={onSlidingEnd}
+    //   isMarkersSeparated={true}
+    //   customMarkerLeft={CustomMarkerLeft}
+    //   customMarkerRight={CustomMarkerRight}
+    //   selectedStyle={{backgroundColor: '#FF295D', height: 4}}
+    //   unselectedStyle={{backgroundColor: '#ccc', height: 4}}
+    //   trackStyle={{height: 4}}
+    //   allowOverlap={false}
+    //   minMarkerOverlapDistance={minRange}
+    // />
   );
 };
 
@@ -62,11 +59,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   thumb: {
-    width: width(4),
-    height: width(4),
-    borderRadius: width(100),
+    width: THUMB_RADIUS * 2,
+    height: THUMB_RADIUS * 2,
+    borderRadius: THUMB_RADIUS,
     borderWidth: 3,
-    borderColor: COLORS.primary,
+    borderColor: '#000',
   },
   rail: {
     flex: 1,

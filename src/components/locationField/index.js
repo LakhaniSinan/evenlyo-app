@@ -50,7 +50,6 @@ const GooglePlacesInput = ({
         )}&key=${googleAPIKey}&language=en`,
       );
       const json = await res.json();
-      console.log('Places API result:', json);
       if (Array.isArray(json?.predictions)) {
         setResults(json.predictions.slice(0, 5));
       } else {

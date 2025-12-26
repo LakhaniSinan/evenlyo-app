@@ -21,7 +21,7 @@ import TextField from '../../components/textInput';
 import {COLORS, fontFamly, SIZES} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 import {setUserData} from '../../redux/slice/auth';
-import {loginUser, socialLogin} from '../../services/Auth';
+import {loginClient, loginVendor, socialLogin} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
 
 const LoginScreen = ({navigation, route}) => {
@@ -74,7 +74,11 @@ const LoginScreen = ({navigation, route}) => {
           userType: type,
         };
         setIsLoading(true);
-        const response = await loginUser(payload);
+        const response =
+          type == 'client'
+            ? await loginClient(payload)
+            : await loginVendor(payload);
+        console.log(response, 'responseresponseresponseresponseresponse');
 
         let data = response?.data?.user;
         setIsLoading(false);

@@ -22,6 +22,9 @@ export const acceptBooking = bookinID => {
 export const getBookingAnalytics = () => {
   return Api(endPoints.bookingAnalytics, null, requestType.GET);
 };
+export const vendorOrderHistory = () => {
+  return Api(endPoints.orderHistory, null, requestType.GET);
+};
 
 export const getBookingByStatus = params => {
   return Api(endPoints.bookingByStatus, params, requestType.POST);

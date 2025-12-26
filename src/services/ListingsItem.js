@@ -40,6 +40,9 @@ export const getVendorsBySubCategory = subCatId => {
 export const getBookingDetails = Id => {
   return Api(`${endPoints.listings}/${Id}`, null, requestType.GET);
 };
+export const handleUpdateOrderStatus = (Id, params) => {
+  return Api(`${endPoints.updateOrderStatus}/${Id}`, params, requestType.POST);
+};
 
 export const sendBookingRequest = params => {
   return Api(endPoints.createBooking, params, requestType.POST);
@@ -51,6 +54,9 @@ export const getAllBookingHistory = (status, page, limit) => {
     null,
     requestType.GET,
   );
+};
+export const getAllSaleItems = () => {
+  return Api(endPoints.saleItemHistory, null, requestType.GET);
 };
 
 export const listingAddToCart = params => {
