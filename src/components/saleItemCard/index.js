@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Alert, FlatList, View} from 'react-native';
+import {FlatList, View, Text} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,7 +9,7 @@ import {buySaleItem, createPaymentIntent} from '../../services/Payment';
 import OrderSummary from '../orderSummryAndPayment';
 import VendorCard from './vendorCard';
 
-const SaleItemCard = ({setIsLoading}) => {
+const SaleItemCard = ({modalRef, setIsLoading}) => {
   const dispatch = useDispatch();
   const {t} = useTranslation();
   const {cartData} = useSelector(state => state.CartSlice);
@@ -90,7 +90,10 @@ const SaleItemCard = ({setIsLoading}) => {
               if (product.quantity < product.stockQuantity) {
                 return {...product, quantity: product.quantity + 1};
               } else {
-                Alert.alert('Stock Limit', 'Maximum stock limit reached!');
+                modalRef.current?.show({
+                  status: 'error',
+                  message: 'Maximum stock limit reached!',
+                });
                 return product;
               }
             }),
@@ -111,29 +114,22 @@ const SaleItemCard = ({setIsLoading}) => {
         if (!product) return prevCart;
 
         if (product.quantity === 1) {
-          Alert.alert(
-            'Remove Item',
-            `Remove "${product.title?.en}" from the cart?`,
-            [
-              {text: 'Cancel', style: 'cancel'},
-              {
-                text: 'Yes, Remove',
-                style: 'destructive',
-                onPress: () => {
-                  const updatedProducts = vendor.products.filter(
-                    p => p._id !== productId,
-                  );
-                  const updatedCart = prevCart
-                    .map((v, i) =>
-                      i === vendorIndex ? {...v, products: updatedProducts} : v,
-                    )
-                    .filter(v => v.products.length > 0);
-                  updateCartInRedux(updatedCart);
-                  setLocalCart(updatedCart);
-                },
-              },
-            ],
-          );
+          modalRef.current?.show({
+            status: 'alert',
+            message: `Remove "${product.title?.en}" from the cart?`,
+            handlePressOk: () => {
+              const updatedProducts = vendor.products.filter(
+                p => p._id !== productId,
+              );
+              const updatedCart = prevCart
+                .map((v, i) =>
+                  i === vendorIndex ? {...v, products: updatedProducts} : v,
+                )
+                .filter(v => v.products.length > 0);
+              updateCartInRedux(updatedCart);
+              setLocalCart(updatedCart);
+            },
+          });
           return prevCart;
         }
 
@@ -166,10 +162,10 @@ const SaleItemCard = ({setIsLoading}) => {
       const uniqueVendorIndexes = [...new Set(selectedVendorIndexes)];
 
       if (!checked && uniqueVendorIndexes.length > 1) {
-        Alert.alert(
-          'One Vendor Only',
-          'You can only place an order from one vendor at a time.',
-        );
+        modalRef.current?.show({
+          status: 'error',
+          message: 'You can only place an order from one vendor at a time.',
+        });
         return prev;
       }
 
@@ -191,10 +187,10 @@ const SaleItemCard = ({setIsLoading}) => {
           setSelectedVendorIndex(null);
         } else {
           if (selectedVendorIndex !== null && selectedVendorIndex !== index) {
-            Alert.alert(
-              'One Vendor Only',
-              'You can only place an order from one vendor at a time.',
-            );
+            modalRef.current?.show({
+              status: 'error',
+              message: 'You can only place an order from one vendor at a time.',
+            });
             return prev;
           }
           localCart[index].products.forEach(p => {
@@ -300,18 +296,18 @@ const SaleItemCard = ({setIsLoading}) => {
       inputValues.email.trim() === '' ||
       inputValues.phoneNumber.trim() === ''
     ) {
-      Alert.alert(
-        'Incomplete Customer Information',
-        'Please fill in all required fields.',
-      );
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please fill in all required fields.',
+      });
       return;
     }
 
     if (!cardDetails?.complete) {
-      Alert.alert(
-        'Incomplete Card Details',
-        'Please fill in all card details.',
-      );
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please fill in all card details.',
+      });
       return;
     }
 
@@ -363,25 +359,26 @@ const SaleItemCard = ({setIsLoading}) => {
       setIsLoading(true);
       const res = await buySaleItem(payload);
       if (res.status === 200 || res.status === 201) {
-        Alert.alert(
-          'Success',
-          res?.data?.message,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                removeOrderedItemsFromCart();
-                resetOrderState();
-              },
-            },
-          ],
-          {cancelable: false},
-        );
+        modalRef.current?.show({
+          status: 'ok',
+          message: res?.data?.message,
+          handlePressOk: () => {
+            removeOrderedItemsFromCart();
+            resetOrderState();
+          },
+        });
       } else {
-        Alert.alert('Error', res?.data?.message);
+        modalRef.current?.show({
+          status: 'error',
+          message: res?.data?.message,
+        });
       }
     } catch (err) {
       console.log('PAY ERROR', err);
+      modalRef.current?.show({
+        status: 'error',
+        message: 'An error occurred during payment.',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -432,43 +429,49 @@ const SaleItemCard = ({setIsLoading}) => {
 
   return (
     <View style={{flex: 1}}>
-      <FlatList
-        data={localCart}
-        keyExtractor={(_, i) => i.toString()}
-        renderItem={({item, index}) => (
-          <VendorCard
-            item={item}
-            index={index}
-            selectedProducts={selectedProducts}
-            onToggleVendorSelect={onToggleVendorSelect}
-            onToggleProductSelect={onToggleProductSelect}
-            onIncrement={handleIncrement}
-            onDecrement={handleDecrement}
-          />
-        )}
-        ListFooterComponent={
-          <OrderSummary
-            selectedProductsArray={selectedProductsArray}
-            selectedTotal={selectedTotal}
-            deliveryLocation={deliveryLocation}
-            distanceKm={distanceKm}
-            deliveryCharges={deliveryCharges}
-            extraDeliveryCharges={extraDeliveryCharges}
-            platformFee={platformFee}
-            total={total}
-            showStripeform={showStripeform}
-            onLocationSelect={handleSelectValue}
-            onCheckout={() => handlePressCheckOut(total)}
-            handleCahnge={handleCahnge}
-            inputValues={inputValues}
-            setIsLoading={setIsLoading}
-            t={t}
-            onpayPress={handlePayPress}
-            setCardDetails={setCardDetails}
-            onCancelPress={() => setShowStripeform(false)}
-          />
-        }
-      />
+      {localCart.length === 0 ? (
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <Text style={{fontSize: 18, color: 'gray'}}>Your cart is empty</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={localCart}
+          keyExtractor={(_, i) => i.toString()}
+          renderItem={({item, index}) => (
+            <VendorCard
+              item={item}
+              index={index}
+              selectedProducts={selectedProducts}
+              onToggleVendorSelect={onToggleVendorSelect}
+              onToggleProductSelect={onToggleProductSelect}
+              onIncrement={handleIncrement}
+              onDecrement={handleDecrement}
+            />
+          )}
+          ListFooterComponent={
+            <OrderSummary
+              selectedProductsArray={selectedProductsArray}
+              selectedTotal={selectedTotal}
+              deliveryLocation={deliveryLocation}
+              distanceKm={distanceKm}
+              deliveryCharges={deliveryCharges}
+              extraDeliveryCharges={extraDeliveryCharges}
+              platformFee={platformFee}
+              total={total}
+              showStripeform={showStripeform}
+              onLocationSelect={handleSelectValue}
+              onCheckout={() => handlePressCheckOut(total)}
+              handleCahnge={handleCahnge}
+              inputValues={inputValues}
+              setIsLoading={setIsLoading}
+              t={t}
+              onpayPress={handlePayPress}
+              setCardDetails={setCardDetails}
+              onCancelPress={() => setShowStripeform(false)}
+            />
+          }
+        />
+      )}
     </View>
   );
 };

@@ -146,7 +146,7 @@ function CartScreen({navigation}) {
   );
 
   const renderSaleItemCart = ({item}) => (
-    <SaleItemCard setIsLoading={setIsLoadding} />
+    <SaleItemCard setIsLoading={setIsLoadding} modalRef={modalRef} />
   );
 
   const renderSection = (title, data, onSeeAllPress) => {
@@ -408,48 +408,3 @@ const saleItem = [
     isSelected: false,
   },
 ];
-
-const asdas = {
-  items: [
-    {
-      itemId: '69391a3bdd06af376b986bc9',
-      title: {
-        en: 'New Meat 500 kg en',
-        nl: 'New Meat 500 kg nl',
-      },
-      image:
-        'https://res.cloudinary.com/dv0imczul/image/upload/v1765349936/nj8azol4fzqen03omeox.png',
-      quantity: 1,
-      price: 800,
-      extraDeliveryCharges: 50,
-      index: 0,
-    },
-  ],
-  itemLocation: {
-    coordinates: {
-      lat: 33.9781784,
-      lng: 72.9117983,
-    },
-    fullAddress: 'Haripur University Rd, Darvesh, Harīpur, Pakistan',
-    _id: '69391a3bdd06af376b986bca',
-  },
-  totalAmount: 935,
-  deliveryAmount: 50,
-  platformFee: 85,
-  platformFeePercentage: 10,
-  deliveryLocation: {
-    coordinates: {
-      lat: 31.3707665,
-      lng: 74.25815829999999,
-    },
-    fullAddress: 'Lahore City, Pakistan',
-  },
-  totalKms: 437,
-  vendorId: '69130c3dac4721065935aa6f',
-  customerInfo: {
-    name: 'Saima Qadeer',
-    email: 'saimaqadeer@gmail.com',
-    phone: '+10000000000',
-  },
-  paymentIntentId: 'pi_3SiB5BJpLBz7gvja18fVZBFL',
-};
