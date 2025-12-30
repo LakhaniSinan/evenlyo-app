@@ -99,7 +99,7 @@ const AnalyticsReport = () => {
   }, [handleGetAnalyticsReport]);
 
   const handleFilterPress = text => {
-    if (text === 'Filter') setModalVisible(true);
+    if (text === 'Filter') {setModalVisible(true);}
   };
 
   const handleDownload = () => {

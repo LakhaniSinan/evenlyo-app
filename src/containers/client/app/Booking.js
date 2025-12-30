@@ -97,9 +97,9 @@ const BooKings = () => {
 
 
   const filteredSaleItems = saleItems.filter(item => {
-    if (saleStatusTab === 'Delivered') return item.status === 'Delivered';
-    if (saleStatusTab === 'Order Placed') return item.status === 'Order Placed';
-    if (saleStatusTab === 'On the way') return item.status === 'On the way';
+    if (saleStatusTab === 'Delivered') {return item.status === 'Delivered';}
+    if (saleStatusTab === 'Order Placed') {return item.status === 'Order Placed';}
+    if (saleStatusTab === 'On the way') {return item.status === 'On the way';}
     return true;
   });
 

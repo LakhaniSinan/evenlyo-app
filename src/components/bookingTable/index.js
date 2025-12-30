@@ -45,7 +45,7 @@ const BookingTable = ({data, canDownload}) => {
           <Text style={styles.headerCell}>Booking Item</Text>
           <Text style={styles.headerCell}>Total Cost</Text>
           {/* <Text style={styles.headerCell}>Earning</Text> */}
-          {canDownload && <Text style={styles.headerCell}></Text>}
+          {canDownload && <Text style={styles.headerCell} />}
         </View>
 
         {/* Scrollable Table Body */}

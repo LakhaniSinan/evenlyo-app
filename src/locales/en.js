@@ -90,7 +90,7 @@ export default {
   selectLanguage: 'Select Language',
   changeLanguage: 'Change Language',
   Settings: 'Settings',
-  
+
   // Notification Settings
   'Notification Settings': 'Notification Settings',
   'Notification Details': 'Notification Details',

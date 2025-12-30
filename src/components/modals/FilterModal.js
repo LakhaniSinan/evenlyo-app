@@ -170,7 +170,7 @@ const FilterModal = ({isVisible, onClose, nestedFilter, showOtherCheckBox}) => {
                       borderRadius: 5,
                       borderWidth: 1,
                       borderColor: COLORS.primary,
-                    }}></TouchableOpacity>
+                    }} />
                 ) : (
                   <TouchableOpacity
                     onPress={() => setIsChecked(!isChecked)}

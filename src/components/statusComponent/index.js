@@ -3,7 +3,7 @@ import {StyleSheet, Text, View} from 'react-native';
 import {fontFamly} from '../../constants';
 
 const StatusBadge = ({status}) => {
-  if (!status) return null;
+  if (!status) {return null;}
 
   // ✅ Format status (First letter capitalized, rest lowercase)
   const formattedStatus =

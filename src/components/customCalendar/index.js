@@ -47,7 +47,7 @@ const CustomCalendar = ({
   };
 
   const isDateInRange = date => {
-    if (!tempStartDate || !tempEndDate) return false;
+    if (!tempStartDate || !tempEndDate) {return false;}
     return date.isBetween(tempStartDate, tempEndDate, 'day', '[]');
   };
 

@@ -28,7 +28,7 @@ const OrderSummary = memo(
     onCancelPress,
     setCardDetails,
   }) => {
-    if (!selectedProductsArray.length) return null;
+    if (!selectedProductsArray.length) {return null;}
 
     const vendor = selectedProductsArray[0]?.vendor;
     const deliveryTotal = useMemo(

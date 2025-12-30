@@ -13,11 +13,11 @@ const LANGUAGE_DETECTOR = {
     if (savedLanguage) {
       return callback(savedLanguage);
     }
-    
+
     // If no saved language, use device language
     const deviceLanguages = getLocales();
     const deviceLanguage = deviceLanguages[0]?.languageCode || 'en';
-    
+
     // Check if we support the device language
     const supportedLanguage = translations[deviceLanguage] ? deviceLanguage : 'en';
     return callback(supportedLanguage);
@@ -42,11 +42,11 @@ i18n
     },
     fallbackLng: 'en',
     debug: __DEV__,
-    
+
     interpolation: {
       escapeValue: false,
     },
-    
+
     react: {
       useSuspense: false,
     },

@@ -1,5 +1,5 @@
 import moment from 'moment';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Image,
   Keyboard,
@@ -9,22 +9,21 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Calendar } from 'react-native-calendars';
+import {Calendar} from 'react-native-calendars';
 import DatePicker from 'react-native-date-picker';
-import { width } from 'react-native-dimension';
+import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { ICONS } from '../../assets';
-import { COLORS, fontFamly } from '../../constants';
-import { useTranslation } from '../../hooks';
-import { getDistance } from '../../utils';
+import {ICONS} from '../../assets';
+import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
+import {getDistance} from '../../utils';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
 import GradientText from '../gradiantText';
 import GooglePlacesInput from '../locationField';
 import TextField from '../textInput';
 
-const availableDays = ['mon', 'tue', 'thu', 'fri'];
 const getInitialMarkedDates = (availableDays, referenceDate = moment()) => {
   const marked = {};
   const start = referenceDate.clone();
@@ -58,6 +57,74 @@ const getInitialMarkedDates = (availableDays, referenceDate = moment()) => {
   return marked;
 };
 
+/**
+ * Calculate available days and hours
+ */
+export const calculateAvailableDaysWithHours = ({
+  startDate,
+  endDate,
+  startTime,
+  endTime,
+  availableDays = [],
+  defaultHoursPerDay = 10,
+}) => {
+  if (!startDate) {
+    return {
+      totalSelectedDays: 0,
+      availableSelectedDays: 0,
+      hoursPerDay: 0,
+      totalHours: 0,
+      availableDates: [],
+      unavailableDates: [],
+    };
+  }
+
+  const start = moment(startDate);
+  const end = endDate ? moment(endDate) : moment(startDate);
+
+  let totalSelectedDays = 0;
+  let availableSelectedDays = 0;
+  let availableDates = [];
+  let unavailableDates = [];
+
+  let curr = start.clone();
+
+  // ---- HOURS PER DAY ----
+  let hoursPerDay = defaultHoursPerDay;
+
+  // Single day → calculate from time
+  if (start.isSame(end, 'day') && startTime && endTime) {
+    hoursPerDay = moment(endTime).diff(moment(startTime), 'hours', true);
+  }
+
+  while (curr.isSameOrBefore(end)) {
+    totalSelectedDays++;
+
+    const dayName = curr.format('ddd').toLowerCase();
+    const dateStr = curr.format('YYYY-MM-DD');
+
+    if (availableDays.includes(dayName)) {
+      availableSelectedDays++;
+      availableDates.push(dateStr);
+    } else {
+      unavailableDates.push(dateStr);
+    }
+
+    curr.add(1, 'day');
+  }
+
+  const totalHours = availableSelectedDays * hoursPerDay;
+
+  return {
+    totalSelectedDays,
+    availableSelectedDays,
+    hoursPerDay,
+    totalHours,
+    availableDates,
+    unavailableDates,
+  };
+};
+
 const OrderBooking = ({
   data,
   onClose,
@@ -66,6 +133,8 @@ const OrderBooking = ({
   handleSendBookingRequest,
   handleAddToWishList,
 }) => {
+  console.log(data, 'datadatadatadatadatadatadata');
+
   const {t} = useTranslation();
   const modalRef = useRef(null);
   const [selectedCoords, setSelectedCoords] = useState(null);
@@ -81,9 +150,19 @@ const OrderBooking = ({
   const [referenceDate, setReferenceDate] = useState(moment());
   const [localStartDate, setLocalStartDate] = useState(null);
   const [localEndDate, setLocalEndDate] = useState(null);
+  let availableDays = data?.availability?.availableDays || [];
   const [markedDates, setMarkedDates] = useState(() =>
     getInitialMarkedDates(availableDays, moment()),
   );
+
+  const {availableSelectedDays, hoursPerDay, totalHours} =
+    calculateAvailableDaysWithHours({
+      startDate: localStartDate,
+      endDate: localEndDate,
+      startTime,
+      endTime,
+      availableDays,
+    });
 
   useEffect(() => {
     if (isVisible) {
@@ -161,7 +240,6 @@ const OrderBooking = ({
     }
   }, [isVisible, selectedDate]);
 
-  // Keyboard listeners
   useEffect(() => {
     const onShow = Keyboard.addListener('keyboardDidShow', () =>
       setIsKeyboardVisible(true),
@@ -175,57 +253,6 @@ const OrderBooking = ({
     };
   }, []);
 
-  // Pricing calculation (keeps original behavior)
-  const calculatedPricing = useMemo(() => {
-    const kmValue = parseFloat(kilometer) || 0;
-    let durationValue = 0;
-    if (startTime && endTime) {
-      const diffMs = moment(endTime).diff(moment(startTime));
-      durationValue = diffMs > 0 ? diffMs / (1000 * 60 * 60) : 0;
-    }
-
-    const {
-      type,
-      amount = 0,
-      extratimeCost = 0,
-      securityFee = 0,
-      pricePerKm = 0,
-      escrowFee = 0,
-      totalPrice = 0,
-    } = data?.pricing || {};
-
-    let subtotal = 0;
-    let total = 0;
-    let kmCost = kmValue * pricePerKm;
-
-    if (type === 'perhour') {
-      const baseHours = durationValue > 1 ? 1 : durationValue;
-      const extraHours = durationValue > 1 ? durationValue - 1 : 0;
-
-      const baseCost = baseHours * amount;
-      const extraCost = extraHours * extratimeCost;
-
-      subtotal = baseCost + extraCost + kmCost;
-      total = subtotal + securityFee + escrowFee;
-    } else if (type === 'fixed') {
-      subtotal = totalPrice;
-      total = subtotal + securityFee + escrowFee;
-    }
-
-    return {
-      duration: durationValue,
-      ratePerHour: amount,
-      extraHourRate: extratimeCost,
-      kmRate: pricePerKm,
-      kmValue,
-      kmCost,
-      securityFee,
-      escrowFee,
-      subtotal,
-      total,
-    };
-  }, [kilometer, data, startTime, endTime]);
-
   const handleKilometerChange = useCallback(text => {
     const cleaned = text.replace(/[^0-9.]/g, '');
     if ((cleaned.match(/\./g) || []).length <= 1) setKilometer(cleaned);
@@ -233,18 +260,65 @@ const OrderBooking = ({
 
   const toggleState = useCallback(setter => setter(prev => !prev), []);
 
-  const {distance} = getDistance(
-    data?.location?.coordinates,
-    selectedCoords?.latLng,
-  );
+  const distance = useMemo(() => {
+    return (
+      getDistance(data?.location?.coordinates, selectedCoords?.latLng)
+        ?.distance || 0
+    );
+  }, [data?.location?.coordinates, selectedCoords]);
 
-  console.log(distance, 'distancedistancedistancedistancelaksndlasknd');
+  const calculatedPricing = useMemo(() => {
+    const pricePerHour = Number(data?.pricing?.amount || 0);
+    const pricePerKm = Number(data?.pricing?.pricePerKm || 0);
+    const securityDeposit = Number(data?.paymentPolicy?.securityDeposit || 500);
+    const extratimeCost = Number(data?.pricing?.extratimeCost || 0);
 
-  // computed strings for booking payload
+    const platformFeePercent = Number(
+      data?.paymentPolicy?.platformFeePercent || 5,
+    );
+
+    const protectPercent = Number(
+      data?.paymentPolicy?.evenlyoProtectFeePercent || 0,
+    );
+    const serviceCost = totalHours * pricePerHour;
+    const travelCost = (Number(distance) || 0) * pricePerKm;
+
+    const availableHoursPerDay = Number(
+      data?.availability?.defaultHoursPerDay || 10,
+    );
+
+    const extraHours =
+      totalHours > availableHoursPerDay ? totalHours - availableHoursPerDay : 0;
+
+    const extraTimeAmount = extraHours * extratimeCost;
+    const subTotal = serviceCost + travelCost + extraTimeAmount;
+
+    const platformFee = (subTotal * platformFeePercent) / 100;
+
+    const evenlyoProtect = isChecked ? (subTotal * protectPercent) / 100 : 0;
+
+    const total = subTotal + platformFee + evenlyoProtect + securityDeposit;
+
+    return {
+      serviceCost,
+      travelCost,
+      extraHours,
+      extraTimeAmount,
+      subTotal,
+      platformFee,
+      evenlyoProtect,
+      securityDeposit,
+      total,
+      pricePerHour,
+      extratimeCost,
+    };
+  }, [totalHours, distance, isChecked, data]);
+
   const startDateStr = localStartDate || null;
   const endDateStr = localEndDate || null;
 
-  const isSingleDateSelected = !!startDateStr && startDateStr === endDateStr;
+  const isSingleDateSelected =
+    !!startDateStr && (!endDateStr || startDateStr === endDateStr);
 
   useEffect(() => {
     if (
@@ -351,7 +425,7 @@ const OrderBooking = ({
       endDate: endDateStr,
       eventLocation: selectedCoords?.userAddress || '',
       specialRequests: instructions,
-      distanceKm: Number(distance) || 0,
+      distance: Number(distance) || 0,
     };
 
     if (startDateStr === endDateStr && startTime && endTime) {
@@ -376,9 +450,7 @@ const OrderBooking = ({
   const handleDayPress = day => {
     const date = day.dateString;
     const m = moment(date, 'YYYY-MM-DD');
-    const dayName = m.format('ddd').toLowerCase();
     const isPast = m.isBefore(referenceDate, 'day');
-    const isAvailable = availableDays.includes(dayName);
 
     if (isPast) return;
 
@@ -610,7 +682,9 @@ const OrderBooking = ({
               )}
             </TouchableOpacity>
             <Text style={styles.protectText}>
-              {t('Enable Evenlyo Protect (+25)')}
+              {t(
+                `Enable Evenlyo Protect (+${data?.paymentPolicy?.evenlyoProtectFeePercent}%)`,
+              )}
             </Text>
 
             <Text
@@ -624,46 +698,79 @@ const OrderBooking = ({
 
           <View style={styles.pricingSection}>
             <Text style={styles.pricingTitle}>Pricing Summary</Text>
-            {[
-              {
-                label: 'Duration:',
-                value: `${calculatedPricing.duration} hours`,
-                right: `$${calculatedPricing.ratePerHour}/Hr`,
-              },
-              {
-                label: 'Extra Time:',
-                value: '',
-                right: `$${calculatedPricing.extraHourRate}/Extra Hr`,
-              },
-              {
-                label: 'Kilometer:',
-                value: `${calculatedPricing.kmValue} km`,
-                right: `$${calculatedPricing.kmCost?.toFixed(2) || 0}`,
-              },
-              {
-                label: 'Security Fee:',
-                right: `$${calculatedPricing.securityFee.toFixed(2)}`,
-              },
-              {
-                label: 'Escrow Fee:',
-                right: `$${calculatedPricing.escrowFee.toFixed(2)}`,
-              },
-              {
-                label: 'Subtotal:',
-                right: `$${calculatedPricing.subtotal.toFixed(2)}`,
-              },
-            ].map((row, i) => (
-              <View style={styles.pricingRow} key={i}>
-                <Text style={styles.pricingLabel}>{row.label}</Text>
-                <Text style={styles.pricingValue}>{row.right}</Text>
+
+            <View style={styles.pricingRow}>
+              <View>
+                <Text style={styles.pricingLabel}>
+                  {`Multi-day Service (${availableSelectedDays} days × ${hoursPerDay}h)`}
+                </Text>
+                <Text style={styles.pricingLabel}>
+                  {totalHours} hours × ${calculatedPricing.pricePerHour}/hour
+                </Text>
               </View>
-            ))}
+              <Text style={styles.pricingValue}>
+                $ {calculatedPricing.serviceCost.toFixed(2)}
+              </Text>
+            </View>
+
+            <View style={styles.pricingRow}>
+              <Text style={styles.pricingLabel}>
+                Travel Cost ({distance} km)
+              </Text>
+              <Text style={styles.pricingValue}>
+                $ {calculatedPricing.travelCost.toFixed(2)}
+              </Text>
+            </View>
+
+            <View style={styles.pricingRow}>
+              <Text style={styles.pricingLabel}>
+                Security Deposit (Refundable)
+              </Text>
+              <Text style={styles.pricingValue}>
+                $ {calculatedPricing.securityDeposit.toFixed(2)}
+              </Text>
+            </View>
+
+            <View style={styles.pricingRow}>
+              <Text style={styles.pricingLabel}>
+                Platform Service Fee (
+                {data?.paymentPolicy?.platformFeePercent || 5}%)
+              </Text>
+              <Text style={styles.pricingValue}>
+                $ {calculatedPricing.platformFee.toFixed(2)}
+              </Text>
+            </View>
+
+            {isChecked && (
+              <View style={styles.pricingRow}>
+                <Text style={styles.pricingLabel}>
+                  Evenlyo Protect (
+                  {data?.paymentPolicy?.evenlyoProtectFeePercent}%)
+                </Text>
+                <Text style={styles.pricingValue}>
+                  $ {calculatedPricing.evenlyoProtect.toFixed(2)}
+                </Text>
+              </View>
+            )}
+
+            {calculatedPricing.extraHours > 0 && (
+              <View style={styles.pricingRow}>
+                <Text style={styles.pricingLabel}>
+                  Extra Time ({calculatedPricing.extraHours} hours × $
+                  {calculatedPricing.extratimeCost})
+                </Text>
+                <Text style={styles.pricingValue}>
+                  $ {calculatedPricing.extraTimeAmount.toFixed(2)}
+                </Text>
+              </View>
+            )}
 
             <View style={styles.divider} />
+
             <View style={styles.pricingRow}>
               <Text style={styles.totalLabel}>Total:</Text>
               <Text style={styles.totalValue}>
-                ${calculatedPricing.total.toFixed(2)}
+                $ {calculatedPricing.total.toFixed(2)}
               </Text>
             </View>
           </View>
@@ -704,7 +811,7 @@ const OrderBooking = ({
                   endDate: endDateStr,
                   eventLocation: selectedCoords?.userAddress || '',
                   specialRequests: instructions,
-                  distanceKm: Number(distance) || 0,
+                  distance: Number(distance) || 0,
                 };
 
                 if (startDateStr === endDateStr && startTime && endTime) {

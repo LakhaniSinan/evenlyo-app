@@ -76,7 +76,7 @@ const GooglePlacesInput = ({
   const selectPlace = async item => {
     try {
       const details = await fetchPlaceDetails(item.place_id);
-      if (!details?.geometry?.location) return;
+      if (!details?.geometry?.location) {return;}
 
       const {lat, lng} = details.geometry.location;
 

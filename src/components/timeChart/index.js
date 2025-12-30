@@ -61,7 +61,7 @@ function DailyCalendar({
         {timeSlots.map((slot, index) => {
           const slotTime = moment(slot, ['hh:mm a']).format('HH:mm');
           const slotEvents = filteredBookings.filter(event => {
-            if (!event.startTime) return index === 0;
+            if (!event.startTime) {return index === 0;}
             const eventTime = moment(event.startTime, [
               'hh:mm a',
               'HH:mm',

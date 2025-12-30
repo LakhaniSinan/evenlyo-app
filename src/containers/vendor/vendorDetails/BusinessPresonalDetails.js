@@ -95,17 +95,17 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
     const showError = message =>
       modalRef.current?.show({status: 'error', message});
 
-    if (!companyName) return showError('Please enter Company Name.');
-    if (!companyEmail) return showError('Please enter Company Email.');
+    if (!companyName) {return showError('Please enter Company Name.');}
+    if (!companyEmail) {return showError('Please enter Company Email.');}
     if (!emailRegex.test(companyEmail))
-      return showError('Please enter a valid email address.');
-    if (!contact) return showError('Please enter Contact Number.');
+      {return showError('Please enter a valid email address.');}
+    if (!contact) {return showError('Please enter Contact Number.');}
     if (contact.replace(/\D/g, '').length < 7)
-      return showError('Please enter a valid contact number.');
-    if (!companyAddress) return showError('Please enter Company Address.');
-    if (!companyWebsite) return showError('Please enter Company Website.');
-    if (!workType) return showError('Please select your Work Type.');
-    if (!teamSize) return showError('Please select your Team Size.');
+      {return showError('Please enter a valid contact number.');}
+    if (!companyAddress) {return showError('Please enter Company Address.');}
+    if (!companyWebsite) {return showError('Please enter Company Website.');}
+    if (!workType) {return showError('Please select your Work Type.');}
+    if (!teamSize) {return showError('Please select your Team Size.');}
 
     handleNextStep(formData);
   };

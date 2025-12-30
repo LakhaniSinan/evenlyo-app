@@ -115,7 +115,7 @@ const ChatDetail = ({navigation, route}) => {
           role: 'vendor',
         };
       } else {
-        participants['user'] = {
+        participants.user = {
           userId: userId?._id,
           name: `${userId?.firstName || ''} ${userId?.lastName || ''}`.trim(),
           photo:
@@ -217,7 +217,7 @@ const ChatDetail = ({navigation, route}) => {
   );
 
   useEffect(() => {
-    if (!socket || !user?.vendorId) return;
+    if (!socket || !user?.vendorId) {return;}
 
     socket.emit('user_connected', {userId: user.vendorId});
 
@@ -242,7 +242,7 @@ const ChatDetail = ({navigation, route}) => {
   ]);
 
   const scrollToBottom = useCallback(() => {
-    if (!flatListRef.current || !allMessagesRef.current.length) return;
+    if (!flatListRef.current || !allMessagesRef.current.length) {return;}
     const lastIndex = allMessagesRef.current.length - 1;
     try {
       flatListRef.current.scrollToIndex({index: lastIndex, animated: true});
@@ -252,12 +252,12 @@ const ChatDetail = ({navigation, route}) => {
   }, []);
   const fetchAllMessages = useCallback(
     async (isRefreshing = false) => {
-      if (!data?.conversationId || !user?.vendorId) return;
+      if (!data?.conversationId || !user?.vendorId) {return;}
 
-      if (!isRefreshing) setAllMessages([]);
+      if (!isRefreshing) {setAllMessages([]);}
 
       try {
-        if (!isRefreshing) setIsLoading(true);
+        if (!isRefreshing) {setIsLoading(true);}
         const response = await messageService.getAllMessages(
           data.conversationId,
           user.vendorId,
@@ -268,14 +268,14 @@ const ChatDetail = ({navigation, route}) => {
             setTimeout(scrollToBottom, 100);
           }
         } else {
-          if (isMountedRef.current) setIsError(true);
+          if (isMountedRef.current) {setIsError(true);}
         }
       } catch (err) {
-        if (isMountedRef.current) setIsError(true);
+        if (isMountedRef.current) {setIsError(true);}
       } finally {
         if (isMountedRef.current) {
-          if (isRefreshing) setRefreshing(false);
-          else setIsLoading(false);
+          if (isRefreshing) {setRefreshing(false);}
+          else {setIsLoading(false);}
         }
       }
     },
@@ -295,7 +295,7 @@ const ChatDetail = ({navigation, route}) => {
 
   // Reset unread on mount / when conversation changes
   useEffect(() => {
-    if (!socket || !user?.vendorId || !activeChat) return;
+    if (!socket || !user?.vendorId || !activeChat) {return;}
     socket.emit('reset_unread_count', {
       conversationId: activeChat.conversationId || data?.conversationId,
       userType: 'user',
@@ -323,10 +323,10 @@ const ChatDetail = ({navigation, route}) => {
   );
 
   useEffect(() => {
-    if (!socket || !user) return;
+    if (!socket || !user) {return;}
 
     const joinConvId = data?.conversationId || activeChat?.conversationId;
-    if (!joinConvId) return;
+    if (!joinConvId) {return;}
 
     socket.emit('join_conversation_room', {conversationId: joinConvId});
     socket.on('receive_message', handleReceiveMessage);
@@ -344,7 +344,7 @@ const ChatDetail = ({navigation, route}) => {
 
   // offer accepted & typing events
   useEffect(() => {
-    if (!socket) return;
+    if (!socket) {return;}
 
     const onOfferAccepted = payload => {
       // caller may update messages; keep behavior same
@@ -354,7 +354,7 @@ const ChatDetail = ({navigation, route}) => {
       if (idx !== -1) {
         const clone = [...allMessagesRef.current];
         clone[idx] = payload;
-        if (isMountedRef.current) setAllMessages(clone);
+        if (isMountedRef.current) {setAllMessages(clone);}
       }
       setIsAcceptingOffer(false);
     };
@@ -385,7 +385,7 @@ const ChatDetail = ({navigation, route}) => {
 
   /** ---------- time formatting ---------- **/
   const getMessageTime = useCallback(timestamp => {
-    if (!timestamp) return '';
+    if (!timestamp) {return '';}
     const messageTime = moment(timestamp);
     const now = moment();
 
@@ -406,9 +406,9 @@ const ChatDetail = ({navigation, route}) => {
   /** ---------- send message ---------- **/
   const handleSend = useCallback(
     async e => {
-      if (e && e.preventDefault) e.preventDefault();
-      if (isError) return;
-      if (!messageText.trim() && !attachedFile) return;
+      if (e && e.preventDefault) {e.preventDefault();}
+      if (isError) {return;}
+      if (!messageText.trim() && !attachedFile) {return;}
 
       const receiverId =
         activeChat?.participants?.vendor?.userId ||
@@ -506,7 +506,7 @@ const ChatDetail = ({navigation, route}) => {
 
   /** ---------- upload helpers ---------- **/
   const requestStoragePermission = useCallback(async () => {
-    if (Platform.OS !== 'android') return true;
+    if (Platform.OS !== 'android') {return true;}
     const granted = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
       {
@@ -519,17 +519,17 @@ const ChatDetail = ({navigation, route}) => {
 
   const handleUpload = useCallback(async () => {
     const hasPermission = await requestStoragePermission();
-    if (!hasPermission) return;
+    if (!hasPermission) {return;}
 
     launchImageLibrary({mediaType: 'photo'}, response => {
-      if (response?.didCancel) return;
+      if (response?.didCancel) {return;}
       if (response?.errorCode) {
         Alert.alert('Error', response?.errorMessage || 'Image picker error');
         return;
       }
 
       const asset = response?.assets?.[0];
-      if (!asset) return;
+      if (!asset) {return;}
 
       const file = {
         uri: asset.uri,

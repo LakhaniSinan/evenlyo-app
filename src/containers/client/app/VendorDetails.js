@@ -54,7 +54,7 @@ function VendorDetails({navigation, route}) {
           role: 'user',
         };
       } else {
-        participants['vendor'] = {
+        participants.vendor = {
           userId: userId?._id,
           name: userId?.businessName,
           photo: userId?.businessLogo || null,

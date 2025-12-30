@@ -48,7 +48,7 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
 
   const handleUpload = async setter => {
     const hasPermission = await requestStoragePermission();
-    if (!hasPermission) return;
+    if (!hasPermission) {return;}
 
     launchImageLibrary({mediaType: 'photo'}, async response => {
       if (response.didCancel || response.errorCode) {
@@ -58,7 +58,7 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
         return;
       }
       const asset = response?.assets[0];
-      if (!asset) return;
+      if (!asset) {return;}
       const file = {
         uri: asset.uri,
         type: asset.type,

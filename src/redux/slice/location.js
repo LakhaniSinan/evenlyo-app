@@ -1,7 +1,7 @@
 // src/redux/slice/location.js
 import {createSlice} from '@reduxjs/toolkit';
 
-const locationSlice = createSlice({ 
+const locationSlice = createSlice({
   name: 'location',
   initialState: {
     coords: null,

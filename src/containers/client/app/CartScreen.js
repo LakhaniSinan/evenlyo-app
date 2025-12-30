@@ -150,7 +150,7 @@ function CartScreen({navigation}) {
   );
 
   const renderSection = (title, data, onSeeAllPress) => {
-    if (!data?.length) return null;
+    if (!data?.length) {return null;}
 
     return (
       <View style={{marginBottom: width(4)}}>

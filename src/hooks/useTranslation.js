@@ -7,7 +7,7 @@ const useTranslation = () => {
     state => state.LanguageSlice.currentLanguage,
   );
   const t = (key, options) => {
-    if (!key) return '';
+    if (!key) {return '';}
     if (i18n.exists(key)) {
       return originalT(key, options);
     }

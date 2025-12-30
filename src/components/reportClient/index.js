@@ -14,7 +14,7 @@ const ReportUserModal = ({visible, onClose, onSubmit, userName}) => {
   const [reason, setReason] = useState('');
 
   const handleReport = () => {
-    if (reason.trim().length === 0) return;
+    if (reason.trim().length === 0) {return;}
     onSubmit(reason);
     setReason('');
     onClose();

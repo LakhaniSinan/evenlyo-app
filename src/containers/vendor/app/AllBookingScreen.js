@@ -209,7 +209,7 @@ function AllBookingScreen() {
   };
 
   const filteredSaleOrders = useMemo(() => {
-    if (saleStatusFilter === 'All') return saleOrders;
+    if (saleStatusFilter === 'All') {return saleOrders;}
     return saleOrders.filter(o => o.status === saleStatusFilter);
   }, [saleOrders, saleStatusFilter]);
 
@@ -228,7 +228,7 @@ function AllBookingScreen() {
 
   const fetchSaleOrders = useCallback(async (isRefresh = false) => {
     try {
-      if (!isRefresh) setLoading(true);
+      if (!isRefresh) {setLoading(true);}
       const res = await vendorOrderHistory();
 
       console.log(res, 'resresresresresresresresasdasdasdaaaaa');

@@ -119,7 +119,7 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
       if (response?.status === 200 || response?.status === 201) {
         const tokenFromResp =
           response?.data?.token || response?.data?.resetToken || null;
-        if (tokenFromResp) setResetToken(tokenFromResp);
+        if (tokenFromResp) {setResetToken(tokenFromResp);}
         modalRef.current.show({
           status: 'ok',
           message: 'OTP verified successfully!',
@@ -194,7 +194,7 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
   };
 
   const handleResendOtp = async () => {
-    if (timer > 0) return;
+    if (timer > 0) {return;}
     setIsResending(true);
     const response = await sendOtpRequest();
     setIsResending(false);
@@ -228,7 +228,7 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
       }, 1000);
     }
     return () => {
-      if (interval) clearInterval(interval);
+      if (interval) {clearInterval(interval);}
     };
   }, [step, timer]);
 

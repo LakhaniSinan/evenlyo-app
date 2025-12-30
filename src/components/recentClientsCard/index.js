@@ -8,9 +8,9 @@ const RecentClientsCard = ({item, index, dataLength}) => {
   const isLastItem = index === dataLength - 1;
 
   const getInitials = name => {
-    if (!name) return '';
+    if (!name) {return '';}
     const parts = name.split(' ');
-    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    if (parts.length === 1) {return parts[0].charAt(0).toUpperCase();}
     return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
   };
 

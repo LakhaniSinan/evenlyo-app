@@ -107,7 +107,7 @@ function EventDetailsScreen({navigation, route}) {
   }, []);
 
   const scheduleData = useMemo(() => {
-    if (!listingDetails) return [];
+    if (!listingDetails) {return [];}
     const slot = listingDetails?.availability?.availableTimeSlots?.[0] || {};
     return DAYS.map(day => {
       const isAvailable = listingDetails?.availability?.availableDays?.includes(

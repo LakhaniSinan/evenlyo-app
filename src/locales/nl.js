@@ -90,7 +90,7 @@ export default {
   selectLanguage: 'Selecteer taal',
   changeLanguage: 'Taal wijzigen',
   Settings: 'Instellingen',
-  
+
   // Notification Settings
   'Notification Settings': 'Notificatie instellingen',
   'Notification Details': 'Notificatie details',

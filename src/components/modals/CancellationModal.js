@@ -75,19 +75,19 @@ const CancelBookingModal = ({visible, onClose, onConfirm}) => {
 
   return (
     <Modal visible={visible} transparent animationType="none">
-      <Animated.View 
+      <Animated.View
         style={[
           styles.overlay,
-          { opacity: fadeAnim }
+          { opacity: fadeAnim },
         ]}
       >
-        <Animated.View 
+        <Animated.View
           style={[
             styles.container,
-            { 
+            {
               transform: [{ scale: scaleAnim }],
-              opacity: fadeAnim 
-            }
+              opacity: fadeAnim,
+            },
           ]}
         >
           <View style={styles.header}>

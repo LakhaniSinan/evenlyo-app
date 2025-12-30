@@ -126,9 +126,9 @@ const NotificationDetails = () => {
           vibe for every crow With over 7...
         </Text>
       </View>
-      <View style={{ marginHorizontal: 10, flex: 1, justifyContent: "flex-end", marginBottom: 10 }}>
+      <View style={{ marginHorizontal: 10, flex: 1, justifyContent: 'flex-end', marginBottom: 10 }}>
         <GradientButton
-          text={"Book Now"}
+          text={'Book Now'}
         />
       </View>
     </SafeAreaView>

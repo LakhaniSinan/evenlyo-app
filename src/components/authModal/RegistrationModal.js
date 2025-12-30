@@ -65,18 +65,18 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
       !password ||
       !confirmPassword
     )
-      return 'Please fill out all required fields.';
-    if (!emailRegex.test(email)) return 'Please enter a valid email address.';
+      {return 'Please fill out all required fields.';}
+    if (!emailRegex.test(email)) {return 'Please enter a valid email address.';}
     if (password.length < 8)
-      return 'Password must be at least 8 characters long.';
-    if (password !== confirmPassword) return 'Passwords do not match.';
+      {return 'Password must be at least 8 characters long.';}
+    if (password !== confirmPassword) {return 'Passwords do not match.';}
     return null;
   };
 
   // ✅ Register User
   const handleRegister = async () => {
     const error = validateFields();
-    if (error) return modalRef.current.show({status: 'error', message: error});
+    if (error) {return modalRef.current.show({status: 'error', message: error});}
 
     try {
       setIsLoading(true);

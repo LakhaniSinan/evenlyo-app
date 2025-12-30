@@ -27,7 +27,7 @@ const LanguageModal = ({visible, onClose}) => {
 
   const renderLanguageItem = ({item}) => {
     const isSelected = item.code === currentLanguage;
-    
+
     return (
       <TouchableOpacity
         style={[

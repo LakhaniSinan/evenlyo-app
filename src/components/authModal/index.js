@@ -48,18 +48,18 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
     const {email, password} = formData;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!email.trim()) return showAlert('Please enter your email.');
+    if (!email.trim()) {return showAlert('Please enter your email.');}
     if (!emailRegex.test(email))
-      return showAlert('Please enter a valid email address.');
-    if (!password.trim()) return showAlert('Please enter your password.');
+      {return showAlert('Please enter a valid email address.');}
+    if (!password.trim()) {return showAlert('Please enter your password.');}
     if (password.length < 8)
-      return showAlert('Password must be at least 8 characters long.');
+      {return showAlert('Password must be at least 8 characters long.');}
 
     return true;
   };
 
   const handleLogin = async () => {
-    if (!validateInputs()) return;
+    if (!validateInputs()) {return;}
     const {email, password} = formData;
 
     try {

@@ -21,7 +21,7 @@ const AddMoreCategory = ({
   const {categories, loading, fetchCategories} = useCategories();
 
   useEffect(() => {
-    if (isVisible) fetchCategories();
+    if (isVisible) {fetchCategories();}
   }, [isVisible]);
 
   // ✅ Function to check if category is selected

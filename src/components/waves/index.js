@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from "react";
-import { Animated, Easing, StyleSheet, View } from "react-native";
+import React, { useRef, useEffect } from 'react';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 const WaveAnimation = () => {
   const animatedValue = useRef(new Animated.Value(0)).current;
@@ -36,7 +36,7 @@ const WaveAnimation = () => {
           style={[
             styles.wave,
             {
-              position: "absolute",
+              position: 'absolute',
               top: 0,
               transform: [{ translateX }],
             },
@@ -50,17 +50,17 @@ const WaveAnimation = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#87CEEB", // sky color
-    justifyContent: "flex-end",
+    backgroundColor: '#87CEEB', // sky color
+    justifyContent: 'flex-end',
   },
   waveWrapper: {
     height: 100,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   wave: {
     width: 400, // bada rakho taake translateX smooth ho
     height: 100,
-    backgroundColor: "#1E90FF",
+    backgroundColor: '#1E90FF',
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
     opacity: 0.8,

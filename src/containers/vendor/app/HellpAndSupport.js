@@ -124,7 +124,7 @@ const HelpAndSupport = ({navigation}) => {
         contentContainerStyle={styles.scrollContent}>
         <View style={styles.headerSection}>
           <Text style={styles.headerTitle}>
-            {t(`Questions? We're Happy to Answer!`)}
+            {t('Questions? We\'re Happy to Answer!')}
           </Text>
         </View>
         <View style={styles.faqSection}>{faqData.map(renderFAQItem)}</View>
@@ -143,7 +143,7 @@ const HelpAndSupport = ({navigation}) => {
               color: COLORS.textDark,
               textAlign: 'center',
             }}>
-            {t(`Have Questions?`)}
+            {t('Have Questions?')}
           </Text>
           <Text
             style={{
@@ -154,7 +154,7 @@ const HelpAndSupport = ({navigation}) => {
               marginTop: width(2),
             }}>
             {t(
-              `Check out our comprehensive FAQ section or contact our support team.`,
+              'Check out our comprehensive FAQ section or contact our support team.',
             )}
           </Text>
           <View style={{width: width(50), marginTop: width(4)}}>

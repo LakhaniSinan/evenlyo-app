@@ -5,7 +5,7 @@ import {fontFamly} from '../../constants';
 
 export default function OTPInputScreen({onResendPress ,setOtp}) {
   const [timer, setTimer] = useState(30);
-  
+
 
   useEffect(() => {
     if (timer > 0) {

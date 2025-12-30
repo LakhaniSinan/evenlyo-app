@@ -12,7 +12,7 @@ const RecentBookingCards = ({item, index, dataLength}) => {
 
   // 🟩 Capitalize each word in a name
   const capitalizeWords = text => {
-    if (!text) return '';
+    if (!text) {return '';}
     return text
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -21,7 +21,7 @@ const RecentBookingCards = ({item, index, dataLength}) => {
 
   // 🟦 Get initials for avatar
   const getInitials = name => {
-    if (!name) return '';
+    if (!name) {return '';}
     const parts = name.split(' ');
     return parts.length > 1
       ? `${parts[0][0]}${parts[1][0]}`.toUpperCase()

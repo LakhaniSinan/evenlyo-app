@@ -65,12 +65,12 @@ const PersonalInfo = ({navigation}) => {
   };
 
   const validateFields = () => {
-    if (!formData.firstName.trim()) return 'First name is required';
-    if (!formData.lastName.trim()) return 'Last name is required';
-    if (!formData.email.trim()) return 'Email is required';
-    if (!/\S+@\S+\.\S+/.test(formData.email)) return 'Enter a valid email';
-    if (!formData.contactNumber.trim()) return 'Contact number is required';
-    if (!formData.address.trim()) return 'Address is required';
+    if (!formData.firstName.trim()) {return 'First name is required';}
+    if (!formData.lastName.trim()) {return 'Last name is required';}
+    if (!formData.email.trim()) {return 'Email is required';}
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {return 'Enter a valid email';}
+    if (!formData.contactNumber.trim()) {return 'Contact number is required';}
+    if (!formData.address.trim()) {return 'Address is required';}
     return null;
   };
 
@@ -119,14 +119,14 @@ const PersonalInfo = ({navigation}) => {
 
   const handleUpdateImage = () => {
     launchImageLibrary({mediaType: 'photo'}, async response => {
-      if (response.didCancel) return;
+      if (response.didCancel) {return;}
       if (response.errorCode) {
         Alert.alert('Error', response.errorMessage);
         return;
       }
 
       const asset = response.assets?.[0];
-      if (!asset) return;
+      if (!asset) {return;}
 
       const file = {
         uri: asset.uri,

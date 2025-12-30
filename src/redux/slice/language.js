@@ -30,10 +30,10 @@ export const changeLanguage = (languageCode) => async (dispatch) => {
   try {
     // Save to AsyncStorage
     await AsyncStorage.setItem('@app_language', languageCode);
-    
+
     // Update i18n
     await i18n.changeLanguage(languageCode);
-    
+
     // Update Redux state
     dispatch(setLanguage(languageCode));
   } catch (error) {

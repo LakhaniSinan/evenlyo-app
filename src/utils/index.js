@@ -70,7 +70,7 @@ export const validatePassword = password => {
 };
 
 export const truncateText = (text, maxLength) => {
-  if (text.length <= maxLength) return text;
+  if (text.length <= maxLength) {return text;}
   return text.substring(0, maxLength) + '...';
 };
 
@@ -162,7 +162,7 @@ export const calculateRatingsPercentage = (reviews, star) => {
 // utils/formatRelativeTime.js
 
 export function formatRelativeTime(isoDateString) {
-  if (!isoDateString) return '';
+  if (!isoDateString) {return '';}
 
   const date = new Date(isoDateString);
   const now = new Date();
@@ -172,13 +172,13 @@ export function formatRelativeTime(isoDateString) {
   const diffHr = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHr / 24);
 
-  if (diffSec < 60) return 'Just now';
-  if (diffMin < 60) return `${diffMin} min ago`;
-  if (diffHr < 24) return `${diffHr} hour${diffHr > 1 ? 's' : ''} ago`;
+  if (diffSec < 60) {return 'Just now';}
+  if (diffMin < 60) {return `${diffMin} min ago`;}
+  if (diffHr < 24) {return `${diffHr} hour${diffHr > 1 ? 's' : ''} ago`;}
 
-  if (diffDay === 1) return 'Yesterday';
+  if (diffDay === 1) {return 'Yesterday';}
 
-  if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+  if (diffDay < 7) {return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;}
 
   return date.toLocaleDateString();
 }

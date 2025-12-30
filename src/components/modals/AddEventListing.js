@@ -278,22 +278,22 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
 
     // ✅ Validations
     if (!title.en.trim() && !title.nl.trim())
-      return showError('Title is required');
+      {return showError('Title is required');}
     if (!subTitle.en.trim() && !subTitle.nl.trim())
-      return showError('SubTitle is required');
-    if (!mainCategory) return showError('Main Category is required');
-    if (!subCategory) return showError('Sub Category is required');
+      {return showError('SubTitle is required');}
+    if (!mainCategory) {return showError('Main Category is required');}
+    if (!subCategory) {return showError('Sub Category is required');}
     if (!description.en.trim() && !description.nl.trim())
-      return showError('Description is required');
-    if (!pricingType) return showError('Pricing Type is required');
-    if (!cost.trim()) return showError('Cost is required');
+      {return showError('Description is required');}
+    if (!pricingType) {return showError('Pricing Type is required');}
+    if (!cost.trim()) {return showError('Cost is required');}
     if (availableDays.length === 0)
-      return showError('Select at least one available day');
-    if (!startTime) return showError('Start Time is required');
-    if (!endTime) return showError('End Time is required');
-    if (!selectedCoords) return showError('Please select a valid location');
+      {return showError('Select at least one available day');}
+    if (!startTime) {return showError('Start Time is required');}
+    if (!endTime) {return showError('End Time is required');}
+    if (!selectedCoords) {return showError('Please select a valid location');}
     if (!termsAccepted)
-      return showError('You must agree to Terms & Conditions');
+      {return showError('You must agree to Terms & Conditions');}
 
     // ✅ Build Final Payload
     const payload = {
@@ -369,14 +369,14 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         selectionLimit: 3, // user can only pick up to 3 at once
       },
       async response => {
-        if (response.didCancel) return;
+        if (response.didCancel) {return;}
         if (response.errorCode) {
           Alert.alert('Error', response.errorMessage || 'Failed to pick image');
           return;
         }
 
         const assets = response?.assets || [];
-        if (assets.length === 0) return;
+        if (assets.length === 0) {return;}
 
         // ✅ Check how many images already exist
         const existingCount = formData?.productImage?.length || 0;
@@ -400,7 +400,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
 
             const result = await helper.uploadMediaToCloudinary(file);
             const uploadedUrl = result?.secure_url || result?.secureUrl;
-            if (uploadedUrl) uploadedUrls.push(uploadedUrl);
+            if (uploadedUrl) {uploadedUrls.push(uploadedUrl);}
           }
 
           // ✅ Merge with existing images
@@ -423,7 +423,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
   // ✅ render uploaded media
   // ✅ render uploaded media safely
   const renderMedia = (mediaList = [], setter) => {
-    if (!Array.isArray(mediaList)) return null; // ensure it's an array
+    if (!Array.isArray(mediaList)) {return null;} // ensure it's an array
 
     return mediaList.map((item, index) => (
       <View key={index} style={styles.mediaPreviewContainer}>

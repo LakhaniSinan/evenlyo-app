@@ -141,7 +141,9 @@ const ChatDetail = ({navigation, route}) => {
   );
 
   useEffect(() => {
-    if (!socket || !data?.participants?.vendor?.userId || !user) return;
+    if (!socket || !data?.participants?.vendor?.userId || !user) {
+      return;
+    }
 
     socket.emit('join_conversation_room', {
       conversationId: data?.conversationId,
@@ -162,7 +164,9 @@ const ChatDetail = ({navigation, route}) => {
   }, [allMessages]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket) {
+      return;
+    }
 
     const handleOfferAcceptedWrapper = data => {
       handleOfferAccepted(data, allMessagesRef.current);
@@ -182,9 +186,11 @@ const ChatDetail = ({navigation, route}) => {
       socket.off('accept_offer_error', handleOfferErrorWrapper);
     };
   }, [socket, handleOfferAccepted]);
- 
+
   useEffect(() => {
-    if (!socket) return;
+    if (!socket) {
+      return;
+    }
 
     socket.on('user_typing', ({senderId}) => {
       setIsTyping(true);
@@ -270,7 +276,9 @@ const ChatDetail = ({navigation, route}) => {
   };
 
   const getMessageTime = timestamp => {
-    if (!timestamp) return '';
+    if (!timestamp) {
+      return '';
+    }
 
     const messageTime = moment(timestamp);
     const now = moment();
@@ -366,8 +374,12 @@ const ChatDetail = ({navigation, route}) => {
   const handleSend = async e => {
     e.preventDefault();
 
-    if (isError) return;
-    if (!messageText.trim() && !attachedFile) return;
+    if (isError) {
+      return;
+    }
+    if (!messageText.trim() && !attachedFile) {
+      return;
+    }
 
     const receiverId = data?.participants?.vendor?.userId;
     const conversationType = 'user-to-vendor';
@@ -452,7 +464,9 @@ const ChatDetail = ({navigation, route}) => {
 
   const handleUpload = async setter => {
     const hasPermission = await requestStoragePermission();
-    if (!hasPermission) return;
+    if (!hasPermission) {
+      return;
+    }
 
     launchImageLibrary({mediaType: 'photo'}, async response => {
       if (response.didCancel || response.errorCode) {
@@ -462,7 +476,9 @@ const ChatDetail = ({navigation, route}) => {
         return;
       }
       const asset = response?.assets[0];
-      if (!asset) return;
+      if (!asset) {
+        return;
+      }
       const file = {
         uri: asset.uri,
         type: asset.type,

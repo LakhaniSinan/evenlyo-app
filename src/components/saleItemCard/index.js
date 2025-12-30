@@ -82,11 +82,11 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
     (vendorIndex, productId) => {
       setLocalCart(prevCart => {
         const updatedCart = prevCart.map((vendor, vIndex) => {
-          if (vIndex !== vendorIndex) return vendor;
+          if (vIndex !== vendorIndex) {return vendor;}
           return {
             ...vendor,
             products: vendor.products.map(product => {
-              if (product._id !== productId) return product;
+              if (product._id !== productId) {return product;}
               if (product.quantity < product.stockQuantity) {
                 return {...product, quantity: product.quantity + 1};
               } else {
@@ -111,7 +111,7 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
       setLocalCart(prevCart => {
         const vendor = prevCart[vendorIndex];
         const product = vendor?.products.find(p => p._id === productId);
-        if (!product) return prevCart;
+        if (!product) {return prevCart;}
 
         if (product.quantity === 1) {
           modalRef.current?.show({
@@ -134,7 +134,7 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
         }
 
         const updatedCart = prevCart.map((vendor, vIndex) => {
-          if (vIndex !== vendorIndex) return vendor;
+          if (vIndex !== vendorIndex) {return vendor;}
           return {
             ...vendor,
             products: vendor.products.map(p =>
@@ -153,7 +153,7 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
     setSelectedProducts(prev => {
       const newSelected = {...prev, [key]: !checked};
       Object.keys(newSelected).forEach(k => {
-        if (!newSelected[k]) delete newSelected[k];
+        if (!newSelected[k]) {delete newSelected[k];}
       });
 
       const selectedVendorIndexes = Object.keys(newSelected).map(k =>
@@ -230,7 +230,7 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
     place => {
       setDeliveryLocation(place.userAddress);
 
-      if (!vendorCoords) return;
+      if (!vendorCoords) {return;}
 
       const km = getDistanceInKm(
         vendorCoords.latitude,
@@ -414,7 +414,7 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
           p => !selectedProducts[`${vIndex}-${p._id}`], // only remove selected
         );
 
-        if (remainingProducts.length === 0) return null;
+        if (remainingProducts.length === 0) {return null;}
 
         return {
           ...vendor,

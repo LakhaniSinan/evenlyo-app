@@ -106,7 +106,7 @@ export const endPoints = {
     delete: (conversationId, userId) => `/messages/${conversationId}/${userId}`,
   },
   conversations: {
-    create: `/conversations`,
+    create: '/conversations',
     all: (id, type) => `/conversations/${id}/${type}`,
     single: (userId, vendorId) => `/conversations/single/${userId}/${vendorId}`,
     block: id => `/conversations/block/${id}`,

@@ -104,7 +104,7 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
     }
   }, [formData?.selectedType]);
   useEffect(() => {
-    if (!isVisible) setIsInitialized(false);
+    if (!isVisible) {setIsInitialized(false);}
   }, [isVisible]);
 
   // ✅ Fix: Set selected lsisting after vendorListing is loaded
@@ -127,7 +127,7 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
 
   useEffect(() => {
     const initFormData = async () => {
-      if (!isVisible || isInitialized) return; // ✅ prevent reinitialization after first run
+      if (!isVisible || isInitialized) {return;} // ✅ prevent reinitialization after first run
 
       if (editSaleData) {
         const saleItemType =
@@ -275,14 +275,14 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
 
   const handleUpdateImage = () => {
     launchImageLibrary({mediaType: 'photo'}, async response => {
-      if (response.didCancel) return;
+      if (response.didCancel) {return;}
       if (response.errorCode) {
         Alert.alert('Error', response.errorMessage);
         return;
       }
 
       const asset = response.assets?.[0];
-      if (!asset) return;
+      if (!asset) {return;}
 
       const file = {
         uri: asset.uri,
@@ -317,38 +317,38 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
     } = formData;
 
     if (!title.trim())
-      return modalRef.current.show({
+      {return modalRef.current.show({
         status: 'error',
         message: 'Title is required',
-      });
+      });}
     if (!purchasePrice.trim())
-      return modalRef.current.show({
+      {return modalRef.current.show({
         status: 'error',
         message: 'Purchase price is required',
-      });
+      });}
     if (!sellingPrice.trim())
-      return modalRef.current.show({
+      {return modalRef.current.show({
         status: 'error',
         message: 'Selling price is required',
-      });
+      });}
     if (!stockQuantity.trim())
-      return modalRef.current.show({
+      {return modalRef.current.show({
         status: 'error',
         message: 'Stock quantity is required',
-      });
+      });}
     if (!productImage)
-      return modalRef.current.show({
+      {return modalRef.current.show({
         status: 'error',
         message: 'Please upload a product image',
-      });
+      });}
     if (
       selectedType === 'Listing' &&
       (!mainCategory || !subCategory || !listingName)
     )
-      return modalRef.current.show({
+      {return modalRef.current.show({
         status: 'error',
         message: 'Please select all listing fields',
-      });
+      });}
 
     return true;
   };

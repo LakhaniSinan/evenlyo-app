@@ -1,10 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Image, Switch, Text, TouchableOpacity, View} from 'react-native';
+import {Image, Text, TouchableOpacity, View} from 'react-native';
 import {Calendar} from 'react-native-calendars';
 import {width} from 'react-native-dimension';
 import MapView, {Marker} from 'react-native-maps';
+import {Rating} from 'react-native-ratings';
 import {useDispatch, useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
 import LoginModal from '../../../components/authModal';
@@ -22,7 +23,6 @@ import {
   sendBookingRequest,
 } from '../../../services/ListingsItem';
 import {getDistance} from '../../../utils';
-import {Rating} from 'react-native-ratings';
 
 const getInitialMarkedDates = availableDays => {
   let marked = {};
@@ -57,8 +57,6 @@ const getInitialMarkedDates = availableDays => {
 };
 
 const DetailsContent = ({data, selectedTab, navigation}) => {
-  console.log(data, 'datadatadatadatadatadatadata');
-
   const {cartData} = useSelector(state => state.CartSlice);
   const dispatch = useDispatch(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -119,7 +117,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     const isPast = m.isBefore(moment(), 'day');
     const isAvailable = availableDays.includes(dayName);
 
-    if (isPast || !isAvailable) return;
+    if (isPast || !isAvailable) {return;}
 
     let newStartDate = startDate;
     let newEndDate = endDate;
@@ -147,14 +145,12 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
       while (curr.isSameOrBefore(newEndDate)) {
         const currDayName = curr.format('ddd').toLowerCase();
         const currDateStr = curr.format('YYYY-MM-DD');
-        // Only push if this date is in availableDays
         if (availableDays.includes(currDayName)) {
           range.push(currDateStr);
         }
         curr.add(1, 'day');
       }
 
-      // Highlight only available days
       range.forEach(d => {
         if (updatedMarked[d] && !updatedMarked[d].disabled) {
           updatedMarked[d] = {
@@ -357,9 +353,10 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
 
   const {coords} = locationData;
   let coLatLng = {
-    latitude: data?.location?.coordinates?.lat,
-    longitude: data?.location?.coordinates?.lng,
+    latitude: data?.location?.coordinates?.latitude,
+    longitude: data?.location?.coordinates?.longitude,
   };
+
   const {distance} = getDistance(coLatLng, coords);
   return (
     <>
@@ -492,7 +489,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
                 color: '#000',
                 fontSize: 15,
               }}>
-              $ {data?.sellingPrice}
+              $ {data?.sellingPrice || data?.pricing?.amount}
             </Text>
             <Text
               style={{
@@ -515,10 +512,29 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
           borderRadius: 10,
           flexDirection: 'row',
         }}>
-        <Image
-          style={{width: 55, height: 55, borderRadius: 100}}
-          source={{uri: data?.vendor?.businessLogo}}
-        />
+        {!data?.vendor?.businessLogo ? (
+          <View
+            style={{
+              height: 55,
+              width: 55,
+              backgroundColor: COLORS.white,
+              borderRadius: 100,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Image
+              style={{width: 30, height: 30, borderRadius: 100}}
+              source={ICONS.userIcon}
+              resizeMode="contain"
+            />
+          </View>
+        ) : (
+          <Image
+            style={{width: 55, height: 55, borderRadius: 100}}
+            source={{uri: data?.vendor?.businessLogo}}
+            resizeMode="contain"
+          />
+        )}
         <View style={{marginLeft: 10, justifyContent: 'center'}}>
           <Text
             style={{
@@ -632,12 +648,12 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
                         message: 'Please select any available date first!',
                       });
                     }
-                    if (endDate == null) {
-                      return modalRef.current.show({
-                        status: 'error',
-                        message: 'Please select any available end date first!',
-                      });
-                    }
+                    // if (endDate == null) {
+                    //   return modalRef.current.show({
+                    //     status: 'error',
+                    //     message: 'Please select any available end date first!',
+                    //   });
+                    // }
                     setModalVisible(true);
                   }}
                 />
