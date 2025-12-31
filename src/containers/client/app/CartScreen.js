@@ -43,11 +43,11 @@ function CartScreen({navigation}) {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [activeTab, setActiveTab] = useState('bookingItem');
   const [isLoadding, setIsLoadding] = useState(false);
-  console.log(isLoadding, 'isLoaddingisLoaddingisLoaddingisLoadding');
 
   const [listingCartData, setListingCartData] = useState([]);
   const [accepetedBookings, setAccepetedBookings] = useState([]);
   const [bookingData, setBookingData] = useState(null);
+  console.log(listingCartData, 'listingCartDatalistingCartData');
 
   useFocusEffect(
     useCallback(() => {
@@ -63,6 +63,11 @@ function CartScreen({navigation}) {
         getCartListings(),
         getAccepetedBookings(),
       ]);
+
+      console.log(
+        responseCart,
+        'responseCartresponseCartresponseCartresponseCart',
+      );
 
       setIsLoadding(false);
 
@@ -150,7 +155,9 @@ function CartScreen({navigation}) {
   );
 
   const renderSection = (title, data, onSeeAllPress) => {
-    if (!data?.length) {return null;}
+    if (!data?.length) {
+      return null;
+    }
 
     return (
       <View style={{marginBottom: width(4)}}>

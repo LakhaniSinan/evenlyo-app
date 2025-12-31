@@ -117,7 +117,9 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     const isPast = m.isBefore(moment(), 'day');
     const isAvailable = availableDays.includes(dayName);
 
-    if (isPast || !isAvailable) {return;}
+    if (isPast || !isAvailable) {
+      return;
+    }
 
     let newStartDate = startDate;
     let newEndDate = endDate;
@@ -187,22 +189,8 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
 
   const handleSendBookingRequest = async details => {
     try {
-      const params = {
-        listingId: data?._id,
-        vendorId: data?.vendor?._id,
-        details: {
-          startDate: details?.startDate,
-          endDate: details?.endDate,
-          startTime: details?.startTime,
-          endTime: details?.endTime,
-          eventLocation: details?.eventLocation,
-          distanceKm: details?.distanceKm,
-          specialRequests: details?.specialRequests,
-        },
-      };
-
       setIsLoadding(true);
-      const response = await sendBookingRequest(params);
+      const response = await sendBookingRequest(details);
       if (response.status == 200 || response.status == 201) {
         setResponeData(response?.data?.data?.bookingRequest);
         setStartDate(null);
@@ -218,6 +206,8 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     } catch (error) {
       setIsLoadding(false);
       console.log(error, 'errorerrorerrorerror');
+    } finally {
+      setIsLoadding(false);
     }
   };
 

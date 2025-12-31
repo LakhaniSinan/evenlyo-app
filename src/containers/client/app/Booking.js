@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   FlatList,
   Image,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
+
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import BookingList from '../../../components/bookingCard';
@@ -23,10 +24,12 @@ import {
   getAllSaleItems,
 } from '../../../services/ListingsItem';
 
+/* -------------------- CONSTANTS -------------------- */
+
 const MAIN_TABS = ['Booking Items', 'Sale Items'];
 
 const BOOKING_TABS = [
-  'All Order',
+  'all order',
   'pending',
   'accepted',
   'completed',
@@ -37,12 +40,50 @@ const BOOKING_TABS = [
 
 const SALE_TABS = ['Order Placed', 'On the way', 'Delivered'];
 
+/* -------------------- TAB ITEM -------------------- */
+const capitalizeFirstLetter = text => {
+  if (!text) return '';
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
+const TabItem = React.memo(({label, active, onPress}) => {
+  const displayLabel = capitalizeFirstLetter(label);
+
+  return (
+    <TouchableOpacity activeOpacity={0.8} onPress={onPress}>
+      {active ? (
+        <LinearGradient
+          colors={['#FF295D', '#E31B95', '#C817AE']}
+          style={styles.activeTab}>
+          <Text
+            style={styles.activeText}
+            numberOfLines={1}
+            ellipsizeMode="tail">
+            {displayLabel}
+          </Text>
+        </LinearGradient>
+      ) : (
+        <View style={styles.inactiveTab}>
+          <Text
+            style={styles.inactiveText}
+            numberOfLines={1}
+            ellipsizeMode="tail">
+            {displayLabel}
+          </Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+});
+
+/* -------------------- SCREEN -------------------- */
+
 const BooKings = () => {
   const navigation = useNavigation();
   const modalRef = useRef(null);
 
   const [mainTab, setMainTab] = useState('Booking Items');
-  const [bookingStatusTab, setBookingStatusTab] = useState('All Order');
+  const [bookingStatusTab, setBookingStatusTab] = useState('all order');
   const [saleStatusTab, setSaleStatusTab] = useState('Order Placed');
 
   const [bookingHistory, setBookingHistory] = useState([]);
@@ -51,85 +92,95 @@ const BooKings = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  /* -------------------- API CALLS -------------------- */
 
-  const handleGetBookingHistory = useCallback(async () => {
+  const fetchBookingHistory = useCallback(async () => {
     try {
-      const response = await getAllBookingHistory('', 1, 10);
-      if (response?.status === 200 || response?.status === 201) {
-        setBookingHistory(response?.data?.data?.bookings || []);
+      const res = await getAllBookingHistory('', 1, 10);
+      if (res?.status === 200 || res?.status === 201) {
+        setBookingHistory(res?.data?.data?.bookings || []);
       }
-    } catch (error) {
-      console.log('BOOKING ERROR', error);
+    } catch (e) {
+      console.log('BOOKING ERROR', e);
     }
   }, []);
 
-  const handleGetSaleItemsOrders = useCallback(async () => {
+  const fetchSaleOrders = useCallback(async () => {
     try {
-      const response = await getAllSaleItems();
-      if (response?.status === 200 || response?.status === 201) {
-        setSaleItems(response?.data?.order || []);
+      const res = await getAllSaleItems();
+      if (res?.status === 200 || res?.status === 201) {
+        setSaleItems(res?.data?.order || []);
       }
-    } catch (error) {
-      console.log('SALE ITEMS ERROR', error);
+    } catch (e) {
+      console.log('SALE ERROR', e);
     }
   }, []);
 
+  /* -------------------- EFFECT -------------------- */
 
   useEffect(() => {
     setIsLoading(true);
-    if (mainTab === 'Booking Items') {
-      handleGetBookingHistory().finally(() => setIsLoading(false));
-    } else {
-      handleGetSaleItemsOrders().finally(() => setIsLoading(false));
-    }
-  }, [mainTab, handleGetBookingHistory, handleGetSaleItemsOrders]);
+    const apiCall =
+      mainTab === 'Booking Items' ? fetchBookingHistory : fetchSaleOrders;
 
+    apiCall().finally(() => setIsLoading(false));
+  }, [mainTab, fetchBookingHistory, fetchSaleOrders]);
+
+  /* -------------------- REFRESH -------------------- */
 
   const onRefresh = async () => {
     setRefreshing(true);
     if (mainTab === 'Booking Items') {
-      await handleGetBookingHistory();
+      await fetchBookingHistory();
     } else {
-      await handleGetSaleItemsOrders();
+      await fetchSaleOrders();
     }
     setRefreshing(false);
   };
 
+  /* -------------------- FILTER -------------------- */
 
-  const filteredSaleItems = saleItems.filter(item => {
-    if (saleStatusTab === 'Delivered') {return item.status === 'Delivered';}
-    if (saleStatusTab === 'Order Placed') {return item.status === 'Order Placed';}
-    if (saleStatusTab === 'On the way') {return item.status === 'On the way';}
-    return true;
-  });
+  const filteredSaleItems = useMemo(() => {
+    return saleItems.filter(item => {
+      if (saleStatusTab === 'Delivered') return item.status === 'Delivered';
+      if (saleStatusTab === 'Order Placed')
+        return item.status === 'Order Placed';
+      if (saleStatusTab === 'On the way') return item.status === 'On the way';
+      return true;
+    });
+  }, [saleItems, saleStatusTab]);
 
+  /* -------------------- RENDERERS -------------------- */
 
-  const renderTab = useCallback((item, activeTab, onPress) => {
-    const isActive = activeTab === item;
+  const renderMainTab = tab => (
+    <TabItem
+      key={tab}
+      label={tab}
+      active={mainTab === tab}
+      onPress={() => setMainTab(tab)}
+    />
+  );
 
-    return (
-      <TouchableOpacity onPress={() => onPress(item)}>
-        {isActive ? (
-          <LinearGradient
-            colors={['#FF295D', '#E31B95', '#C817AE']}
-            style={styles.activeTab}>
-            <Text style={styles.activeText}>{item}</Text>
-          </LinearGradient>
-        ) : (
-          <View style={styles.inactiveTab}>
-            <Text style={styles.inactiveText}>{item}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    );
-  }, []);
+  const renderBookingTab = ({item}) => (
+    <TabItem
+      label={item}
+      active={bookingStatusTab === item}
+      onPress={() => setBookingStatusTab(item)}
+    />
+  );
 
+  const renderSaleTab = ({item}) => (
+    <TabItem
+      label={item}
+      active={saleStatusTab === item}
+      onPress={() => setSaleStatusTab(item)}
+    />
+  );
 
   const renderSaleItem = ({item}) => (
     <View style={styles.saleCard}>
       <View style={styles.rowBetween}>
         <Text style={styles.trackingId}>Tracking: {item.trackingId}</Text>
-
         <Text
           style={[
             styles.status,
@@ -139,13 +190,13 @@ const BooKings = () => {
         </Text>
       </View>
 
-      {item.items?.map((product, index) => (
-        <View key={index} style={styles.productRow}>
-          <Image source={{uri: product.image}} style={styles.image} />
+      {item.items?.map((p, i) => (
+        <View key={i} style={styles.productRow}>
+          <Image source={{uri: p.image}} style={styles.image} />
           <View style={{flex: 1}}>
-            <Text style={styles.title}>{product.title?.en}</Text>
-            <Text style={styles.subText}>Qty: {product.quantity}</Text>
-            <Text style={styles.subText}>Price: Rs {product.price}</Text>
+            <Text style={styles.title}>{p.title?.en}</Text>
+            <Text style={styles.subText}>Qty: {p.quantity}</Text>
+            <Text style={styles.subText}>Price: Rs {p.price}</Text>
           </View>
         </View>
       ))}
@@ -164,74 +215,62 @@ const BooKings = () => {
     </View>
   );
 
+  /* -------------------- UI -------------------- */
+
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
+    <SafeAreaView style={styles.container}>
       <AppHeader
         headingText="History"
         rightIcon={ICONS.chatIcon}
         onRightIconPress={() => navigation.navigate('MessagesScreen')}
       />
-
-      <View style={styles.mainTabWrapper}>
-        {MAIN_TABS.map(tab => (
-          <View key={tab}>{renderTab(tab, mainTab, setMainTab)}</View>
-        ))}
-      </View>
-
-      {mainTab === 'Booking Items' && (
-        <>
-          <FlatList
-            data={BOOKING_TABS}
-            horizontal
-            keyExtractor={item => item}
-            extraData={bookingStatusTab}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tabContainer}
-            renderItem={({item}) =>
-              renderTab(item, bookingStatusTab, setBookingStatusTab)
-            }
-          />
-
-          <BookingList
-            bookings={bookingHistory}
-            activeTab={bookingStatusTab}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-          />
-        </>
-      )}
-
-      {mainTab === 'Sale Items' && (
-        <>
-          <FlatList
-            data={SALE_TABS}
-            horizontal
-            keyExtractor={item => item}
-            extraData={saleStatusTab}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tabContainer}
-            renderItem={({item}) =>
-              renderTab(item, saleStatusTab, setSaleStatusTab)
-            }
-          />
-
-          <FlatList
-            data={filteredSaleItems}
-            keyExtractor={item => item._id}
-            renderItem={renderSaleItem}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            ListEmptyComponent={
-              <View style={styles.emptyBox}>
-                <Text style={styles.emptyText}>No sale items found</Text>
+      <FlatList
+        ListHeaderComponent={
+          <>
+            <View style={styles.mainTabWrapper}>
+              {MAIN_TABS.map(renderMainTab)}
+            </View>
+            <FlatList
+              data={mainTab === 'Booking Items' ? BOOKING_TABS : SALE_TABS}
+              horizontal
+              renderItem={
+                mainTab === 'Booking Items' ? renderBookingTab : renderSaleTab
+              }
+              keyExtractor={item => item}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tabContainer}
+              removeClippedSubviews={false}
+            />
+            {mainTab === 'Booking Items' && (
+              <View style={styles.listWrapper}>
+                <BookingList
+                  bookings={bookingHistory}
+                  activeTab={bookingStatusTab}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={onRefresh}
+                    />
+                  }
+                />
               </View>
-            }
-            contentContainerStyle={{paddingBottom: 30}}
-          />
-        </>
-      )}
+            )}
+          </>
+        }
+        data={mainTab === 'Sale Items' ? filteredSaleItems : []}
+        renderItem={mainTab === 'Sale Items' ? renderSaleItem : null}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListEmptyComponent={
+          mainTab === 'Sale Items' ? (
+            <View style={styles.emptyCenterBox}>
+              <Text style={styles.emptyText}>No sale items found</Text>
+            </View>
+          ) : null
+        }
+        contentContainerStyle={{flexGrow: 1, paddingBottom: 30}}
+      />
 
       <Loader isLoading={isLoading} />
       <CommonAlert ref={modalRef} />
@@ -242,38 +281,59 @@ const BooKings = () => {
 export default BooKings;
 
 const styles = StyleSheet.create({
+  container: {flex: 1, backgroundColor: COLORS.white},
+
   mainTabWrapper: {
+    marginTop: width(3),
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 15,
   },
+
   tabContainer: {
     paddingHorizontal: width(3),
     marginVertical: 10,
   },
+
   activeTab: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    height: width(10),
+    marginBottom: width(2),
+    paddingHorizontal: 16,
+    paddingVertical: 6,
     borderRadius: 12,
     marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: width(30),
   },
+
   inactiveTab: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: '#F3F3F3',
+    height: width(10),
+    marginBottom: width(2),
+    paddingHorizontal: 16,
+    paddingVertical: 6,
     borderRadius: 12,
     marginRight: 10,
+    backgroundColor: '#F3F3F3',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: width(30),
   },
+
   activeText: {
     color: '#fff',
     fontSize: 13,
     fontFamily: fontFamly.PlusJakartaSansBold,
+    textAlign: 'center',
   },
+
   inactiveText: {
     color: '#333',
     fontSize: 13,
     fontFamily: fontFamly.PlusJakartaSansBold,
+    textAlign: 'center',
   },
+
   saleCard: {
     backgroundColor: '#fff',
     marginHorizontal: 16,
@@ -282,14 +342,17 @@ const styles = StyleSheet.create({
     padding: 14,
     elevation: 3,
   },
+
   rowBetween: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
   },
+
   trackingId: {
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
   },
+
   status: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -297,42 +360,40 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
   },
+
   delivered: {backgroundColor: 'green'},
   pending: {backgroundColor: 'orange'},
-  productRow: {
-    flexDirection: 'row',
-    marginTop: 10,
-  },
-  image: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    marginRight: 10,
-  },
+
+  productRow: {flexDirection: 'row', marginTop: 10},
+
+  image: {width: 60, height: 60, borderRadius: 8, marginRight: 10},
+
   title: {
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
   },
-  subText: {
-    fontSize: 12,
-    color: '#555',
-  },
-  addressBox: {
-    marginTop: 8,
-  },
+
+  subText: {fontSize: 12, color: '#555'},
+
+  addressBox: {marginTop: 8},
+
   addressText: {
     fontSize: 12,
     color: COLORS.textLight,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
+
   amount: {
     marginTop: 8,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
-  emptyBox: {
-    marginTop: 60,
-    alignItems: 'center',
-  },
+
+  emptyBox: {marginTop: 60, alignItems: 'center'},
+
+  emptyCenterBox: {flex: 1, alignItems: 'center', justifyContent: 'center'},
+
+  listWrapper: {flex: 1, padding: width(2)},
+
   emptyText: {
     color: COLORS.textLight,
     fontSize: 14,

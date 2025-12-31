@@ -30,7 +30,6 @@ import {updateVendorDetails} from '../../../services/Vendor';
 function ProfileManagement({navigation, route}) {
   const {t, currentLanguage} = useTranslation();
   const data = route.params;
-  console.log(data, 'datadatadatadatadatadatadata');
 
   const workTypeRef = useRef(null);
   const teamSizeRef = useRef(null);
@@ -62,7 +61,9 @@ function ProfileManagement({navigation, route}) {
   });
 
   useEffect(() => {
-    if (!data) {return;}
+    if (!data) {
+      return;
+    }
 
     const commonFields = {
       firstName: data?.firstName || '',
@@ -402,7 +403,9 @@ function ProfileManagement({navigation, route}) {
   );
 
   const MainCategoryList = memo(({data, currentLanguage}) => {
-    if (!data?.mainCategories?.length) {return null;}
+    if (!data?.mainCategories?.length) {
+      return null;
+    }
 
     return (
       <>
@@ -426,7 +429,9 @@ function ProfileManagement({navigation, route}) {
   });
 
   const SubCategoryList = memo(({data, currentLanguage}) => {
-    if (!data?.subCategories?.length) {return null;}
+    if (!data?.subCategories?.length) {
+      return null;
+    }
 
     return (
       <>
@@ -454,12 +459,16 @@ function ProfileManagement({navigation, route}) {
     async field => {
       launchImageLibrary({mediaType: 'photo', selectionLimit: 1}, async res => {
         if (res.didCancel || res.errorCode) {
-          if (res.errorMessage) {Alert.alert('Error', res.errorMessage);}
+          if (res.errorMessage) {
+            Alert.alert('Error', res.errorMessage);
+          }
           return;
         }
 
         const asset = res.assets?.[0];
-        if (!asset) {return;}
+        if (!asset) {
+          return;
+        }
 
         const file = {
           uri: asset.uri,
@@ -471,7 +480,9 @@ function ProfileManagement({navigation, route}) {
           setIsLoading(true);
           const uploaded = await helper.uploadMediaToCloudinary(file);
           const uploadedUrl = uploaded?.secure_url || uploaded?.secureUrl;
-          if (!uploadedUrl) {throw new Error('Upload failed');}
+          if (!uploadedUrl) {
+            throw new Error('Upload failed');
+          }
 
           // update local state
           handleInputChange(field, uploadedUrl);
@@ -539,7 +550,10 @@ function ProfileManagement({navigation, route}) {
 
         console.log('Updating vendor with payload:', payload);
         const response = await updateVendorDetails(payload);
-        console.log(response, 'responseresponseresponseresponseresponseasdasdasdasdasd');
+        console.log(
+          response,
+          'responseresponseresponseresponseresponseasdasdasdasdasd',
+        );
 
         if (response?.success) {
           Alert.alert('Success', 'Profile updated successfully.');

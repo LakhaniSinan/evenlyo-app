@@ -4,7 +4,6 @@ import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
 
 const PricingSummary = ({data}) => {
-  console.log(data, 'datadatadatadatadatadatadata');
 
   return (
     <View style={styles.pricingSection}>

@@ -16,18 +16,20 @@ import StatusBadge from '../statusComponent';
 const BookingCard = ({item}) => {
   const navigation = useNavigation();
   const {t} = useTranslation();
-
+  ///vendor/bookings/amount-to-pay
   return (
     <View style={styles.card}>
-      <Image source={{uri: item?.vendor?.businessLogo}} style={styles.image} />
+      <Image
+        source={{uri: item?.listingDetails?.featuredImage}}
+        style={styles.image}
+      />
       <View style={styles.infoContainer}>
         <View style={styles.topSection}>
           <View style={styles.headerRow}>
-            <Text style={styles.tag}>• {item.category}</Text>
             <StatusBadge status={item?.status} />
           </View>
           <Text style={styles.name} numberOfLines={2}>
-            {item?.vendor?.businessName}
+            {item?.listingDetails?.title?.en}
           </Text>
           <Text style={styles.location} numberOfLines={1}>
             📍 {item?.eventLocation}
@@ -40,8 +42,12 @@ const BookingCard = ({item}) => {
             <Text style={styles.buttonText}>{t('View Details')}</Text>
           </TouchableOpacity>
           <View style={styles.priceContainer}>
-            <Text style={styles.price}>{item.totalPrice}</Text>
-            <Text style={styles.perEvent}>{t('/Per Event')}</Text>
+            <Text style={styles.price}>
+              $ {item?.listingDetails?.pricing?.amount}
+            </Text>
+            <Text style={styles.perEvent}>
+              /{item?.pricingBreakdown?.pricingType?.toUpperCase()}
+            </Text>
           </View>
         </View>
       </View>
@@ -49,7 +55,7 @@ const BookingCard = ({item}) => {
   );
 };
 
-const BookingList = ({bookings, activeTab}) => {
+const BookingList = ({bookings, activeTab, refreshControl}) => {
   const {t} = useTranslation();
 
   const getFilteredData = () => {
@@ -78,6 +84,7 @@ const BookingList = ({bookings, activeTab}) => {
       data={filteredData}
       keyExtractor={item => item.id}
       renderItem={({item}) => <BookingCard item={item} />}
+      refreshControl={refreshControl}
       ListEmptyComponent={
         <View
           style={{
@@ -129,7 +136,7 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     marginBottom: 6,
   },

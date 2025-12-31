@@ -133,8 +133,6 @@ const OrderBooking = ({
   handleSendBookingRequest,
   handleAddToWishList,
 }) => {
-  console.log(data, 'datadatadatadatadatadatadata');
-
   const {t} = useTranslation();
   const modalRef = useRef(null);
   const [selectedCoords, setSelectedCoords] = useState(null);
@@ -358,7 +356,7 @@ const OrderBooking = ({
   }, [data, isSingleDateSelected, startDateStr, referenceDate]);
 
   const handleBooking = useCallback(() => {
-    if (selectedCoords == null) {
+    if (!selectedCoords) {
       modalRef.current?.show({
         status: 'error',
         message: 'Please add address first.',
@@ -366,20 +364,7 @@ const OrderBooking = ({
       return;
     }
 
-    if (startDateStr && !endDateStr) {
-      // if only start provided, treat as single day
-      // (we already treat single-day bookings elsewhere)
-    }
-
-    if (!startDateStr && !endDateStr) {
-      modalRef.current?.show({
-        status: 'error',
-        message: 'Please select start date and end date first.',
-      });
-      return;
-    }
-
-    if (!startDateStr && endDateStr) {
+    if (!startDateStr) {
       modalRef.current?.show({
         status: 'error',
         message: 'Please select start date first.',
@@ -387,28 +372,12 @@ const OrderBooking = ({
       return;
     }
 
-    if (startDateStr === endDateStr) {
-      if (!startTime && !endTime) {
-        modalRef.current?.show({
-          status: 'error',
-          message: 'Please select start and end time.',
-        });
-        return;
-      }
-      if (!startTime) {
-        modalRef.current?.show({
-          status: 'error',
-          message: 'Please select start time first.',
-        });
-        return;
-      }
-      if (!endTime) {
-        modalRef.current?.show({
-          status: 'error',
-          message: 'Please select end time first.',
-        });
-        return;
-      }
+    if (isSingleDateSelected && (!startTime || !endTime)) {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please select start and end time.',
+      });
+      return;
     }
 
     if (!acceptTerms) {
@@ -419,21 +388,90 @@ const OrderBooking = ({
       return;
     }
 
-    const details = {
+    const payload = {
       listingId: data?._id,
-      startDate: startDateStr,
-      endDate: endDateStr,
-      eventLocation: selectedCoords?.userAddress || '',
-      specialRequests: instructions,
-      distance: Number(distance) || 0,
+      vendorId: data?.vendorId || data?.vendor?._id,
+
+      details: {
+        startDate: startDateStr,
+        endDate: endDateStr || startDateStr,
+
+        startTime:
+          startTime && isSingleDateSelected
+            ? moment(startTime).format('HH:mm')
+            : null,
+
+        endTime:
+          endTime && isSingleDateSelected
+            ? moment(endTime).format('HH:mm')
+            : null,
+
+        eventLocation: selectedCoords?.userAddress || '',
+        specialRequests: instructions || null,
+        contactPreference: 'email',
+
+        distanceKm: Number(distance) || 0,
+        evenyloProtect: isChecked,
+        willPayUpfront: paymentRequirement?.type === 'HALF',
+
+        pricingBreakdown: {
+          baseAmount: calculatedPricing.serviceCost,
+          extraTimeCost: calculatedPricing.extraTimeAmount,
+          distanceCost: calculatedPricing.travelCost,
+          securityFee: calculatedPricing.securityDeposit,
+
+          subtotal: calculatedPricing.subTotal,
+          platformFee: calculatedPricing.platformFee,
+          evenyloProtectFee: calculatedPricing.evenlyoProtect,
+
+          upfrontFee: paymentRequirement?.payableAmount || 0,
+          total: calculatedPricing.total,
+
+          calculationDetails: isSingleDateSelected
+            ? `Standard pricing: ${totalHours} hours × $${calculatedPricing.pricePerHour}/hour`
+            : `Standard pricing: ${availableSelectedDays} days`,
+
+          breakdown: [
+            {
+              label: isSingleDateSelected
+                ? `Standard Service (${totalHours} hours)`
+                : `Standard Service (${availableSelectedDays} days)`,
+              amount: calculatedPricing.serviceCost,
+              explanation: isSingleDateSelected
+                ? `${totalHours} hours × $${calculatedPricing.pricePerHour}/hour`
+                : `${availableSelectedDays} days`,
+            },
+            {
+              label: `Travel Cost (${distance}km)`,
+              amount: calculatedPricing.travelCost,
+              explanation: '',
+            },
+            {
+              label: 'Security Deposit(Refundable)',
+              amount: calculatedPricing.securityDeposit,
+              explanation: '',
+            },
+            {
+              label: `Platform Service Fee (${
+                data?.paymentPolicy?.platformFeePercent || 5
+              }%)`,
+              amount: calculatedPricing.platformFee,
+              explanation: '',
+            },
+          ],
+
+          validationErrors: [],
+          requiresFullPayment: paymentRequirement?.type === 'FULL',
+
+          paymentPolicy: data?.paymentPolicy,
+          pricingType: 'per hour',
+          numDays: availableSelectedDays,
+          isSingleDate: isSingleDateSelected,
+        },
+      },
     };
 
-    if (startDateStr === endDateStr && startTime && endTime) {
-      details.startTime = moment(startTime).format('hh:mm A');
-      details.endTime = moment(endTime).format('hh:mm A');
-    }
-
-    handleSendBookingRequest(details);
+    handleSendBookingRequest(payload);
   }, [
     selectedCoords,
     startDateStr,
@@ -443,6 +481,12 @@ const OrderBooking = ({
     acceptTerms,
     instructions,
     distance,
+    isChecked,
+    calculatedPricing,
+    paymentRequirement,
+    isSingleDateSelected,
+    totalHours,
+    availableSelectedDays,
     data,
     handleSendBookingRequest,
   ]);
@@ -524,6 +568,46 @@ const OrderBooking = ({
       setMarkedDates(updatedMarks);
     }
   };
+
+  const getPaymentRequirement = ({
+    startDate,
+    totalAmount,
+    today = moment(),
+  }) => {
+    if (!startDate) return null;
+
+    const selected = moment(startDate, 'YYYY-MM-DD');
+    const diffInDays = selected.diff(today, 'days');
+
+    if (diffInDays <= 3) {
+      return {
+        type: 'FULL',
+        title: 'Full Payment Required',
+        description: `Since your booking is within 3 days, full payment of $${totalAmount.toFixed(
+          2,
+        )} is required at the time of booking.`,
+        payableAmount: totalAmount,
+      };
+    }
+
+    return {
+      type: 'HALF',
+      title: 'Upfront Payment Required',
+      description: `Since your booking is more than 3 days away, an upfront payment of $${(
+        totalAmount / 2
+      ).toFixed(
+        2,
+      )} is required to secure your reservation. The remaining balance should be cleared ASAP before the event date.`,
+      payableAmount: totalAmount / 2,
+    };
+  };
+
+  const paymentRequirement = useMemo(() => {
+    return getPaymentRequirement({
+      startDate: startDateStr,
+      totalAmount: calculatedPricing.total,
+    });
+  }, [startDateStr, calculatedPricing.total]);
 
   return (
     <Modal
@@ -767,6 +851,54 @@ const OrderBooking = ({
 
             <View style={styles.divider} />
 
+            {paymentRequirement && (
+              <View
+                style={[
+                  styles.paymentAlert,
+                  paymentRequirement?.type === 'FULL'
+                    ? styles.fullPaymentBg
+                    : styles.halfPaymentBg,
+                ]}>
+                <View style={styles.alertHeader}>
+                  <Icon
+                    name="alert-circle"
+                    size={18}
+                    color={
+                      paymentRequirement?.type === 'FULL'
+                        ? '#D32F2F'
+                        : '#92400E'
+                    }
+                    style={{marginRight: 6}}
+                  />
+                  <Text
+                    style={[
+                      styles.alertTitle,
+                      {
+                        color:
+                          paymentRequirement?.type === 'FULL'
+                            ? '#D32F2F'
+                            : '#92400E',
+                      },
+                    ]}>
+                    {paymentRequirement?.title}
+                  </Text>
+                </View>
+
+                <Text
+                  style={[
+                    styles.alertDesc,
+                    {
+                      color:
+                        paymentRequirement?.type === 'FULL'
+                          ? '#D32F2F'
+                          : '#b45309',
+                    },
+                  ]}>
+                  {paymentRequirement?.description}
+                </Text>
+              </View>
+            )}
+
             <View style={styles.pricingRow}>
               <Text style={styles.totalLabel}>Total:</Text>
               <Text style={styles.totalValue}>
@@ -844,20 +976,24 @@ const OrderBooking = ({
   );
 };
 
+export default React.memo(OrderBooking);
+
 const styles = StyleSheet.create({
-  modal: {margin: 0, justifyContent: 'flex-end', backgroundColor: '#8b8b8b66'},
+  modal: {
+    margin: 0,
+    justifyContent: 'flex-end',
+    backgroundColor: '#8b8b8b66',
+  },
+
   container: {
     height: '90%',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     backgroundColor: COLORS.white,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
     elevation: 5,
   },
+
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -866,31 +1002,42 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.backgroundLight,
     borderBottomWidth: 1,
   },
+
   title: {
     fontSize: 18,
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
   },
+
   scrollView: {flex: 1},
+
   section: {marginBottom: width(4)},
+
   label: {
     fontSize: 12,
     color: COLORS.black,
     fontFamily: fontFamly.PlusJakartaSansBold,
     marginBottom: width(2),
   },
+
   dateTimeHeader: {
     backgroundColor: COLORS.backgroundLight,
     padding: width(4),
     borderRadius: width(3),
     marginTop: width(3),
   },
+
   dateValue: {
     fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansMedium,
     color: COLORS.textLight,
   },
-  dateRangeContainer: {flexDirection: 'row', justifyContent: 'space-between'},
+
+  dateRangeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
   dateInput: {
     flex: 1,
     backgroundColor: '#F8F8F8',
@@ -901,17 +1048,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minHeight: 48,
   },
+
   dateInputText: {
     fontSize: 12,
     color: COLORS.textLight,
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
-  iconSmall: {height: width(5), width: width(5)},
+
+  iconSmall: {
+    height: width(5),
+    width: width(5),
+  },
+
   checkboxRow: {
     flexDirection: 'row',
     marginBottom: width(5),
     alignItems: 'center',
   },
+
   checkboxBox: {
     height: width(6),
     width: width(6),
@@ -921,12 +1075,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkboxIcon: {height: width(6), width: width(6)},
+
+  checkboxIcon: {
+    height: width(6),
+    width: width(6),
+  },
+
   protectText: {
     fontFamily: fontFamly.PlusJakartaSansBold,
     marginLeft: width(3),
     color: COLORS.black,
   },
+
   pricingSection: {
     backgroundColor: COLORS.backgroundLight,
     borderRadius: width(3),
@@ -934,39 +1094,56 @@ const styles = StyleSheet.create({
     paddingVertical: width(3),
     marginBottom: width(4),
   },
+
   pricingTitle: {
     fontSize: 12,
     color: COLORS.textDark,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
+
   pricingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 12,
   },
+
   pricingLabel: {
     fontSize: 12,
     color: COLORS.textLight,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
+
   pricingValue: {
     fontSize: 12,
     color: COLORS.textDark,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
-  divider: {height: 1, backgroundColor: '#e0e0e0', marginVertical: 15},
+
+  divider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 15,
+  },
+
   totalLabel: {
     fontSize: 12,
     color: COLORS.textLight,
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
+
   totalValue: {
     fontSize: 12,
     color: COLORS.textDark,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
+
   termsSection: {marginBottom: 25},
-  termsContainer: {flexDirection: 'row', alignItems: 'flex-start'},
+
+  termsContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+
   checkbox: {
     width: 20,
     height: 20,
@@ -977,18 +1154,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
-  checkboxChecked: {backgroundColor: '#FF295D'},
-  termsTextContainer: {flexDirection: 'row', flexWrap: 'wrap', flex: 1},
+
+  checkboxChecked: {
+    backgroundColor: '#FF295D',
+  },
+
+  termsTextContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    flex: 1,
+  },
+
   termsText: {
     fontSize: 12,
     color: COLORS.textLight,
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
+
   termsLink: {
     fontSize: 12,
     color: COLORS.textDark,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
+
   buttonContainer: {
     paddingTop: width(4),
     borderTopWidth: 1,
@@ -996,6 +1184,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+
   wishlistBtn: {
     width: width(35),
     backgroundColor: COLORS.backgroundLight,
@@ -1004,11 +1193,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   buttonText: {
     fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
     color: 'white',
   },
-});
 
-export default React.memo(OrderBooking);
+  paymentAlert: {
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    marginBottom: 15,
+  },
+
+  fullPaymentBg: {
+    backgroundColor: '#FFF5F5',
+    borderColor: '#FFCDD2',
+  },
+
+  halfPaymentBg: {
+    backgroundColor: '#FFF8E1',
+    borderColor: '#FFE0B2',
+  },
+
+  alertHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+
+  alertTitle: {
+    fontSize: 14,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+
+  alertDesc: {
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+    lineHeight: 18,
+  },
+});

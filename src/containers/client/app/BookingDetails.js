@@ -98,9 +98,9 @@ const BookingDetails = ({route, navigation}) => {
           onRightIconPress={() => navigation.navigate('MessagesScreen')}
           onLeftIconPress={() => navigation.goBack()}
         />
-        <CarouselComponent data={data} />
+        {/* <CarouselComponent data={data} /> */}
         <View style={{marginHorizontal: 10}}>
-          <EventAndPriceDetails />
+          {/* <EventAndPriceDetails /> */}
         </View>
         <View
           style={{
@@ -127,7 +127,7 @@ const BookingDetails = ({route, navigation}) => {
               // flex: 1,
               // justifyContent: "center"
             }}>
-            <Image style={{height: 7, width: 12}} source={ICONS.arrowIcon} />
+            {/* <Image style={{height: 7, width: 12}} source={ICONS.arrowIcon} /> */}
           </View>
           <View
             style={{
@@ -152,7 +152,7 @@ const BookingDetails = ({route, navigation}) => {
             borderRadius: 10,
             flexDirection: 'row',
           }}>
-          <Image style={{width: 55, height: 55}} source={IMAGES.profilePhoto} />
+          {/* <Image style={{width: 55, height: 55}} source={IMAGES.profilePhoto} /> */}
           <View style={{marginLeft: 10, justifyContent: 'center'}}>
             <Text
               style={{
