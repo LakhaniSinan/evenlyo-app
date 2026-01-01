@@ -43,11 +43,9 @@ function CartScreen({navigation}) {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [activeTab, setActiveTab] = useState('bookingItem');
   const [isLoadding, setIsLoadding] = useState(false);
-
   const [listingCartData, setListingCartData] = useState([]);
   const [accepetedBookings, setAccepetedBookings] = useState([]);
   const [bookingData, setBookingData] = useState(null);
-  console.log(listingCartData, 'listingCartDatalistingCartData');
 
   useFocusEffect(
     useCallback(() => {
@@ -63,14 +61,7 @@ function CartScreen({navigation}) {
         getCartListings(),
         getAccepetedBookings(),
       ]);
-
-      console.log(
-        responseCart,
-        'responseCartresponseCartresponseCartresponseCart',
-      );
-
       setIsLoadding(false);
-
       if (
         (responseCart?.status === 200 || responseCart?.status === 201) &&
         (responseAccepted?.status === 200 || responseAccepted?.status === 201)
@@ -138,14 +129,15 @@ function CartScreen({navigation}) {
   const renderCartItem = ({item}) => (
     <CartCard
       item={item}
-      onBookNow={handleBookNow}
+      onEditData={handleBookNow}
       onRemoveItemFromCart={handleRemoveFromCart}
     />
   );
   const renderAcceptedItem = ({item}) => (
     <CartCard
+      type={'accepted'}
       item={item}
-      onBookNow={handleBookNow}
+      onEditData={handleBookNow}
       onRemoveItemFromCart={handleRemoveFromCart}
     />
   );
@@ -252,30 +244,29 @@ function CartScreen({navigation}) {
 
         {activeTab === 'bookingItem' ? (
           <>
-            {renderSection(
-              'Request Add To Cart',
-              listingCartData?.slice(0, 2),
-              () => navigation.navigate('SeeAllRequestCart'),
+            {renderSection('Request Add To Cart', listingCartData, () =>
+              navigation.navigate('SeeAllRequestCart'),
             )}
             {renderSection('Accepted Order', accepetedBookings, () =>
               navigation.navigate('SeeAllRequestCart'),
             )}
-
-            <View style={{margin: width(3)}}>
-              <GradientButton
-                text={t('Process to Checkout')}
-                onPress={() => {}}
-                type="filled"
-                gradientColors={['#FF295D', '#E31B95', '#C817AE']}
-              />
-            </View>
           </>
         ) : (
           renderSection('Sale Items', saleItem)
         )}
       </ScrollView>
+      {activeTab === 'bookingItem' && (
+        <View style={{margin: width(3)}}>
+          <GradientButton
+            text={t('Process to Checkout')}
+            onPress={() => {}}
+            type="filled"
+            gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+          />
+        </View>
+      )}
       <OrderBooking
-        data={bookingData?.tempDetails}
+        data={{...bookingData?.listingId, ...bookingData?.tempDetails}}
         selectedDate={bookingData?.tempDetails}
         isVisible={orderBookingForm}
         onClose={() => setOrderBookingForm(!orderBookingForm)}

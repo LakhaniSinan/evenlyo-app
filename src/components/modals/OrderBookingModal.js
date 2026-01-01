@@ -79,6 +79,11 @@ export const calculateAvailableDaysWithHours = ({
     };
   }
 
+  console.log(
+    availableDays,
+    'availableDaysavailableDaysavailableDaysavailableDays',
+  );
+
   const start = moment(startDate);
   const end = endDate ? moment(endDate) : moment(startDate);
 
@@ -133,10 +138,11 @@ const OrderBooking = ({
   handleSendBookingRequest,
   handleAddToWishList,
 }) => {
+  console.log(selectedDate, 'datadatadatadatadatadatadatadata');
+
   const {t} = useTranslation();
   const modalRef = useRef(null);
   const [selectedCoords, setSelectedCoords] = useState(null);
-  const [kilometer, setKilometer] = useState('0');
   const [instructions, setInstructions] = useState('');
   const [isChecked, setIsChecked] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -148,17 +154,21 @@ const OrderBooking = ({
   const [referenceDate, setReferenceDate] = useState(moment());
   const [localStartDate, setLocalStartDate] = useState(null);
   const [localEndDate, setLocalEndDate] = useState(null);
-  let availableDays = data?.availability?.availableDays || [];
+  let availableDays =
+    data?.availability?.availableDays ||
+    data?.listingId?.availability?.availableDays ||
+    [];
+
   const [markedDates, setMarkedDates] = useState(() =>
     getInitialMarkedDates(availableDays, moment()),
   );
 
-  const {availableSelectedDays, hoursPerDay, totalHours} =
+  const {hoursPerDay, totalHours, availableSelectedDays} =
     calculateAvailableDaysWithHours({
-      startDate: localStartDate,
-      endDate: localEndDate,
-      startTime,
-      endTime,
+      startDate: data?.startDate || localStartDate,
+      endDate: data?.endDate || localEndDate,
+      startTime: startTime,
+      endTime: endTime,
       availableDays,
     });
 
@@ -223,7 +233,6 @@ const OrderBooking = ({
       }
     } else {
       setSelectedCoords(null);
-      setKilometer('0');
       setInstructions('');
       setIsChecked(false);
       setAcceptTerms(false);
@@ -251,11 +260,6 @@ const OrderBooking = ({
     };
   }, []);
 
-  const handleKilometerChange = useCallback(text => {
-    const cleaned = text.replace(/[^0-9.]/g, '');
-    if ((cleaned.match(/\./g) || []).length <= 1) setKilometer(cleaned);
-  }, []);
-
   const toggleState = useCallback(setter => setter(prev => !prev), []);
 
   const distance = useMemo(() => {
@@ -281,12 +285,19 @@ const OrderBooking = ({
     const serviceCost = totalHours * pricePerHour;
     const travelCost = (Number(distance) || 0) * pricePerKm;
 
-    const availableHoursPerDay = Number(
-      data?.availability?.defaultHoursPerDay || 10,
-    );
+    const slot = data?.availability?.availableTimeSlots?.[0];
+
+    const availableHoursPerDay = slot
+      ? moment(slot.endTime, 'HH:mm').diff(
+          moment(slot.startTime, 'HH:mm'),
+          'hours',
+          true,
+        )
+      : 0;
 
     const extraHours =
       totalHours > availableHoursPerDay ? totalHours - availableHoursPerDay : 0;
+    console.log(extraHours, 'extraHoursextraHoursextraHoursextraHours');
 
     const extraTimeAmount = extraHours * extratimeCost;
     const subTotal = serviceCost + travelCost + extraTimeAmount;
@@ -311,6 +322,10 @@ const OrderBooking = ({
       extratimeCost,
     };
   }, [totalHours, distance, isChecked, data]);
+  console.log(
+    calculatedPricing.extraHours,
+    'calculatedPricing.extraHourscalculatedPricing.extraHours',
+  );
 
   const startDateStr = localStartDate || null;
   const endDateStr = localEndDate || null;
@@ -735,7 +750,6 @@ const OrderBooking = ({
               placeholder="Kilometer"
               editable={false}
               value={distance}
-              onChangeText={handleKilometerChange}
               keyboardType="numeric"
               endIcon={ICONS.currentLoactionIcon}
             />
@@ -944,14 +958,13 @@ const OrderBooking = ({
                   eventLocation: selectedCoords?.userAddress || '',
                   specialRequests: instructions,
                   distance: Number(distance) || 0,
+                  paymentPolicy: data?.paymentPolicy,
                 };
 
                 if (startDateStr === endDateStr && startTime && endTime) {
                   details.startTime = moment(startTime).format('hh:mm A');
                   details.endTime = moment(endTime).format('hh:mm A');
                 }
-
-                console.log(details, 'detailsdetailsdetailsdetails');
 
                 handleAddToWishList(details);
               }}
@@ -1234,3 +1247,121 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
+
+const asdas = {
+  title: {
+    en: 'New Secure listingss en',
+    nl: 'New Secure listing nl',
+  },
+  subtitle: {
+    en: 'New Secure listingss en',
+    nl: 'New Secure listing nl',
+  },
+  description: {
+    en: 'New Secure listing en',
+    nl: 'New Secure listing nl',
+  },
+  location: {
+    coordinates: {
+      latitude: 24.8607343,
+      longitude: 67.0011364,
+    },
+    userAddress: 'Karachi, Pakistan',
+  },
+  availability: {
+    isAvailable: true,
+    availableDays: ['mon', 'tue', 'thu', 'fri'],
+    availableTimeSlots: [
+      {
+        startTime: '07:00',
+        endTime: '17:00',
+        _id: '69522bbb91dd43cce3c7d493',
+        id: '69522bbb91dd43cce3c7d493',
+      },
+    ],
+  },
+  serviceDetails: {
+    serviceType: 'human',
+  },
+  rating: {
+    average: 0,
+    totalReviews: 0,
+  },
+  bookings: {
+    total: 0,
+    completed: 0,
+  },
+  _id: '6926f83f5c1d49ce48b400c6',
+  quantity: 83,
+  vendor: {
+    notifications: {
+      email: true,
+      push: true,
+    },
+    postalCode: '',
+    city: '',
+    _id: '6911b7d4e8478c7b209eb558',
+    firstName: 'Hammad',
+    passportDetails: '131313131313133132132132132136546465',
+    lastName: 'Abbasi',
+    email: 'hammad.abbasi211@gmail.com',
+    password: '$2a$12$2UIzZeMbnul5/3NDY9dQRupgVLeCYnqBmex3.qpdvo9NgPk8JWcIS',
+    contactNumber: '1321331321321',
+    provider: 'email',
+    accountType: 'personal',
+    address: 'Maiami Folrida USA',
+    userType: 'vendor',
+    profileImage: '',
+    isActive: true,
+    language: 'english',
+    createdById: null,
+    createdAt: '2025-11-10T10:00:52.668Z',
+    updatedAt: '2025-12-19T07:48:24.592Z',
+    __v: 0,
+    deliveryCharges: 50,
+    fullName: 'Hammad Abbasi',
+    id: '6911b7d4e8478c7b209eb558',
+  },
+  category: '68943d2ca1a765a1f78a635b',
+  subCategory: '692457736f7216eb2150f682',
+  pricing: {
+    type: 'per hour',
+    amount: 600,
+    extratimeCost: 500,
+    securityFee: 500,
+    pricePerKm: 500,
+    escrowFee: 0,
+    totalPrice: 1600,
+  },
+  images: [
+    'https://res.cloudinary.com/dv0imczul/image/upload/v1764159791/pxlhpesriobg3jfjd7pf.png',
+  ],
+  status: 'active',
+  isActive: true,
+  sortOrder: 0,
+  popular: false,
+  reviews: [],
+  createdAt: '2025-11-26T12:53:19.496Z',
+  updatedAt: '2025-12-31T08:18:07.910Z',
+  __v: 0,
+  id: '6926f83f5c1d49ce48b400c6',
+  startDate: '2026-01-13T00:00:00.000Z',
+  endDate: '2026-01-16T00:00:00.000Z',
+  paymentPolicy: {
+    name: {
+      en: 'Apple Pie en',
+      nl: 'Apple Pie en',
+    },
+    description: {
+      en: 'Apple Pie en',
+      nl: 'Apple Pie en',
+    },
+    _id: '692457736f7216eb2150f682',
+    icon: 'https://res.cloudinary.com/dv0imczul/image/upload/v1763987180/pdj7acafzazcxmbzmptt.svg',
+    isUpfrontEnabled: true,
+    upfrontFeePercent: 50,
+    escrowHours: 2,
+    isEvenlyoProtectEnabled: true,
+    evenlyoProtectFeePercent: 2,
+  },
+};

@@ -285,32 +285,17 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     } else {
       try {
         let payload = {
-          listingId,
+          listingId: listingId?.listingId || listingId?._id,
           tempDetails: {
             startDate: startDate,
             endDate: endDate,
+            paymentPolicy: data?.paymentPolicy,
           },
         };
-        let params = {
-          listingId: listingId?.listingId,
-          tempDetails: {
-            contactPreference: 'email',
-            startDate: listingId?.startDate,
-            endDate: listingId?.endDate,
-            eventLocation: listingId?.eventLocation,
-            specialRequests: listingId?.specialRequests,
-            distanceKm: listingId?.distanceKm,
-            evenyloProtect: listingId?.evenlyoProtect,
-            startTime: listingId?.startTime,
-            endTime: listingId?.endTime,
-          },
-        };
-
-        const finalPayload = listingId?.listingId ? params : payload;
+        console.log(payload, 'payloadpayloadpayloadpayloadpayload');
 
         setIsLoadding(true);
-        const response = await listingAddToCart(finalPayload);
-
+        const response = await listingAddToCart(payload);
         setIsLoadding(false);
         if (response.status == 200 || response.status == 201) {
           modalRef.current.show({
@@ -616,7 +601,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
                 marginTop: width(3),
               }}>
               <TouchableOpacity
-                onPress={() => handleAddToWishList(data?._id)}
+                onPress={() => handleAddToWishList(data)}
                 style={{
                   width: width(45),
                   backgroundColor: COLORS.backgroundLight,

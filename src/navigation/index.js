@@ -15,8 +15,6 @@ const AppNavigator = () => {
     user && fetchProfile();
   }, []);
 
-  console.log(user, 'useruseruseruseruseruser');
-
   return (
     <NavigationContainer>
       {!user ? (

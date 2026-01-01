@@ -70,7 +70,7 @@ const EventDetails = ({route, navigation}) => {
     try {
       setIsLoading(true);
       const response = await getBookingDetails(data?._id);
-      console.log(response, 'responseresponseresponseresponse');
+      console.log(response, 'responseresponseresponseresponseasdasdasd23123');
 
       setIsLoading(false);
       if (response.status == 200 || response.status == 201) {
