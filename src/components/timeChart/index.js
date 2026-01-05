@@ -61,7 +61,9 @@ function DailyCalendar({
         {timeSlots.map((slot, index) => {
           const slotTime = moment(slot, ['hh:mm a']).format('HH:mm');
           const slotEvents = filteredBookings.filter(event => {
-            if (!event.startTime) {return index === 0;}
+            if (!event.startTime) {
+              return index === 0;
+            }
             const eventTime = moment(event.startTime, [
               'hh:mm a',
               'HH:mm',
@@ -89,14 +91,6 @@ function DailyCalendar({
                         ]}>
                         <Text style={[styles.eventTitle, {color}]}>
                           {event?.title?.en || 'Untitled'} — {event?.status}
-                        </Text>
-
-                        <Text style={[styles.eventTime, {color}]}>
-                          {event?.startTime || 'All Day'}
-                        </Text>
-
-                        <Text style={styles.location}>
-                          📍 {event?.location || 'Unknown'}
                         </Text>
                       </TouchableOpacity>
                     );
@@ -145,10 +139,10 @@ const styles = StyleSheet.create({
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: width(14),
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     paddingHorizontal: width(3),
+    paddingVertical: width(4),
   },
   timeText: {
     color: COLORS.textLight,

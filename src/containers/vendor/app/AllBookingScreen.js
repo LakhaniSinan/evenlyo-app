@@ -209,7 +209,9 @@ function AllBookingScreen() {
   };
 
   const filteredSaleOrders = useMemo(() => {
-    if (saleStatusFilter === 'All') {return saleOrders;}
+    if (saleStatusFilter === 'All') {
+      return saleOrders;
+    }
     return saleOrders.filter(o => o.status === saleStatusFilter);
   }, [saleOrders, saleStatusFilter]);
 
@@ -228,7 +230,9 @@ function AllBookingScreen() {
 
   const fetchSaleOrders = useCallback(async (isRefresh = false) => {
     try {
-      if (!isRefresh) {setLoading(true);}
+      if (!isRefresh) {
+        setLoading(true);
+      }
       const res = await vendorOrderHistory();
 
       console.log(res, 'resresresresresresresresasdasdasdaaaaa');
@@ -377,7 +381,9 @@ function AllBookingScreen() {
 
     try {
       setRefreshing(true);
-      const response = await handleUpdateOrderStatus(orderId, {status:newStatus});
+      const response = await handleUpdateOrderStatus(orderId, {
+        status: newStatus,
+      });
       console.log(response, 'responseresponseresponseresponseresponse');
 
       if (response?.status === 200 || response?.status === 201) {
@@ -427,9 +433,7 @@ function AllBookingScreen() {
           <TouchableOpacity
             style={styles.tabButtonTouchable}
             onPress={() => setActiveTab(label)}>
-            <Text style={[styles.tabText, styles.activeText]}>
-              {label}
-            </Text>
+            <Text style={[styles.tabText, styles.activeText]}>{label}</Text>
           </TouchableOpacity>
         </LinearGradient>
       );
@@ -438,9 +442,7 @@ function AllBookingScreen() {
         <TouchableOpacity
           style={styles.tabButton}
           onPress={() => setActiveTab(label)}>
-          <Text style={styles.tabText}>
-            {label}
-          </Text>
+          <Text style={styles.tabText}>{label}</Text>
         </TouchableOpacity>
       );
     }
@@ -536,14 +538,12 @@ function AllBookingScreen() {
         onRightIconPress={() => navigation.navigate('Notifications')}
       />
 
-      {/* Tabs */}
       <View style={styles.tabContainer}>
         {TABS.map(t => (
           <TabButton key={t} label={t} />
         ))}
       </View>
 
-      {/* BOOKING ITEMS */}
       {activeTab === 'Booking Items' && (
         <ScrollView
           style={{flex: 1}}

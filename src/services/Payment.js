@@ -7,3 +7,7 @@ export const createPaymentIntent = params => {
 export const buySaleItem = params => {
   return api(endPoints.buySaleItem, params, requestType.POST);
 };
+
+export const getAmountToPay = id => {
+  return api(`${endPoints.amountToPay}/${id}`, requestType.GET);
+};

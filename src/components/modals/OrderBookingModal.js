@@ -17,131 +17,31 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
-import {getDistance} from '../../utils';
+import {onUpdateCart} from '../../services/ListingsItem';
+import {
+  calculateAvailableDaysWithHours,
+  getDistance,
+  getInitialMarkedDates,
+} from '../../utils';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
 import GradientText from '../gradiantText';
 import GooglePlacesInput from '../locationField';
+import Loader from '../loder';
 import TextField from '../textInput';
-
-const getInitialMarkedDates = (availableDays, referenceDate = moment()) => {
-  const marked = {};
-  const start = referenceDate.clone();
-  const end = referenceDate.clone().add(6, 'months');
-
-  for (let m = start.clone(); m.isBefore(end); m.add(1, 'day')) {
-    const dayName = m.format('ddd').toLowerCase();
-    const dateStr = m.format('YYYY-MM-DD');
-    const isPast = m.isBefore(referenceDate, 'day');
-    const isAvailable = availableDays.includes(dayName);
-
-    marked[dateStr] =
-      isPast || !isAvailable
-        ? {
-            disabled: true,
-            disableTouchEvent: true,
-            customStyles: {
-              container: {backgroundColor: '#f0f0f0'},
-              text: {color: '#999'},
-            },
-          }
-        : {
-            disabled: false,
-            customStyles: {
-              container: {backgroundColor: '#fff'},
-              text: {color: '#000'},
-            },
-          };
-  }
-
-  return marked;
-};
-
-/**
- * Calculate available days and hours
- */
-export const calculateAvailableDaysWithHours = ({
-  startDate,
-  endDate,
-  startTime,
-  endTime,
-  availableDays = [],
-  defaultHoursPerDay = 10,
-}) => {
-  if (!startDate) {
-    return {
-      totalSelectedDays: 0,
-      availableSelectedDays: 0,
-      hoursPerDay: 0,
-      totalHours: 0,
-      availableDates: [],
-      unavailableDates: [],
-    };
-  }
-
-  console.log(
-    availableDays,
-    'availableDaysavailableDaysavailableDaysavailableDays',
-  );
-
-  const start = moment(startDate);
-  const end = endDate ? moment(endDate) : moment(startDate);
-
-  let totalSelectedDays = 0;
-  let availableSelectedDays = 0;
-  let availableDates = [];
-  let unavailableDates = [];
-
-  let curr = start.clone();
-
-  // ---- HOURS PER DAY ----
-  let hoursPerDay = defaultHoursPerDay;
-
-  // Single day → calculate from time
-  if (start.isSame(end, 'day') && startTime && endTime) {
-    hoursPerDay = moment(endTime).diff(moment(startTime), 'hours', true);
-  }
-
-  while (curr.isSameOrBefore(end)) {
-    totalSelectedDays++;
-
-    const dayName = curr.format('ddd').toLowerCase();
-    const dateStr = curr.format('YYYY-MM-DD');
-
-    if (availableDays.includes(dayName)) {
-      availableSelectedDays++;
-      availableDates.push(dateStr);
-    } else {
-      unavailableDates.push(dateStr);
-    }
-
-    curr.add(1, 'day');
-  }
-
-  const totalHours = availableSelectedDays * hoursPerDay;
-
-  return {
-    totalSelectedDays,
-    availableSelectedDays,
-    hoursPerDay,
-    totalHours,
-    availableDates,
-    unavailableDates,
-  };
-};
 
 const OrderBooking = ({
   data,
+  type,
   onClose,
   isVisible,
   selectedDate,
-  handleSendBookingRequest,
   handleAddToWishList,
+  handleSendBookingRequest,
 }) => {
-  console.log(selectedDate, 'datadatadatadatadatadatadatadata');
-
   const {t} = useTranslation();
   const modalRef = useRef(null);
+  const [isLoadding, setIsLoadding] = useState(false);
   const [selectedCoords, setSelectedCoords] = useState(null);
   const [instructions, setInstructions] = useState('');
   const [isChecked, setIsChecked] = useState(false);
@@ -163,14 +63,17 @@ const OrderBooking = ({
     getInitialMarkedDates(availableDays, moment()),
   );
 
-  const {hoursPerDay, totalHours, availableSelectedDays} =
-    calculateAvailableDaysWithHours({
-      startDate: data?.startDate || localStartDate,
-      endDate: data?.endDate || localEndDate,
-      startTime: startTime,
-      endTime: endTime,
-      availableDays,
-    });
+  const {
+    hoursPerDay,
+    totalHours: calcTotalHours,
+    availableSelectedDays,
+  } = calculateAvailableDaysWithHours({
+    startDate: localStartDate || data?.startDate,
+    endDate: localEndDate || data?.endDate,
+    startTime: startTime,
+    endTime: endTime,
+    availableDays,
+  });
 
   useEffect(() => {
     if (isVisible) {
@@ -179,7 +82,93 @@ const OrderBooking = ({
 
       setMarkedDates(getInitialMarkedDates(availableDays, ref));
 
-      if (selectedDate?.startDate) {
+      // If editing an existing cart/item, prefill modal with `data` values
+      if (type === 'edit' && data?.startDate) {
+        const s = moment(data.startDate).format('YYYY-MM-DD');
+        const e = data?.endDate
+          ? moment(data.endDate).format('YYYY-MM-DD')
+          : null;
+
+        setLocalStartDate(s);
+        setLocalEndDate(e);
+
+        // prefill location (address + coords) if available
+        if (data?.eventLocation) {
+          const coords = data.eventLocation.coordinates || {};
+          setSelectedCoords({
+            userAddress: data.eventLocation.address || '',
+            latLng: {
+              latitude: coords.latitude ?? coords.lat ?? 0,
+              longitude: coords.longitude ?? coords.lng ?? 0,
+              lat: coords.latitude ?? coords.lat ?? 0,
+              lng: coords.longitude ?? coords.lng ?? 0,
+            },
+          });
+        }
+
+        // prefill extra flags and instructions if present
+        setIsChecked(Boolean(data?.evenyloProtect || false));
+        setInstructions(data?.specialRequests || data?.instructions || '');
+
+        // prefill times when present in data
+        if (data?.startTime) {
+          const st = moment(data.startTime, ['HH:mm', 'hh:mm A']).set({
+            year: moment(s).year(),
+            month: moment(s).month(),
+            date: moment(s).date(),
+          });
+          setStartTime(st.isValid() ? st.toDate() : null);
+        }
+
+        if (data?.endTime) {
+          const en = moment(data.endTime, ['HH:mm', 'hh:mm A']).set({
+            year: moment(s).year(),
+            month: moment(s).month(),
+            date: moment(s).date(),
+          });
+          setEndTime(en.isValid() ? en.toDate() : null);
+        }
+
+        // mark available dates within range
+        if (s) {
+          const updated = getInitialMarkedDates(availableDays, ref);
+
+          if (e) {
+            const start = moment(s);
+            const end = moment(e);
+
+            while (start.isSameOrBefore(end)) {
+              const d = start.format('YYYY-MM-DD');
+              const dayName = start.format('ddd').toLowerCase();
+
+              if (availableDays.includes(dayName)) {
+                updated[d] = {
+                  ...(updated[d] || {}),
+                  customStyles: {
+                    container: {
+                      backgroundColor: '#FF295D',
+                      borderRadius: d === s || d === e ? 5 : 0,
+                    },
+                    text: {color: '#fff', fontWeight: 'bold'},
+                  },
+                };
+              }
+
+              start.add(1, 'day');
+            }
+          } else {
+            updated[s] = {
+              ...(updated[s] || {}),
+              customStyles: {
+                container: {backgroundColor: '#FF295D', borderRadius: 5},
+                text: {color: '#fff', fontWeight: 'bold'},
+              },
+            };
+          }
+
+          setMarkedDates(updated);
+        }
+      } else if (selectedDate?.startDate) {
         const s = moment(selectedDate.startDate).format('YYYY-MM-DD');
         const e = selectedDate?.endDate
           ? moment(selectedDate.endDate).format('YYYY-MM-DD')
@@ -262,12 +251,34 @@ const OrderBooking = ({
 
   const toggleState = useCallback(setter => setter(prev => !prev), []);
 
+  const resetLocalState = useCallback(() => {
+    setSelectedCoords(null);
+    setInstructions('');
+    setIsChecked(false);
+    setAcceptTerms(false);
+    setShowStartPicker(false);
+    setShowEndPicker(false);
+    setStartTime(null);
+    setEndTime(null);
+    setLocalStartDate(null);
+    setLocalEndDate(null);
+    setMarkedDates(getInitialMarkedDates(availableDays, moment()));
+    setReferenceDate(moment());
+    onClose();
+  }, [availableDays]);
+
   const distance = useMemo(() => {
     return (
       getDistance(data?.location?.coordinates, selectedCoords?.latLng)
         ?.distance || 0
     );
   }, [data?.location?.coordinates, selectedCoords]);
+
+  const startDateStr = localStartDate || null;
+  const endDateStr = localEndDate || null;
+
+  const isSingleDateSelected =
+    !!startDateStr && (!endDateStr || startDateStr === endDateStr);
 
   const calculatedPricing = useMemo(() => {
     const pricePerHour = Number(data?.pricing?.amount || 0);
@@ -282,24 +293,41 @@ const OrderBooking = ({
     const protectPercent = Number(
       data?.paymentPolicy?.evenlyoProtectFeePercent || 0,
     );
-    const serviceCost = totalHours * pricePerHour;
-    const travelCost = (Number(distance) || 0) * pricePerKm;
 
+    // Determine vendor's standard available hours per day from availability slot
     const slot = data?.availability?.availableTimeSlots?.[0];
+    let vendorHoursPerDay = hoursPerDay;
+    if (slot && slot.startTime && slot.endTime) {
+      const tryFormats = ['HH:mm', 'hh:mm A', 'h:mm A'];
+      const s = moment(slot.startTime, tryFormats);
+      const e = moment(slot.endTime, tryFormats);
+      if (s.isValid() && e.isValid()) {
+        vendorHoursPerDay = e.diff(s, 'hours', true);
+      }
+    }
 
-    const availableHoursPerDay = slot
-      ? moment(slot.endTime, 'HH:mm').diff(
-          moment(slot.startTime, 'HH:mm'),
-          'hours',
-          true,
-        )
+    // For single-date selection, requested hours come from startTime/endTime
+    let requestedHours = calcTotalHours;
+    if (isSingleDateSelected && startTime && endTime) {
+      requestedHours = moment(endTime).diff(moment(startTime), 'hours', true);
+    }
+
+    // Base hours charged using vendorHoursPerDay (don't include extra hours in base)
+    const baseHours = isSingleDateSelected
+      ? Math.min(requestedHours, vendorHoursPerDay || requestedHours)
+      : calcTotalHours;
+
+    const extraHours = isSingleDateSelected
+      ? Math.max(0, requestedHours - (vendorHoursPerDay || 0))
       : 0;
 
-    const extraHours =
-      totalHours > availableHoursPerDay ? totalHours - availableHoursPerDay : 0;
-    console.log(extraHours, 'extraHoursextraHoursextraHoursextraHours');
+    // Extra time cost should use extratimeCost if provided, otherwise pricePerHour
+    const perExtraHourRate = extratimeCost || pricePerHour;
+    const extraTimeAmount = extraHours * perExtraHourRate;
 
-    const extraTimeAmount = extraHours * extratimeCost;
+    const serviceCost = baseHours * pricePerHour;
+    const travelCost = (Number(distance) || 0) * pricePerKm;
+
     const subTotal = serviceCost + travelCost + extraTimeAmount;
 
     const platformFee = (subTotal * platformFeePercent) / 100;
@@ -320,24 +348,32 @@ const OrderBooking = ({
       total,
       pricePerHour,
       extratimeCost,
+      vendorHoursPerDay,
+      requestedHours,
+      totalHours: baseHours,
     };
-  }, [totalHours, distance, isChecked, data]);
-  console.log(
-    calculatedPricing.extraHours,
-    'calculatedPricing.extraHourscalculatedPricing.extraHours',
-  );
-
-  const startDateStr = localStartDate || null;
-  const endDateStr = localEndDate || null;
-
-  const isSingleDateSelected =
-    !!startDateStr && (!endDateStr || startDateStr === endDateStr);
+  }, [
+    calcTotalHours,
+    distance,
+    isChecked,
+    data,
+    startTime,
+    endTime,
+    hoursPerDay,
+    isSingleDateSelected,
+  ]);
 
   useEffect(() => {
     if (
       isSingleDateSelected &&
       data?.availability?.availableTimeSlots?.length > 0
     ) {
+      // If explicit times are provided (editing existing booking) or
+      // start/end are already set in state, do not override them with
+      // the vendor's availability slot defaults.
+      if (data?.startTime || data?.endTime || startTime || endTime) {
+        return;
+      }
       const slot = data.availability.availableTimeSlots[0];
       const ref = referenceDate || moment();
       const selDate = moment(
@@ -368,7 +404,14 @@ const OrderBooking = ({
       setStartTime(start);
       setEndTime(end);
     }
-  }, [data, isSingleDateSelected, startDateStr, referenceDate]);
+  }, [
+    data,
+    isSingleDateSelected,
+    startDateStr,
+    referenceDate,
+    startTime,
+    endTime,
+  ]);
 
   const handleBooking = useCallback(() => {
     if (!selectedCoords) {
@@ -421,7 +464,19 @@ const OrderBooking = ({
             ? moment(endTime).format('HH:mm')
             : null,
 
-        eventLocation: selectedCoords?.userAddress || '',
+        eventLocation: {
+          address: selectedCoords?.userAddress || '',
+          coordinates: {
+            latitude:
+              selectedCoords?.latLng?.latitude ??
+              selectedCoords?.latLng?.lat ??
+              0,
+            longitude:
+              selectedCoords?.latLng?.longitude ??
+              selectedCoords?.latLng?.lng ??
+              0,
+          },
+        },
         specialRequests: instructions || null,
         contactPreference: 'email',
 
@@ -443,17 +498,17 @@ const OrderBooking = ({
           total: calculatedPricing.total,
 
           calculationDetails: isSingleDateSelected
-            ? `Standard pricing: ${totalHours} hours × $${calculatedPricing.pricePerHour}/hour`
+            ? `Standard pricing: ${calculatedPricing.totalHours} hours × $${calculatedPricing.pricePerHour}/hour`
             : `Standard pricing: ${availableSelectedDays} days`,
 
           breakdown: [
             {
               label: isSingleDateSelected
-                ? `Standard Service (${totalHours} hours)`
+                ? `Standard Service (${calculatedPricing.totalHours} hours)`
                 : `Standard Service (${availableSelectedDays} days)`,
               amount: calculatedPricing.serviceCost,
               explanation: isSingleDateSelected
-                ? `${totalHours} hours × $${calculatedPricing.pricePerHour}/hour`
+                ? `${calculatedPricing.totalHours} hours × $${calculatedPricing.pricePerHour}/hour`
                 : `${availableSelectedDays} days`,
             },
             {
@@ -500,7 +555,6 @@ const OrderBooking = ({
     calculatedPricing,
     paymentRequirement,
     isSingleDateSelected,
-    totalHours,
     availableSelectedDays,
     data,
     handleSendBookingRequest,
@@ -624,6 +678,174 @@ const OrderBooking = ({
     });
   }, [startDateStr, calculatedPricing.total]);
 
+  const handleUpdateCart = async () => {
+    try {
+      const slot = data?.availability?.availableTimeSlots?.[0] || {};
+      const slotStart = slot.startTime || '';
+      const slotEnd = slot.endTime || '';
+      const baseAmount = Number(calculatedPricing.serviceCost || 0);
+      const extraTimeCost = Number(calculatedPricing.extraTimeAmount || 0);
+      const distanceCost = Number(calculatedPricing.travelCost || 0);
+      const securityFee = Number(calculatedPricing.securityDeposit || 0);
+      const subtotal = Number(calculatedPricing.subTotal || 0);
+      const platformFee = Number(calculatedPricing.platformFee || 0);
+      const evenyloProtectFee = Number(calculatedPricing.evenlyoProtect || 0);
+      const upfrontFee = Number(paymentRequirement?.payableAmount || 0);
+      const total = Number(calculatedPricing.total || 0);
+
+      const validationErrors = [];
+      if ((calculatedPricing.extraHours || 0) > 0) {
+        validationErrors.push(
+          `ℹ️ Booking outside available hours (${slotStart}-${slotEnd}) will include an extra time fee of $${extraTimeCost.toFixed(
+            2,
+          )} (${calculatedPricing.extraHours} extra hours)`,
+        );
+      }
+
+      const params = {
+        listingId: data?._id,
+        startDate: startDateStr || '',
+        endDate: endDateStr || startDateStr || '',
+        eventLocation: {
+          address: selectedCoords?.userAddress || '',
+          coordinates: {
+            latitude:
+              selectedCoords?.latLng?.latitude ??
+              selectedCoords?.latLng?.lat ??
+              0,
+            longitude:
+              selectedCoords?.latLng?.longitude ??
+              selectedCoords?.latLng?.lng ??
+              0,
+          },
+        },
+        startTime:
+          startTime && isSingleDateSelected
+            ? moment(startTime).format('HH:mm')
+            : null,
+        endTime:
+          endTime && isSingleDateSelected
+            ? moment(endTime).format('HH:mm')
+            : null,
+        specialRequests: instructions || '',
+        distanceKm: Number(distance) || 0,
+        evenyloProtect: isChecked,
+        pricingBreakdown: {
+          baseAmount,
+          extraTimeCost,
+          distanceCost,
+          securityFee,
+
+          subtotal,
+          platformFee,
+          evenyloProtectFee,
+
+          upfrontFee,
+          total,
+
+          calculationDetails: isSingleDateSelected
+            ? `Standard pricing: ${calculatedPricing.totalHours} hours × $${calculatedPricing.pricePerHour}/hour`
+            : `Standard pricing: ${availableSelectedDays} days`,
+
+          breakdown: [
+            {
+              label: isSingleDateSelected
+                ? `Standard Service (${calculatedPricing.totalHours} hours)`
+                : `Standard Service (${availableSelectedDays} days)`,
+              amount: baseAmount,
+              explanation: isSingleDateSelected
+                ? `${calculatedPricing.totalHours} hours × $${calculatedPricing.pricePerHour}/hour`
+                : `${availableSelectedDays} days`,
+            },
+            {
+              label: 'Extra Time Fee',
+              amount: extraTimeCost,
+              explanation: '',
+            },
+            {
+              label: `Travel Cost (${distance}km)`,
+              amount: distanceCost,
+              explanation: '',
+            },
+            {
+              label: 'Security Deposit(Refundable)',
+              amount: securityFee,
+              explanation: '',
+            },
+            {
+              label: `Platform Service Fee (${data?.paymentPolicy?.platformFeePercent}%)`,
+              amount: platformFee,
+              explanation: '',
+            },
+            {
+              label: `Evenlyo Protect (${
+                data?.paymentPolicy?.evenlyoProtectFeePercent || 0
+              }%)`,
+              amount: evenyloProtectFee,
+              explanation: '',
+            },
+          ],
+          validationErrors,
+          requiresUpfront: paymentRequirement?.type === 'HALF',
+          requiresFullPayment: paymentRequirement?.type === 'FULL',
+          paymentPolicy: data?.paymentPolicy,
+          pricingType: data?.pricing?.type || 'per hour',
+          numDays: availableSelectedDays,
+          isSingleDate: isSingleDateSelected,
+        },
+      };
+      setIsLoadding(true);
+      const response = await onUpdateCart(data?._id, params);
+      console.log(response, 'responseresponseresponseresponseresponsesda');
+      if (response.status == 200 || response.status == 201) {
+        modalRef.current.show({
+          status: 'ok',
+          message: response?.data?.message,
+          handlePressOk: resetLocalState,
+        });
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
+      }
+    } catch (error) {
+      console.log(error, 'lasndasdnsadasdasdasndkasld');
+    } finally {
+      setIsLoadding(false);
+    }
+  };
+
+  const handleAddToCart = () => {
+    const details = {
+      listingId: data?._id,
+      startDate: startDateStr,
+      endDate: endDateStr,
+      eventLocation: {
+        address: selectedCoords?.userAddress || '',
+        coordinates: {
+          latitude:
+            selectedCoords?.latLng?.latitude ??
+            selectedCoords?.latLng?.lat ??
+            0,
+          longitude:
+            selectedCoords?.latLng?.longitude ??
+            selectedCoords?.latLng?.lng ??
+            0,
+        },
+      },
+      specialRequests: instructions,
+      distance: Number(distance) || 0,
+      paymentPolicy: data?.paymentPolicy,
+      evenyloProtect: isChecked,
+      startTime: moment(startTime).format('hh:mm A'),
+      endTime: moment(endTime).format('hh:mm A'),
+    };
+    console.log(details, 'detailsdetailsdetailsdetails');
+
+    handleAddToWishList(details);
+  };
+
   return (
     <Modal
       isVisible={isVisible}
@@ -632,6 +854,7 @@ const OrderBooking = ({
       backdropOpacity={0.5}
       avoidKeyboard
       propagateSwipe>
+      <Loader isLoading={isLoadding} />
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Order Booking</Text>
@@ -767,43 +990,52 @@ const OrderBooking = ({
             />
           </View>
 
-          <View style={styles.checkboxRow}>
-            <TouchableOpacity
-              onPress={() => toggleState(setIsChecked)}
-              style={[styles.checkboxBox, isChecked && {borderWidth: 0}]}>
-              {isChecked && (
-                <Image
-                  source={ICONS.cheackIcon}
-                  style={styles.checkboxIcon}
-                  resizeMode="contain"
-                />
-              )}
-            </TouchableOpacity>
-            <Text style={styles.protectText}>
-              {t(
-                `Enable Evenlyo Protect (+${data?.paymentPolicy?.evenlyoProtectFeePercent}%)`,
-              )}
-            </Text>
+          {data?.paymentPolicy?.isEvenlyoProtectEnabled && (
+            <View style={styles.checkboxRow}>
+              <TouchableOpacity
+                onPress={() => toggleState(setIsChecked)}
+                style={[styles.checkboxBox, isChecked && {borderWidth: 0}]}>
+                {isChecked && (
+                  <Image
+                    source={ICONS.cheackIcon}
+                    style={styles.checkboxIcon}
+                    resizeMode="contain"
+                  />
+                )}
+              </TouchableOpacity>
+              <Text style={styles.protectText}>
+                {t(
+                  `Enable Evenlyo Protect (+${data?.paymentPolicy?.evenlyoProtectFeePercent}%)`,
+                )}
+              </Text>
 
-            <Text
-              style={[
-                styles.protectText,
-                {fontSize: 8, color: COLORS.textLight},
-              ]}>
-              {t('(Non Refundable)')}
-            </Text>
-          </View>
+              <Text
+                style={[
+                  styles.protectText,
+                  {fontSize: 8, color: COLORS.textLight},
+                ]}>
+                {t('(Non Refundable)')}
+              </Text>
+            </View>
+          )}
 
           <View style={styles.pricingSection}>
             <Text style={styles.pricingTitle}>Pricing Summary</Text>
 
             <View style={styles.pricingRow}>
               <View>
+                {isSingleDateSelected ? (
+                  <Text style={styles.pricingLabel}>
+                    {`Standard Service (${calculatedPricing.totalHours} hours)`}
+                  </Text>
+                ) : (
+                  <Text style={styles.pricingLabel}>
+                    {`Multi-day Service (${availableSelectedDays} days × ${hoursPerDay}h)`}
+                  </Text>
+                )}
                 <Text style={styles.pricingLabel}>
-                  {`Multi-day Service (${availableSelectedDays} days × ${hoursPerDay}h)`}
-                </Text>
-                <Text style={styles.pricingLabel}>
-                  {totalHours} hours × ${calculatedPricing.pricePerHour}/hour
+                  {calculatedPricing.totalHours} hours × $
+                  {calculatedPricing.pricePerHour}/hour
                 </Text>
               </View>
               <Text style={styles.pricingValue}>
@@ -855,7 +1087,9 @@ const OrderBooking = ({
               <View style={styles.pricingRow}>
                 <Text style={styles.pricingLabel}>
                   Extra Time ({calculatedPricing.extraHours} hours × $
-                  {calculatedPricing.extratimeCost})
+                  {calculatedPricing.extratimeCost ||
+                    calculatedPricing.pricePerHour}
+                  )
                 </Text>
                 <Text style={styles.pricingValue}>
                   $ {calculatedPricing.extraTimeAmount.toFixed(2)}
@@ -950,26 +1184,11 @@ const OrderBooking = ({
         {!isKeyboardVisible && (
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              onPress={() => {
-                const details = {
-                  listingId: data?._id,
-                  startDate: startDateStr,
-                  endDate: endDateStr,
-                  eventLocation: selectedCoords?.userAddress || '',
-                  specialRequests: instructions,
-                  distance: Number(distance) || 0,
-                  paymentPolicy: data?.paymentPolicy,
-                };
-
-                if (startDateStr === endDateStr && startTime && endTime) {
-                  details.startTime = moment(startTime).format('hh:mm A');
-                  details.endTime = moment(endTime).format('hh:mm A');
-                }
-
-                handleAddToWishList(details);
-              }}
+              onPress={type == 'add' ? handleAddToCart : handleUpdateCart}
               style={styles.wishlistBtn}>
-              <GradientText text="Add To Wishlist" />
+              <GradientText
+                text={type === 'edit' ? 'Update Wishlist' : 'Add To Wishlist'}
+              />
             </TouchableOpacity>
 
             <View style={{width: width(50)}}>
@@ -1247,121 +1466,3 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
-
-const asdas = {
-  title: {
-    en: 'New Secure listingss en',
-    nl: 'New Secure listing nl',
-  },
-  subtitle: {
-    en: 'New Secure listingss en',
-    nl: 'New Secure listing nl',
-  },
-  description: {
-    en: 'New Secure listing en',
-    nl: 'New Secure listing nl',
-  },
-  location: {
-    coordinates: {
-      latitude: 24.8607343,
-      longitude: 67.0011364,
-    },
-    userAddress: 'Karachi, Pakistan',
-  },
-  availability: {
-    isAvailable: true,
-    availableDays: ['mon', 'tue', 'thu', 'fri'],
-    availableTimeSlots: [
-      {
-        startTime: '07:00',
-        endTime: '17:00',
-        _id: '69522bbb91dd43cce3c7d493',
-        id: '69522bbb91dd43cce3c7d493',
-      },
-    ],
-  },
-  serviceDetails: {
-    serviceType: 'human',
-  },
-  rating: {
-    average: 0,
-    totalReviews: 0,
-  },
-  bookings: {
-    total: 0,
-    completed: 0,
-  },
-  _id: '6926f83f5c1d49ce48b400c6',
-  quantity: 83,
-  vendor: {
-    notifications: {
-      email: true,
-      push: true,
-    },
-    postalCode: '',
-    city: '',
-    _id: '6911b7d4e8478c7b209eb558',
-    firstName: 'Hammad',
-    passportDetails: '131313131313133132132132132136546465',
-    lastName: 'Abbasi',
-    email: 'hammad.abbasi211@gmail.com',
-    password: '$2a$12$2UIzZeMbnul5/3NDY9dQRupgVLeCYnqBmex3.qpdvo9NgPk8JWcIS',
-    contactNumber: '1321331321321',
-    provider: 'email',
-    accountType: 'personal',
-    address: 'Maiami Folrida USA',
-    userType: 'vendor',
-    profileImage: '',
-    isActive: true,
-    language: 'english',
-    createdById: null,
-    createdAt: '2025-11-10T10:00:52.668Z',
-    updatedAt: '2025-12-19T07:48:24.592Z',
-    __v: 0,
-    deliveryCharges: 50,
-    fullName: 'Hammad Abbasi',
-    id: '6911b7d4e8478c7b209eb558',
-  },
-  category: '68943d2ca1a765a1f78a635b',
-  subCategory: '692457736f7216eb2150f682',
-  pricing: {
-    type: 'per hour',
-    amount: 600,
-    extratimeCost: 500,
-    securityFee: 500,
-    pricePerKm: 500,
-    escrowFee: 0,
-    totalPrice: 1600,
-  },
-  images: [
-    'https://res.cloudinary.com/dv0imczul/image/upload/v1764159791/pxlhpesriobg3jfjd7pf.png',
-  ],
-  status: 'active',
-  isActive: true,
-  sortOrder: 0,
-  popular: false,
-  reviews: [],
-  createdAt: '2025-11-26T12:53:19.496Z',
-  updatedAt: '2025-12-31T08:18:07.910Z',
-  __v: 0,
-  id: '6926f83f5c1d49ce48b400c6',
-  startDate: '2026-01-13T00:00:00.000Z',
-  endDate: '2026-01-16T00:00:00.000Z',
-  paymentPolicy: {
-    name: {
-      en: 'Apple Pie en',
-      nl: 'Apple Pie en',
-    },
-    description: {
-      en: 'Apple Pie en',
-      nl: 'Apple Pie en',
-    },
-    _id: '692457736f7216eb2150f682',
-    icon: 'https://res.cloudinary.com/dv0imczul/image/upload/v1763987180/pdj7acafzazcxmbzmptt.svg',
-    isUpfrontEnabled: true,
-    upfrontFeePercent: 50,
-    escrowHours: 2,
-    isEvenlyoProtectEnabled: true,
-    evenlyoProtectFeePercent: 2,
-  },
-};

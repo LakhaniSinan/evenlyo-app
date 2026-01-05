@@ -16,7 +16,7 @@ import StatusBadge from '../statusComponent';
 const BookingCard = ({item}) => {
   const navigation = useNavigation();
   const {t} = useTranslation();
-  ///vendor/bookings/amount-to-pay
+
   return (
     <View style={styles.card}>
       <Image
@@ -32,7 +32,7 @@ const BookingCard = ({item}) => {
             {item?.listingDetails?.title?.en}
           </Text>
           <Text style={styles.location} numberOfLines={1}>
-            📍 {item?.eventLocation}
+            📍 {item?.eventLocation?.address}
           </Text>
         </View>
         <View style={styles.footer}>

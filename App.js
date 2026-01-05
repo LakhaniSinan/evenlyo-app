@@ -14,6 +14,7 @@ import store from './src/redux';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {initializeLanguageFromStorage} from './src/redux/slice/language';
 import './src/services/i18n';
+import {StripeProvider} from '@stripe/stripe-react-native';
 
 const AppContent = () => {
   const dispatch = useDispatch();
@@ -56,7 +57,12 @@ const App = () => {
       <Provider store={store}>
         <SocketProvider>
           <PaperProvider>
-            <AppContent />
+            <StripeProvider
+              publishableKey={
+                'pk_test_51S3xKAJpLBz7gvjaILNW9oSZiqOx06YRr5ldxIfOxHP1GxtQLxXPHx9w9tq1g8D4TmveoQWJXR98eFYfWhOtXFF800kF3368jF'
+              }>
+              <AppContent />
+            </StripeProvider>
           </PaperProvider>
         </SocketProvider>
       </Provider>

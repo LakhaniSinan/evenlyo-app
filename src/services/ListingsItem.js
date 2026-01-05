@@ -62,6 +62,9 @@ export const getAllSaleItems = () => {
 export const listingAddToCart = params => {
   return Api(endPoints.addListingToCart, params, requestType.POST);
 };
+export const onUpdateCart = (listingId, params) => {
+  return Api(`${endPoints.updateCart}/${listingId}`, params, requestType.PUT);
+};
 
 export const getCartListings = () => {
   return Api(endPoints.getCartListings, null, requestType.GET);
@@ -105,4 +108,8 @@ export const toggleStatus = (id, params) => {
     params,
     requestType.PATCH,
   );
+};
+
+export const saveBookingOrder = params => {
+  return Api(endPoints.saveBooking, params, requestType.POST);
 };

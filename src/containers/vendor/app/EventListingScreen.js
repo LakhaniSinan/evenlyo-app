@@ -236,7 +236,7 @@ const EventListingScreen = ({navigation}) => {
         modalRef.current.show({
           status: 'error',
           message: response.data?.message,
-          handleOkPress: () => {
+          handlePressOk: () => {
             modalRef.current.show();
             setShowSubCategory(true);
           },

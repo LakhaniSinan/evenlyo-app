@@ -1,5 +1,7 @@
 // Utility functions
 
+import moment from "moment";
+
 export const formatDate = (date, format = 'short') => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
 
@@ -210,5 +212,103 @@ export const getDistance = (coords1, coords2) => {
 
   return {
     distance: d.toFixed(2),
+  };
+};
+
+export const getInitialMarkedDates = (availableDays, referenceDate = moment()) => {
+  const marked = {};
+  const start = referenceDate.clone();
+  const end = referenceDate.clone().add(6, 'months');
+
+  for (let m = start.clone(); m.isBefore(end); m.add(1, 'day')) {
+    const dayName = m.format('ddd').toLowerCase();
+    const dateStr = m.format('YYYY-MM-DD');
+    const isPast = m.isBefore(referenceDate, 'day');
+    const isAvailable = availableDays.includes(dayName);
+
+    marked[dateStr] =
+      isPast || !isAvailable
+        ? {
+            disabled: true,
+            disableTouchEvent: true,
+            customStyles: {
+              container: {backgroundColor: '#f0f0f0'},
+              text: {color: '#999'},
+            },
+          }
+        : {
+            disabled: false,
+            customStyles: {
+              container: {backgroundColor: '#fff'},
+              text: {color: '#000'},
+            },
+          };
+  }
+
+  return marked;
+};
+
+export const calculateAvailableDaysWithHours = ({
+  startDate,
+  endDate,
+  startTime,
+  endTime,
+  availableDays = [],
+  defaultHoursPerDay = 10,
+}) => {
+  if (!startDate) {
+    return {
+      totalSelectedDays: 0,
+      availableSelectedDays: 0,
+      hoursPerDay: 0,
+      totalHours: 0,
+      availableDates: [],
+      unavailableDates: [],
+    };
+  }
+
+  const start = moment(startDate);
+  const end = endDate ? moment(endDate) : moment(startDate);
+
+  let totalSelectedDays = 0;
+  let availableSelectedDays = 0;
+  let availableDates = [];
+  let unavailableDates = [];
+
+  let curr = start.clone();
+
+  // ---- HOURS PER DAY ----
+  let hoursPerDay = defaultHoursPerDay;
+
+  // Single day → calculate from time
+  if (start.isSame(end, 'day') && startTime && endTime) {
+    hoursPerDay = moment(endTime).diff(moment(startTime), 'hours', true);
+  }
+
+  while (curr.isSameOrBefore(end)) {
+    totalSelectedDays++;
+
+    const dayName = curr.format('ddd').toLowerCase();
+    const dateStr = curr.format('YYYY-MM-DD');
+
+    if (availableDays.includes(dayName)) {
+      availableSelectedDays++;
+      availableDates.push(dateStr);
+    } else {
+      unavailableDates.push(dateStr);
+    }
+
+    curr.add(1, 'day');
+  }
+
+  const totalHours = availableSelectedDays * hoursPerDay;
+
+  return {
+    totalSelectedDays,
+    availableSelectedDays,
+    hoursPerDay,
+    totalHours,
+    availableDates,
+    unavailableDates,
   };
 };

@@ -14,9 +14,10 @@ export const COLORS = {
   border: '#E2E8F0',
   white: '#FFFFFF',
   black: '#000000',
-  green: '#04C373',
+  green: '#16A34A',
   navyBlue: '#2563EB',
   yellow: '#EAB308',
+  red: '#ff0000ff',
 };
 
 export const SIZES = {

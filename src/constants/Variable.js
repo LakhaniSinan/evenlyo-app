@@ -50,6 +50,7 @@ export const endPoints = {
   bookingHistory: '/booking/history?status=',
   saleItemHistory: '/sale-item-history',
   addListingToCart: '/cart/add',
+  updateCart: '/cart/update',
   addListingToggelCart: '/cart/wishlist',
   removeListingToCart: '/cart/remove',
   getCartListings: '/cart',
@@ -60,6 +61,7 @@ export const endPoints = {
   deleteSaleItem: '/vendor/items/delete',
   listingsItems: '/vendor/listings/overview',
   updateOrderStatus: '/update-order-status',
+  saveBooking: '/vendor/bookings/on-payment-success',
 
   //Notifications
   notifications: '/notifications',
@@ -99,6 +101,7 @@ export const endPoints = {
 
   //Payment
   createPaymentIntent: '/vendor/bookings/create-payment-intent',
+  amountToPay: '/vendor/bookings/amount-to-pay',
   buySaleItem: '/sale-item-purchase',
 
   messages: {

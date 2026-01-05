@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {
   FlatList,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -22,7 +23,9 @@ import CancellationConfirm from '../../../components/modals/CancellationConfirm'
 import CancelBookingModal from '../../../components/modals/CancellationModal';
 import InfoModal from '../../../components/modals/InfoModal';
 import OrderBooking from '../../../components/modals/OrderBookingModal';
+import RequestConfirmation from '../../../components/modals/RequestConfirmation';
 import ShippingFromModal from '../../../components/modals/ShippingFormModal';
+import PaymentModal from '../../../components/paymentModal';
 import SaleItemCard from '../../../components/saleItemCard';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
@@ -30,12 +33,15 @@ import {
   getAccepetedBookings,
   getCartListings,
   listingRemoveFromCart,
+  sendBookingRequest,
 } from '../../../services/ListingsItem';
+import {createPaymentIntent, getAmountToPay} from '../../../services/Payment';
 
 function CartScreen({navigation}) {
   const dispatch = useDispatch();
   const {t} = useTranslation();
   const modalRef = useRef(null);
+  const [payModalVisible, setPayModalVisible] = useState(false);
   const [orderBookingForm, setOrderBookingForm] = useState(false);
   const [cancelConfirmation, setCancelConfirmation] = useState(false);
   const [shippingForm, setshippingForm] = useState(false);
@@ -44,14 +50,57 @@ function CartScreen({navigation}) {
   const [activeTab, setActiveTab] = useState('bookingItem');
   const [isLoadding, setIsLoadding] = useState(false);
   const [listingCartData, setListingCartData] = useState([]);
+  const [selectedItemId, setSelectedItemId] = useState(null);
+  const [responeData, setResponeData] = useState(null);
   const [accepetedBookings, setAccepetedBookings] = useState([]);
   const [bookingData, setBookingData] = useState(null);
+  const [selectedData, setSelectedData] = useState(null);
+  const [resuestModalVisible, setResuestModalVisible] = useState(false);
+  const [cardDetails, setCardDetails] = useState(null);
+  const [paymentIntentId, setPaymentIntentId] = useState(null);
+  const [clientSecret, setClientSecret] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       handleGetCartListing();
-    }, []),
+    }, [modalVisible, payModalVisible, orderBookingForm]),
   );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await handleGetCartListing();
+    setRefreshing(false);
+  };
+
+  const handlePayAmount = async () => {
+    if (!selectedData) {
+      return;
+    }
+    try {
+      const response = await getAmountToPay(selectedData?._id);
+      if (response.status == 200 || response?.status === 201) {
+        setIsLoadding(true);
+        const res = await createPaymentIntent({
+          amount: Math.round(response?.data?.amountToPay),
+          bookingId: selectedData?._id,
+        });
+        console.log(res, 'resresresresresresresresres');
+
+        if (res?.data?.clientSecret) {
+          setPayModalVisible(true);
+          const clientSecretValue = res.data.clientSecret;
+          setClientSecret(clientSecretValue);
+          const piId = clientSecretValue.split('_secret')[0];
+          setPaymentIntentId(piId);
+        }
+      }
+    } catch (err) {
+      console.log('PAYMENT INTENT ERROR', err);
+    } finally {
+      setIsLoadding(false);
+    }
+  };
 
   const handleGetCartListing = async () => {
     try {
@@ -61,6 +110,7 @@ function CartScreen({navigation}) {
         getCartListings(),
         getAccepetedBookings(),
       ]);
+
       setIsLoadding(false);
       if (
         (responseCart?.status === 200 || responseCart?.status === 201) &&
@@ -82,7 +132,9 @@ function CartScreen({navigation}) {
     }
   };
 
-  const handleRemoveFromCart = async id => {
+  const handleRemoveFromCart = async item => {
+    console.log(item, 'itemitemitemitemitemitem');
+
     modalRef.current.show({
       status: 'alert',
       message: 'Are you sure you want to remove this item from the wishlist?',
@@ -90,7 +142,7 @@ function CartScreen({navigation}) {
         modalRef.current.hide();
         try {
           setIsLoadding(true);
-          const response = await listingRemoveFromCart(id);
+          const response = await listingRemoveFromCart(item?.listingId?._id);
           setIsLoadding(false);
           if (response?.status == 200 || response.status == 201) {
             modalRef.current.show({
@@ -126,19 +178,31 @@ function CartScreen({navigation}) {
     setBookingData(item);
   };
 
+  const handleSelectToPay = item => {
+    const id = item?._id;
+    if (selectedItemId === id) return;
+    setSelectedItemId(id);
+    setSelectedData(item);
+  };
+
   const renderCartItem = ({item}) => (
     <CartCard
       item={item}
       onEditData={handleBookNow}
       onRemoveItemFromCart={handleRemoveFromCart}
+      onSelectToPay={handleSelectToPay}
+      isSelected={selectedItemId === item._id}
     />
   );
+
   const renderAcceptedItem = ({item}) => (
     <CartCard
       type={'accepted'}
       item={item}
       onEditData={handleBookNow}
       onRemoveItemFromCart={handleRemoveFromCart}
+      onSelectToPay={handleSelectToPay}
+      isSelected={selectedItemId === item.id}
     />
   );
 
@@ -160,15 +224,15 @@ function CartScreen({navigation}) {
             alignItems: 'center',
           }}>
           <Text style={styles.sectionTitle}>{t(title)}</Text>
-          <TouchableOpacity onPress={onSeeAllPress}>
+          {/* <TouchableOpacity onPress={onSeeAllPress}>
             <Text
               style={[
                 styles.sectionTitle,
                 {fontSize: 10, color: COLORS.primary},
               ]}>
-              {/* See All */}
+              See All
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
         <FlatList
           data={data}
@@ -192,6 +256,30 @@ function CartScreen({navigation}) {
     setshippingForm(false);
     setOrderBookingForm(false);
     setTimeout(() => setShowInfoModal(true), 500);
+  };
+
+  const handleSendBookingRequest = async details => {
+    try {
+      setIsLoadding(true);
+      const response = await sendBookingRequest(details);
+
+      if (response.status == 200 || response.status == 201) {
+        setResponeData(response?.data?.data?.bookingRequest);
+        setOrderBookingForm(false);
+        setTimeout(() => setResuestModalVisible(true), 500);
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
+      }
+      setIsLoadding(false);
+    } catch (error) {
+      setIsLoadding(false);
+      console.log(error, 'errorerrorerrorerror');
+    } finally {
+      setIsLoadding(false);
+    }
   };
 
   const renderTabs = () => {
@@ -239,7 +327,12 @@ function CartScreen({navigation}) {
         onRightIconPress={() => navigation.navigate('MessagesScreen')}
       />
 
-      <ScrollView style={{flexGrow: 1}} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={{flexGrow: 1}}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
         {renderTabs()}
 
         {activeTab === 'bookingItem' ? (
@@ -259,17 +352,25 @@ function CartScreen({navigation}) {
         <View style={{margin: width(3)}}>
           <GradientButton
             text={t('Process to Checkout')}
-            onPress={() => {}}
+            onPress={handlePayAmount}
             type="filled"
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}
           />
         </View>
       )}
       <OrderBooking
-        data={{...bookingData?.listingId, ...bookingData?.tempDetails}}
-        selectedDate={bookingData?.tempDetails}
+        type={'edit'}
         isVisible={orderBookingForm}
+        selectedDate={bookingData?.tempDetails}
+        handleSendBookingRequest={handleSendBookingRequest}
         onClose={() => setOrderBookingForm(!orderBookingForm)}
+        data={{...bookingData?.listingId, ...bookingData?.tempDetails}}
+      />
+      <RequestConfirmation
+        responeData={responeData}
+        visible={resuestModalVisible}
+        onClose={() => setResuestModalVisible(false)}
+        navigation={navigation}
       />
       <CancelBookingModal
         visible={modalVisible}
@@ -291,6 +392,17 @@ function CartScreen({navigation}) {
           setshippingForm(false);
           setModalVisible(false);
           setShowInfoModal(false);
+        }}
+      />
+      <PaymentModal
+        selectedData={selectedData}
+        modalRef={modalRef}
+        isVisible={payModalVisible}
+        setCardDetails={setCardDetails}
+        clientSecret={clientSecret}
+        onClose={() => {
+          setPayModalVisible(false);
+          setClientSecret(null);
         }}
       />
       <Loader isLoading={isLoadding} />

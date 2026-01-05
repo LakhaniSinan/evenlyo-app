@@ -279,7 +279,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
 
   const handleAddToWishList = async listingId => {
     const userToken = await AsyncStorage.getItem('token');
-
+    console.log(listingId, 'listingIdlistingIdlistingIdlistingId');
     if (userToken == null) {
       setShowLoginModal(true);
     } else {
@@ -289,11 +289,16 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
           tempDetails: {
             startDate: startDate,
             endDate: endDate,
+            startTime: listingId?.startTime,
+            endTime: listingId?.endTime,
+            distance: listingId?.distance,
+            eventLocation: listingId.eventLocation,
             paymentPolicy: data?.paymentPolicy,
+            evenyloProtect: listingId?.evenyloProtect,
+            specialRequests: listingId?.specialRequests,
           },
         };
         console.log(payload, 'payloadpayloadpayloadpayloadpayload');
-
         setIsLoadding(true);
         const response = await listingAddToCart(payload);
         setIsLoadding(false);
@@ -653,6 +658,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
       <OrderBooking
         data={data}
         isVisible={modalVisible}
+        type={'add'}
         selectedDate={{startDate, endDate}}
         onClose={() => setModalVisible(false)}
         handleAddToWishList={handleAddToWishList}

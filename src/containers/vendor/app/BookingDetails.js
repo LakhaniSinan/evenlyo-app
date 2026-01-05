@@ -264,7 +264,7 @@ function BookingDetails({route}) {
                 fontSize: 10,
                 color: COLORS.textLight,
               }}>
-              {listingCartData?.location}
+              {listingCartData?.location?.address || listingCartData?.location}
             </Text>
           </View>
         </View>

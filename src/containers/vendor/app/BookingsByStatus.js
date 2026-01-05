@@ -23,7 +23,7 @@ const BookingsByStatus = ({navigation, route}) => {
   const event = route.params;
   console.log(event, 'titletitletitletitletitletitle');
 
-  const [activeTab, setActiveTab] = useState(TABS[0]);
+  const [activeTab, setActiveTab] = useState(0);
   const [listingCartData, setListingCartData] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -116,7 +116,9 @@ const BookingsByStatus = ({navigation, route}) => {
 
           <Text style={styles.bookingId}>
             Location:{' '}
-            {item?.listingDetails?.location?.fullAddress || 'Not specified'}
+            {item?.listingDetails?.location?.address ||
+              item?.listingDetails?.location?.fullAddress ||
+              'Not specified'}
           </Text>
 
           <Text style={styles.bookingId}>

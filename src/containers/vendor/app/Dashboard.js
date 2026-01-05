@@ -68,10 +68,10 @@ const Dashboard = () => {
   const handleGetDashboard = useCallback(async () => {
     try {
       const response = await getDashboard();
-      console.log(response, 'responseresponseresponseresponse1231232222');
+      console.log(response?.data, 'responseresponseresponseresponse1231232222');
 
       if (response?.status === 200 || response?.status === 201) {
-        setDashboardData(response.data);
+        setDashboardData(response?.data || null);
       } else {
         modalRef.current?.show({
           status: 'error',
@@ -139,7 +139,7 @@ const Dashboard = () => {
         <View style={styles.headerContainer}>
           <Text style={styles.welcomeText}>Welcome, John Doe</Text>
           <Text style={styles.roleText}>
-            Role: Vendor • Here's an overview of your business performance
+            // Role: Vendor • Here's an overview of your business performance
           </Text>
         </View>
 
@@ -205,7 +205,7 @@ const Dashboard = () => {
           />
         </View>
 
-        <View style={styles.sectionContainer}>
+        {/* <View style={styles.sectionContainer}>
           <ViewMoreButton
             showViewAll={dashboardData?.activityLog?.length > 3}
             heading="Activity Log"
@@ -218,9 +218,9 @@ const Dashboard = () => {
             renderItem={renderActivityLog}
             keyExtractor={(item, index) => index.toString()}
           />
-        </View>
+        </View> */}
 
-        <View style={styles.sectionContainer}>
+        {/* <View style={styles.sectionContainer}>
           <ViewMoreButton
             showViewAll={dashboardData?.recentClients?.length > 3}
             heading="Recently Joined Clients"
@@ -236,9 +236,9 @@ const Dashboard = () => {
             renderItem={renderRecentClients}
             keyExtractor={(item, index) => index.toString()}
           />
-        </View>
+        </View> */}
 
-        <CommonAlert ref={modalRef} />
+        {/* <CommonAlert ref={modalRef} /> */}
       </ScrollView>
     </>
   );

@@ -12,7 +12,9 @@ const RecentBookingCards = ({item, index, dataLength}) => {
 
   // 🟩 Capitalize each word in a name
   const capitalizeWords = text => {
-    if (!text) {return '';}
+    if (!text) {
+      return '';
+    }
     return text
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -21,7 +23,9 @@ const RecentBookingCards = ({item, index, dataLength}) => {
 
   // 🟦 Get initials for avatar
   const getInitials = name => {
-    if (!name) {return '';}
+    if (!name) {
+      return '';
+    }
     const parts = name.split(' ');
     return parts.length > 1
       ? `${parts[0][0]}${parts[1][0]}`.toUpperCase()
@@ -35,14 +39,12 @@ const RecentBookingCards = ({item, index, dataLength}) => {
         isLastItem && {borderBottomWidth: 0, borderBottomColor: 'transparent'},
       ]}>
       <View style={styles.row}>
-        {/* Avatar */}
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
             {getInitials(item.clientName || item?.customer)}
           </Text>
         </View>
 
-        {/* Info Section */}
         <View style={styles.infoContainer}>
           <View style={[styles.row, {marginBottom: 4}]}>
             <Text style={styles.name}>{capitalizeWords(item.clientName)}</Text>
@@ -50,10 +52,11 @@ const RecentBookingCards = ({item, index, dataLength}) => {
           </View>
 
           <Text style={styles.service}>Tracking ID: {item.trackingId}</Text>
-          <Text style={styles.location}>📍 {item.location}</Text>
+          <Text style={styles.location}>
+            📍 {item?.location?.address || item?.location}
+          </Text>
         </View>
 
-        {/* Right Section */}
         <View style={styles.rightSection}>
           <TouchableOpacity
             style={styles.trackButton}
