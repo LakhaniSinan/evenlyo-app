@@ -17,7 +17,7 @@ import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import {setUserData} from '../../redux/slice/auth';
-import {loginUser, loginVendor, socialLogin} from '../../services/Auth';
+import {loginClient, loginVendor, socialLogin} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
 
 import GradientButton from '../button';
@@ -48,18 +48,26 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
     const {email, password} = formData;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!email.trim()) {return showAlert('Please enter your email.');}
-    if (!emailRegex.test(email))
-      {return showAlert('Please enter a valid email address.');}
-    if (!password.trim()) {return showAlert('Please enter your password.');}
-    if (password.length < 8)
-      {return showAlert('Password must be at least 8 characters long.');}
+    if (!email.trim()) {
+      return showAlert('Please enter your email.');
+    }
+    if (!emailRegex.test(email)) {
+      return showAlert('Please enter a valid email address.');
+    }
+    if (!password.trim()) {
+      return showAlert('Please enter your password.');
+    }
+    if (password.length < 8) {
+      return showAlert('Password must be at least 8 characters long.');
+    }
 
     return true;
   };
 
   const handleLogin = async () => {
-    if (!validateInputs()) {return;}
+    if (!validateInputs()) {
+      return;
+    }
     const {email, password} = formData;
 
     try {
@@ -69,14 +77,14 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
       const response =
         user?.type === 'vendor'
           ? await loginVendor(payload)
-          : await loginUser(payload);
+          : await loginClient(payload);
 
       const {status, data} = response;
       setIsLoading(false);
 
       if (status === 200 || status === 201) {
         const userData = data?.user;
-        const accessToken = data?.tokens?.access;
+        const accessToken = data?.token;
         onClose();
         await AsyncStorage.multiSet([
           ['token', JSON.stringify(accessToken)],

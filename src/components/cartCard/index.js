@@ -16,7 +16,6 @@ const CartCard = ({
   isSelected,
 }) => {
   const {currentLanguage} = useTranslation();
-  console.log(item, 'itemitemitemitemitemitemasdasd');
 
   const title = useMemo(() => {
     const data = item?.listingId?.title || item?.listingDetails?.title;
@@ -159,45 +158,50 @@ const CartCard = ({
         </View>
       </View>
 
-      <View style={styles.bottom}>
-        <Text style={styles.metaText}>
-          {item?.details?.eventLocation?.address || vendorName}
-        </Text>
+      {type == 'requested' && (
+        <>
+          <View style={styles.bottom}>
+            <Text style={styles.metaText}>
+              {item?.details?.eventLocation?.address || vendorName}
+            </Text>
 
-        {paymentRows.map(row => {
-          if (!row?.value > 0) {
-            return;
-          }
-          return (
-            <View key={row.label} style={styles.spaceBetween}>
-              <Text style={[styles.metaText, {color: row.color}]}>
-                {row.label}
-              </Text>
-              <Text style={[styles.metaText, {color: row.color}]}>
-                {`${row.value !== 'Paid' ? '$' : ''}${row.value}`}
+            {paymentRows.map(row => {
+              if (!row?.value > 0) {
+                return;
+              }
+              return (
+                <View key={row.label} style={styles.spaceBetween}>
+                  <Text style={[styles.metaText, {color: row.color}]}>
+                    {row.label}
+                  </Text>
+                  <Text style={[styles.metaText, {color: row.color}]}>
+                    {`${row.value !== 'Paid' ? '$' : ''}${row.value}`}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+
+          {item?.pricingBreakdown?.requiresFullPayment ? (
+            <View
+              style={[
+                styles.warningBox,
+                {backgroundColor: '#FEE2E2', borderColor: COLORS.red},
+              ]}>
+              <Text style={[styles.warningText, {color: COLORS.red}]}>
+                Full payment of ${`${item?.pricingBreakdown?.total}`} required
               </Text>
             </View>
-          );
-        })}
-      </View>
-
-      {item?.pricingBreakdown?.requiresFullPayment ? (
-        <View
-          style={[
-            styles.warningBox,
-            {backgroundColor: '#FEE2E2', borderColor: COLORS.red},
-          ]}>
-          <Text style={[styles.warningText, {color: COLORS.red}]}>
-            Full payment of ${`${item?.pricingBreakdown?.total}`} required
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.warningBox}>
-          <Text style={styles.warningText}>
-            Remaining balance of should be cleared by 18/01/2026 (one day before
-            event).
-          </Text>
-        </View>
+          ) : (
+            <View style={styles.warningBox}>
+              <Text style={styles.warningText}>
+                Remaining balance of{' '}
+                {item?.AmountLeft ? `$${item?.AmountLeft}` : ''} should be
+                cleared by (one day before event).
+              </Text>
+            </View>
+          )}
+        </>
       )}
     </View>
   );

@@ -13,6 +13,7 @@ import {
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
 
+import {useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import BookingList from '../../../components/bookingCard';
@@ -76,11 +77,10 @@ const TabItem = React.memo(({label, active, onPress}) => {
   );
 });
 
-/* -------------------- SCREEN -------------------- */
-
 const BooKings = () => {
   const navigation = useNavigation();
   const modalRef = useRef(null);
+  const {user} = useSelector(state => state.LoginSlice);
 
   const [mainTab, setMainTab] = useState('Booking Items');
   const [bookingStatusTab, setBookingStatusTab] = useState('all order');
@@ -91,8 +91,6 @@ const BooKings = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  /* -------------------- API CALLS -------------------- */
 
   const fetchBookingHistory = useCallback(async () => {
     try {
@@ -116,14 +114,14 @@ const BooKings = () => {
     }
   }, []);
 
-  /* -------------------- EFFECT -------------------- */
-
   useEffect(() => {
-    setIsLoading(true);
-    const apiCall =
-      mainTab === 'Booking Items' ? fetchBookingHistory : fetchSaleOrders;
+    if (user?._id) {
+      setIsLoading(true);
+      const apiCall =
+        mainTab === 'Booking Items' ? fetchBookingHistory : fetchSaleOrders;
 
-    apiCall().finally(() => setIsLoading(false));
+      apiCall().finally(() => setIsLoading(false));
+    }
   }, [mainTab, fetchBookingHistory, fetchSaleOrders]);
 
   /* -------------------- REFRESH -------------------- */

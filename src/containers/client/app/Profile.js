@@ -48,10 +48,10 @@ const AuthModals = ({
   showLogin,
   showForgot,
   showRegister,
-  handlePressFun,
   setShowLogin,
   setShowForgot,
   setShowRegister,
+  handlePressFun,
 }) => (
   <>
     <LoginModal
@@ -75,21 +75,19 @@ const AuthModals = ({
 const Profile = () => {
   const {t} = useTranslation();
   const dispatch = useDispatch();
-  const {user} = useSelector(state => state.LoginSlice);
   const navigation = useNavigation();
   const modalRef = useRef(null);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const {user} = useSelector(state => state.LoginSlice);
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
-  console.log(isLoggedIn, 'isLoggedInisLoggedInisLoggedInisLoggedIn');
-
-  // modals
   const [showLogin, setShowLogin] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
-  const data = [
+  const generalOptions = [
     {name: t('Personal Info'), navigate: 'personalInfo', icon: ICONS.userIcon},
     {
       name: t('Security Details'),
@@ -99,7 +97,7 @@ const Profile = () => {
     {name: t('Settings'), navigate: 'Settings', icon: ICONS.settings},
   ];
 
-  const data2 = [
+  const supportOptions = [
     {
       name: t('Help & Support'),
       navigate: 'HelpAndSupport',
@@ -108,40 +106,46 @@ const Profile = () => {
     {name: t('Logout'), navigate: 'Logout', icon: ICONS.logout},
   ];
 
-  useFocusEffect(
-    useCallback(() => {
-      setTimeout(() => {
-        checkUserLoggedIn();
-      }, 1000);
-    }, []),
-  );
-
   const checkUserLoggedIn = async () => {
-    const userToken = await AsyncStorage.getItem('token');
-    const token = userToken ? JSON.parse(userToken) : null;
-    setIsLoggedIn(!!token);
+    try {
+      setCheckingAuth(true);
+
+      const token = await AsyncStorage.getItem('token');
+      setIsLoggedIn(!!token);
+    } catch (error) {
+      console.log('Auth check error:', error);
+      setIsLoggedIn(false);
+    } finally {
+      setCheckingAuth(false);
+    }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      checkUserLoggedIn();
+    }, [showLogin]),
+  );
+
   const handlePressFun = type => {
-    setShowForgot(false);
     setShowLogin(false);
+    setShowForgot(false);
     setShowRegister(false);
 
-    if (type === 'forgot') {
-      setTimeout(() => setShowForgot(true), 500);
-    } else if (type === 'reset' || type === 'goBackToLogin') {
-      setTimeout(() => setShowLogin(true), 500);
-    } else if (type === 'register') {
-      setTimeout(() => setShowRegister(true), 500);
+    if (type === 'forgot') setShowForgot(true);
+    if (type === 'reset' || type === 'goBackToLogin') setShowLogin(true);
+    if (type === 'register') setShowRegister(true);
+
+    if (!type) {
+      setIsLoggedIn(true);
     }
+
     checkUserLoggedIn();
   };
 
-  const handleNavigate = navigate => {
+  const handleNavigate = async navigate => {
     if (navigate === 'Logout') {
       dispatch(setUserData(null));
-      AsyncStorage.removeItem('userData');
-      AsyncStorage.removeItem('token');
+      await AsyncStorage.multiRemove(['userData', 'token']);
       setIsLoggedIn(false);
     } else {
       navigation.navigate(navigate);
@@ -149,7 +153,7 @@ const Profile = () => {
   };
 
   const RenderProfileContent = () => (
-    <>
+    <ScrollView>
       <View style={{alignItems: 'center', marginTop: width(4)}}>
         <Image
           style={{height: 100, width: 100, borderRadius: 200}}
@@ -158,33 +162,25 @@ const Profile = () => {
           }
         />
         <Text style={styles.userName}>
-          {user?.firstName + ' ' + user?.lastName || 'N/A'}
+          {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'N/A'}
         </Text>
         <Text style={styles.userEmail}>{user?.email || 'N/A'}</Text>
       </View>
+
       <View style={{marginTop: width(4), marginHorizontal: width(3)}}>
         <Text style={styles.sectionTitle}>{t('General')}</Text>
-        {data.map(item => (
+        {generalOptions.map(item => (
           <TouchableOpacity
             key={item.name}
             onPress={() => navigation.navigate(item.navigate)}
             style={styles.optionContainer}>
-            <Image
-              resizeMode="contain"
-              style={styles.optionIcon}
-              source={item.icon}
-            />
+            <Image style={styles.optionIcon} source={item.icon} />
             <Text style={styles.optionText}>{item.name}</Text>
-            <View style={{flex: 1, alignItems: 'flex-end'}}>
-              <Image
-                style={styles.arrowIcon}
-                resizeMode="contain"
-                source={ICONS.arrowRight}
-              />
-            </View>
+            <Image style={styles.arrowIcon} source={ICONS.arrowRight} />
           </TouchableOpacity>
         ))}
       </View>
+
       <View
         style={{
           marginTop: width(4),
@@ -192,38 +188,32 @@ const Profile = () => {
           marginBottom: 10,
         }}>
         <Text style={styles.sectionTitle}>{t('Help & Support')}</Text>
-        {data2.map(item => (
+        {supportOptions.map(item => (
           <TouchableOpacity
             key={item.name}
             onPress={() => handleNavigate(item.navigate)}
             style={styles.optionContainer}>
-            <Image
-              resizeMode="contain"
-              style={styles.optionIcon}
-              source={item.icon}
-            />
+            <Image style={styles.optionIcon} source={item.icon} />
             <Text style={styles.optionText}>{item.name}</Text>
-            <View style={{flex: 1, alignItems: 'flex-end'}}>
-              <Image
-                style={styles.arrowIcon}
-                resizeMode="contain"
-                source={ICONS.arrowRight}
-              />
-            </View>
+            <Image style={styles.arrowIcon} source={ICONS.arrowRight} />
           </TouchableOpacity>
         ))}
       </View>
-    </>
+    </ScrollView>
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <AppHeader headingText={t('Profile')} />
-      {isLoggedIn ? (
+
+      {checkingAuth ? (
+        <Loader isLoading />
+      ) : isLoggedIn ? (
         <RenderProfileContent />
       ) : (
         <UserLoginPlaceholder onLoginPress={() => setShowLogin(true)} />
       )}
+
       <AuthModals
         showLogin={showLogin}
         showForgot={showForgot}
@@ -233,14 +223,17 @@ const Profile = () => {
         setShowRegister={setShowRegister}
         handlePressFun={handlePressFun}
       />
+
       <CommonAlert ref={modalRef} />
-      <Loader isLoading={isLoading} />
-    </ScrollView>
+    </View>
   );
 };
 
+export default Profile;
+
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: 'white'},
+  container: {flex: 1, backgroundColor: COLORS.white},
+
   placeholderContainer: {
     flex: 1,
     height: height(80),
@@ -260,6 +253,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
+
   userName: {
     color: COLORS.black,
     marginTop: 5,
@@ -272,6 +266,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansSemiMedium,
   },
+
   optionContainer: {
     borderRadius: 10,
     marginTop: width(4),
@@ -287,13 +282,13 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
     marginLeft: 15,
     color: COLORS.black,
+    flex: 1,
   },
   arrowIcon: {width: width(3), height: width(3)},
+
   sectionTitle: {
     fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.black,
   },
 });
-
-export default Profile;

@@ -218,7 +218,7 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
     try {
       setIsLoading(true);
       const res = await createPaymentIntent({
-        amount: Math.round(totalAmount * 100),
+        amount: Math.round(totalAmount),
       });
 
       console.log(res, 'asjdbasdjkbaskdjbaskjdbjaksd');

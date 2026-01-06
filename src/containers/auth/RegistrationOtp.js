@@ -9,11 +9,13 @@ import Loader from '../../components/loder';
 import OTPInputScreen from '../../components/otpScreen';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
-import {registerUser, vendorRegister} from '../../services/Auth';
+import {register, registerUser, vendorRegister} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
 
 const RegistrationOtp = ({route, navigation}) => {
   const data = route.params;
+  console.log(data, 'datadatadatadatadatadata');
+
   const modalRef = useRef(null);
   const {t} = useTranslation();
   const [otp, setOtp] = useState('');
@@ -21,9 +23,6 @@ const RegistrationOtp = ({route, navigation}) => {
 
   const handleVerifyOtp = async () => {
     try {
-      setIsLoading(true);
-
-      // vendor with personal info
       const vendorPersonalPayload = {
         accountType: data?.vendorType,
         firstName: data?.personalInfo?.firstName,
@@ -45,7 +44,6 @@ const RegistrationOtp = ({route, navigation}) => {
         otp,
       };
 
-      // vendor with business info
       const vendorBusinessPayload = {
         accountType: data?.vendorType,
         businessName: data?.businessInfo?.companyName,
@@ -75,7 +73,24 @@ const RegistrationOtp = ({route, navigation}) => {
           ? vendorBusinessPayload
           : vendorPersonalPayload;
 
-      const response = await vendorRegister(vendorPayload);
+      const params = {
+        firstName: data?.firstName,
+        lastName: data?.lastName,
+        email: data?.email,
+        address: data?.address,
+        contactNumber: data?.contactNumber,
+        password: data?.password,
+        confirmPassword: data?.confirmPassword,
+        type: data?.type,
+        otp,
+      };
+
+      setIsLoading(true);
+
+      const response =
+        data?.type == 'client'
+          ? await register(params)
+          : await vendorRegister(vendorPayload);
 
       setIsLoading(false);
 

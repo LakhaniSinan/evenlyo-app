@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
@@ -41,6 +41,7 @@ function CartScreen({navigation}) {
   const dispatch = useDispatch();
   const {t} = useTranslation();
   const modalRef = useRef(null);
+  const {user} = useSelector(state => state.LoginSlice);
   const [payModalVisible, setPayModalVisible] = useState(false);
   const [orderBookingForm, setOrderBookingForm] = useState(false);
   const [cancelConfirmation, setCancelConfirmation] = useState(false);
@@ -63,7 +64,7 @@ function CartScreen({navigation}) {
 
   useFocusEffect(
     useCallback(() => {
-      handleGetCartListing();
+      if (user?._id) handleGetCartListing();
     }, [modalVisible, payModalVisible, orderBookingForm]),
   );
 
@@ -319,6 +320,11 @@ function CartScreen({navigation}) {
     );
   };
 
+  const isEmpty =
+    activeTab === 'bookingItem'
+      ? listingCartData.length === 0 && accepetedBookings.length === 0
+      : saleItem.length === 0;
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <AppHeader
@@ -328,14 +334,28 @@ function CartScreen({navigation}) {
       />
 
       <ScrollView
-        style={{flexGrow: 1}}
+        contentContainerStyle={{flexGrow: 1}}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
         {renderTabs()}
 
-        {activeTab === 'bookingItem' ? (
+        {isEmpty ? (
+          <View
+            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <Text
+              style={{
+                fontSize: 14,
+                fontFamily: fontFamly.PlusJakartaSansMedium,
+                color: COLORS.textLight,
+              }}>
+              {activeTab === 'bookingItem'
+                ? 'No Booking Item In Cart'
+                : 'No Sale Item In Cart'}
+            </Text>
+          </View>
+        ) : activeTab === 'bookingItem' ? (
           <>
             {renderSection('Request Add To Cart', listingCartData, () =>
               navigation.navigate('SeeAllRequestCart'),
@@ -348,7 +368,7 @@ function CartScreen({navigation}) {
           renderSection('Sale Items', saleItem)
         )}
       </ScrollView>
-      {activeTab === 'bookingItem' && (
+      {accepetedBookings?.length > 0 && activeTab === 'bookingItem' && (
         <View style={{margin: width(3)}}>
           <GradientButton
             text={t('Process to Checkout')}
@@ -413,7 +433,6 @@ function CartScreen({navigation}) {
 
 export default CartScreen;
 
-// ================== STYLES ==================
 const styles = StyleSheet.create({
   tabContainer: {
     flexDirection: 'row',
