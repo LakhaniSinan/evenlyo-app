@@ -16,6 +16,7 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 
+import {Rating} from 'react-native-ratings';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
@@ -30,8 +31,6 @@ import {updateVendorDetails} from '../../../services/Vendor';
 function ProfileManagement({navigation, route}) {
   const {t, currentLanguage} = useTranslation();
   const data = route.params;
-
-  const workTypeRef = useRef(null);
   const teamSizeRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -54,7 +53,7 @@ function ProfileManagement({navigation, route}) {
     companyAddress: '',
     companyWebsite: '',
     selecctSizeRef: '',
-    teamWorkRef: '',
+    teamSize: '',
     category: '',
     subCategory: '',
     kvkNumber: '',
@@ -98,7 +97,7 @@ function ProfileManagement({navigation, route}) {
         companyAddress: data?.businessLocation || '',
         companyWebsite: data?.businessWebsite || '',
         selecctSizeRef: data?.teamType === 'Single' ? 'Single' : 'Team',
-        teamWorkRef: data?.teamSize || '',
+        teamSize: data?.teamSize || '',
         kvkNumber: data?.kvkNumber || '',
       }));
     } else {
@@ -202,25 +201,12 @@ function ProfileManagement({navigation, route}) {
 
       <Spacing height={15} />
 
-      <CustomPicker
-        ref={workTypeRef}
-        labelll="Selection"
-        label="Selection"
-        value={formData.teamWorkRef}
-        dropdownContainerStyle={{backgroundColor: COLORS.backgroundLight}}
-        listData={[
-          {name: "It's Just Me"},
-          {name: '1-5'},
-          {name: '11-20'},
-          {name: '21-50'},
-          {name: '51-100'},
-          {name: '101-200'},
-          {name: '201-500'},
-          {name: '501-1000'},
-          {name: '1001-2000'},
-        ]}
-        name="teamWorkRef"
-        handleSelectValue={handleSelectValue}
+      <TextField
+        label={t('Team Size')}
+        placeholder={t('Number of team')}
+        value={formData.teamSize}
+        onChangeText={val => handleInputChange('teamSize', val)}
+        bgColor={COLORS.backgroundLight}
       />
 
       <Spacing />
@@ -454,7 +440,70 @@ function ProfileManagement({navigation, route}) {
     );
   });
 
-  // =================== IMAGE UPLOAD & AUTO UPDATE ===================
+  const handleUpdate = useCallback(
+    async (overrideData = {}, isPartial = false) => {
+      try {
+        setIsLoading(true);
+
+        const dataToUse = isPartial
+          ? overrideData
+          : {...formData, ...overrideData};
+        let payload = {};
+
+        if (data?.accountType === 'business') {
+          payload = {
+            accountType: 'business',
+            businessName: dataToUse.companyName,
+            businessEmail: dataToUse.companyEmail,
+            businessPhone: dataToUse.contact,
+            businessWebsite: dataToUse.companyWebsite,
+            businessLocation: dataToUse.companyAddress,
+            businessLogo: dataToUse.businessLogo,
+            businessImage: dataToUse.businessImage,
+            description: dataToUse.description,
+            teamSize: dataToUse.teamSize,
+            kvkNumber: dataToUse.kvkNumber,
+            mainCategories: dataToUse.category || data?.mainCategories,
+            subCategories: dataToUse.subCategory || data?.subCategories,
+            tagline: dataToUse.tagline,
+          };
+        } else {
+          payload = {
+            accountType: 'personal',
+            firstName: dataToUse.firstName,
+            lastName: dataToUse.lastName,
+            email: dataToUse.email,
+            contactNumber: dataToUse.contact,
+            address: dataToUse.address,
+            passportNumber: dataToUse.cnicPassport,
+            postalCode: dataToUse.postalCode,
+            city: dataToUse.city,
+            businessLogo: dataToUse.businessLogo,
+            businessImage: dataToUse.businessImage,
+            mainCategories: dataToUse.category || data?.mainCategories,
+            subCategories: dataToUse.subCategory || data?.subCategories,
+            tagline: dataToUse.tagline,
+            description: dataToUse.description,
+          };
+        }
+
+        const response = await updateVendorDetails(payload);
+
+        if (response?.status === 201 || response?.status === 200) {
+          Alert.alert('Success', response?.data?.message);
+        } else {
+          Alert.alert('Error', response?.data?.message);
+        }
+      } catch (error) {
+        console.error('handleUpdate error:', error);
+        Alert.alert('Error', 'Failed to update vendor.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [formData, data],
+  );
+
   const handleImageUpload = useCallback(
     async field => {
       launchImageLibrary({mediaType: 'photo', selectionLimit: 1}, async res => {
@@ -502,74 +551,6 @@ function ProfileManagement({navigation, route}) {
     [handleInputChange],
   );
 
-  // =================== HANDLE UPDATE ===================
-  const handleUpdate = useCallback(
-    async (overrideData = {}) => {
-      try {
-        setIsLoading(true);
-
-        const mergedData = {...formData, ...overrideData};
-        let payload = {};
-
-        if (data?.accountType === 'business') {
-          payload = {
-            accountType: 'business',
-            businessName: mergedData.companyName,
-            businessEmail: mergedData.companyEmail,
-            businessPhone: mergedData.contact,
-            businessWebsite: mergedData.companyWebsite,
-            businessLocation: mergedData.companyAddress,
-            businessLogo: mergedData.businessLogo,
-            businessImage: mergedData.businessImage,
-            description: mergedData.description,
-            teamSize: mergedData.teamWorkRef,
-            kvkNumber: mergedData.kvkNumber,
-            mainCategories: mergedData.category || data?.mainCategories,
-            subCategories: mergedData.subCategory || data?.subCategories,
-            tagline: mergedData.tagline,
-          };
-        } else {
-          payload = {
-            accountType: 'personal',
-            firstName: mergedData.firstName,
-            lastName: mergedData.lastName,
-            email: mergedData.email,
-            contactNumber: mergedData.contact,
-            address: mergedData.address,
-            passportNumber: mergedData.cnicPassport,
-            postalCode: mergedData.postalCode,
-            city: mergedData.city,
-            businessLogo: mergedData.businessLogo,
-            businessImage: mergedData.businessImage,
-            mainCategories: mergedData.category || data?.mainCategories,
-            subCategories: mergedData.subCategory || data?.subCategories,
-            tagline: mergedData.tagline,
-            description: mergedData.description,
-          };
-        }
-
-        console.log('Updating vendor with payload:', payload);
-        const response = await updateVendorDetails(payload);
-        console.log(
-          response,
-          'responseresponseresponseresponseresponseasdasdasdasdasd',
-        );
-
-        if (response?.success) {
-          Alert.alert('Success', 'Profile updated successfully.');
-        } else {
-          Alert.alert('Error', response?.message || 'Something went wrong.');
-        }
-      } catch (error) {
-        console.error('handleUpdate error:', error);
-        Alert.alert('Error', 'Failed to update vendor.');
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [formData, data],
-  );
-
   return (
     <SafeAreaView style={styles.container}>
       <Loader isLoading={isLoading} />
@@ -613,16 +594,17 @@ function ProfileManagement({navigation, route}) {
               </TouchableOpacity>
             </View>
 
-            {/* <View style={styles.businessInfo}>
-              <Text style={styles.businessName}>{formData.name}</Text>
-              <Text style={styles.businessMeta}>
-                10k {t('followers')} • 200-500 {t('employees')}
+            <View style={styles.businessInfo}>
+              <Text style={styles.businessName}>
+                {formData.companyName ||
+                  `${formData.firstName}``${formData.lastName}`}
               </Text>
+
               <View style={styles.ratingContainer}>
                 <Rating count={5} defaultRating={4} imageSize={12} readonly />
                 <Text style={styles.ratingText}>4.5 (127 {t('reviews')})</Text>
               </View>
-            </View> */}
+            </View>
           </View>
         </ImageBackground>
 
@@ -638,7 +620,7 @@ function ProfileManagement({navigation, route}) {
         <Spacing />
 
         <View style={styles.footer}>
-          <GradientButton text={'Save & Change'} />
+          <GradientButton text={'Save & Change'} onPress={handleUpdate} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -684,8 +666,11 @@ const styles = StyleSheet.create({
   logoContainer: {
     position: 'absolute',
     bottom: -80,
+    zIndex: 9999,
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
+    height: width(25),
+    flex: 1,
   },
   logoWrapper: {
     borderWidth: 2,
@@ -706,7 +691,6 @@ const styles = StyleSheet.create({
   },
   businessInfo: {
     marginLeft: width(4),
-    flex: 1,
   },
   businessName: {
     color: COLORS.black,
@@ -730,13 +714,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     marginBottom: 10,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: width(10),
-    gap: 10,
-    justifyContent: 'flex-end',
-  },
+
   categoryContainer: {
     paddingHorizontal: width(4),
   },

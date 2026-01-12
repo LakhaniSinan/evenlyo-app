@@ -312,3 +312,36 @@ export const calculateAvailableDaysWithHours = ({
     unavailableDates,
   };
 };
+
+export const getTimeAgoStatus = (createdAt) => {
+  if (!createdAt) return '';
+
+  const now = moment();
+  const created = moment(createdAt);
+
+  const minutes = now.diff(created, 'minutes');
+  const hours = now.diff(created, 'hours');
+  const days = now.diff(created, 'days');
+  const weeks = now.diff(created, 'weeks');
+  const months = now.diff(created, 'months');
+  const years = now.diff(created, 'years');
+
+  if (minutes < 1) return 'Just now';
+  if (minutes === 1) return '1 min ago';
+  if (minutes < 60) return `${minutes} mins ago`;
+
+  if (hours === 1) return '1 hour ago';
+  if (hours < 24) return `${hours} hours ago`;
+
+  if (days === 1) return '1 day ago';
+  if (days < 7) return `${days} days ago`;
+
+  if (weeks === 1) return '1 week ago';
+  if (weeks < 4) return `${weeks} weeks ago`;
+
+  if (months === 1) return 'Last month';
+  if (months < 12) return `${months} months ago`;
+
+  if (years === 1) return 'Last year';
+  return `${years} years ago`;
+};

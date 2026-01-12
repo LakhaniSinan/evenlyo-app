@@ -94,23 +94,25 @@ const OrderBooking = ({
 
         // prefill location (address + coords) if available
         if (data?.eventLocation) {
-          const coords = data.eventLocation.coordinates || {};
+          const coords = {
+            latitude: data.eventLatitude || data?.lat || 0,
+            longitude: data.eventLongitude || data?.lng || 0,
+          };
+
           setSelectedCoords({
-            userAddress: data.eventLocation.address || '',
+            userAddress: data.eventLocation || '',
             latLng: {
-              latitude: coords.latitude ?? coords.lat ?? 0,
-              longitude: coords.longitude ?? coords.lng ?? 0,
-              lat: coords.latitude ?? coords.lat ?? 0,
-              lng: coords.longitude ?? coords.lng ?? 0,
+              latitude: coords.latitude,
+              longitude: coords.longitude,
+              lat: coords.latitude,
+              lng: coords.longitude,
             },
           });
         }
 
-        // prefill extra flags and instructions if present
         setIsChecked(Boolean(data?.evenyloProtect || false));
         setInstructions(data?.specialRequests || data?.instructions || '');
 
-        // prefill times when present in data
         if (data?.startTime) {
           const st = moment(data.startTime, ['HH:mm', 'hh:mm A']).set({
             year: moment(s).year(),
@@ -129,7 +131,6 @@ const OrderBooking = ({
           setEndTime(en.isValid() ? en.toDate() : null);
         }
 
-        // mark available dates within range
         if (s) {
           const updated = getInitialMarkedDates(availableDays, ref);
 
@@ -188,7 +189,6 @@ const OrderBooking = ({
               const d = start.format('YYYY-MM-DD');
               const dayName = start.format('ddd').toLowerCase();
 
-              // ✅ highlight only available days inside range
               if (availableDays.includes(dayName)) {
                 updated[d] = {
                   ...(updated[d] || {}),
@@ -464,19 +464,12 @@ const OrderBooking = ({
             ? moment(endTime).format('HH:mm')
             : null,
 
-        eventLocation: {
-          address: selectedCoords?.userAddress || '',
-          coordinates: {
-            latitude:
-              selectedCoords?.latLng?.latitude ??
-              selectedCoords?.latLng?.lat ??
-              0,
-            longitude:
-              selectedCoords?.latLng?.longitude ??
-              selectedCoords?.latLng?.lng ??
-              0,
-          },
-        },
+        eventLocation: selectedCoords?.userAddress,
+        eventLatitude:
+          selectedCoords?.latLng?.latitude || selectedCoords?.latLng?.lat || 0,
+        eventLongitude:
+          selectedCoords?.latLng?.longitude || selectedCoords?.latLng?.lng || 0,
+
         specialRequests: instructions || null,
         contactPreference: 'email',
 
@@ -706,19 +699,13 @@ const OrderBooking = ({
         listingId: data?._id,
         startDate: startDateStr || '',
         endDate: endDateStr || startDateStr || '',
-        eventLocation: {
-          address: selectedCoords?.userAddress || '',
-          coordinates: {
-            latitude:
-              selectedCoords?.latLng?.latitude ??
-              selectedCoords?.latLng?.lat ??
-              0,
-            longitude:
-              selectedCoords?.latLng?.longitude ??
-              selectedCoords?.latLng?.lng ??
-              0,
-          },
-        },
+
+        eventLocation: selectedCoords?.userAddress,
+        eventLatitude:
+          selectedCoords?.latLng?.latitude ?? selectedCoords?.latLng?.lat ?? 0,
+        evenongitude:
+          selectedCoords?.latLng?.longitude ?? selectedCoords?.latLng?.lng ?? 0,
+
         startTime:
           startTime && isSingleDateSelected
             ? moment(startTime).format('HH:mm')
@@ -821,19 +808,11 @@ const OrderBooking = ({
       listingId: data?._id,
       startDate: startDateStr,
       endDate: endDateStr,
-      eventLocation: {
-        address: selectedCoords?.userAddress || '',
-        coordinates: {
-          latitude:
-            selectedCoords?.latLng?.latitude ??
-            selectedCoords?.latLng?.lat ??
-            0,
-          longitude:
-            selectedCoords?.latLng?.longitude ??
-            selectedCoords?.latLng?.lng ??
-            0,
-        },
-      },
+      eventLocation: selectedCoords?.userAddress,
+      eventLatitude:
+        selectedCoords?.latLng?.latitude || selectedCoords?.latLng?.lat || 0,
+      eventLongitude:
+        selectedCoords?.latLng?.longitude || selectedCoords?.latLng?.lng || 0,
       specialRequests: instructions,
       distance: Number(distance) || 0,
       paymentPolicy: data?.paymentPolicy,
@@ -841,7 +820,6 @@ const OrderBooking = ({
       startTime: moment(startTime).format('hh:mm A'),
       endTime: moment(endTime).format('hh:mm A'),
     };
-    console.log(details, 'detailsdetailsdetailsdetails');
 
     handleAddToWishList(details);
   };

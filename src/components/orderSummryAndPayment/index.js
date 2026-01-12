@@ -1,4 +1,4 @@
-import {CardField, StripeProvider} from '@stripe/stripe-react-native';
+import {CardField} from '@stripe/stripe-react-native';
 import React, {memo, useMemo} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
@@ -28,7 +28,9 @@ const OrderSummary = memo(
     onCancelPress,
     setCardDetails,
   }) => {
-    if (!selectedProductsArray.length) {return null;}
+    if (!selectedProductsArray.length) {
+      return null;
+    }
 
     const vendor = selectedProductsArray[0]?.vendor;
     const deliveryTotal = useMemo(
@@ -175,14 +177,12 @@ const OrderSummary = memo(
             <View style={[styles.box, {marginTop: width(4)}]}>
               <Text style={styles.boxTitle}>Card Information *</Text>
 
-              <StripeProvider publishableKey="pk_test_qblFNYngBkEdjEZ16jxxoWSM">
-                <CardField
-                  postalCodeEnabled={false}
-                  style={styles.cardFieldContainer}
-                  cardStyle={styles.cardField}
-                  onCardChange={setCardDetails}
-                />
-              </StripeProvider>
+              <CardField
+                postalCodeEnabled={false}
+                style={styles.cardFieldContainer}
+                cardStyle={styles.cardField}
+                onCardChange={setCardDetails}
+              />
             </View>
 
             <View style={styles.actionRow}>

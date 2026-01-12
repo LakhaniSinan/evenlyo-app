@@ -29,6 +29,7 @@ const PersonalInfo = ({navigation}) => {
   const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const {profileData, fetchProfile} = useProfile();
+  console.log(profileData, 'profileDataprofileDataprofileDataprofileData');
 
   useEffect(() => {
     handleGetProfile();
@@ -46,6 +47,7 @@ const PersonalInfo = ({navigation}) => {
     email: '',
     contactNumber: '',
     address: '',
+    profileImage: '',
   });
 
   useEffect(() => {
@@ -55,7 +57,8 @@ const PersonalInfo = ({navigation}) => {
         lastName: profileData?.lastName || 'N/A',
         email: profileData?.email || 'N/A',
         contactNumber: profileData?.contactNumber || '',
-        address: profileData?.address?.fullAddress || 'N/A',
+        address: profileData?.address || 'N/A',
+        profileImage: profileData?.profileImage,
       });
     }
   }, [profileData]);
@@ -65,12 +68,24 @@ const PersonalInfo = ({navigation}) => {
   };
 
   const validateFields = () => {
-    if (!formData.firstName.trim()) {return 'First name is required';}
-    if (!formData.lastName.trim()) {return 'Last name is required';}
-    if (!formData.email.trim()) {return 'Email is required';}
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {return 'Enter a valid email';}
-    if (!formData.contactNumber.trim()) {return 'Contact number is required';}
-    if (!formData.address.trim()) {return 'Address is required';}
+    if (!formData.firstName.trim()) {
+      return 'First name is required';
+    }
+    if (!formData.lastName.trim()) {
+      return 'Last name is required';
+    }
+    if (!formData.email.trim()) {
+      return 'Email is required';
+    }
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      return 'Enter a valid email';
+    }
+    if (!formData.contactNumber.trim()) {
+      return 'Contact number is required';
+    }
+    if (!formData.address.trim()) {
+      return 'Address is required';
+    }
     return null;
   };
 
@@ -88,16 +103,10 @@ const PersonalInfo = ({navigation}) => {
         lastName: formData.lastName,
         email: formData.email,
         contactNumber: formData.contactNumber,
-        address: {
-          city: '',
-          postalCode: '',
-          fullAddress: formData.address,
-        },
+        address: formData.address,
       };
       console.log(payload, 'payloadpayloadpayload');
-
       const response = await updateProfile(payload);
-      console.log(response, 'responseresponseresponseresponse');
 
       if (response?.status === 200 || response?.status === 201) {
         modalRef.current?.show({
@@ -119,14 +128,18 @@ const PersonalInfo = ({navigation}) => {
 
   const handleUpdateImage = () => {
     launchImageLibrary({mediaType: 'photo'}, async response => {
-      if (response.didCancel) {return;}
+      if (response.didCancel) {
+        return;
+      }
       if (response.errorCode) {
         Alert.alert('Error', response.errorMessage);
         return;
       }
 
       const asset = response.assets?.[0];
-      if (!asset) {return;}
+      if (!asset) {
+        return;
+      }
 
       const file = {
         uri: asset.uri,
@@ -138,18 +151,23 @@ const PersonalInfo = ({navigation}) => {
         setIsLoading(true);
 
         const result = await helper.uploadMediaToCloudinary(file);
-
         if (result?.secure_url) {
           const res = await updateProfilePicture({
-            profilePicture: result.secure_url,
+            profileImage: result.secure_url,
           });
           setIsLoading(false);
-          return;
+
+          console.log(res, 'resresresresresresresresresasdasdad');
+
           if (res?.status === 200 || res?.status === 201) {
             modalRef.current?.show({
               status: 'ok',
               message:
                 res?.data?.message || 'Profile picture updated successfully',
+              handlePressOk: () => {
+                modalRef.current?.hide();
+                fetchProfile();
+              },
             });
           } else {
             modalRef.current?.show({
@@ -177,28 +195,43 @@ const PersonalInfo = ({navigation}) => {
           headingText={t('Personal Info')}
         />
 
-        <ImageBackground
-          source={IMAGES.avatarIcon}
+        <View
           style={{
             marginTop: width(4),
             height: 100,
             width: 100,
             alignSelf: 'center',
-            borderRadius: 100,
+            borderRadius: 50,
+            // overflow: 'hidden', // must for ImageBackground
             position: 'relative',
+            backgroundColor: COLORS.backgroundLight, // fallback bg
           }}>
+          <Image
+            source={
+              profileData?.profileImage
+                ? {uri: profileData?.profileImage}
+                : IMAGES.avatarIcon
+            }
+            resizeMode="contain"
+            style={{
+              height: '100%',
+              width: '100%',
+              borderRadius: 100,
+            }}
+          />
           <TouchableOpacity
             onPress={handleUpdateImage}
             style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
               height: width(7),
               width: width(7),
-              borderRadius: 50,
+              borderRadius: width(7) / 2,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: COLORS.primary,
-              position: 'absolute',
-              bottom: 5,
-              right: 5,
+              margin: 5, // spacing from bottom-right
             }}>
             <Image
               resizeMode="contain"
@@ -206,9 +239,8 @@ const PersonalInfo = ({navigation}) => {
               style={{height: '50%', width: '50%'}}
             />
           </TouchableOpacity>
-        </ImageBackground>
+        </View>
 
-        {/* Form Fields */}
         <View style={styles.form}>
           <TextField
             label={t('firstName')}

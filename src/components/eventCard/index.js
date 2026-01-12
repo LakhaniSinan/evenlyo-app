@@ -5,13 +5,15 @@ import {Rating} from 'react-native-ratings';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
-const EventCard = ({item, navigation}) => {
+const EventCard = ({item, navigation, platformFeePercentage}) => {
   const {currentLanguage, t} = useTranslation();
 
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('VendorDetails', item)}>
+      onPress={() =>
+        navigation.navigate('VendorDetails', {...item, platformFeePercentage})
+      }>
       <View
         style={{
           height: width(30),

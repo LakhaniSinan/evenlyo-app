@@ -58,14 +58,14 @@ function CartScreen({navigation}) {
   const [selectedData, setSelectedData] = useState(null);
   const [resuestModalVisible, setResuestModalVisible] = useState(false);
   const [cardDetails, setCardDetails] = useState(null);
-  const [paymentIntentId, setPaymentIntentId] = useState(null);
+  const [amountToPay, setAmountToPay] = useState(0);
   const [clientSecret, setClientSecret] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      if (user?._id) handleGetCartListing();
-    }, [modalVisible, payModalVisible, orderBookingForm]),
+      handleGetCartListing();
+    }, [modalVisible, payModalVisible, user, orderBookingForm]),
   );
 
   const onRefresh = async () => {
@@ -80,8 +80,10 @@ function CartScreen({navigation}) {
     }
     try {
       const response = await getAmountToPay(selectedData?._id);
+
       if (response.status == 200 || response?.status === 201) {
         setIsLoadding(true);
+        setAmountToPay(response?.data?.amountToPay);
         const res = await createPaymentIntent({
           amount: Math.round(response?.data?.amountToPay),
           bookingId: selectedData?._id,
@@ -92,8 +94,6 @@ function CartScreen({navigation}) {
           setPayModalVisible(true);
           const clientSecretValue = res.data.clientSecret;
           setClientSecret(clientSecretValue);
-          const piId = clientSecretValue.split('_secret')[0];
-          setPaymentIntentId(piId);
         }
       }
     } catch (err) {
@@ -180,9 +180,8 @@ function CartScreen({navigation}) {
   };
 
   const handleSelectToPay = item => {
-    const id = item?._id;
-    if (selectedItemId === id) return;
-    setSelectedItemId(id);
+    if (selectedItemId === item?._id) return;
+    setSelectedItemId(item);
     setSelectedData(item);
   };
 
@@ -192,7 +191,7 @@ function CartScreen({navigation}) {
       onEditData={handleBookNow}
       onRemoveItemFromCart={handleRemoveFromCart}
       onSelectToPay={handleSelectToPay}
-      isSelected={selectedItemId === item._id}
+      isSelected={selectedItemId?._id === item._id}
     />
   );
 
@@ -416,6 +415,7 @@ function CartScreen({navigation}) {
       />
       <PaymentModal
         selectedData={selectedData}
+        amountToPay={amountToPay}
         modalRef={modalRef}
         isVisible={payModalVisible}
         setCardDetails={setCardDetails}

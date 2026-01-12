@@ -1,44 +1,20 @@
 // FilterModal.js
-import React, {useEffect, useState} from 'react';
-import {
-  Keyboard,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React, {useState} from 'react';
+import {StyleSheet, Switch, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 
-const NotificationPopup = ({isVisible, onClose}) => {
+const NotificationPopup = ({
+  isVisible,
+  onClose,
+  pushNotification,
+  emailNotification,
+  onChange,
+}) => {
   const {t} = useTranslation();
-  const [emailNotification, setEmailNotification] = useState(false);
-  const [pushNotification, setPushNotification] = useState(true);
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      () => {
-        setKeyboardVisible(true);
-      },
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setKeyboardVisible(false);
-      },
-    );
-
-    return () => {
-      keyboardDidHideListener?.remove();
-      keyboardDidShowListener?.remove();
-    };
-  }, []);
 
   return (
     <Modal
@@ -73,7 +49,7 @@ const NotificationPopup = ({isVisible, onClose}) => {
           </View>
           <Switch
             value={emailNotification}
-            onValueChange={setEmailNotification}
+            onValueChange={e => onChange('email', e)}
             trackColor={{
               false: '#E5E5E5',
               true: COLORS.primary,
@@ -101,7 +77,7 @@ const NotificationPopup = ({isVisible, onClose}) => {
           </View>
           <Switch
             value={pushNotification}
-            onValueChange={setPushNotification}
+            onValueChange={e => onChange('push', e)}
             trackColor={{
               false: '#E5E5E5',
               true: COLORS.primary,

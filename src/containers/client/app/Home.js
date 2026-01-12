@@ -38,6 +38,7 @@ const Home = ({navigation, route}) => {
   const {address, city, state: regionState} = locationData;
   const [bookingItems, setBookingItems] = useState([]);
   const [vendorsBySubCat, setVendorsBySubCat] = useState([]);
+
   const [platformFeePercentage, setPlatformFeePercentage] = useState(0);
   const [popularData, setPopularData] = useState([]);
   const [homedata, setHomeData] = useState(null);
@@ -114,6 +115,10 @@ const Home = ({navigation, route}) => {
         setPlatformFeePercentage(
           res?.data?.data?.saleItems?.platformFeePercentage || 0,
         );
+        console.log(
+          res?.data?.data,
+          'res?.data?.data?.saleItemsres?.data?.data?.saleItems',
+        );
       } else {
         modalRef.current?.show({status: 'error', message: res?.data?.message});
       }
@@ -126,7 +131,7 @@ const Home = ({navigation, route}) => {
     try {
       const [bookingRes, vendorRes] = await Promise.all([
         getBookingItems(selected?._id, subCategoriesSelected?._id),
-        getVendorsBySubCategory(subCategoriesSelected?._id),
+        getVendorsBySubCategory(selected?._id),
       ]);
 
       if (bookingRes.status === 200 || bookingRes.status === 201) {
@@ -475,7 +480,13 @@ const Home = ({navigation, route}) => {
             data={vendorsBySubCat || []}
             horizontal={true}
             renderItem={({item}) => {
-              return <EventCard item={item} navigation={navigation} />;
+              return (
+                <EventCard
+                  item={item}
+                  navigation={navigation}
+                  platformFeePercentage={platformFeePercentage}
+                />
+              );
             }}
             keyExtractor={(item, index) => index.toString()}
             ListEmptyComponent={() => (

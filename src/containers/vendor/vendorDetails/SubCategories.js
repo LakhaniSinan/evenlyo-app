@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
-import { SvgUri } from 'react-native-svg';
+import {SvgUri} from 'react-native-svg';
 
 import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
@@ -74,6 +74,8 @@ const SubCategories = ({
 
   const renderSubCategory = useCallback(
     (subItem, isSelected) => {
+      console.log(subItem, 'subItemsubItemsubItemsubItem');
+
       const containerStyle = isSelected
         ? styles.activeContainer
         : styles.inactiveContainer;
@@ -81,8 +83,8 @@ const SubCategories = ({
       const textStyle = isSelected ? styles.activeText : styles.inactiveText;
 
       const iconUri = subItem?.icon;
-      const name = currentLanguage == 'en' ? subItem?.name?.en : subItem?.name?.nl;
-
+      const name =
+        currentLanguage == 'en' ? subItem?.name?.en : subItem?.name?.nl;
       return (
         <TouchableOpacity
           key={subItem._id}
@@ -115,21 +117,19 @@ const SubCategories = ({
   );
 
   const renderItem = useCallback(
-    ({item}) => {
-      return (
+    ({item}) =>
+      (
         <View style={styles.categoryBox}>
           <Text style={styles.roleTitle}>
             {currentLanguage == 'en' ? item.name?.en : item?.name?.nl}
           </Text>
           <View style={styles.subCategoryContainer}>
-            {item.subcategories?.map(subItem =>
-              renderSubCategory(subItem, selectedItems.includes(subItem._id)),
-            )}
+            {item.subcategories?.map(subItem => {
+              renderSubCategory(subItem, selectedItems.includes(subItem._id));
+            })}
           </View>
         </View>
-      );
-    },
-    [selectedItems, renderSubCategory, currentLanguage],
+      )[(selectedItems, renderSubCategory, currentLanguage)],
   );
 
   return (

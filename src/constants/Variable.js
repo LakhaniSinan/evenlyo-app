@@ -35,6 +35,8 @@ export const endPoints = {
   profilePicture: '/settings/profile-picture',
   vendorsCategories: '/vendor/profile/get-main-category',
   changePassword: '/settings/change-password',
+  updateDeliveryFee: '/vendor/profile/update-delivery-charges',
+  notificationSetup: '/settings/notifications',
 
   //Listings
   listings: '/listings',
@@ -65,6 +67,7 @@ export const endPoints = {
 
   //Notifications
   notifications: '/notifications',
+  vendorNotifications: '/notifications/vendor-notifications',
 
   //Vendors APIS
   //Dashboard

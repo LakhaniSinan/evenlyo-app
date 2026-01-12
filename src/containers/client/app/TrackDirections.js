@@ -1,83 +1,100 @@
-import React, {useState} from 'react';
-import {Image, StyleSheet, Text, View} from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import MapView, {Marker} from 'react-native-maps';
 import Icon from 'react-native-vector-icons/Ionicons';
+
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import {COLORS, fontFamly} from '../../../constants';
 
-const TrackDirections = ({navigation}) => {
-  const [vendorData] = useState({
-    name: 'DJ Ray Vibes',
-    service: '+Photo Booth',
-    location: 'Los Angeles, CA',
-    image: ICONS.userIcon || require('../../../assets/icons/userIcon.png'),
-  });
+const TrackDirections = ({navigation, route}) => {
+  const data = route.params;
+  console.log(data, 'datadatadatadatadatadatadatadatadata');
 
-  const [region] = useState({
-    latitude: -6.9175,
-    longitude: 107.6191,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  });
+  const mapRef = useRef(null);
+
+  const latitude = Number(data?.eventLatitude);
+  const longitude = Number(data?.eventLongitude);
+
+  const region = {
+    latitude,
+    longitude,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  };
+
+  useEffect(() => {
+    if (latitude && longitude && mapRef.current) {
+      const timer = setTimeout(() => {
+        mapRef.current.animateToRegion(region, 800);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [latitude, longitude]);
+
+  const handleRecenter = () => {
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(region, 800);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <View
-        style={{
-          position: 'absolute',
-          zIndex: 99,
-          width: width(100),
-          top: -5,
-        }}>
+      <View style={styles.headerWrapper}>
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
-          headingText={'Track Detail'}
+          headingText="Track Detail"
           rightIcon={ICONS.notificationIcon}
           onRightIconPress={() => navigation.navigate('Notifications')}
           onLeftIconPress={() => navigation.goBack()}
         />
       </View>
+
       <View style={styles.mapContainer}>
-        <MapView
-          style={styles.map}
-          region={region}
-          showsUserLocation={true}
-          showsMyLocationButton={false}
-          showsCompass={false}
-          showsScale={false}
-          showsTraffic={false}
-          showsBuildings={false}
-          showsIndoors={false}
-          showsIndoorLevelPicker={false}
-          showsPointsOfInterest={false}
-          showsMapToolbar={false}
-          mapType="standard">
-          <Marker
-            coordinate={{
-              latitude: -6.9175,
-              longitude: 107.6191,
-            }}
-            title="DJ Ray Vibes"
-            description="Event Location"
-            pinColor="#FF69B4"
-          />
-        </MapView>
+        {latitude && longitude && (
+          <MapView
+            ref={mapRef}
+            style={styles.map}
+            showsUserLocation
+            showsMyLocationButton={false}
+            mapType="standard">
+            <Marker
+              coordinate={{latitude, longitude}}
+              title="Event Location"
+              description={data?.eventLocation}
+              pinColor={COLORS.primary}
+            />
+          </MapView>
+        )}
+
+        <TouchableOpacity
+          style={styles.recenterButton}
+          onPress={handleRecenter}>
+          <Icon name="locate" size={22} color={COLORS.white} />
+        </TouchableOpacity>
       </View>
+
       <View style={styles.bottomCard}>
         <View style={styles.cardContent}>
           <Image
-            source={IMAGES.backgroundImage}
+            source={{uri: data?.businessLogo}}
             style={styles.vendorImage}
             resizeMode="cover"
           />
           <View style={styles.vendorInfo}>
-            <Text style={styles.serviceType}>{vendorData.service}</Text>
-            <Text style={styles.vendorName}>{vendorData.name}</Text>
+            <Text style={styles.serviceType}>Event</Text>
+            <Text style={styles.vendorName}>{data?.firstName}</Text>
             <View style={styles.locationContainer}>
-              <Icon name="location" size={14} color={COLORS.textLight} />
-              <Text style={styles.locationText}>{vendorData.location}</Text>
+              <Icon
+                name="location-outline"
+                size={14}
+                color={COLORS.textLight}
+              />
+              <Text style={styles.locationText} numberOfLines={2}>
+                {data?.eventLocation}
+              </Text>
             </View>
           </View>
         </View>
@@ -86,21 +103,40 @@ const TrackDirections = ({navigation}) => {
   );
 };
 
+export default TrackDirections;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent',
+  },
+
+  headerWrapper: {
+    position: 'absolute',
+    zIndex: 100,
+    width: width(100),
+    top: -5,
   },
 
   mapContainer: {
     flex: 1,
-    position: 'relative',
   },
+
   map: {
     flex: 1,
-    width: '100%',
-    height: '100%',
   },
+
+  recenterButton: {
+    position: 'absolute',
+    right: 15,
+    bottom: 160,
+    backgroundColor: COLORS.primary,
+    width: 45,
+    height: 45,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+  },
+
   bottomCard: {
     position: 'absolute',
     bottom: 0,
@@ -110,54 +146,47 @@ const styles = StyleSheet.create({
     borderRadius: width(5),
     padding: width(3),
     margin: width(5),
-    zIndex: 1000,
   },
+
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+
   vendorImage: {
-    width: 100,
-    height: 100,
+    width: 90,
+    height: 90,
     borderRadius: 12,
-    marginRight: 15,
+    marginRight: 12,
   },
+
   vendorInfo: {
     flex: 1,
   },
+
   serviceType: {
     fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansMedium,
-    color: '#4CAF50',
+    color: COLORS.primary,
     marginBottom: 4,
   },
+
   vendorName: {
     fontSize: 18,
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
     marginBottom: 4,
   },
+
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
   },
+
   locationText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: fontFamly.PlusJakartaSansMedium,
     color: COLORS.textLight,
-  },
-  heartButton: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginLeft: 4,
   },
 });
-
-export default TrackDirections;

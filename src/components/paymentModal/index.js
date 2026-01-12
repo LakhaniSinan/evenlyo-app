@@ -16,7 +16,13 @@ const PaymentModal = ({
   isVisible,
   clientSecret,
   selectedData,
+  amountToPay,
 }) => {
+  console.log(
+    amountToPay,
+    'selectedDataselectedDataselectedDataselectedDataassadsad',
+  );
+
   const {confirmPayment} = useStripe();
   const [cardComplete, setCardComplete] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -79,7 +85,7 @@ const PaymentModal = ({
           const params = {
             bookingId: selectedData?._id,
             paymentIntent: paymentIntent?.id,
-            amount: paymentIntent?.amount / 100,
+            amount: (paymentIntent?.amount / 100).toFixed(2),
           };
           const res = await saveBookingOrder(params);
           if (res.status === 200 || res.status === 201) {
@@ -134,7 +140,7 @@ const PaymentModal = ({
 
           <View style={styles.amountRow}>
             <Text style={styles.amountLabel}>Booking Amount</Text>
-            <Text style={styles.amountValue}>$100.85</Text>
+            <Text style={styles.amountValue}>$ {amountToPay?.toFixed(2)}</Text>
           </View>
         </View>
 

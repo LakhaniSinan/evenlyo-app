@@ -279,7 +279,6 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
 
   const handleAddToWishList = async listingId => {
     const userToken = await AsyncStorage.getItem('token');
-    console.log(listingId, 'listingIdlistingIdlistingIdlistingId');
     if (userToken == null) {
       setShowLoginModal(true);
     } else {
@@ -292,15 +291,17 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
             startTime: listingId?.startTime,
             endTime: listingId?.endTime,
             distance: listingId?.distance,
-            eventLocation: listingId.eventLocation,
+            eventLocation: listingId?.eventLocation,
+            eventLatitude: listingId?.eventLatitude,
+            eventLongitude: listingId?.eventLongitude,
             paymentPolicy: data?.paymentPolicy,
             evenyloProtect: listingId?.evenyloProtect,
             specialRequests: listingId?.specialRequests,
           },
         };
-        console.log(payload, 'payloadpayloadpayloadpayloadpayload');
         setIsLoadding(true);
         const response = await listingAddToCart(payload);
+
         setIsLoadding(false);
         if (response.status == 200 || response.status == 201) {
           modalRef.current.show({
@@ -628,12 +629,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
                         message: 'Please select any available date first!',
                       });
                     }
-                    // if (endDate == null) {
-                    //   return modalRef.current.show({
-                    //     status: 'error',
-                    //     message: 'Please select any available end date first!',
-                    //   });
-                    // }
+
                     setModalVisible(true);
                   }}
                 />

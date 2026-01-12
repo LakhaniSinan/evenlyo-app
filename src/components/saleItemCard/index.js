@@ -1,25 +1,33 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {FlatList, View, Text} from 'react-native';
+import {FlatList, Text, View} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useStripe} from '@stripe/stripe-react-native';
 import {useTranslation} from '../../hooks';
 import {setCartData} from '../../redux/slice/cart';
 import {buySaleItem, createPaymentIntent} from '../../services/Payment';
+import LoginModal from '../authModal';
+import ForgotModal from '../authModal/ForgotModal';
+import RegistrationModal from '../authModal/RegistrationModal';
 import OrderSummary from '../orderSummryAndPayment';
 import VendorCard from './vendorCard';
 
 const SaleItemCard = ({modalRef, setIsLoading}) => {
   const dispatch = useDispatch();
   const {t} = useTranslation();
+  const {confirmPayment} = useStripe();
+
   const {cartData} = useSelector(state => state.CartSlice);
 
   const [localCart, setLocalCart] = useState(cartData || []);
   const [showStripeform, setShowStripeform] = useState(false);
+  const {user} = useSelector(state => state.LoginSlice);
 
   const [deliveryLocation, setDeliveryLocation] = useState('');
   const [deliveryCoords, setDeliveryCoords] = useState(null);
   const [vendorCoords, setVendorCoords] = useState(null);
+  const [clientSecret, setClientSecret] = useState('');
 
   const [selectedVendorIndex, setSelectedVendorIndex] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState({});
@@ -28,7 +36,10 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
   const [deliveryCharges, setDeliveryCharges] = useState(0);
 
   const [cardDetails, setCardDetails] = useState(null);
-  const [paymentIntentId, setPaymentIntentId] = useState(null);
+
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showFrogotModal, setShowFrogotModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
 
   const [inputValues, setInputValues] = useState({
     fullname: '',
@@ -226,9 +237,8 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
       if (res?.data?.clientSecret) {
         const clientSecret = res.data.clientSecret;
 
-        const piId = clientSecret.split('_secret')[0];
+        setClientSecret(clientSecret);
 
-        setPaymentIntentId(piId);
         setShowStripeform(true);
       }
     } catch (err) {
@@ -305,6 +315,9 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
   );
 
   const handlePayPress = async () => {
+    if (!user?.id) {
+      setShowLoginModal(true);
+    }
     if (
       inputValues.fullname.trim() === '' ||
       inputValues.email.trim() === '' ||
@@ -325,7 +338,40 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
       return;
     }
 
+    if (!clientSecret) {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Payment not initialized. Please tap checkout again.',
+      });
+      return;
+    }
+
     try {
+      const {error, paymentIntent} = await confirmPayment(clientSecret, {
+        paymentMethodType: 'Card',
+      });
+      console.log(
+        error,
+        paymentIntent,
+        'error, paymentIntenterror, paymentIntent',
+      );
+
+      if (error) {
+        modalRef.current?.show({
+          status: 'error',
+          message: error.message || 'Payment failed.',
+        });
+        return;
+      }
+
+      if (!paymentIntent) {
+        modalRef.current?.show({
+          status: 'error',
+          message: 'Payment confirmation failed.',
+        });
+        return;
+      }
+
       const vendor = localCart[selectedVendorIndex]?.products[0]?.vendor;
 
       const payload = {
@@ -367,7 +413,8 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
           phone: inputValues.phoneNumber,
         },
 
-        paymentIntentId: paymentIntentId,
+        paymentIntentId: paymentIntent?.id || '',
+        paymentIntentClientSecret: clientSecret, // help backend verify same PI
       };
 
       setIsLoading(true);
@@ -418,7 +465,6 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
     });
 
     setCardDetails(null);
-    setPaymentIntentId(null);
   }, []);
 
   const removeOrderedItemsFromCart = useCallback(() => {
@@ -442,6 +488,33 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
     updateCartInRedux(updatedCart);
     setLocalCart(updatedCart);
   }, [localCart, selectedProducts, updateCartInRedux]);
+
+  const handlePressFun = type => {
+    setShowFrogotModal(false);
+    setShowLoginModal(false);
+    setShowRegisterModal(false);
+
+    if (type == 'forgot') {
+      setTimeout(() => {
+        setShowFrogotModal(true);
+      }, 500);
+    } else if (type == 'reset') {
+      setShowFrogotModal(false);
+      setTimeout(() => {
+        setShowLoginModal(true);
+      }, 500);
+    } else if (type == 'register') {
+      setShowLoginModal(false);
+      setTimeout(() => {
+        setShowRegisterModal(true);
+      }, 500);
+    } else if (type == 'goBackToLogin') {
+      setShowRegisterModal(false);
+      setTimeout(() => {
+        setShowLoginModal(true);
+      }, 500);
+    }
+  };
 
   return (
     <View style={{flex: 1}}>
@@ -488,6 +561,21 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
           }
         />
       )}
+      <LoginModal
+        isVisible={showLoginModal}
+        onClose={() => setShowLoginModal(!showLoginModal)}
+        handlePressFun={handlePressFun}
+      />
+      <ForgotModal
+        isVisible={showFrogotModal}
+        onClose={() => setShowFrogotModal(!showFrogotModal)}
+        handlePressFun={handlePressFun}
+      />
+      <RegistrationModal
+        isVisible={showRegisterModal}
+        onClose={() => setShowRegisterModal(!showRegisterModal)}
+        handlePressFun={handlePressFun}
+      />
     </View>
   );
 };

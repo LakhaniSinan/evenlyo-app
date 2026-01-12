@@ -2,12 +2,6 @@ import {endPoints, requestType} from '../constants/Variable';
 import Api from './index';
 
 export const checkIsChatedBefore = (clientId, vendorId) => {
-  console.log(
-    clientId,
-    vendorId,
-    'clientId, vendorIdclientId, vendorIdclientId, vendorId',
-  );
-
   return Api(
     `${endPoints.checkIsChatedBefore}/${clientId}/${vendorId}`,
     null,

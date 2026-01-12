@@ -25,33 +25,6 @@ import {getAnalyticsReport} from '../../../services/AnalyticsReport';
 
 const TABS = ['Booking Items', 'Sale Items'];
 
-const DUMMY_TABLE_DATA = [
-  {
-    bookingId: 'ITM001',
-    bookingItem: 'DJ',
-    totalCost: '$1,195',
-    earning: '$359',
-  },
-  {
-    bookingId: 'ITM002',
-    bookingItem: 'DJ',
-    totalCost: '$1,195',
-    earning: '$359',
-  },
-  {
-    bookingId: 'ITM003',
-    bookingItem: 'DJ',
-    totalCost: '$1,195',
-    earning: '$359',
-  },
-  {
-    bookingId: 'ITM004',
-    bookingItem: 'DJ',
-    totalCost: '$1,195',
-    earning: '$359',
-  },
-];
-
 const AnalyticsReport = () => {
   const navigation = useNavigation();
   const modalRef = useRef(null);
@@ -79,6 +52,8 @@ const AnalyticsReport = () => {
   const handleGetAnalyticsReport = useCallback(async () => {
     try {
       const response = await getAnalyticsReport();
+      console.log(response, 'responseresponseresponseresponse');
+
       if (response?.status === 200 || response?.status === 201) {
         setAnalyticsReport(response.data);
       } else {
@@ -99,7 +74,9 @@ const AnalyticsReport = () => {
   }, [handleGetAnalyticsReport]);
 
   const handleFilterPress = text => {
-    if (text === 'Filter') {setModalVisible(true);}
+    if (text === 'Filter') {
+      setModalVisible(true);
+    }
   };
 
   const handleDownload = () => {

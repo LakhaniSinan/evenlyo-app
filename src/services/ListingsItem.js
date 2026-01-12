@@ -30,11 +30,7 @@ export const getVendorListingsById = vendorId => {
 };
 
 export const getVendorsBySubCategory = subCatId => {
-  return Api(
-    `${endPoints.vendor}?subcategory=${subCatId}`,
-    null,
-    requestType.GET,
-  );
+  return Api(`${endPoints.vendor}/${subCatId}`, null, requestType.GET);
 };
 
 export const getBookingDetails = Id => {

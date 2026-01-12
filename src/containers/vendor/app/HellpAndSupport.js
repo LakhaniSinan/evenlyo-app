@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   Image,
   SafeAreaView,
@@ -14,83 +14,64 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
+import CommonAlert from '../../../components/commanAlert';
 import CustomerSupport from '../../../components/modals/CustomerSupport';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
-
-const faqData = [
-  {
-    id: 1,
-    question: 'How do I book an event?',
-    answer:
-      'To book an event, simply browse through our vendors, select the one you like, choose your date and time, and click "Book Now". You will receive a confirmation email once your booking is confirmed.',
-  },
-  {
-    id: 2,
-    question: 'Can I cancel my booking?',
-    answer:
-      'Yes, you can cancel your booking up to 24 hours before the event date. Go to your bookings section and click on "Cancel Booking". Please note that cancellation fees may apply.',
-  },
-  {
-    id: 3,
-    question: 'How do I contact a vendor?',
-    answer:
-      'You can contact vendors directly through our messaging system or by clicking the "Contact Me" button on their profile. You can also call them using the phone number provided.',
-  },
-  {
-    id: 4,
-    question: 'What payment methods are accepted?',
-    answer:
-      'We accept all major credit cards, debit cards, PayPal, and bank transfers. All payments are processed securely through our encrypted payment system.',
-  },
-  {
-    id: 5,
-    question: 'How do I become a vendor?',
-    answer:
-      'To become a vendor, click on "Continue as Vendor" during registration. You will need to provide business details, upload necessary documents, and wait for approval from our team.',
-  },
-  {
-    id: 6,
-    question: 'Is there a service fee?',
-    answer:
-      'Yes, there is a small service fee added to each booking to help maintain our platform and provide customer support. The fee is clearly displayed before you confirm your booking.',
-  },
-  {
-    id: 7,
-    question: 'How do I change my account settings?',
-    answer:
-      'Go to your Profile section and tap on Settings. From there you can update your personal information, notification preferences, and language settings.',
-  },
-  {
-    id: 8,
-    question: 'What if I have issues with a vendor?',
-    answer:
-      'If you experience any issues with a vendor, please contact our support team immediately. We will investigate the matter and work to resolve it as quickly as possible.',
-  },
-];
+import {getFaqs} from '../../../services/Faqs';
 
 const HelpAndSupport = ({navigation}) => {
-  const {t} = useTranslation();
-  const [collapsedItems, setCollapsedItems] = useState({});
+  const {t, currentLanguage} = useTranslation();
+  const modalRef = useRef(null);
+  const [activeId, setActiveId] = useState(null);
+
   const [isVisible, setIsVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [faqs, setFaqs] = useState([]);
+
   const insets = useSafeAreaInsets();
   const toggleCollapse = id => {
-    setCollapsedItems(prev => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setActiveId(prev => (prev === id ? null : id));
   };
 
+  useEffect(() => {
+    handleGetFAQs();
+  }, []);
+
+  const handleGetFAQs = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getFaqs();
+      if (response.status == 200 || response.status == 201) {
+        let data = response.data.data;
+        setFaqs(data);
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
+      }
+    } catch {
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const SKELETON_ITEMS = Array.from({length: 6});
+
   const renderFAQItem = item => {
-    const isCollapsed = collapsedItems[item.id] !== false;
+    const isCollapsed = activeId !== item._id;
+
     return (
-      <TouchableOpacity
-        key={item.id}
-        style={styles.faqItem}
-        onPress={() => toggleCollapse(item.id)}
-        activeOpacity={0.7}>
-        <View style={styles.questionContainer}>
-          <Text style={styles.questionText}>{item.question}</Text>
+      <View key={item._id} style={styles.faqItem}>
+        <TouchableOpacity
+          style={styles.questionContainer}
+          onPress={() => toggleCollapse(item._id)}
+          activeOpacity={0.7}>
+          <Text style={styles.questionText}>
+            {currentLanguage === 'en' ? item.question.en : item?.question?.nl}
+          </Text>
+
           <Image
             source={ICONS.rightIcon}
             style={[
@@ -99,14 +80,26 @@ const HelpAndSupport = ({navigation}) => {
             ]}
             resizeMode="contain"
           />
-        </View>
+        </TouchableOpacity>
 
-        <Collapsible collapsed={isCollapsed} duration={300}>
+        <Collapsible collapsed={isCollapsed} duration={250}>
           <View style={styles.answerContainer}>
-            <Text style={styles.answerText}>{item.answer}</Text>
+            <Text style={styles.answerText}>
+              {currentLanguage === 'en' ? item.answer.en : item?.answer?.nl}
+            </Text>
           </View>
         </Collapsible>
-      </TouchableOpacity>
+      </View>
+    );
+  };
+  const renderSkeletonItem = (_, index) => {
+    return (
+      <View key={index} style={styles.faqItem}>
+        <View style={styles.questionContainer}>
+          <View style={styles.skeletonQuestion} />
+          <View style={styles.skeletonArrow} />
+        </View>
+      </View>
     );
   };
 
@@ -124,11 +117,16 @@ const HelpAndSupport = ({navigation}) => {
         contentContainerStyle={styles.scrollContent}>
         <View style={styles.headerSection}>
           <Text style={styles.headerTitle}>
-            {t('Questions? We\'re Happy to Answer!')}
+            {t("Questions? We're Happy to Answer!")}
           </Text>
         </View>
-        <View style={styles.faqSection}>{faqData.map(renderFAQItem)}</View>
-        <View
+        <View style={styles.faqSection}>
+          {isLoading
+            ? SKELETON_ITEMS.map(renderSkeletonItem)
+            : faqs.map(renderFAQItem)}
+        </View>
+
+        {/* <View
           style={{
             borderRadius: width(5),
             backgroundColor: COLORS.backgroundLight,
@@ -170,13 +168,14 @@ const HelpAndSupport = ({navigation}) => {
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
             />
           </View>
-        </View>
+        </View> */}
       </ScrollView>
-      <CustomerSupport
+      {/* <CustomerSupport
         isVisible={isVisible}
         onClose={() => setIsVisible(false)}
       />
       <View style={{height: insets.bottom}} />
+      <CommonAlert ref={modalRef} /> */}
     </SafeAreaView>
   );
 };
@@ -298,6 +297,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
     color: COLORS.white,
+  },
+
+  skeletonQuestion: {
+    height: 12,
+    width: '75%',
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+  },
+
+  skeletonArrow: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#E5E7EB',
   },
 });
 

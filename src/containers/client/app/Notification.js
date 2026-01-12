@@ -6,10 +6,10 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS, IMAGES} from '../../../assets';
-import Loader from '../../../components/loder';
 import FilterModal from '../../../components/modals/FilterModal';
 import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
@@ -19,19 +19,11 @@ import {formatRelativeTime} from '../../../utils';
 
 const Notification = ({navigation}) => {
   const [isModalVisible, setModalVisible] = useState(false);
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const {fetchNotifications, loading, notification} = useNotifications();
 
-  // fallback dummy data if nothing fetched
-  const fallbackData = useMemo(
-    () =>
-      Array(6).fill({
-        image: IMAGES.profilePhoto,
-        heading: 'Get Disc 20%',
-        subHeading: 'Thanks for the quick response',
-      }),
-    [],
-  );
+  // Skeleton items for loading
+  const skeletonData = useMemo(() => Array(6).fill({}), []);
 
   useEffect(() => {
     fetchNotifications();
@@ -43,11 +35,36 @@ const Notification = ({navigation}) => {
   );
 
   const renderItem = useCallback(
-    ({item}) => {
+    ({item, index}) => {
+      if (loading) {
+        return (
+          <View style={styles.itemContainer}>
+            <View style={[styles.imageWrapper, {backgroundColor: '#eee'}]} />
+            <View style={styles.messageContainer}>
+              <View
+                style={{
+                  height: 15,
+                  backgroundColor: '#eee',
+                  width: '70%',
+                  borderRadius: 4,
+                }}
+              />
+              <View
+                style={{
+                  height: 12,
+                  backgroundColor: '#ddd',
+                  width: '90%',
+                  marginTop: 6,
+                  borderRadius: 4,
+                }}
+              />
+            </View>
+          </View>
+        );
+      }
+
       return (
-        <TouchableOpacity
-          style={styles.itemContainer}
-          onPress={handleItemPress}>
+        <View style={styles.itemContainer} onPress={handleItemPress}>
           <View style={styles.leftContainer}>
             <View style={styles.imageWrapper}>
               <Image
@@ -60,8 +77,8 @@ const Notification = ({navigation}) => {
 
             <View style={styles.messageContainer}>
               <View style={styles.titleRow}>
-                <Text style={styles.titleText} numberOfLines={1}>
-                  {item?.title || 'Notification'}
+                <Text style={styles.titleText}>
+                  {currentLanguage === 'en' ? item?.title?.en : item?.title?.nl}
                 </Text>
                 <View style={styles.rightContainer}>
                   <Text style={styles.timeText}>
@@ -74,15 +91,17 @@ const Notification = ({navigation}) => {
                   />
                 </View>
               </View>
-              <Text style={styles.subHeading} numberOfLines={2}>
-                {item?.message || item?.subHeading}
+              <Text style={styles.subHeading}>
+                {currentLanguage === 'en'
+                  ? item?.message?.en
+                  : item?.message?.nl}
               </Text>
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
       );
     },
-    [handleItemPress],
+    [handleItemPress, loading, currentLanguage],
   );
 
   return (
@@ -115,7 +134,7 @@ const Notification = ({navigation}) => {
             </View>
           </View>
         }
-        data={notification && notification.length ? notification : fallbackData}
+        data={loading ? skeletonData : notification}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
@@ -131,7 +150,6 @@ const Notification = ({navigation}) => {
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
       />
-      <Loader isLoading={loading} />
     </>
   );
 };
@@ -153,7 +171,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backIcon: {width: 40, height: 40},
-  headerTitle: {fontFamily: fontFamly.PlusJakartaSansBold, fontSize: 16},
+  headerTitle: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 16,
+    color: COLORS.black,
+  },
   headerSpacer: {width: 40},
   searchContainer: {
     flex: 1,
@@ -181,15 +203,13 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
     color: COLORS.textLight,
   },
-
   itemContainer: {
     flexDirection: 'row',
     marginTop: 20,
     marginHorizontal: 14,
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
-  leftContainer: {flexDirection: 'row', alignItems: 'center'},
+  leftContainer: {flexDirection: 'row'},
   imageWrapper: {
     height: width(13),
     width: width(13),

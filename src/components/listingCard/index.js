@@ -9,16 +9,17 @@ import {useTranslation} from '../../hooks';
 const ListingCard = ({item, navigation}) => {
   const {currentLanguage} = useTranslation();
 
+  console.log(item, 'itemitemitemitemitem123132');
+
   const title =
     currentLanguage == 'en' ? item?.title?.en : item?.title?.nl || 'Untitled';
   const subtitle = item?.subtitle?.en || '';
-  const location = item?.location?.fullAddress || 'Unknown';
+  const location = item?.location?.userAddress || 'Unknown';
   const price = item?.pricing?.amount || 0;
   const priceUnit = item?.pricing?.type || '';
   const rating = item?.rating?.average || 0;
   const reviews = item?.rating?.totalReviews || 0;
-  const vendorName = item?.vendor?.businessName || '';
-  const vendorLogo = item?.vendor?.businessLogo;
+  const vendorName = item?.vendor?.businessName || item?.vendor?.fullName;
   const image = item?.images?.[0];
 
   return (
@@ -138,7 +139,7 @@ const ListingCard = ({item, navigation}) => {
             justifyContent: 'space-between',
             marginTop: width(2),
           }}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={{
               height: width(8),
               width: width(8),
@@ -152,7 +153,7 @@ const ListingCard = ({item, navigation}) => {
               style={{height: 20, width: 20}}
               resizeMode="contain"
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity
             onPress={() => navigation.navigate('EventDetails', item)}

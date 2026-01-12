@@ -1,3 +1,4 @@
+import {useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Image, SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
@@ -6,7 +7,10 @@ import AppHeader from '../../../components/appHeader';
 import ChangeLanguageModal from '../../../components/modals/ChangeLanguageModal';
 import NotificationPopup from '../../../components/modals/NotificationDetails';
 import {COLORS, fontFamly} from '../../../constants';
-import {useState} from 'react';
+import {
+  getNotificationsSetup,
+  udpateNotificationsSetup,
+} from '../../../services/Settings';
 
 const getSettingsData = t => [
   {
@@ -24,18 +28,73 @@ const getSettingsData = t => [
 const Settings = ({navigation}) => {
   const {t} = useTranslation();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [emailNotification, setEmailNotification] = useState(false);
+  const [pushNotification, setPushNotification] = useState(false);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
+  const [notificationDraft, setNotificationDraft] = useState({
+    email: false,
+    push: false,
+  });
   const data = getSettingsData(t);
+
+  const handleGetNotificaitonsStatus = async () => {
+    try {
+      const response = await getNotificationsSetup();
+
+      if (response?.status === 200 || response?.status === 201) {
+        const data = response?.data?.data;
+
+        const email = !!data?.emailNotifications;
+        const push = !!data?.pushNotifications;
+
+        setEmailNotification(email);
+        setPushNotification(push);
+
+        setNotificationDraft({
+          email,
+          push,
+        });
+      }
+    } catch (error) {
+      console.log('get notification status failed');
+    }
+  };
+
+  useEffect(() => {
+    handleGetNotificaitonsStatus();
+  }, []);
+
+  const syncNotificationSettings = async () => {
+    try {
+      const params = {
+        emailNotifications: notificationDraft.email,
+        pushNotifications: notificationDraft.push,
+      };
+
+      await udpateNotificationsSetup(params);
+
+      setEmailNotification(notificationDraft.email);
+      setPushNotification(notificationDraft.push);
+    } catch (error) {
+      console.log('notification sync failed');
+    }
+  };
+
+  const openNotificationPopup = () => {
+    setNotificationDraft({
+      email: emailNotification,
+      push: pushNotification,
+    });
+    setShowNotificationPopup(true);
+  };
 
   const handleItemPress = item => {
     if (item.navigate === 'Language') {
       setShowLanguageModal(true);
+    } else if (item.navigate === 'Notifications') {
+      openNotificationPopup();
     } else {
-      if (item.navigate === 'Notifications') {
-        setShowNotificationPopup(true);
-      } else {
-        navigation.navigate(item.navigate);
-      }
+      navigation.navigate(item.navigate);
     }
   };
 
@@ -46,7 +105,7 @@ const Settings = ({navigation}) => {
         headingText={t('Settings')}
         onLeftIconPress={() => navigation.goBack()}
       />
-      {/* {data.map((item, index) => {
+      {data.map((item, index) => {
         return (
           <TouchableOpacity
             key={index}
@@ -68,6 +127,7 @@ const Settings = ({navigation}) => {
             />
             <Text
               style={{
+                color: COLORS.black,
                 fontSize: 13,
                 fontFamily: fontFamly.PlusJakartaSansSemiBold,
                 marginLeft: 15,
@@ -91,15 +151,23 @@ const Settings = ({navigation}) => {
             </View>
           </TouchableOpacity>
         );
-      })} */}
+      })}
 
       <ChangeLanguageModal
         visible={showLanguageModal}
         onClose={() => setShowLanguageModal(false)}
       />
       <NotificationPopup
+        emailNotification={notificationDraft.email}
+        pushNotification={notificationDraft.push}
+        onChange={(type, val) =>
+          setNotificationDraft(prev => ({...prev, [type]: val}))
+        }
         isVisible={showNotificationPopup}
-        onClose={() => setShowNotificationPopup(false)}
+        onClose={() => {
+          setShowNotificationPopup(false);
+          syncNotificationSettings();
+        }}
       />
     </SafeAreaView>
   );

@@ -19,7 +19,7 @@ const EventAndPriceDetails = ({
 
   const {coords} = locationData;
   const {distance} = getDistance(data?.location?.coordinates, coords);
-  // console.log(data, 'datadatadatadatadatadatadataasdad');
+  console.log(data, 'datadatadatadatadatadatadataasdad');
 
   return (
     <View
@@ -36,7 +36,9 @@ const EventAndPriceDetails = ({
             color: COLORS.semiLightText,
             fontSize: 12,
           }}>
-          {data?.location?.userAddress || data?.vendor?.businessLocation}
+          {data?.location?.userAddress ||
+            data?.vendor?.businessLocation ||
+            data?.details?.eventLocation}
         </Text>
         <Text
           style={{

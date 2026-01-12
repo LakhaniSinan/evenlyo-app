@@ -41,7 +41,12 @@ const CartCard = ({
       },
       {
         label: 'Upfront Paid',
-        value: item?.isUpfrontPaid ? 'Paid' : 'Un-Paid',
+        value: item?.isUpfrontPaid ? 'Paid' : 'Un Paid',
+        color: COLORS.navyBlue,
+      },
+      {
+        label: 'Upfront Amount',
+        value: item?.pricingBreakdown?.upfrontFee,
         color: COLORS.navyBlue,
       },
       {
@@ -51,7 +56,7 @@ const CartCard = ({
       },
       {
         label: 'Remaining',
-        value: item?.AmountLeft,
+        value: item?.AmountLeft?.toFixed(2),
         color: COLORS.red,
       },
     ],
@@ -162,11 +167,17 @@ const CartCard = ({
         <>
           <View style={styles.bottom}>
             <Text style={styles.metaText}>
-              {item?.details?.eventLocation?.address || vendorName}
+              {item?.details?.eventLocation || vendorName}
             </Text>
 
             {paymentRows.map(row => {
               if (!row?.value > 0) {
+                return;
+              }
+              if (!item?.willPayUpfront && row?.label == 'Upfront Paid') {
+                return;
+              }
+              if (!item?.willPayUpfront && row?.label == 'Upfront Amount') {
                 return;
               }
               return (
@@ -175,7 +186,9 @@ const CartCard = ({
                     {row.label}
                   </Text>
                   <Text style={[styles.metaText, {color: row.color}]}>
-                    {`${row.value !== 'Paid' ? '$' : ''}${row.value}`}
+                    {!isNaN(row.value)
+                      ? `$${Number(row.value).toFixed(2)}`
+                      : row.value}
                   </Text>
                 </View>
               );
@@ -196,8 +209,8 @@ const CartCard = ({
             <View style={styles.warningBox}>
               <Text style={styles.warningText}>
                 Remaining balance of{' '}
-                {item?.AmountLeft ? `$${item?.AmountLeft}` : ''} should be
-                cleared by (one day before event).
+                {item?.AmountLeft ? `$${item?.AmountLeft.toFixed(2)}` : ''}{' '}
+                should be cleared by (one day before event).
               </Text>
             </View>
           )}

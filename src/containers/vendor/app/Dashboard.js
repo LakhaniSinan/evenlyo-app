@@ -68,7 +68,6 @@ const Dashboard = () => {
   const handleGetDashboard = useCallback(async () => {
     try {
       const response = await getDashboard();
-      console.log(response?.data, 'responseresponseresponseresponse1231232222');
 
       if (response?.status === 200 || response?.status === 201) {
         setDashboardData(response?.data || null);
@@ -205,7 +204,7 @@ const Dashboard = () => {
           />
         </View>
 
-        {/* <View style={styles.sectionContainer}>
+        <View style={styles.sectionContainer}>
           <ViewMoreButton
             showViewAll={dashboardData?.activityLog?.length > 3}
             heading="Activity Log"
@@ -218,9 +217,9 @@ const Dashboard = () => {
             renderItem={renderActivityLog}
             keyExtractor={(item, index) => index.toString()}
           />
-        </View> */}
+        </View>
 
-        {/* <View style={styles.sectionContainer}>
+        <View style={styles.sectionContainer}>
           <ViewMoreButton
             showViewAll={dashboardData?.recentClients?.length > 3}
             heading="Recently Joined Clients"
@@ -236,9 +235,9 @@ const Dashboard = () => {
             renderItem={renderRecentClients}
             keyExtractor={(item, index) => index.toString()}
           />
-        </View> */}
+        </View>
 
-        {/* <CommonAlert ref={modalRef} /> */}
+        <CommonAlert ref={modalRef} />
       </ScrollView>
     </>
   );

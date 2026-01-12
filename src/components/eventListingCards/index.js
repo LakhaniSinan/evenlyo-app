@@ -49,7 +49,7 @@ const EventListingCard = ({onEditIconPress, item, onDeleteIconPress}) => {
           </Text>
           <Text style={styles.buttonText}>Available Stock: {item?.Stock}</Text>
           <Text style={styles.buttonText}>
-            Purchase Price: {item?.PurchasePrice}
+            Purchase Price: {item?.PurchasePrice} /Dar
           </Text>
         </View>
         <View style={styles.footer}>

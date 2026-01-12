@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -16,7 +17,7 @@ import ListingCard from '../../../components/listingCard';
 import Loader from '../../../components/loder';
 import FilterModal from '../../../components/modals/FilterModal';
 import TextField from '../../../components/textInput';
-import {COLORS} from '../../../constants';
+import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {getAllListingData} from '../../../services/ListingsItem';
 
@@ -49,12 +50,10 @@ const EventListingScreen = ({navigation}) => {
       if (response.status === 200 || response.status === 201) {
         setAllListings(data);
 
-        // extract valid coords from both array or object
         const validCoords = data
           .map(item => {
             const coords = item?.location?.coordinates;
             if (Array.isArray(coords) && coords.length === 2) {
-              // format: [longitude, latitude]
               return {latitude: coords[1], longitude: coords[0]};
             } else if (coords?.latitude && coords?.longitude) {
               return {latitude: coords.latitude, longitude: coords.longitude};
@@ -63,7 +62,6 @@ const EventListingScreen = ({navigation}) => {
           })
           .filter(c => c);
 
-        // center map if valid coordinates exist
         if (validCoords.length > 0 && mapRef.current) {
           const avgLat =
             validCoords.reduce((sum, c) => sum + c.latitude, 0) /
@@ -127,6 +125,13 @@ const EventListingScreen = ({navigation}) => {
                 source={ICONS.leftArrowIcon}
               />
             </TouchableOpacity>
+            <Text
+              style={{
+                fontFamily: fontFamly.PlusJakartaSansBold,
+                color: COLORS.black,
+              }}>
+              All Booking Items
+            </Text>
             <TouchableOpacity
               style={{borderRadius: 20}}
               onPress={() => navigation.navigate('Notification')}>

@@ -18,6 +18,7 @@ import FilterModal from '../../../components/modals/FilterModal';
 import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {getAllListingData} from '../../../services/ListingsItem';
 
 const sanFranciscoLocation = {
   latitude: 37.7749,
@@ -30,9 +31,16 @@ const SalesItems = ({navigation}) => {
   const {t} = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
 
+  const handleGetListings = async () => {
+    try {
+      const response = await getAllListingData();
+    } catch (error) {}
+  };
+
   const renderCartItem = ({item}) => {
     return <ListingCard item={item} navigation={navigation} />;
   };
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <ScrollView>
@@ -114,7 +122,7 @@ const SalesItems = ({navigation}) => {
             </TouchableOpacity>
           </View>
         </View>
-        <View
+        {/* <View
           style={{
             height: 200,
             borderRadius: width(5),
@@ -140,7 +148,7 @@ const SalesItems = ({navigation}) => {
               description="San Francisco, CA"
             />
           </MapView>
-        </View>
+        </View> */}
         <FlatList
           data={requested}
           keyExtractor={item => item.id}

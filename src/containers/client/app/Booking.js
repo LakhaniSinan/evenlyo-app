@@ -1,4 +1,4 @@
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   FlatList,
@@ -83,6 +83,8 @@ const BooKings = () => {
   const {user} = useSelector(state => state.LoginSlice);
 
   const [mainTab, setMainTab] = useState('Booking Items');
+  console.log(user, 'mainTabmainTabmainTabmainTab');
+
   const [bookingStatusTab, setBookingStatusTab] = useState('all order');
   const [saleStatusTab, setSaleStatusTab] = useState('Order Placed');
 
@@ -114,17 +116,33 @@ const BooKings = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (user?._id) {
+  useFocusEffect(
+    useCallback(() => {
+      console.log('FOCUS EFFECT RUN');
+    }, []),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.id) return;
+
+      let isActive = true;
       setIsLoading(true);
-      const apiCall =
+
+      const loadData =
         mainTab === 'Booking Items' ? fetchBookingHistory : fetchSaleOrders;
 
-      apiCall().finally(() => setIsLoading(false));
-    }
-  }, [mainTab, fetchBookingHistory, fetchSaleOrders]);
+      loadData()
+        .catch(() => {})
+        .finally(() => {
+          if (isActive) setIsLoading(false);
+        });
 
-  /* -------------------- REFRESH -------------------- */
+      return () => {
+        isActive = false;
+      };
+    }, [user?._id, mainTab]),
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -135,8 +153,6 @@ const BooKings = () => {
     }
     setRefreshing(false);
   };
-
-  /* -------------------- FILTER -------------------- */
 
   const filteredSaleItems = useMemo(() => {
     return saleItems.filter(item => {

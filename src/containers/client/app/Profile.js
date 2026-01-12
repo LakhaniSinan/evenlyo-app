@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   Image,
   ScrollView,
@@ -22,6 +22,7 @@ import Loader from '../../../components/loder';
 import {COLORS, fontFamly} from '../../../constants';
 import useTranslation from '../../../hooks/useTranslation';
 import {setUserData} from '../../../redux/slice/auth';
+import useProfile from '../../../hooks/getProfileData';
 
 const UserLoginPlaceholder = ({onLoginPress}) => {
   const {t} = useTranslation();
@@ -77,12 +78,10 @@ const Profile = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const modalRef = useRef(null);
-
+  const {profileData, fetchProfile} = useProfile();
   const {user} = useSelector(state => state.LoginSlice);
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-
   const [showLogin, setShowLogin] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
@@ -126,6 +125,10 @@ const Profile = () => {
     }, [showLogin]),
   );
 
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
   const handlePressFun = type => {
     setShowLogin(false);
     setShowForgot(false);
@@ -158,7 +161,9 @@ const Profile = () => {
         <Image
           style={{height: 100, width: 100, borderRadius: 200}}
           source={
-            user?.profileImage ? {uri: user.profileImage} : IMAGES.avatarIcon
+            profileData?.profileImage
+              ? {uri: profileData.profileImage}
+              : IMAGES.avatarIcon
           }
         />
         <Text style={styles.userName}>

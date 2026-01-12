@@ -96,7 +96,7 @@ const RegistrationOtp = ({route, navigation}) => {
 
       if (response?.status === 200 || response?.status === 201) {
         navigation.navigate('AuthSuccess', {
-          type: 'register',
+          type: data?.type == 'vendor' ? 'register' : data?.type,
           message: response?.data?.message,
         });
       } else {

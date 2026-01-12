@@ -4,3 +4,6 @@ import Api from './index';
 export const getNotifications = () => {
   return Api(endPoints.notifications, null, requestType.GET);
 };
+export const getVendorNotifications = () => {
+  return Api(endPoints.vendorNotifications, null, requestType.GET);
+};
