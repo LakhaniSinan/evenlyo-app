@@ -2,13 +2,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FlatList, Image, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {useDispatch, useSelector} from 'react-redux';
-import {
-  getBookingItems,
-  getHomeData,
-  getPopulorItems,
-  getVendorsBySubCategory,
-  listingAddToCart,
-} from '../../../services/ListingsItem';
+import {getHomeData, listingAddToCart} from '../../../services/ListingsItem';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ICONS} from '../../../assets';
@@ -36,11 +30,11 @@ const Home = ({navigation, route}) => {
   const dispatch = useDispatch();
   const locationData = useSelector(state => state.LocationSlice);
   const {address, city, state: regionState} = locationData;
-  const [bookingItems, setBookingItems] = useState([]);
-  const [vendorsBySubCat, setVendorsBySubCat] = useState([]);
+
+  const [query, setQuery] = useState('');
 
   const [platformFeePercentage, setPlatformFeePercentage] = useState(0);
-  const [popularData, setPopularData] = useState([]);
+
   const [homedata, setHomeData] = useState(null);
   const [selected, setSelected] = useState(null);
   const [subCategoriesSelected, setSubCategoriesSelected] = useState(null);
@@ -60,12 +54,6 @@ const Home = ({navigation, route}) => {
   }, []);
 
   useEffect(() => {
-    if (subCategoriesSelected && selected) {
-      fetchBookingAndVendors();
-    }
-  }, [subCategoriesSelected]);
-
-  useEffect(() => {
     if (selected?._id) {
       fetchSubCategories(selected._id);
     }
@@ -79,23 +67,8 @@ const Home = ({navigation, route}) => {
       if (subRes.success && subRes.data?.length > 0) {
         setSubCategoriesSelected(subRes.data[0]);
       }
-      fetchPopular();
     } else {
       modalRef.current?.show({status: 'error', message: res.message});
-    }
-  };
-
-  const fetchPopular = async () => {
-    try {
-      const res = await getPopulorItems(6);
-
-      if (res.status === 200 || res.status === 201) {
-        setPopularData(res?.data?.data || []);
-      } else {
-        modalRef.current?.show({status: 'error', message: res.message});
-      }
-    } catch (err) {
-      console.log('Popular fetch error:', err);
     }
   };
 
@@ -107,49 +80,26 @@ const Home = ({navigation, route}) => {
 
   const fetchHomeData = async () => {
     try {
-      const res = await getHomeData(selected?._id, subCategoriesSelected?._id);
+      const params = {
+        categoryId: selected?._id,
+        subCategoryId: subCategoriesSelected?._id,
+      };
+      const res = await getHomeData(params);
+      console.log(res, 'resresresresresresresres213123');
 
       if (res.status === 200 || res.status === 201) {
         setHomeData(res?.data?.data || []);
-        setOtherSaleItems(res?.data?.otherSaleItems || []);
         setPlatformFeePercentage(
           res?.data?.data?.saleItems?.platformFeePercentage || 0,
         );
-        console.log(
-          res?.data?.data,
-          'res?.data?.data?.saleItemsres?.data?.data?.saleItems',
-        );
-      } else {
-        modalRef.current?.show({status: 'error', message: res?.data?.message});
-      }
-    } catch (err) {
-      console.log('Popular fetch error:', err);
-    }
-  };
-
-  const fetchBookingAndVendors = async () => {
-    try {
-      const [bookingRes, vendorRes] = await Promise.all([
-        getBookingItems(selected?._id, subCategoriesSelected?._id),
-        getVendorsBySubCategory(selected?._id),
-      ]);
-
-      if (bookingRes.status === 200 || bookingRes.status === 201) {
-        setBookingItems(bookingRes?.data?.data || []);
       } else {
         modalRef.current?.show({
           status: 'error',
-          message: bookingRes?.data?.message,
+          message: res?.data?.message,
         });
       }
-
-      if (vendorRes.status === 200 || vendorRes.status === 201) {
-        setVendorsBySubCat(vendorRes?.data?.data);
-      } else {
-        modalRef.current?.show({status: 'error', message: vendorRes.message});
-      }
     } catch (err) {
-      console.log('Booking/Vendor fetch error:', err);
+      console.log(err, 'askdnalskdhasjkdhjakshdks');
     }
   };
 
@@ -357,6 +307,8 @@ const Home = ({navigation, route}) => {
                 placeholderTextColor="#aaa"
                 bgColor={COLORS.white}
                 startIcon={ICONS.search}
+                value={query}
+                onChangeText={setQuery}
                 inputContainer={{
                   paddingVertical: 0,
                   paddingHorizontal: 10,
@@ -395,24 +347,6 @@ const Home = ({navigation, route}) => {
           />
         );
 
-      case 'popular':
-        return (
-          <HeadingComponent
-            heading={t('popular')}
-            gradientText={t('nearYou')}
-            rightArrow
-          />
-        );
-
-      case 'popularCard':
-        return (
-          <PopularCard
-            data={popularData}
-            onCardPress={() => {}}
-            type={'home'}
-          />
-        );
-
       case 'bookingItem':
         return (
           <HeadingComponent
@@ -426,7 +360,7 @@ const Home = ({navigation, route}) => {
       case 'homecard':
         return (
           <HomeCard
-            data={homedata?.listings?.data || []}
+            data={homedata?.BookingItems || []}
             onBookingCardPress={onBookingCardPress}
             handleAddToWishList={handleAddToWishList}
           />
@@ -443,7 +377,7 @@ const Home = ({navigation, route}) => {
             />
             <PopularCard
               type={'saleItem'}
-              data={homedata?.saleItems?.data || []}
+              data={homedata?.saleItems || []}
               handleAddToCart={handleAddToCart}
             />
           </>
@@ -459,7 +393,7 @@ const Home = ({navigation, route}) => {
             />
             <PopularCard
               type={'saleItem'}
-              data={otherSaleItems || []}
+              data={homedata?.otherSaleItemms || []}
               handleAddToCart={handleAddToCart}
             />
           </>
@@ -477,7 +411,7 @@ const Home = ({navigation, route}) => {
       case 'eventCard':
         return (
           <FlatList
-            data={vendorsBySubCat || []}
+            data={homedata?.releventVendors || []}
             horizontal={true}
             renderItem={({item}) => {
               return (
@@ -515,6 +449,24 @@ const Home = ({navigation, route}) => {
     }
   };
 
+  const onApplyPress = async item => {
+    const params = {
+      categoryId: selected?._id,
+      subCategoryId: subCategoriesSelected?._id,
+      ...(query && {searchQuery: query}),
+      ...(item?.location && {location: item?.location}),
+      ...(item?.lat && {lat: item?.lat}),
+      ...(item?.lng && {lng: item?.lng}),
+      ...(item?.startDate && {startDate: item?.startDate}),
+      ...(item?.endDate && {endDate: item?.endDate}),
+      ...(item?.startTime && {startTime: item?.startTime}),
+      ...(item?.endTime && {endTime: item?.endTime}),
+    };
+
+    const response = await getHomeData(params);
+    console.log(response, 'responseresponseresponseresponse');
+  };
+
   return (
     <>
       <FlatList
@@ -522,8 +474,8 @@ const Home = ({navigation, route}) => {
           {type: 'header'},
           {type: 'categories'},
           {type: 'subcategories'},
-          {type: 'popular'},
-          {type: 'popularCard'},
+          // {type: 'popular'},
+          // {type: 'popularCard'},
           {type: 'bookingItem'},
           {type: 'homecard'},
           {type: 'saleItem'},
@@ -538,6 +490,9 @@ const Home = ({navigation, route}) => {
         showsVerticalScrollIndicator={false}
       />
       <FilterModal
+        // nestedFilter
+        onApplyPress={onApplyPress}
+        modalRef={modalRef}
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
       />
@@ -563,3 +518,104 @@ const Home = ({navigation, route}) => {
 };
 
 export default Home;
+
+// const asdasd = {
+//   BookingItems: [
+//     {
+//       title: [Object],
+//       subtitle: [Object],
+//       description: [Object],
+//       location: [Object],
+//       availability: [Object],
+//       serviceDetails: [Object],
+//       rating: [Object],
+//       bookings: [Object],
+//       _id: new ObjectId('6926f83f5c1d49ce48b400c6'),
+//       quantity: 71,
+//       vendor: new ObjectId('6911b7d4e8478c7b209eb558'),
+//       category: new ObjectId('68943d2ca1a765a1f78a635b'),
+//       subCategory: new ObjectId('692457736f7216eb2150f682'),
+//       pricing: [Object],
+//       images: [Array],
+//       status: 'active',
+//       isActive: true,
+//       sortOrder: 0,
+//       popular: false,
+//       reviews: [],
+//       createdAt: '2025-11-26T12:53:19.496Z',
+//       updatedAt: '2026-01-07T07:01:18.011Z',
+//       __v: 0,
+//       id: '6926f83f5c1d49ce48b400c6',
+//     },
+//   ],
+//   saleItems: [
+//     {
+//       title: [Object],
+//       _id: new ObjectId('69315aa22bb91499bd9f2b19'),
+//       mainCategory: new ObjectId('68943d2ca1a765a1f78a635b'),
+//       subCategory: new ObjectId('692457736f7216eb2150f682'),
+//       vendor: new ObjectId('6911b7d4e8478c7b209eb558'),
+//       linkedListing: new ObjectId('69299f032c87e6e4e02fafdc'),
+//       purchasePrice: 200,
+//       sellingPrice: 500,
+//       stockQuantity: 68,
+//       image:
+//         'https://res.cloudinary.com/dv0imczul/image/upload/v1764841983/c5jqxkvy7ku5jlhpkit4.png',
+//       extraDeliveryCharges: 200,
+//       location: [Object],
+//       createdAt: '2025-12-04T09:55:46.754Z',
+//       updatedAt: '2026-01-12T09:09:27.059Z',
+//       __v: 0,
+//     },
+//   ],
+//   otherSaleItemms: [
+//     {
+//       title: [Object],
+//       _id: new ObjectId('693fdf5cbde592e3b133075d'),
+//       mainCategory: null,
+//       subCategory: null,
+//       vendor: new ObjectId('6911b7d4e8478c7b209eb558'),
+//       linkedListing: null,
+//       purchasePrice: 100,
+//       sellingPrice: 800,
+//       stockQuantity: 54,
+//       image:
+//         'https://res.cloudinary.com/dv0imczul/image/upload/v1765793607/yjnxvcf7yqhqwq0xkbbt.png',
+//       extraDeliveryCharges: 200,
+//       location: [Object],
+//       createdAt: '2025-12-15T10:13:48.023Z',
+//       updatedAt: '2025-12-19T14:18:12.097Z',
+//       __v: 0,
+//     },
+//   ],
+//   releventVendors: [
+//     {
+//       tagline: [Object],
+//       description: [Object],
+//       whyChooseUs: [Object],
+//       businessDescription: [Object],
+//       rating: [Object],
+//       _id: new ObjectId('6942922e4c37a32c3c005ade'),
+//       userId: new ObjectId('6942922e4c37a32c3c005adc'),
+//       businessName: 'Syeda Gillani',
+//       businessEmail: 'syedagilani4520@gmail.com',
+//       businessPhone: '3185967030',
+//       businessLocation: 'wahcannt',
+//       businessLogo:
+//         'https://res.cloudinary.com/dv0imczul/image/upload/v1765969953/v5ah0xlijrdfpl29rtfq.png',
+//       businessImage:
+//         'https://res.cloudinary.com/dv0imczul/image/upload/v1765969963/fowummbr1mhyxsys5vsn.jpg',
+//       mainCategories: [Array],
+//       subCategories: [Array],
+//       totalBookings: 0,
+//       completedBookings: 0,
+//       isApproved: false,
+//       contactMeEnabled: true,
+//       accountType: 'personal',
+//       reviews: [],
+//       createdAt: '2025-12-17T11:21:18.959Z',
+//       updatedAt: '2026-01-02T06:55:22.467Z',
+//       __v: 0,
+//     },
+//   ],
+// };

@@ -24,6 +24,7 @@ const GooglePlacesInput = ({
   setSelectedLocation,
   showLeftIcon,
   showRightIcon,
+  onEndIconPress,
   callApi,
   lable,
   bgcolor,
@@ -76,12 +77,13 @@ const GooglePlacesInput = ({
   const selectPlace = async item => {
     try {
       const details = await fetchPlaceDetails(item.place_id);
-      if (!details?.geometry?.location) {return;}
+      if (!details?.geometry?.location) {
+        return;
+      }
 
       const {lat, lng} = details.geometry.location;
 
       setSelectedLocation({
-        ...selectedLocation,
         userAddress: item.description,
         latLng: {latitude: lat, longitude: lng},
       });
@@ -205,6 +207,7 @@ const GooglePlacesInput = ({
                 setQuery('');
                 setResults([]);
                 setSelectedLocation({...selectedLocation, userAddress: ''});
+                onEndIconPress();
               }}>
               <AntDesign size={20} name="closecircleo" color={COLORS.black} />
             </TouchableOpacity>

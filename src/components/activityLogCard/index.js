@@ -1,11 +1,14 @@
+import moment from 'moment';
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
-import moment from 'moment';
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 
 const ActivityLogCard = ({item, index, dataLength}) => {
+  const {currentLanguage} = useTranslation();
   const isLastItem = index === dataLength - 1;
+  console.log(item, 'itemitemitemitemitemitemitem3214351');
 
   const formattedTime = moment(item?.createdAt).format(
     'MMM DD, YYYY | hh:mm A',
@@ -25,8 +28,14 @@ const ActivityLogCard = ({item, index, dataLength}) => {
         </View>
 
         <View style={styles.infoContainer}>
-          <Text style={styles.heading}>{item?.heading}</Text>
-          <Text style={styles.description}>{item?.description}</Text>
+          <Text style={styles.heading}>
+            {currentLanguage == 'en' ? item?.heading?.en : item?.heading?.nl}
+          </Text>
+          <Text style={styles.description}>
+            {currentLanguage == 'en'
+              ? item?.description?.en
+              : item?.description?.nl}
+          </Text>
           <View style={styles.rowBetween}>
             <Text style={styles.type}>{item?.type?.replace(/_/g, ' ')}</Text>
             <Text style={styles.time}>{formattedTime}</Text>

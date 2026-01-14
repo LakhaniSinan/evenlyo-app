@@ -36,6 +36,11 @@ const Dashboard = () => {
   const modalRef = useRef(null);
 
   const [dashboardData, setDashboardData] = useState(null);
+  console.log(
+    dashboardData,
+    'dashboardDatadashboardDatadashboardDatadashboardDatadashboardData',
+  );
+
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('Booking');
 
@@ -107,7 +112,7 @@ const Dashboard = () => {
     <ActivityLogCard
       item={item}
       index={index}
-      dataLength={activityData.length}
+      dataLength={dashboardData?.activityLog?.length}
     />
   );
 
@@ -138,7 +143,7 @@ const Dashboard = () => {
         <View style={styles.headerContainer}>
           <Text style={styles.welcomeText}>Welcome, John Doe</Text>
           <Text style={styles.roleText}>
-            // Role: Vendor • Here's an overview of your business performance
+            Role: Vendor • Here's an overview of your business performance
           </Text>
         </View>
 
@@ -179,63 +184,70 @@ const Dashboard = () => {
         <View style={styles.chartContainer}>
           <LineChartComponent
             data={
-              activeTab === 'Booking'
-                ? dashboardData?.orderOverview || []
-                : dashboardData?.salesOverview || []
+              activeTab === 'Booking' ? dashboardData?.orderOverview || [] : []
             }
           />
         </View>
 
-        <View style={styles.sectionContainer}>
-          <ViewMoreButton
-            heading="Recent Bookings Offers"
-            showViewAll={dashboardData?.activityLog?.length > 3}
-            onPress={() =>
-              navigation.navigate(
-                'AllRecentBookings',
-                dashboardData?.recentBookings,
-              )
-            }
-          />
-          <FlatList
-            data={dashboardData?.recentBookings?.slice(0, 3) || []}
-            renderItem={renderRecentBookings}
-            keyExtractor={(item, index) => index.toString()}
-          />
-        </View>
+        {dashboardData?.recentBookings?.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <ViewMoreButton
+              heading="Recent Bookings Offers"
+              showViewAll={dashboardData?.recentBookings?.length > 3}
+              onPress={() =>
+                navigation.navigate(
+                  'AllRecentBookings',
+                  dashboardData?.recentBookings,
+                )
+              }
+            />
+            <FlatList
+              data={dashboardData?.recentBookings?.slice(0, 3) || []}
+              renderItem={renderRecentBookings}
+              keyExtractor={(item, index) => index.toString()}
+            />
+          </View>
+        )}
 
-        <View style={styles.sectionContainer}>
-          <ViewMoreButton
-            showViewAll={dashboardData?.activityLog?.length > 3}
-            heading="Activity Log"
-            onPress={() =>
-              navigation.navigate('AllActivityLog', dashboardData?.activityLog)
-            }
-          />
-          <FlatList
-            data={dashboardData?.activityLog?.slice(0, 3)}
-            renderItem={renderActivityLog}
-            keyExtractor={(item, index) => index.toString()}
-          />
-        </View>
+        {dashboardData?.activityLog?.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <ViewMoreButton
+              showViewAll={dashboardData?.activityLog?.length > 3}
+              heading="Activity Log"
+              onPress={() =>
+                navigation.navigate(
+                  'AllActivityLog',
+                  dashboardData?.activityLog,
+                )
+              }
+            />
+            <FlatList
+              data={dashboardData?.activityLog?.slice(0, 3)}
+              renderItem={renderActivityLog}
+              keyExtractor={(item, index) => index.toString()}
+            />
+          </View>
+        )}
 
-        <View style={styles.sectionContainer}>
-          <ViewMoreButton
-            showViewAll={dashboardData?.recentClients?.length > 3}
-            heading="Recently Joined Clients"
-            onPress={() =>
-              navigation.navigate(
-                'AllRecentClients',
-                dashboardData?.recentClients,
-              )
-            }
-          />
-          <FlatList
-            data={dashboardData?.recentClients?.slice(0, 3) || []}
-            renderItem={renderRecentClients}
-            keyExtractor={(item, index) => index.toString()}
-          />
-        </View>
+        {dashboardData?.recentClients?.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <ViewMoreButton
+              showViewAll={dashboardData?.recentClients?.length > 3}
+              heading="Recently Joined Clients"
+              onPress={() =>
+                navigation.navigate(
+                  'AllRecentClients',
+                  dashboardData?.recentClients,
+                )
+              }
+            />
+            <FlatList
+              data={dashboardData?.recentClients?.slice(0, 3) || []}
+              renderItem={renderRecentClients}
+              keyExtractor={(item, index) => index.toString()}
+            />
+          </View>
+        )}
 
         <CommonAlert ref={modalRef} />
       </ScrollView>
@@ -296,6 +308,7 @@ const styles = {
     marginHorizontal: width(3),
     borderRadius: 12,
     paddingVertical: width(4),
+    marginBottom: width(10),
   },
   viewMoreContainer: {
     flexDirection: 'row',
@@ -316,31 +329,3 @@ const styles = {
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
   },
 };
-
-// ✅ Dummy activity data
-const activityData = [
-  {
-    id: 1,
-    name: 'Sarah Johnson',
-    status: 'New',
-    service: 'Camera Equipment',
-    location: 'Downtown',
-    time: '2 hours ago',
-  },
-  {
-    id: 2,
-    name: 'Mike Chen',
-    status: 'Confirmed',
-    service: 'Sound System',
-    location: 'Downtown',
-    time: '2 hours ago',
-  },
-  {
-    id: 3,
-    name: 'Chen',
-    status: 'Confirmed',
-    service: 'Sound System',
-    location: 'Downtown',
-    time: '2 hours ago',
-  },
-];

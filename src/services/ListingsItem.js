@@ -13,12 +13,8 @@ export const getBookingItems = (catID, subCatId) => {
   );
 };
 
-export const getHomeData = (catID, subCatId) => {
-  return Api(
-    `${endPoints.listingsHome}${catID}&subcategoryId=${subCatId}`,
-    null,
-    requestType.GET,
-  );
+export const getHomeData = params => {
+  return Api(endPoints.listingsHome, params, requestType.POST);
 };
 
 export const getAllListingData = () => {

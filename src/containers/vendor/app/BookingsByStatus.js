@@ -66,6 +66,8 @@ const BookingsByStatus = ({navigation, route}) => {
   }, [handleGetCartListing]);
 
   const BookingCard = ({item}) => {
+    console.log(item, 'itemitemitemitemitemitemitemsdadad');
+
     return (
       <TouchableOpacity
         style={styles.card}
@@ -82,7 +84,6 @@ const BookingsByStatus = ({navigation, route}) => {
           />
         </View>
 
-        {/* 📄 Card Details */}
         <View style={styles.cardDetails}>
           <View style={styles.cardHeader}>
             <Text style={styles.organizer}>
@@ -114,11 +115,10 @@ const BookingsByStatus = ({navigation, route}) => {
               : item?.listingDetails?.title?.nl || 'Untitled'}
           </Text>
 
-          <Text style={styles.bookingId}>
+          <Text numberOfLines={2} style={styles.bookingId}>
             Location:{' '}
             {item?.listingDetails?.location?.address ||
-              item?.listingDetails?.location?.fullAddress ||
-              'Not specified'}
+              item?.details?.eventLocation}
           </Text>
 
           <Text style={styles.bookingId}>
@@ -128,6 +128,9 @@ const BookingsByStatus = ({navigation, route}) => {
           <View style={styles.dateTimeWrapper}>
             <Text style={styles.dateTime}>
               Start: {moment(item?.details?.startDate).format('MMMM DD, YYYY')}
+            </Text>
+            <Text style={styles.dateTime}>
+              End: {moment(item?.details?.startDate).format('MMMM DD, YYYY')}
             </Text>
           </View>
         </View>
@@ -217,7 +220,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   cardImageWrapper: {
-    height: width(30),
+    height: width(40),
     width: width(30),
     borderRadius: 15,
     overflow: 'hidden',
@@ -265,7 +268,6 @@ const styles = StyleSheet.create({
     paddingRight: width(8),
   },
   dateTimeWrapper: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
   },
   dateTime: {

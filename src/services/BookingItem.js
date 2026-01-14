@@ -11,6 +11,13 @@ export const rejectBooking = (bookinID, params) => {
 export const getBookingDetails = bookinID => {
   return Api(`${endPoints.booking}/${bookinID}`, null, requestType.GET);
 };
+export const cancelBooking = (bookinID, params) => {
+  return Api(
+    `${endPoints.booking}/${bookinID}/cancel`,
+    params,
+    requestType.POST,
+  );
+};
 export const acceptBooking = bookinID => {
   return Api(
     `${endPoints.acceptBooking}/${bookinID}/accept`,

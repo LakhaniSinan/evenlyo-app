@@ -1,10 +1,10 @@
 import moment from 'moment';
-import React, {useState} from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {Modal, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Calendar} from 'react-native-calendars';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
-import CustomCalendar from '../customCalendar';
 
 const DateSelector = ({
   startDate,
@@ -12,150 +12,131 @@ const DateSelector = ({
   onStartDateChange,
   onEndDateChange,
   containerStyle,
-  mode = 'range', // 'single' or 'range'
   placeholder = 'Select Date',
 }) => {
   const {t} = useTranslation();
   const [showCalendar, setShowCalendar] = useState(false);
-  const [calendarMode, setCalendarMode] = useState('start'); // 'start' or 'end'
+  const [range, setRange] = useState({
+    start: startDate ? moment(startDate).format('YYYY-MM-DD') : null,
+    end: endDate ? moment(endDate).format('YYYY-MM-DD') : null,
+  });
+  const [isSelectingEnd, setIsSelectingEnd] = useState(false);
 
-  const formatDate = date => {
-    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-      return null;
-    }
-    return moment(date).format('MM/DD/YYYY');
+  useEffect(() => {
+    setRange({
+      start: startDate ? moment(startDate).format('YYYY-MM-DD') : null,
+      end: endDate ? moment(endDate).format('YYYY-MM-DD') : null,
+    });
+  }, [startDate, endDate]);
+
+  const formatDate = date =>
+    date ? moment(date).format('DD MMM YYYY') : placeholder;
+
+  const openCalendar = () => {
+    setShowCalendar(true);
+    setIsSelectingEnd(false);
   };
 
-  const handleDateSelect = (selectedStartDate, selectedEndDate) => {
-    if (mode === 'single') {
-      if (calendarMode === 'start' && onStartDateChange) {
-        onStartDateChange(selectedStartDate);
-      } else if (calendarMode === 'end' && onEndDateChange) {
-        onEndDateChange(selectedStartDate);
-      }
+  const closeCalendar = () => setShowCalendar(false);
+
+  const onDayPress = day => {
+    const selected = day.dateString;
+
+    if (!range.start || !isSelectingEnd) {
+      setRange({start: selected, end: null});
+      onStartDateChange && onStartDateChange(new Date(selected));
+      onEndDateChange && onEndDateChange(null);
+      setIsSelectingEnd(true);
     } else {
-      // Range mode - single date selection per modal
-      if (calendarMode === 'start' && onStartDateChange) {
-        onStartDateChange(selectedStartDate);
-      } else if (calendarMode === 'end' && onEndDateChange) {
-        onEndDateChange(selectedStartDate);
+      let start = range.start;
+      let end = selected;
+
+      if (moment(selected).isBefore(range.start)) {
+        start = selected;
+        end = range.start;
       }
+
+      setRange({start, end});
+      onStartDateChange && onStartDateChange(new Date(start));
+      onEndDateChange && onEndDateChange(new Date(end));
+      closeCalendar();
     }
-    setShowCalendar(false);
   };
 
-  const openCalendarForStart = () => {
-    setCalendarMode('start');
-    setShowCalendar(true);
+  const getMarkedDates = () => {
+    const marked = {};
+
+    if (!range.start) return marked;
+
+    const start = moment(range.start);
+    const end = range.end ? moment(range.end) : start;
+
+    let current = start.clone();
+
+    while (current.isSameOrBefore(end)) {
+      const date = current.format('YYYY-MM-DD');
+
+      marked[date] = {
+        color: COLORS.primary,
+        textColor: COLORS.white,
+        startingDay: date === range.start,
+        endingDay: date === range.end,
+      };
+
+      current.add(1, 'day');
+    }
+
+    return marked;
   };
 
-  const openCalendarForEnd = () => {
-    setCalendarMode('end');
-    setShowCalendar(true);
-  };
-
-  if (mode === 'single') {
-    return (
-      <View style={[styles.container, containerStyle]}>
-        <TouchableOpacity
-          style={styles.dateButton}
-          onPress={openCalendarForStart}>
-          <Text
-            style={[
-              styles.dateText,
-              {color: startDate ? COLORS.textDark : COLORS.textLight},
-            ]}>
-            {formatDate(startDate) || placeholder}
-          </Text>
-        </TouchableOpacity>
-
-        <CustomCalendar
-          isVisible={showCalendar}
-          onClose={() => setShowCalendar(false)}
-          onDateSelect={handleDateSelect}
-          selectedStartDate={startDate}
-          selectedEndDate={null}
-          mode="single"
-          title={t('Select Date') || 'Select Date'}
-        />
-      </View>
-    );
-  }
+  const calendarCurrent = range.start || moment().format('YYYY-MM-DD');
 
   return (
     <View style={[styles.container, containerStyle]}>
       <View style={styles.dateRow}>
-        {/* Start Date */}
         <View style={styles.dateSection}>
           <Text style={styles.label}>{t('Start Date') || 'Start Date'}</Text>
-          <TouchableOpacity
-            style={[
-              styles.dateButton,
-              showCalendar && calendarMode === 'end' && styles.disabledButton,
-            ]}
-            disabled={showCalendar && calendarMode === 'end'}
-            onPress={openCalendarForStart}>
-            <Text
-              style={[
-                styles.dateText,
-                {color: startDate ? COLORS.textDark : COLORS.textLight},
-              ]}>
-              {formatDate(startDate) || t('Select Date') || 'Select Date'}
-            </Text>
+          <TouchableOpacity style={styles.dateButton} onPress={openCalendar}>
+            <Text style={styles.dateText}>{formatDate(range.start)}</Text>
           </TouchableOpacity>
         </View>
 
-        {/* End Date */}
         <View style={styles.dateSection}>
           <Text style={styles.label}>{t('End Date') || 'End Date'}</Text>
-          <TouchableOpacity
-            style={[
-              styles.dateButton,
-              showCalendar && calendarMode === 'start' && styles.disabledButton,
-            ]}
-            disabled={showCalendar && calendarMode === 'start'}
-            onPress={openCalendarForEnd}>
-            <Text
-              style={[
-                styles.dateText,
-                {color: endDate ? COLORS.textDark : COLORS.textLight},
-              ]}>
-              {formatDate(endDate) || t('Select Date') || 'Select Date'}
-            </Text>
+          <TouchableOpacity style={styles.dateButton} onPress={openCalendar}>
+            <Text style={styles.dateText}>{formatDate(range.end)}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Custom Calendar Modal */}
-      <CustomCalendar
-        isVisible={showCalendar}
-        onClose={() => setShowCalendar(false)}
-        onDateSelect={handleDateSelect}
-        selectedStartDate={calendarMode === 'start' ? startDate : null}
-        selectedEndDate={calendarMode === 'end' ? endDate : null}
-        mode="single"
-        title={
-          calendarMode === 'start'
-            ? t('selectStartDate') || 'Select Start Date'
-            : t('selectEndDate') || 'Select End Date'
-        }
-      />
+      <Modal visible={showCalendar} transparent animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.calendarWrapper}>
+            <Calendar
+              markingType="period"
+              markedDates={getMarkedDates()}
+              onDayPress={onDayPress}
+              current={calendarCurrent}
+              theme={{
+                todayTextColor: COLORS.primary,
+                arrowColor: COLORS.primary,
+                monthTextColor: COLORS.textDark,
+                textDayFontFamily: fontFamly.PlusJakartaSansSemiBold,
+                textMonthFontFamily: fontFamly.PlusJakartaSansBold,
+                textDayHeaderFontFamily: fontFamly.PlusJakartaSansSemiBold,
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginTop: width(3),
-  },
-  dateRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  dateSection: {
-    flex: 1,
-    marginHorizontal: width(0.5),
-  },
+  container: {marginTop: width(3)},
+  dateRow: {flexDirection: 'row', justifyContent: 'space-between'},
+  dateSection: {flex: 1, marginHorizontal: width(0.5)},
   label: {
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
@@ -171,14 +152,33 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  disabledButton: {
-    backgroundColor: COLORS.semiLightText,
-    opacity: 0.6,
-  },
   dateText: {
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
     fontSize: 13,
     textAlign: 'center',
+    color: COLORS.black,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  calendarWrapper: {
+    backgroundColor: COLORS.white,
+    marginHorizontal: 20,
+    borderRadius: 20,
+    padding: 10,
+  },
+  closeButton: {
+    marginTop: 10,
+    alignSelf: 'center',
+    padding: 10,
+    backgroundColor: COLORS.primary,
+    borderRadius: 5,
+  },
+  closeText: {
+    color: COLORS.white,
+    fontFamily: fontFamly.PlusJakartaSansBold,
   },
 });
 

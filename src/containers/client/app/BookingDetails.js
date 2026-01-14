@@ -20,8 +20,10 @@ import EventAndPriceDetails from '../../../components/eventDetailAndPrice';
 import GradientText from '../../../components/gradiantText';
 import Loader from '../../../components/loder';
 import {COLORS, fontFamly} from '../../../constants';
-import {getBookingDetails} from '../../../services/BookingItem';
+import {cancelBooking, getBookingDetails} from '../../../services/BookingItem';
 import {useTranslation} from '../../../hooks';
+import CancelBookingModal from '../../../components/modals/CancellationModal';
+import {useSelector} from 'react-redux';
 
 const RenderCards = ({type, data}) => {
   const isCheckIn = type === 'Check In';
@@ -62,7 +64,8 @@ const BookingDetails = ({route, navigation}) => {
   const {currentLanguage} = useTranslation();
   const modalRef = useRef(null);
   const mapRef = useRef(null);
-
+  const {user} = useSelector(state => state.LoginSlice);
+  const [openCancelModal, setOpenCancelModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [bookingData, setBookingData] = useState(null);
 
@@ -126,6 +129,24 @@ const BookingDetails = ({route, navigation}) => {
         },
         600,
       );
+    }
+  };
+
+  const handleConfirmCancelition = async val => {
+    try {
+      const payload = {
+        cancellationReason: {
+          reason: val?.note,
+          requestedBy: user?.userType,
+        },
+      };
+
+      console.log(payload, 'payloadpayloadpayloadpayloadpayloadpayload');
+      return;
+      const response = await cancelBooking(item?._id, payload);
+      console.log(response, 'responseresponseresponseresponseasdasd');
+    } catch (error) {
+      console.log(error, 'errorerrorerrorerrorerrorerrorasds213');
     }
   };
 
@@ -302,6 +323,20 @@ const BookingDetails = ({route, navigation}) => {
             )}
           </View>
           <View
+            style={{backgroundColor: COLORS.white, paddingVertical: width(3)}}>
+            <GradientButton
+              onPress={() => setOpenCancelModal(true)}
+              text={'Cancel'}
+              type="outline"
+              useGradient={true}
+              styleProps={{}}
+              outlineButtonStyle={{
+                backgroundColor: COLORS.backgroundLight,
+                borderColor: COLORS.border,
+              }}
+            />
+          </View>
+          <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -337,7 +372,11 @@ const BookingDetails = ({route, navigation}) => {
           </View>
         </View>
       </ScrollView>
-
+      <CancelBookingModal
+        onConfirm={handleConfirmCancelition}
+        visible={openCancelModal}
+        onClose={() => setOpenCancelModal(false)}
+      />
       <CommonAlert ref={modalRef} />
       <Loader isLoading={isLoading} />
     </SafeAreaView>

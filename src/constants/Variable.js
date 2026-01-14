@@ -44,7 +44,7 @@ export const endPoints = {
   createBooking: '/booking/request',
   populorItems: '/listings/popular?limit',
   bookingItems: '/listings?categoryId',
-  listingsHome: '/listings/home?categoryId=',
+  listingsHome: '/listings/homeData',
   vendorDetails: '/vendors',
   vendor: '/vendor/bycategory',
   vendorDetailsById: '/vendor/details',

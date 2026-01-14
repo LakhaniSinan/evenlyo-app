@@ -9,7 +9,6 @@ import {width} from 'react-native-dimension';
 
 const AllActivityLog = ({route, navigation}) => {
   const data = route.params;
-  console.log(data, 'datadatadatadatadatadata');
   const modalRef = useRef(null);
 
   const renderActivityLog = ({item, index}) => (

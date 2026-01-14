@@ -1,24 +1,27 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
+  Animated,
   FlatList,
   Image,
-  StyleSheet,
   Modal,
-  Animated,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
-import GradientButton from '../button';
-import GradientText from '../gradiantText';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import GradientButton from '../button';
+import GradientText from '../gradiantText';
 
 const CancelBookingModal = ({visible, onClose, onConfirm}) => {
   const {t} = useTranslation();
+
   const [selectedReason, setSelectedReason] = useState('');
+  const [otherNote, setOtherNote] = useState('');
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.8));
 
@@ -32,7 +35,6 @@ const CancelBookingModal = ({visible, onClose, onConfirm}) => {
 
   useEffect(() => {
     if (visible) {
-      // Animate in
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -47,7 +49,6 @@ const CancelBookingModal = ({visible, onClose, onConfirm}) => {
         }),
       ]).start();
     } else {
-      // Animate out
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
@@ -60,36 +61,42 @@ const CancelBookingModal = ({visible, onClose, onConfirm}) => {
           useNativeDriver: true,
         }),
       ]).start();
+
+      // RESET STATE
+      setSelectedReason('');
+      setOtherNote('');
     }
   }, [visible]);
 
   const handleSelect = reason => {
     setSelectedReason(reason);
+
+    if (reason !== 'Other reason') {
+      setOtherNote('');
+    }
   };
 
   const handleConfirm = () => {
-    if (selectedReason) {
-      onConfirm();
-    }
+    if (!selectedReason) return;
+
+    onConfirm({
+      reason: selectedReason,
+      note: selectedReason === 'Other reason' ? otherNote : '',
+    });
   };
 
   return (
     <Modal visible={visible} transparent animationType="none">
-      <Animated.View
-        style={[
-          styles.overlay,
-          { opacity: fadeAnim },
-        ]}
-      >
+      <Animated.View style={[styles.overlay, {opacity: fadeAnim}]}>
         <Animated.View
           style={[
             styles.container,
             {
-              transform: [{ scale: scaleAnim }],
+              transform: [{scale: scaleAnim}],
               opacity: fadeAnim,
             },
-          ]}
-        >
+          ]}>
+          {/* HEADER */}
           <View style={styles.header}>
             <Text style={styles.title}>{t('Cancel Booking')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -104,6 +111,7 @@ const CancelBookingModal = ({visible, onClose, onConfirm}) => {
             {t('Please select a reason for Cancel this booking')}
           </Text>
 
+          {/* REASONS */}
           <FlatList
             data={reasons}
             keyExtractor={item => item}
@@ -115,12 +123,7 @@ const CancelBookingModal = ({visible, onClose, onConfirm}) => {
                   {selectedReason === item && (
                     <Image
                       source={ICONS.cheackIcon}
-                      style={{
-                        width: 18,
-                        height: 18,
-                        marginTop: -2,
-                        marginLeft: -2,
-                      }}
+                      style={styles.checkIcon}
                       resizeMode="cover"
                     />
                   )}
@@ -130,22 +133,41 @@ const CancelBookingModal = ({visible, onClose, onConfirm}) => {
             )}
           />
 
+          {/* OTHER REASON INPUT */}
+          {selectedReason === 'Other reason' && (
+            <View style={styles.inputContainer}>
+              <TextInput
+                placeholder={t('Please write your reason')}
+                value={otherNote}
+                onChangeText={setOtherNote}
+                multiline
+                style={styles.input}
+                placeholderTextColor={COLORS.textLight}
+              />
+            </View>
+          )}
+
+          {/* BUTTONS */}
           <View style={styles.buttonContainer}>
-            <View style={{width: width(35), marginRight: width(2)}}>
+            <View style={{width: width(35)}}>
               <GradientButton
                 text={t('Cancel')}
                 onPress={onClose}
                 type="outline"
-                useGradient={true}
+                useGradient
               />
             </View>
-            <View style={{width: width(44), marginLeft: width(2)}}>
+
+            <View style={{width: width(44)}}>
               <GradientButton
                 text={t('Confirm Cancel')}
                 onPress={handleConfirm}
                 type="filled"
                 textStyle={{fontSize: 14, color: COLORS.white}}
-                disabled={!selectedReason}
+                disabled={
+                  !selectedReason ||
+                  (selectedReason === 'Other reason' && !otherNote.trim())
+                }
               />
             </View>
           </View>
@@ -167,19 +189,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: width(6),
     padding: width(4),
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
     elevation: 10,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     borderBottomWidth: 0.5,
     borderBottomColor: COLORS.border,
     paddingBottom: width(3),
@@ -194,7 +208,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12,
-    color: COLORS.textDark,
     marginVertical: width(2),
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
   },
@@ -214,45 +227,35 @@ const styles = StyleSheet.create({
     marginRight: width(2),
     overflow: 'hidden',
   },
-  radioInner: {
-    width: 7,
-    height: 7,
-    borderRadius: 10,
-    backgroundColor: COLORS.primary,
+  checkIcon: {
+    width: 18,
+    height: 18,
+    marginTop: -2,
+    marginLeft: -2,
   },
   reasonText: {
     fontSize: 12,
-    color: COLORS.textDark,
     fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textDark,
+  },
+  inputContainer: {
+    marginTop: width(2),
+  },
+  input: {
+    minHeight: width(20),
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: width(2),
+    padding: width(3),
+    fontSize: 12,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    textAlignVertical: 'top',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: width(5),
-  },
-  cancelBtn: {
-    flex: 1,
-    marginRight: width(2),
-    paddingVertical: width(3),
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: width(2),
-    alignItems: 'center',
-  },
-  confirmBtn: {
-    flex: 1,
-    marginLeft: width(2),
-    paddingVertical: width(3),
-    backgroundColor: COLORS.primary,
-    borderRadius: width(2),
-    alignItems: 'center',
-  },
-  cancelText: {
-    fontSize: width(4),
-    color: COLORS.textLight,
-  },
-  confirmText: {
-    fontSize: width(4),
-    color: COLORS.white,
   },
 });
 

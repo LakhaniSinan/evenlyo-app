@@ -1,7 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {
-  Image,
   Keyboard,
   ScrollView,
   StyleSheet,
@@ -19,87 +18,136 @@ import GradientButton from '../button';
 import CustomPicker from '../customPicker';
 import DateSelector from '../dateSelector';
 import GradientText from '../gradiantText';
-import RangeSliderComponent from '../rangeSliderComponent';
-import TextField from '../textInput';
+import GooglePlacesInput from '../locationField';
+import TimeSelector from '../timingsSelector';
 
-const FilterModal = ({isVisible, onClose, nestedFilter, showOtherCheckBox}) => {
+const INITIAL_FILTERS = {
+  mainCategory: '',
+  subCategory: '',
+  location: '',
+};
+
+const INITIAL_DATES = {
+  startDate: null,
+  endDate: null,
+};
+
+const INITIAL_TIMINGS = {
+  startTime: null,
+  endTime: null,
+};
+
+const FilterModal = ({
+  isVisible,
+  onClose,
+  nestedFilter = false,
+  modalRef,
+  onApplyPress = () => {},
+}) => {
   const {t} = useTranslation();
-  const [priceRange, setPriceRange] = useState({min: 18, max: 60});
-  const [isSliding, setIsSliding] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-  const lastValuesRef = useRef({min: 0, max: 500});
   const navigation = useNavigation();
-  const mainCategory = useRef(null);
-  const subCategory = useRef(null);
-  const [filterStartDate, setFilterStartDate] = useState(null);
-  const [filterEndDate, setFilterEndDate] = useState(null);
-  const [inputVal, setInputVal] = useState({
-    mainCategory: '',
-    subCategory: '',
-    holderType: '',
-    priceRange: '',
-    location: '',
-    dateRange: '',
-    timeRange: '',
+  const mainCategoryRef = useRef(null);
+  const subCategoryRef = useRef(null);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [address, setAddress] = useState({
+    fullAddress: '',
+    lat: 0,
+    lng: 0,
   });
 
+  const [otherCategory, setOtherCategory] = useState(false);
+  const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [dates, setDates] = useState(INITIAL_DATES);
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      () => {
-        setKeyboardVisible(true);
-      },
+    const show = Keyboard.addListener('keyboardDidShow', () =>
+      setKeyboardVisible(true),
     );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setKeyboardVisible(false);
-      },
+    const hide = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardVisible(false),
     );
 
     return () => {
-      keyboardDidHideListener?.remove();
-      keyboardDidShowListener?.remove();
+      show.remove();
+      hide.remove();
     };
   }, []);
 
-  const handlePriceRangeChange = useCallback((low, high) => {
-    if (
-      lastValuesRef.current.min !== low ||
-      lastValuesRef.current.max !== high
-    ) {
-      console.log('Range changed:', low, high);
-      lastValuesRef.current = {min: low, max: high};
-      setPriceRange({min: low, max: high});
-    }
+  const openPicker = useCallback((ref, params) => {
+    ref?.current?.show(params);
   }, []);
 
-  const handleOpenMainCategory = params => {
-    console.log('handleOpenMainCategory called with:', params);
-    if (mainCategory?.current) {
-      mainCategory.current.show(params);
-    } else {
-      console.warn('main Category ref is not available');
-    }
-  };
-  const handleOpenSubCategory = params => {
-    console.log('handleOpenMainCategory called with:', params);
-    if (subCategory?.current) {
-      subCategory.current.show(params);
-    } else {
-      console.warn('main Category ref is not available');
-    }
-  };
+  const handleSelect = useCallback((key, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value?.name || value,
+    }));
+  }, []);
 
-  const handleSelectValue = (name, value) => {
-    console.log('handleSelectValue called:', name, value);
-    if (setInputVal && typeof setInputVal === 'function') {
-      setInputVal(prevState => ({
-        ...prevState,
-        [name]: value?.name || value,
-      }));
-    }
+  const handleApply = useCallback(() => {
+    const payload = {
+      startTime: startTime,
+      endTime: endTime,
+      startDate: dates.startDate,
+      endDate: dates.endDate,
+      location: address.fullAddress,
+      lat: address.lat,
+      lng: address.lng,
+    };
+
+    console.log(payload, 'payloadpayloadpayloadpayloadpayload');
+
+    onApplyPress(payload);
+    // onClose();
+    // handleReset();
+  }, [dates, filters, navigation, onClose]);
+
+  const handleReset = useCallback(() => {
+    setFilters(INITIAL_FILTERS);
+    setDates(INITIAL_DATES);
+    setStartTime(null);
+    setEndTime(null);
+    setAddress({
+      fullAddress: '',
+      lat: 0,
+      lng: 0,
+    });
+    setOtherCategory(false);
+  }, []);
+
+  const FooterButtons = memo(() => (
+    <View style={styles.buttonRow}>
+      <View style={styles.buttonWrapper}>
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={nestedFilter ? handleReset : onClose}>
+          {nestedFilter ? (
+            <GradientText text={t('Reset Filter')} />
+          ) : (
+            <Text style={styles.cancelText}>{t('cancel')}</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.buttonWrapper}>
+        <GradientButton
+          text={t('Apply Filters')}
+          onPress={handleApply}
+          type="filled"
+          textStyle={styles.applyText}
+        />
+      </View>
+    </View>
+  ));
+
+  const onLocationSelect = item => {
+    setAddress({
+      fullAddress: item.userAddress,
+      lat: item?.latLng?.latitude,
+      lng: item?.latLng?.longitude,
+    });
   };
 
   return (
@@ -108,28 +156,25 @@ const FilterModal = ({isVisible, onClose, nestedFilter, showOtherCheckBox}) => {
       onBackdropPress={onClose}
       style={styles.modal}
       backdropOpacity={0.5}
-      avoidKeyboard={true}
-      propagateSwipe={true}>
+      avoidKeyboard>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('Filter')}</Text>
           <TouchableOpacity onPress={onClose}>
-            <Icon name="close" size={24} color="#333" />
+            <Icon name="close" size={24} color={COLORS.black} />
           </TouchableOpacity>
         </View>
+
         <ScrollView
-          style={{flex: 1}}
           keyboardShouldPersistTaps="handled"
-          nestedScrollEnabled={true}
-          scrollEnabled={!isSliding}>
+          showsVerticalScrollIndicator={false}>
           {nestedFilter && (
             <>
               <CustomPicker
-                ref={mainCategory}
-                label="Main_Category"
-                labelll="Main Category"
-                handleOpenModal={handleOpenMainCategory}
-                value={inputVal?.mainCategory || ''}
+                ref={mainCategoryRef}
+                labelll={t('Main Category')}
+                label={t('Main Category')}
+                value={filters.mainCategory}
                 listData={[
                   {name: 'Entertainment & Attractions'},
                   {name: 'Food & Drinks'},
@@ -138,412 +183,195 @@ const FilterModal = ({isVisible, onClose, nestedFilter, showOtherCheckBox}) => {
                   {name: 'Staff & Services'},
                 ]}
                 name="mainCategory"
-                handleSelectValue={handleSelectValue}
+                handleOpenModal={() =>
+                  openPicker(mainCategoryRef, {title: 'Main Category'})
+                }
+                handleSelectValue={handleSelect}
               />
+
               <CustomPicker
-                ref={subCategory}
-                label="Sub_Category"
-                labelll="Sub Category"
-                handleOpenModal={handleOpenSubCategory}
-                value={inputVal?.subCategory || ''}
+                ref={subCategoryRef}
+                label={t('Sub Category')}
+                labelll={t('Sub Category')}
+                value={filters.subCategory}
                 listData={[
                   {name: 'DJ'},
                   {name: 'Live Band'},
                   {name: 'Photo Booth'},
                 ]}
                 name="subCategory"
-                handleSelectValue={handleSelectValue}
+                handleOpenModal={() =>
+                  openPicker(subCategoryRef, {title: 'Sub Category'})
+                }
+                handleSelectValue={handleSelect}
               />
-              <View style={{height: 15}} />
-              <View
-                style={{
-                  flexDirection: 'row',
-                  marginBottom: width(5),
-                  alignItems: 'center',
-                }}>
-                {!isChecked ? (
-                  <TouchableOpacity
-                    onPress={() => setIsChecked(!isChecked)}
-                    style={{
-                      height: width(6),
-                      width: width(6),
-                      borderRadius: 5,
-                      borderWidth: 1,
-                      borderColor: COLORS.primary,
-                    }} />
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => setIsChecked(!isChecked)}
-                    style={{
-                      borderColor: COLORS.primary,
-                    }}>
-                    <Image
-                      source={ICONS.cheackIcon}
-                      style={{height: width(6), width: width(6)}}
-                      resizeMode="contain"
-                    />
-                  </TouchableOpacity>
-                )}
-                <Text
-                  style={{
-                    fontFamily: fontFamly.PlusJakartaSansBold,
-                    marginBottom: 3,
-                    marginLeft: width(3),
-                  }}>
-                  {t('Other Category')}
-                </Text>
-              </View>
             </>
           )}
 
-          <View style={styles.section}>
-            <Text style={styles.label}>{t('Search Location')}</Text>
-            <TextField
-              placeholder={t('Search Your Location')}
-              // value={email}
-              // onChangeText={setEmail}
-              autoCapitalize="none"
-              endIcon={ICONS.currentLoactionIcon}
-            />
-          </View>
+          <View style={{height: width(4)}} />
+          <GooglePlacesInput
+            selectedLocation={address.fullAddress}
+            setSelectedLocation={onLocationSelect}
+            placeholder="Search Your Location"
+            bgcolor={COLORS.backgroundLight}
+            onEndIconPress={() => {
+              setAddress({
+                fullAddress: '',
+                lat: 0,
+                lng: 0,
+              });
+            }}
+            showRightIcon={ICONS.locationIcon}
+            lable="Search Location"
+          />
 
           <View style={styles.section}>
             <Text style={styles.label}>{t('Date Range')}</Text>
             <DateSelector
-              startDate={filterStartDate}
-              endDate={filterEndDate}
-              onStartDateChange={date => {
-                console.log('Start date selected:', date);
-                setFilterStartDate(date);
-                if (setInputVal && typeof setInputVal === 'function') {
-                  setInputVal(prev => ({...prev, startDate: date}));
-                }
-              }}
-              onEndDateChange={date => {
-                console.log('End date selected:', date);
-                setFilterEndDate(date);
-                if (setInputVal && typeof setInputVal === 'function') {
-                  setInputVal(prev => ({...prev, endDate: date}));
-                }
-              }}
+              startDate={dates.startDate}
+              endDate={dates.endDate}
               mode="range"
+              onStartDateChange={date =>
+                setDates(prev => ({...prev, startDate: date}))
+              }
+              onEndDateChange={date =>
+                setDates(prev => ({...prev, endDate: date}))
+              }
             />
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.label}>{t('Price Range')}</Text>
-
-            <View style={styles.priceLabelsContainer}>
-              <Text style={styles.priceLabel}>$18</Text>
-              <Text style={styles.priceLabel}>$60</Text>
-            </View>
-
-            <View style={styles.sliderContainer}>
-              <RangeSliderComponent
-                minValue={18}
-                maxValue={60}
-                step={1}
-                minRange={5}
-                low={priceRange.min}
-                high={priceRange.max}
-                sliderLength={width(100) - 40}
-                onSlidingStart={() => setIsSliding(true)}
-                onSlidingEnd={() => setIsSliding(false)}
-                onChange={range => setPriceRange(range)}
-              />
-            </View>
-
-            {/* From and To labels with values */}
-            <View style={styles.fromToContainer}>
-              <View style={styles.fromToItem}>
-                <Text style={styles.fromToLabel}>{t('from')}</Text>
-                <View style={styles.fromToValueContainer}>
-                  <Text style={styles.fromToValue}>${priceRange.min}</Text>
-                </View>
-              </View>
-              <View style={styles.fromToItem}>
-                <Text style={styles.fromToLabel}>{t('to')}</Text>
-                <View style={styles.fromToValueContainer}>
-                  <Text style={styles.fromToValue}>${priceRange.max}</Text>
-                </View>
-              </View>
-            </View>
+            <Text style={styles.label}>{t('Time Range')}</Text>
+            <TimeSelector
+              modalRef={modalRef}
+              endTime={endTime}
+              startTime={startTime}
+              onStartTimeChange={setStartTime}
+              onEndTimeChange={setEndTime}
+            />
           </View>
-          {!isKeyboardVisible && nestedFilter && (
-            <View style={styles.buttonRowtext}>
-              {!nestedFilter && (
-                <View style={{width: width(40)}}>
-                  <TouchableOpacity
-                    onPress={() => onClose()}
-                    style={styles.cancelButton}
-                    activeOpacity={0.7}>
-                    <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              {nestedFilter && (
-                <View style={{width: width(40)}}>
-                  <TouchableOpacity
-                    onPress={() => onClose()}
-                    style={styles.cancelButton}
-                    activeOpacity={0.7}>
-                    <GradientText text={'Reset Filter'} />
-                  </TouchableOpacity>
-                </View>
-              )}
-              <View style={{width: width(40)}}>
-                <GradientButton
-                  text={t('Apply Filters')}
-                  onPress={() => {
-                    onClose();
-                    setTimeout(() => {
-                      navigation.navigate('EventListingScreen');
-                    }, 500);
-                  }}
-                  type="filled"
-                  textStyle={{
-                    fontSize: 12,
-                    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                    color: 'white',
-                  }}
-                />
-              </View>
-            </View>
-          )}
         </ScrollView>
-        {!isKeyboardVisible && !nestedFilter && (
-          <View style={styles.buttonRow}>
-            {!nestedFilter && (
-              <View style={{width: width(40)}}>
-                <TouchableOpacity
-                  onPress={() => onClose()}
-                  style={styles.cancelButton}
-                  activeOpacity={0.7}>
-                  <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            {nestedFilter && (
-              <View style={{width: width(40)}}>
-                <TouchableOpacity
-                  onPress={() => onClose()}
-                  style={styles.cancelButton}
-                  activeOpacity={0.7}>
-                  <GradientText text={'Reset Filter'} />
-                </TouchableOpacity>
-              </View>
-            )}
-            <View style={{width: width(40)}}>
-              <GradientButton
-                text={t('Apply Filters')}
-                onPress={() => {
-                  onClose();
-                  setTimeout(() => {
-                    navigation.navigate('EventListingScreen');
-                  }, 500);
-                }}
-                type="filled"
-                textStyle={{
-                  fontSize: 12,
-                  fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                  color: 'white',
-                }}
-              />
-            </View>
-          </View>
-        )}
+
+        {!keyboardVisible && <FooterButtons />}
       </View>
     </Modal>
   );
 };
 
+export default memo(FilterModal);
+
 const styles = StyleSheet.create({
   modal: {
     margin: 0,
     justifyContent: 'flex-end',
-    backgroundColor: '#8b8b8b66',
   },
-  container: {
-    height: '80%',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    backgroundColor: COLORS.white,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
 
-    elevation: 5,
+  container: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: width(8),
+    borderTopRightRadius: width(8),
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    height: '80%',
   },
+
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.black,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  label: {
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    marginBottom: 8,
-    color: COLORS.black,
-  },
-  input: {
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 14,
-  },
-  dateContainer: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderColor: COLORS.border,
+    paddingVertical: 12,
   },
 
-  dateInput: {
-    flex: 1,
-    borderRadius: 10,
-    padding: 12,
-    marginRight: 10,
+  title: {
+    fontSize: 18,
+    fontFamily: fontFamly.bold,
+    color: COLORS.black,
+  },
+
+  section: {
+    marginTop: 18,
+  },
+
+  label: {
     fontSize: 14,
+    fontFamily: fontFamly.medium,
+    color: COLORS.black,
+    marginBottom: 8,
   },
-  priceLabelsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 10,
-  },
-  priceLabel: {
-    fontSize: 14,
-    color: '#999',
-    fontFamily: fontFamly.PlusJakartaSansRegular,
-  },
-  sliderContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginVertical: 5,
-    pointerEvents: 'auto',
-  },
-  slider: {
-    width: '100%',
-    height: 40,
-  },
-  thumb: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#FF295D',
-    borderWidth: 2,
-    borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  rail: {
-    flex: 1,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#f2f2f2',
-  },
-  railSelected: {
-    height: 6,
-    backgroundColor: '#FF295D',
-    borderRadius: 3,
-  },
-  fromToContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginTop: 20,
-  },
-  fromToItem: {
+
+  checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 14,
   },
-  fromToLabel: {
-    fontSize: 14,
-    color: '#999',
-    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-    marginRight: width(3),
+
+  checkbox: {
+    width: 18,
+    height: 18,
+    resizeMode: 'contain',
   },
-  fromToValueContainer: {
-    fontSize: 14,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    color: '#333',
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: width(3),
-    height: width(15),
-    width: width(30),
-    alignItems: 'center',
-    justifyContent: 'center',
+
+  checkboxEmpty: {
+    width: 18,
+    height: 18,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray,
+    borderRadius: 4,
   },
-  fromToValue: {
+
+  checkboxText: {
+    marginLeft: 10,
     fontSize: 14,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    color: '#333',
+    fontFamily: fontFamly.regular,
+    color: COLORS.black,
   },
 
   buttonRow: {
-    position: 'absolute',
-    bottom: 10,
     flexDirection: 'row',
-    width: width(100),
-    justifyContent: 'space-around',
-  },
-  btnWhite: {
-    flex: 0.48,
-    backgroundColor: '#f9f9f9',
     paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    borderWidth: 0,
+    borderTopWidth: 1,
+    borderColor: COLORS.border,
   },
-  btnWhiteText: {
-    color: '#f0a',
-    fontWeight: '600',
+
+  deliveryLabel: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textLight,
   },
-  btnPink: {
-    flex: 0.48,
-    backgroundColor: '#f0a',
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
+
+  deliveryBox: {
+    backgroundColor: '#FDF0FA',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    padding: 12,
+    marginVertical: 12,
   },
-  btnPinkText: {
-    color: '#fff',
-    fontWeight: '600',
+
+  buttonWrapper: {
+    flex: 1,
+    paddingHorizontal: 6,
   },
+
   cancelButton: {
-    backgroundColor: COLORS.backgroundLight,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 20,
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelButtonText: {
-    fontSize: 13,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    color: '#666',
+
+  cancelText: {
+    fontSize: 14,
+    fontFamily: fontFamly.medium,
+    color: COLORS.primary,
   },
-  buttonRowtext: {
-    flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-around',
+
+  applyText: {
+    fontSize: 14,
+    fontFamily: fontFamly.medium,
+    color: COLORS.white,
   },
 });
-
-export default FilterModal;
