@@ -294,7 +294,7 @@ function CartScreen({navigation}) {
           const isActive = activeTab === id;
           const colors = isActive
             ? ['#FF295D', '#E31B95', '#C817AE']
-            : ['#FFFFFF', '#FFFFFF', '#FFFFFF'];
+            : ['#F6F6F6', '#F6F6F6', '#F6F6F6'];
 
           return (
             <LinearGradient
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     borderRadius: width(5),
     padding: width(1),
     margin: width(3),
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.backgroundLight,
     gap: width(1),
   },
   tabGradient: {
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   activeTabText: {
-    color: COLORS.white,
+    color: COLORS.backgroundLight,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
   listContainer: {

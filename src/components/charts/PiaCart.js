@@ -55,9 +55,11 @@ const PieChartComponent = ({
           <CustomPicker
             ref={selectSizeRef}
             value={filterType}
+            labelll={labelll}
             listData={[{name: 'Monthly'}, {name: '6Monthly'}, {name: 'Yearly'}]}
             name="filterType"
             handleSelectValue={handleSelectValue}
+            dropdownContainerStyle={{backgroundColor: COLORS.white}}
           />
         </View>
       </View>

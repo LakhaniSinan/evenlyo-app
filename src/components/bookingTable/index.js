@@ -10,31 +10,37 @@ import {
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import ReportingModal from '../modals/ReportingModal';
+import {useTranslation} from '../../hooks';
 
 const BookingTable = ({data, canDownload}) => {
-  console.log(data, 'datadatadatadatadatadataasndlkasndlsandlasndlasnd');
+  const {currentLanguage} = useTranslation();
 
   const [modalVisible, setModalVisible] = useState(false);
 
-  const renderItem = ({item}) => (
-    <View style={styles.row}>
-      <Text style={styles.cell}>{item.trackingId}</Text>
-      <Text style={styles.cell}>{item.listingName}</Text>
-      <Text style={styles.cell}>${item.totalCost}</Text>
-      {/* <Text style={[styles.cell, styles.earning]}>{item.earning}</Text> */}
-      {canDownload && (
-        <TouchableOpacity
-          style={styles.cell}
-          onPress={() => setModalVisible(true)}>
-          <Image
-            source={ICONS.downloadIcon}
-            style={{height: 10, width: 10}}
-            tintColor={COLORS.textLight}
-          />
-        </TouchableOpacity>
-      )}
-    </View>
-  );
+  const renderItem = ({item}) => {
+    return (
+      <View style={styles.row}>
+        <Text style={styles.cell}>{item.trackingId}</Text>
+        <Text style={styles.cell}>
+          {currentLanguage === 'en'
+            ? item?.listingDetails?.title?.en
+            : item?.listingDetails?.title?.nl}
+        </Text>
+        <Text style={styles.cell}>${item.pricingBreakdown?.total}</Text>
+        {canDownload && (
+          <TouchableOpacity
+            style={styles.cell}
+            onPress={() => setModalVisible(true)}>
+            <Image
+              source={ICONS.downloadIcon}
+              style={{height: 10, width: 10}}
+              tintColor={COLORS.textLight}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>

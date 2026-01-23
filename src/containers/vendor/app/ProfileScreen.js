@@ -91,7 +91,6 @@ const ProfileScreen = () => {
     try {
       setIsLoading(true);
       const responce = await getVendorProfile();
-      console.log(responce, 'responceresponceresponceresponceresponce');
 
       setIsLoading(false);
       if (responce?.status == 200 || responce.status == 201) {

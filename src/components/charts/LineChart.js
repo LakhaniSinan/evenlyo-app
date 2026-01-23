@@ -113,10 +113,12 @@ const LineChartComponent = ({labelll = 'Overview', data = []}) => {
         <View style={{width: width(40)}}>
           <CustomPicker
             ref={selectSizeRef}
+            labelll={'Earnings Overview'}
             value={filterType}
             listData={[{name: 'Monthly'}, {name: '6Monthly'}, {name: 'Yearly'}]}
             name="filterType"
             handleSelectValue={handleSelectValue}
+            dropdownContainerStyle={{backgroundColor: COLORS.white}}
           />
         </View>
       </View>

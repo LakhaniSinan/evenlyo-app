@@ -115,6 +115,8 @@ const Home = ({navigation, route}) => {
   const {cartData} = useSelector(state => state.CartSlice);
 
   const handleAddToCart = async item => {
+    console.log(item, 'lasndasdbaksjdbaksjdbaksj');
+
     try {
       let updatedCart = JSON.parse(JSON.stringify(cartData || []));
       const vendorId = item?.vendor?._id;

@@ -1,11 +1,10 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import {
   FlatList,
   Image,
   RefreshControl,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -21,38 +20,50 @@ import PieChartComponent from '../../../components/charts/PiaCart';
 import AnalyticsFilter from '../../../components/modals/AnalyticsFilter';
 import AnalyticsCard from '../../../components/reportAndAnalyticsCard';
 import {COLORS, fontFamly} from '../../../constants';
-import {getAnalyticsReport} from '../../../services/AnalyticsReport';
+import {
+  getAnalyticsReport,
+  getBookingAnalytic,
+} from '../../../services/AnalyticsReport';
+import SaleItemTable from '../../../components/saleItemTable';
 
 const TABS = ['Booking Items', 'Sale Items'];
 
 const AnalyticsReport = () => {
   const navigation = useNavigation();
   const modalRef = useRef(null);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [analyticsReport, setAnalyticsReport] = useState(null);
-  console.log(analyticsReport, 'analyticsReportanalyticsReportanalyticsReport');
-
   const [activeTab, setActiveTab] = useState('Booking Items');
   const [refreshing, setRefreshing] = useState(false);
-  const DUMMY_DASHBOARD_DATA = [
-    {
-      title: 'Today Earning',
-      icon: ICONS.earningIcon,
-      value: analyticsReport?.stats?.todayEarnings,
-      percentage: 10,
-    },
-    {
-      title: 'Last Week Earning',
-      icon: ICONS.dollerSignIcon,
-      value: analyticsReport?.stats?.lastWeekEarnings,
-      percentage: 10,
-    },
-  ];
+
+  // Memoized dashboard data to prevent unnecessary re-renders
+  const DUMMY_DASHBOARD_DATA = useMemo(
+    () => [
+      {
+        title: 'Today Earning',
+        icon: ICONS.earningIcon,
+        value: analyticsReport?.stats?.todayEarnings,
+        percentage: 10,
+      },
+      {
+        title: 'Last Week Earning',
+        icon: ICONS.dollerSignIcon,
+        value: analyticsReport?.stats?.lastWeekEarnings,
+        percentage: 10,
+      },
+    ],
+    [analyticsReport],
+  );
+
   // Fetch analytics data
   const handleGetAnalyticsReport = useCallback(async () => {
     try {
-      const response = await getAnalyticsReport();
-      console.log(response, 'responseresponseresponseresponse');
+      setRefreshing(true);
+      const response =
+        activeTab === 'Booking Items'
+          ? await getBookingAnalytic()
+          : await getAnalyticsReport();
 
       if (response?.status === 200 || response?.status === 201) {
         setAnalyticsReport(response.data);
@@ -67,31 +78,52 @@ const AnalyticsReport = () => {
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [activeTab]);
 
   useEffect(() => {
     handleGetAnalyticsReport();
   }, [handleGetAnalyticsReport]);
 
-  const handleFilterPress = text => {
-    if (text === 'Filter') {
-      setModalVisible(true);
-    }
-  };
+  const handleFilterPress = useCallback(text => {
+    if (text === 'Filter') setModalVisible(true);
+  }, []);
 
-  const handleDownload = () => {
-    setModalVisible(true);
-  };
+  const handleDownload = useCallback(() => setModalVisible(true), []);
 
-  console.log(analyticsReport, 'analyticsReport?.monthlyEarnings');
+  // Render filter button - memoized for smoothness
+  const renderFilterButton = useCallback(
+    (icon, text) => (
+      <TouchableOpacity
+        onPress={() => handleFilterPress(text)}
+        style={styles.filterButton}>
+        <Image source={icon} resizeMode="contain" style={styles.filterIcon} />
+        <Text style={styles.filterText}>{text}</Text>
+      </TouchableOpacity>
+    ),
+    [handleFilterPress],
+  );
 
-  const renderFilterButton = (icon, text) => (
-    <TouchableOpacity
-      onPress={() => handleFilterPress(text)}
-      style={styles.filterButton}>
-      <Image source={icon} resizeMode="contain" style={styles.filterIcon} />
-      <Text style={styles.filterText}>{text}</Text>
-    </TouchableOpacity>
+  // Render tab buttons
+  const renderTabs = useMemo(
+    () =>
+      TABS.map(tab => (
+        <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
+          {activeTab === tab ? (
+            <LinearGradient
+              colors={['#FF295D', '#E31B95', '#C817AE']}
+              start={{x: 0, y: 0}}
+              end={{x: 0, y: 1}}
+              style={styles.activeTab}>
+              <Text style={styles.activeText}>{tab}</Text>
+            </LinearGradient>
+          ) : (
+            <View style={styles.inactiveTab}>
+              <Text style={styles.inactiveText}>{tab}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      )),
+    [activeTab],
   );
 
   return (
@@ -104,102 +136,101 @@ const AnalyticsReport = () => {
         onRightIconPress={() => navigation.navigate('Notifications')}
       />
 
-      <ScrollView
-        style={styles.scrollContainer}
+      <FlatList
+        data={DUMMY_DASHBOARD_DATA} // Only FlatList for vertical scroll
+        keyExtractor={(_, index) => index.toString()}
+        numColumns={2}
+        columnWrapperStyle={styles.dashboardColumns}
+        contentContainerStyle={{paddingBottom: 50}} // Bottom spacing
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleGetAnalyticsReport}
           />
         }
-        showsVerticalScrollIndicator={false}>
-        {/* Tabs */}
-        <View style={styles.tabContainer}>
-          {TABS.map(tab => (
-            <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
-              {activeTab === tab ? (
-                <LinearGradient
-                  colors={['#FF295D', '#E31B95', '#C817AE']}
-                  start={{x: 0, y: 0}}
-                  end={{x: 0, y: 1}}
-                  style={styles.activeTab}>
-                  <Text style={styles.activeText}>{tab}</Text>
-                </LinearGradient>
-              ) : (
-                <View style={styles.inactiveTab}>
-                  <Text style={styles.inactiveText}>{tab}</Text>
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <>
+            <View style={styles.tabContainer}>{renderTabs}</View>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                alignSelf: 'center',
+                width: '100%',
+                justifyContent: 'space-between',
+                paddingHorizontal: width(3),
+                marginTop: width(2),
+              }}>
+              {DUMMY_DASHBOARD_DATA?.map(item => {
+                return <AnalyticsCard item={item} />;
+              })}
+            </View>
+
+            <View style={styles.totalEarningCard}>
+              <View style={styles.totalEarningHeader}>
+                <Text style={styles.totalEarningLabel}>Total Earning</Text>
+                <View style={styles.totalEarningIconContainer}>
+                  <Image
+                    source={ICONS.incrimentIcon}
+                    resizeMode="contain"
+                    style={styles.totalEarningIcon}
+                  />
                 </View>
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
+              </View>
+              <Text style={styles.totalEarningValue}>
+                ${analyticsReport?.stats?.totalEarnings || 0}
+              </Text>
+            </View>
 
-        {/* Dashboard Cards */}
-        <FlatList
-          data={DUMMY_DASHBOARD_DATA}
-          numColumns={2}
-          renderItem={({item}) => <AnalyticsCard item={item} />}
-          keyExtractor={(_, index) => index.toString()}
-          contentContainerStyle={styles.dashboardList}
-          columnWrapperStyle={styles.dashboardColumns}
-        />
+            <View style={styles.filterRow}>
+              {renderFilterButton(ICONS.filterIcon, 'Filter')}
+              {renderFilterButton(ICONS.blackDownloadIcon, 'Export CSV')}
+              {renderFilterButton(ICONS.blackDownloadIcon, 'Export PDF')}
+            </View>
 
-        {/* Total Earnings Card */}
-        <View style={styles.totalEarningCard}>
-          <View style={styles.totalEarningHeader}>
-            <Text style={styles.totalEarningLabel}>Total Earning</Text>
-            <View style={styles.totalEarningIconContainer}>
-              <Image
-                source={ICONS.incrimentIcon}
-                resizeMode="contain"
-                style={styles.totalEarningIcon}
+            <View style={styles.chartContainer}>
+              <LineChartComponent
+                labelll={
+                  activeTab === 'Booking Items'
+                    ? 'Booking Earnings'
+                    : 'Sale Earnings'
+                }
+                data={analyticsReport?.monthlyEarnings || []}
               />
             </View>
-          </View>
-          <Text style={styles.totalEarningValue}>
-            ${analyticsReport?.stats?.totalEarnings}
-          </Text>
-        </View>
 
-        {/* Filter Buttons */}
-        <View style={styles.filterRow}>
-          {renderFilterButton(ICONS.filterIcon, 'Filter')}
-          {renderFilterButton(ICONS.blackDownloadIcon, 'Export CSV')}
-          {renderFilterButton(ICONS.blackDownloadIcon, 'Export PDF')}
-        </View>
+            <View style={styles.chartContainer}>
+              <PieChartComponent
+                labelll={
+                  activeTab === 'Booking Items'
+                    ? 'Booking Earnings'
+                    : 'Sale Earnings'
+                }
+                data={analyticsReport?.earningsByCategory || []}
+                loading={refreshing}
+              />
+            </View>
 
-        {/* Charts */}
-        <View style={styles.chartContainer}>
-          <LineChartComponent
-            labelll={
-              activeTab === 'Booking Items'
-                ? 'Booking Earnings'
-                : 'Sale Earnings'
-            }
-            data={analyticsReport?.monthlyEarnings || []}
-          />
-        </View>
-
-        <View style={styles.chartContainer}>
-          <PieChartComponent
-            labelll={
-              activeTab === 'Booking Items'
-                ? 'Booking Earnings'
-                : 'Sale Earnings'
-            }
-            data={analyticsReport?.earningsByCategory || []}
-            loading={refreshing}
-          />
-        </View>
-
-        {/* Booking Table */}
-        <View style={styles.tableContainer}>
-          <BookingTable
-            data={analyticsReport || []}
-            canDownload={handleDownload}
-          />
-        </View>
-      </ScrollView>
+            {/* Booking Table */}
+            {activeTab === 'Booking Items' ? (
+              <View style={styles.tableContainer}>
+                <BookingTable
+                  data={analyticsReport || []}
+                  canDownload={handleDownload}
+                />
+              </View>
+            ) : (
+              <View style={styles.tableContainer}>
+                <SaleItemTable
+                  data={analyticsReport || []}
+                  canDownload={handleDownload}
+                />
+              </View>
+            )}
+          </>
+        }
+      />
 
       <AnalyticsFilter
         isVisible={modalVisible}
@@ -213,7 +244,6 @@ export default AnalyticsReport;
 
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: COLORS.white},
-  scrollContainer: {flex: 1},
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -225,16 +255,8 @@ const styles = StyleSheet.create({
     borderRadius: width(4),
     marginTop: width(2),
   },
-  activeTab: {
-    paddingVertical: 16,
-    width: width(44.5),
-    borderRadius: 12,
-  },
-  inactiveTab: {
-    paddingVertical: 16,
-    width: width(44.5),
-    borderRadius: 12,
-  },
+  activeTab: {paddingVertical: 16, width: width(44.5), borderRadius: 12},
+  inactiveTab: {paddingVertical: 16, width: width(44.5), borderRadius: 12},
   activeText: {
     color: COLORS.white,
     fontSize: 13,
@@ -247,18 +269,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
-  dashboardList: {padding: width(3)},
-  dashboardColumns: {
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
+  dashboardColumns: {justifyContent: 'space-between', alignItems: 'center'},
   totalEarningCard: {
     padding: width(4),
     backgroundColor: COLORS.backgroundLight,
     marginHorizontal: width(3.5),
-    height: 80,
     borderRadius: width(3),
     elevation: 5,
+    marginTop: width(3),
   },
   totalEarningHeader: {
     flexDirection: 'row',
@@ -284,11 +302,7 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     fontFamily: fontFamly.PlusJakartaSansBold,
     fontSize: 20,
-  },
-  totalEarningSubText: {
-    color: COLORS.black,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    fontSize: 8,
+    marginTop: 5,
   },
   filterRow: {
     flexDirection: 'row',

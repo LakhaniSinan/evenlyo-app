@@ -66,7 +66,9 @@ const RejectRequestModal = ({visible, onClose, onConfirm}) => {
 
   const handleSelect = reason => {
     setSelectedReason(reason);
-    if (reason !== 'Custom reason') {setCustomReason('');}
+    if (reason !== 'Custom reason') {
+      setCustomReason('');
+    }
   };
 
   const handleConfirm = () => {

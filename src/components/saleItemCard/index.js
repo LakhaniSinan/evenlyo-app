@@ -25,8 +25,11 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
   const {user} = useSelector(state => state.LoginSlice);
 
   const [deliveryLocation, setDeliveryLocation] = useState('');
+
   const [deliveryCoords, setDeliveryCoords] = useState(null);
   const [vendorCoords, setVendorCoords] = useState(null);
+  console.log(vendorCoords, 'vendorCoordsvendorCoordsvendorCoordsvendorCoords');
+
   const [clientSecret, setClientSecret] = useState('');
 
   const [selectedVendorIndex, setSelectedVendorIndex] = useState(null);
@@ -57,6 +60,11 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
         localCart[selectedVendorIndex]?.products[0]?.vendor?.location
           ?.coordinates;
 
+      console.log(
+        vendorLocation,
+        'vendorLocationvendorLocationvendorLocationvendorLocation===',
+      );
+
       if (vendorLocation?.lat && vendorLocation?.lng) {
         setVendorCoords({
           latitude: vendorLocation.lat,
@@ -64,7 +72,7 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
         });
       }
     }
-  }, [selectedVendorIndex, localCart]);
+  }, [selectedVendorIndex, localCart, deliveryCharges]);
 
   const handleCahnge = (key, value) => {
     setInputValues(prev => ({...prev, [key]: value}));
@@ -267,17 +275,25 @@ const SaleItemCard = ({modalRef, setIsLoading}) => {
       setDistanceKm(roundedKm);
 
       const rate =
-        localCart[selectedVendorIndex]?.products[0]?.vendor?.deliveryCharges ||
-        0;
+        localCart[selectedVendorIndex]?.products[0]?.vendor?.deliveryCharges;
+      console.log(rate, 'rateraterateraterateraterateasds');
 
-      setDeliveryCharges(roundedKm * rate);
+      const DC = roundedKm * rate;
+
+      setDeliveryCharges(DC);
 
       setDeliveryCoords({
         latitude: place.latLng.latitude,
         longitude: place.latLng.longitude,
       });
     },
-    [vendorCoords, selectedVendorIndex, localCart, getDistanceInKm],
+    [
+      vendorCoords,
+      selectedVendorIndex,
+      localCart,
+      deliveryLocation,
+      getDistanceInKm,
+    ],
   );
 
   const selectedProductsArray = useMemo(() => {

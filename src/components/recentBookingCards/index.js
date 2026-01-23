@@ -7,10 +7,11 @@ import {COLORS, fontFamly} from '../../constants';
 import StatusBadge from '../statusComponent';
 
 const RecentBookingCards = ({item, index, dataLength}) => {
+  console.log(item, 'itemitemitemitemitemitemitem,,,,,,');
+
   const isLastItem = index === dataLength - 1;
   const navigation = useNavigation();
 
-  // 🟩 Capitalize each word in a name
   const capitalizeWords = text => {
     if (!text) {
       return '';
@@ -21,7 +22,6 @@ const RecentBookingCards = ({item, index, dataLength}) => {
       .join(' ');
   };
 
-  // 🟦 Get initials for avatar
   const getInitials = name => {
     if (!name) {
       return '';

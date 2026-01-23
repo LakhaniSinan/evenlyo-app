@@ -92,8 +92,6 @@ const GooglePlacesInput = ({
       setQuery(item.description);
       setResults([]);
       Keyboard.dismiss();
-
-      console.log('Selected Coordinates:', lat, lng);
     } catch (error) {
       console.log('Select place error:', error);
     }
@@ -212,9 +210,9 @@ const GooglePlacesInput = ({
               <AntDesign size={20} name="closecircleo" color={COLORS.black} />
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity onPress={getUserLocationAcces}>
+            <View>
               <EvilIcons size={25} name="location" color={COLORS.black} />
-            </TouchableOpacity>
+            </View>
           )
         ) : null}
       </View>
@@ -248,7 +246,6 @@ const GooglePlacesInput = ({
             marginTop: width(3),
             borderWidth: 1,
             borderColor: COLORS.border,
-            maxHeight: 250,
           }}
         />
       )}

@@ -1,10 +1,11 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   Alert,
   Image,
   Keyboard,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -30,6 +31,7 @@ import {
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
 import DualLanguageCustomPicker from '../dualLanguagePicker';
+import GooglePlacesInput from '../locationField';
 import Loader from '../loder';
 import TextField from '../textInput';
 
@@ -40,18 +42,12 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
   const {user} = useSelector(state => state.LoginSlice);
   const modalRef = useRef(null);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
-
+  const [isHighValueDeliveries, setIsHighValueDeliveries] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [allSubCategories, setAllSubCategories] = useState([]);
   const [vendorsCategories, setVendorsCategory] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
-
-  console.log(
-    vendorsCategories,
-    'vendorsCategoriesvendorsCategoriesvendorsCategories',
-  );
-
   const [vendorListing, setVendorListing] = useState([]);
 
   const [formData, setFormData] = useState({
@@ -64,9 +60,9 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
     mainCategory: '',
     subCategory: '',
     listingName: '',
+    selectedCoords: null,
+    highValueDeliverieAmount: '',
   });
-
-  console.log(formData, 'formDataformDataformDataformDataformData');
 
   const onSuccess = () => {
     setFormData({
@@ -103,11 +99,13 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
       handleGetVendorListings();
     }
   }, [formData?.selectedType]);
+
   useEffect(() => {
-    if (!isVisible) {setIsInitialized(false);}
+    if (!isVisible) {
+      setIsInitialized(false);
+    }
   }, [isVisible]);
 
-  // ✅ Fix: Set selected lsisting after vendorListing is loaded
   useEffect(() => {
     if (editSaleData && vendorListing?.length > 0) {
       const selectedListing = vendorListing.find(
@@ -127,7 +125,9 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
 
   useEffect(() => {
     const initFormData = async () => {
-      if (!isVisible || isInitialized) {return;} // ✅ prevent reinitialization after first run
+      if (!isVisible || isInitialized) {
+        return;
+      }
 
       if (editSaleData) {
         const saleItemType =
@@ -163,6 +163,7 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
             setIsLoading(false);
           }
         }
+        setIsHighValueDeliveries(editSaleData?.extraDeliveryCharges > 0);
 
         setFormData(prev => ({
           ...prev,
@@ -177,6 +178,14 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
           productImage: editSaleData?.image || '',
           mainCategory: selectedMainCategory || '',
           subCategory: selectedSubCategory || '',
+          highValueDeliverieAmount: editSaleData?.extraDeliveryCharges,
+          selectedCoords: {
+            userAddress: editSaleData?.location?.fullAddress,
+            latLng: {
+              latitude: editSaleData?.location?.coordinates?.lat,
+              longitude: editSaleData?.location?.coordinates?.lng,
+            },
+          },
         }));
       } else {
         // New item
@@ -190,6 +199,7 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
           mainCategory: '',
           subCategory: '',
           listingName: '',
+          selectedCoords: null,
         });
       }
 
@@ -275,14 +285,18 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
 
   const handleUpdateImage = () => {
     launchImageLibrary({mediaType: 'photo'}, async response => {
-      if (response.didCancel) {return;}
+      if (response.didCancel) {
+        return;
+      }
       if (response.errorCode) {
         Alert.alert('Error', response.errorMessage);
         return;
       }
 
       const asset = response.assets?.[0];
-      if (!asset) {return;}
+      if (!asset) {
+        return;
+      }
 
       const file = {
         uri: asset.uri,
@@ -316,39 +330,45 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
       listingName,
     } = formData;
 
-    if (!title.trim())
-      {return modalRef.current.show({
+    if (!title.trim()) {
+      return modalRef.current.show({
         status: 'error',
         message: 'Title is required',
-      });}
-    if (!purchasePrice.trim())
-      {return modalRef.current.show({
+      });
+    }
+    if (!purchasePrice.trim()) {
+      return modalRef.current.show({
         status: 'error',
         message: 'Purchase price is required',
-      });}
-    if (!sellingPrice.trim())
-      {return modalRef.current.show({
+      });
+    }
+    if (!sellingPrice.trim()) {
+      return modalRef.current.show({
         status: 'error',
         message: 'Selling price is required',
-      });}
-    if (!stockQuantity.trim())
-      {return modalRef.current.show({
+      });
+    }
+    if (!stockQuantity.trim()) {
+      return modalRef.current.show({
         status: 'error',
         message: 'Stock quantity is required',
-      });}
-    if (!productImage)
-      {return modalRef.current.show({
+      });
+    }
+    if (!productImage) {
+      return modalRef.current.show({
         status: 'error',
         message: 'Please upload a product image',
-      });}
+      });
+    }
     if (
       selectedType === 'Listing' &&
       (!mainCategory || !subCategory || !listingName)
-    )
-      {return modalRef.current.show({
+    ) {
+      return modalRef.current.show({
         status: 'error',
         message: 'Please select all listing fields',
-      });}
+      });
+    }
 
     return true;
   };
@@ -382,6 +402,14 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
         formData?.selectedType == 'Others' ? '' : subCategory?._id || '',
       linkedListing:
         formData?.selectedType == 'Others' ? null : listingName?._id || '',
+      location: {
+        fullAddress: formData?.selectedCoords?.userAddress,
+        coordinates: {
+          lat: formData?.selectedCoords?.latLng?.latitude,
+          lng: formData?.selectedCoords?.latLng?.longitude,
+        },
+      },
+      extraDeliveryCharges: formData.highValueDeliverieAmount,
     };
 
     try {
@@ -419,6 +447,7 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
   const {
     selectedType,
     title,
+    highValueDeliverieAmount,
     purchasePrice,
     sellingPrice,
     stockQuantity,
@@ -579,7 +608,66 @@ const AddNewSaleItems = ({isVisible, onClose, editSaleData}) => {
                 />
               </>
             )}
+            <View style={{height: width(2)}} />
 
+            <View
+              style={{
+                marginBottom: width(5),
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                borderWidth: 1,
+                borderColor: COLORS.border,
+                borderRadius: 12,
+                padding: 12,
+              }}>
+              <View style={{}}>
+                <Text style={styles.subTitle}>
+                  {t('High-Value Deliveries')}
+                </Text>
+                <View style={{height: width(1)}} />
+                <Text style={styles.subTitleDescription}>
+                  {t('Additional costs apply due to item size or handling.')}
+                </Text>
+              </View>
+              <Switch
+                value={isHighValueDeliveries}
+                onValueChange={setIsHighValueDeliveries}
+                trackColor={{
+                  false: '#E5E5E5',
+                  true: COLORS.primary,
+                }}
+                thumbColor={'#FFFFFF'}
+                ios_backgroundColor="#E5E5E5"
+                style={styles.switch}
+              />
+            </View>
+            {isHighValueDeliveries && (
+              <TextField
+                bgColor={COLORS.white}
+                label={t('High-Value Deliveries')}
+                placeholder={t('Enter High-Value Deliveries Amount')}
+                value={formData.highValueDeliverieAmount?.toString() || ''}
+                keyboardType="numeric"
+                onChangeText={text =>
+                  handleSelectValue('highValueDeliverieAmount', text)
+                }
+              />
+            )}
+
+            <GooglePlacesInput
+              selectedLocation={formData?.selectedCoords || ''}
+              setSelectedLocation={v => handleSelectValue('selectedCoords', v)}
+              onEndIconPress={() => {
+                setFormData({
+                  ...formData,
+                  selectedCoords: null,
+                });
+              }}
+              placeholder="Enter Location"
+              bgcolor={COLORS.white}
+              showRightIcon={ICONS.locationIcon}
+              lable="Add Location *"
+            />
             {/* ✅ Product Picture */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>{t('Product Picture')}</Text>
@@ -648,6 +736,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
+  },
+  switch: {
+    transform: [{scaleX: 1.1}, {scaleY: 1.1}],
+  },
+  subTitleDescription: {
+    fontSize: 10,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: COLORS.black,
+  },
+  subTitle: {
+    fontSize: 14,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.black,
   },
   languageOption: {
     flexDirection: 'row',

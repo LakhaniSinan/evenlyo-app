@@ -207,6 +207,7 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   subtitle: {
+    color: COLORS.black,
     fontSize: 12,
     marginVertical: width(2),
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,

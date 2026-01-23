@@ -52,49 +52,43 @@ const Notification = ({navigation}) => {
 
   const renderItem = ({item}) => {
     return (
-      <TouchableOpacity
+      <View
         style={{
-          flexDirection: 'row',
-          marginTop: 20,
-          alignItems: 'center',
+          flexDirection: 'column',
+          borderLeftWidth: item?.isRead ? 5 : 0,
+          borderLeftColor: COLORS.primary,
+          paddingHorizontal: width(2),
+          marginTop: width(3),
+          width: width(95),
         }}>
-        <View
+        <Text
           style={{
-            marginLeft: 15,
-            flexDirection: 'column',
-            borderLeftWidth: item?.isRead ? 5 : 0,
-            borderLeftColor: COLORS.primary,
-            paddingLeft: width(3),
+            color: COLORS.black,
+            fontSize: 15,
+            fontFamily: fontFamly.PlusJakartaSansSemiBold,
           }}>
-          <Text
-            style={{
-              color: COLORS.black,
-              fontSize: 15,
-              fontFamily: fontFamly.PlusJakartaSansSemiBold,
-            }}>
-            New Booking Request
-          </Text>
+          New Booking Request
+        </Text>
 
-          <Text
-            style={{
-              color: '#6D6D6D',
-              fontSize: 12,
-              fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-              marginVertical: 4,
-            }}>
-            {currentLanguage === 'en' ? item?.message?.en : item?.message?.nl}
-          </Text>
+        <Text
+          style={{
+            color: '#6D6D6D',
+            fontSize: 12,
+            fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+            marginVertical: 4,
+          }}>
+          {currentLanguage === 'en' ? item?.message?.en : item?.message?.nl}
+        </Text>
 
-          <Text
-            style={{
-              color: COLORS.textLight,
-              fontSize: 12,
-              fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-            }}>
-            {getTimeAgoStatus(item?.createdAt)}
-          </Text>
-        </View>
-      </TouchableOpacity>
+        <Text
+          style={{
+            color: COLORS.textLight,
+            fontSize: 12,
+            fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+          }}>
+          {getTimeAgoStatus(item?.createdAt)}
+        </Text>
+      </View>
     );
   };
 

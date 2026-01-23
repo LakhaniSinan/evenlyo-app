@@ -80,12 +80,15 @@ export const endPoints = {
   //Booking Actions
   rejectBooking: '/vendor/bookings',
   acceptBooking: '/vendor/bookings',
+  update: '/vendor/tracking',
   bookingByStatus: '/booking/request-by-status',
 
   //Analytics
   bookingAnalytics: '/vendor/bookings/analytics',
-  analyticsReport: '/vendor/earnings/analytics',
+  analyticsReport: '/vendor/earnings/service/analytics',
+  bookingAnalyticsReport: '/vendor/earnings/analytics',
   orderHistory: '/vendor-order-history',
+  vendorBookingDetails: '/vendor/bookings/details',
 
   //subCategories by category Ids
   subCategoriesByCategoryIds: '/vendor/profile/get-sub-category-by-categoryIds',

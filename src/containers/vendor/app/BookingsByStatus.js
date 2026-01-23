@@ -35,7 +35,7 @@ const BookingsByStatus = ({navigation, route}) => {
       setLoading(true);
 
       const response = await getBookingByStatus({
-        status: event?.status.toLowerCase(),
+        status: event?.status?.toLowerCase(),
         vendorId: user?.id,
       });
       console.log(
@@ -69,11 +69,7 @@ const BookingsByStatus = ({navigation, route}) => {
     console.log(item, 'itemitemitemitemitemitemitemsdadad');
 
     return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() =>
-          navigation.navigate('BookingDetails', {...item, tab: activeTab})
-        }>
+      <View style={styles.card}>
         <View style={styles.cardImageWrapper}>
           <Image
             source={{
@@ -85,29 +81,6 @@ const BookingsByStatus = ({navigation, route}) => {
         </View>
 
         <View style={styles.cardDetails}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.organizer}>
-              {item?.customer || 'Unknown Customer'}
-            </Text>
-
-            <View
-              style={[
-                styles.statusWrapper,
-                {
-                  backgroundColor:
-                    item?.status?.toLowerCase() === 'completed'
-                      ? COLORS.green
-                      : item?.status?.toLowerCase() === 'pending'
-                      ? COLORS.orange
-                      : COLORS.primaryLight,
-                },
-              ]}>
-              <Text style={styles.statusText}>
-                {item?.status?.charAt(0).toUpperCase() + item?.status?.slice(1)}
-              </Text>
-            </View>
-          </View>
-
           {/* 🏷️ Title */}
           <Text style={styles.title}>
             {currentLanguage == 'en'
@@ -133,8 +106,17 @@ const BookingsByStatus = ({navigation, route}) => {
               End: {moment(item?.details?.startDate).format('MMMM DD, YYYY')}
             </Text>
           </View>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('BookingDetails', {...item, tab: activeTab})
+            }
+            style={styles.button}>
+            <Text style={[styles.buttonText, {color: COLORS.black}]}>
+              {t('View Details')}
+            </Text>
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -205,7 +187,21 @@ const styles = StyleSheet.create({
     borderRadius: width(4),
     marginTop: width(2),
   },
-
+  button: {
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginVertical: 8,
+    borderRadius: 6,
+    width: width(25),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    fontSize: 10,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
+    color: COLORS.textLight,
+  },
   card: {
     flexDirection: 'row',
     borderRadius: 15,

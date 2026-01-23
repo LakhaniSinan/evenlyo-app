@@ -34,13 +34,7 @@ const ViewMoreButton = React.memo(({heading, onPress, showViewAll}) => (
 const Dashboard = () => {
   const navigation = useNavigation();
   const modalRef = useRef(null);
-
   const [dashboardData, setDashboardData] = useState(null);
-  console.log(
-    dashboardData,
-    'dashboardDatadashboardDatadashboardDatadashboardDatadashboardData',
-  );
-
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('Booking');
 

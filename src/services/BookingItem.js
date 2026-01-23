@@ -18,6 +18,27 @@ export const cancelBooking = (bookinID, params) => {
     requestType.POST,
   );
 };
+export const markAsRecived = (bookinID, params) => {
+  return Api(
+    `${endPoints.booking}/${bookinID}/mark-received`,
+    params,
+    requestType.POST,
+  );
+};
+export const markAsComplete = (bookinID, params) => {
+  return Api(
+    `${endPoints.booking}/${bookinID}/mark-finished`,
+    params,
+    requestType.POST,
+  );
+};
+export const markAsClaimed = (bookinID, params) => {
+  return Api(
+    `${endPoints.booking}/${bookinID}/claim`,
+    params,
+    requestType.POST,
+  );
+};
 export const acceptBooking = bookinID => {
   return Api(
     `${endPoints.acceptBooking}/${bookinID}/accept`,
@@ -25,14 +46,38 @@ export const acceptBooking = bookinID => {
     requestType.POST,
   );
 };
+export const addReview = (bookinID, parmas) => {
+  return Api(
+    `${endPoints.booking}/${bookinID}/review`,
+    parmas,
+    requestType.POST,
+  );
+};
 
 export const getBookingAnalytics = () => {
   return Api(endPoints.bookingAnalytics, null, requestType.GET);
 };
+
+export const getVendorBookingById = bookingId => {
+  return Api(
+    `${endPoints.vendorBookingDetails}/${bookingId}`,
+    null,
+    requestType.GET,
+  );
+};
+
 export const vendorOrderHistory = () => {
   return Api(endPoints.orderHistory, null, requestType.GET);
 };
 
 export const getBookingByStatus = params => {
   return Api(endPoints.bookingByStatus, params, requestType.POST);
+};
+
+export const updateStatus = (bookinID, params = null, type) => {
+  return Api(
+    `${endPoints.update}/${bookinID}/${type}`,
+    params,
+    requestType.POST,
+  );
 };

@@ -18,11 +18,6 @@ const PaymentModal = ({
   selectedData,
   amountToPay,
 }) => {
-  console.log(
-    amountToPay,
-    'selectedDataselectedDataselectedDataselectedDataassadsad',
-  );
-
   const {confirmPayment} = useStripe();
   const [cardComplete, setCardComplete] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -148,7 +143,7 @@ const PaymentModal = ({
         <Text style={styles.subTitle}>
           Your card information is encrypted and secure
         </Text>
-
+        <View style={{height: width(3)}} />
         <CardField
           postalCodeEnabled={false}
           style={styles.cardFieldContainer}
