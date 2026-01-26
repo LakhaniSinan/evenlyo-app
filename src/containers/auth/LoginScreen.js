@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -19,6 +19,7 @@ import Header from '../../components/header';
 import Loader from '../../components/loder';
 import TextField from '../../components/textInput';
 import {COLORS, fontFamly, SIZES} from '../../constants';
+import {helper} from '../../helper';
 import useTranslation from '../../hooks/useTranslation';
 import {setUserData} from '../../redux/slice/auth';
 import {loginClient, loginVendor, socialLogin} from '../../services/Auth';
@@ -26,15 +27,33 @@ import {globalStyles} from '../../styles/globalStyle';
 
 const LoginScreen = ({navigation, route}) => {
   const {type} = route.params;
-  console.log(type, 'typetypetypetypetype');
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [fcm, setFcm] = useState('');
+  const [email, setEmail] = useState('johndoe@gmail.com');
+  const [password, setPassword] = useState('12345678');
   const [showPassword, setShowPassword] = useState(true);
   const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const {t} = useTranslation();
+
+  useEffect(() => {
+    handleGetFCM();
+  }, []);
+
+  const handleGetFCM = async () => {
+    const res = await helper.requestNotificationPermission();
+    if (res === 'granted') {
+      getFCMToken();
+    } else {
+    }
+  };
+
+  const getFCMToken = async () => {
+    const fcmToken = await helper.getFCMToken();
+    setFcm(fcmToken);
+  };
+
   const navigateToRegister = () => {
     if (type == 'client') {
       navigation.navigate('Register');
@@ -72,13 +91,13 @@ const LoginScreen = ({navigation, route}) => {
           email: email,
           password: password,
           userType: type,
+          fcm,
         };
         setIsLoading(true);
         const response =
           type == 'client'
             ? await loginClient(payload)
             : await loginVendor(payload);
-        console.log(response, 'responseresponseresponseresponseresponse');
 
         let data = response?.data?.user;
         setIsLoading(false);
@@ -102,6 +121,7 @@ const LoginScreen = ({navigation, route}) => {
       }
     }
   };
+
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);

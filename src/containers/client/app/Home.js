@@ -1,10 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import messaging from '@react-native-firebase/messaging';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FlatList, Image, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {useDispatch, useSelector} from 'react-redux';
-import {getHomeData, listingAddToCart} from '../../../services/ListingsItem';
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ICONS} from '../../../assets';
 import LoginModal from '../../../components/authModal';
 import ForgotModal from '../../../components/authModal/ForgotModal';
@@ -23,6 +22,8 @@ import {COLORS, fontFamly} from '../../../constants';
 import useCategories from '../../../hooks/getCategories';
 import useTranslation from '../../../hooks/useTranslation';
 import {setCartData} from '../../../redux/slice/cart';
+import {getHomeData, listingAddToCart} from '../../../services/ListingsItem';
+import {helper} from '../../../helper';
 
 const Home = ({navigation, route}) => {
   const modalRef = useRef();
@@ -30,11 +31,8 @@ const Home = ({navigation, route}) => {
   const dispatch = useDispatch();
   const locationData = useSelector(state => state.LocationSlice);
   const {address, city, state: regionState} = locationData;
-
   const [query, setQuery] = useState('');
-
   const [platformFeePercentage, setPlatformFeePercentage] = useState(0);
-
   const [homedata, setHomeData] = useState(null);
   const [selected, setSelected] = useState(null);
   const [subCategoriesSelected, setSubCategoriesSelected] = useState(null);
@@ -44,10 +42,42 @@ const Home = ({navigation, route}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showFrogotModal, setShowFrogotModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const [otherSaleItems, setOtherSaleItems] = useState([]);
-
   const {categories, subCategories, fetchCategories, fetchSubCategories} =
     useCategories();
+
+  useEffect(() => {
+    // App launch se pehle ki notification handle
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          const {title, body} = remoteMessage.notification || {};
+          console.log('Initial Notification:', title, body);
+        }
+      })
+      .catch(console.error);
+
+    // App background se open hone pe notification
+    const unsubscribeOpened = messaging().onNotificationOpenedApp(
+      remoteMessage => {
+        if (remoteMessage) {
+          const {title, body} = remoteMessage.notification || {};
+          console.log('Notification Opened:', title, body);
+        }
+      },
+    );
+
+    // App foreground me notification receive hone pe
+    const unsubscribeForeground = messaging().onMessage(remoteMessage => {
+      const {title, body} = remoteMessage.notification || {};
+      helper.notificationCall(title, body, () => {});
+    });
+
+    return () => {
+      unsubscribeOpened();
+      unsubscribeForeground();
+    };
+  }, []);
 
   useEffect(() => {
     loadInitialData();

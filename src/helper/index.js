@@ -1,9 +1,12 @@
 // helper.js
 
+import messaging from '@react-native-firebase/messaging';
 import axios from 'axios';
-import {Platform} from 'react-native';
+import {PermissionsAndroid, Platform} from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import {check, PERMISSIONS} from 'react-native-permissions';
+import {ICONS} from '../assets';
+import {notifications} from '../constants/Variable';
 
 // ✅ Your Cloudinary Config
 const CLOUD_NAME = 'dv0imczul';
@@ -40,6 +43,54 @@ export const helper = {
     }
   },
 
+  async requestNotificationPermission() {
+    try {
+      // 🍎 iOS
+      if (Platform.OS === 'ios') {
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+        return enabled ? 'granted' : 'denied';
+      }
+
+      // 🤖 Android (13+)
+      if (Platform.OS === 'android' && Platform.Version >= 33) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        );
+
+        return granted === PermissionsAndroid.RESULTS.GRANTED
+          ? 'granted'
+          : granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+          ? 'blocked'
+          : 'denied';
+      }
+
+      // 🤖 Android < 13 (auto granted)
+      return 'granted';
+    } catch (error) {
+      console.log('❌ Notification permission error:', error);
+      return 'denied';
+    }
+  },
+
+  async getFCMToken() {
+    try {
+      // iOS ke liye required
+      await messaging().registerDeviceForRemoteMessages();
+
+      const fcmToken = await messaging().getToken();
+
+      console.log('🔥 FCM TOKEN:', fcmToken);
+      return fcmToken;
+    } catch (error) {
+      console.log('❌ FCM token error:', error);
+      return null;
+    }
+  },
+
   async getCurrentLocation() {
     return new Promise((resolve, reject) => {
       Geolocation.getCurrentPosition(
@@ -58,6 +109,7 @@ export const helper = {
       );
     });
   },
+
   async getLocationAddress(lat, lng, googleKeyyyy) {
     return new Promise((resolve, reject) => {
       axios
@@ -118,5 +170,19 @@ export const helper = {
       console.error('Cloudinary Upload Error:', error);
       return null;
     }
+  },
+
+  async notificationCall(titleee, bodyyy, handlePress) {
+    return notifications?.popup?.show({
+      onPress: () => {
+        if (handlePress) handlePress();
+      },
+      appIconSource: ICONS.logoIcon,
+      appTitle: 'Evenlyo',
+      timeText: 'Now',
+      title: titleee,
+      body: bodyyy,
+      slideOutTime: 5000,
+    });
   },
 };

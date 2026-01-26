@@ -1,5 +1,4 @@
-import {vendorOrderHistory} from '../services/BookingItem';
-
+export const notifications = {};
 export const requestType = {
   POST: 'post',
   GET: 'get',

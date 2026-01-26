@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -25,16 +25,34 @@ import CommonAlert from '../commanAlert';
 import GradientText from '../gradiantText';
 import Loader from '../loder';
 import TextField from '../textInput';
+import {helper} from '../../helper';
 
 const LoginModal = ({onClose, isVisible, handlePressFun}) => {
   const {t} = useTranslation();
   const modalRef = useRef(null);
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.LoginSlice);
-
+  const [fcm, setFcm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({email: '', password: ''});
+
+  useEffect(() => {
+    handleGetFCM();
+  }, []);
+
+  const handleGetFCM = async () => {
+    const res = await helper.requestNotificationPermission();
+    if (res === 'granted') {
+      getFCMToken();
+    } else {
+    }
+  };
+
+  const getFCMToken = async () => {
+    const fcmToken = await helper.getFCMToken();
+    setFcm(fcmToken);
+  };
 
   const handleInputChange = useCallback((key, value) => {
     setFormData(prev => ({...prev, [key]: value}));
@@ -72,7 +90,7 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
 
     try {
       setIsLoading(true);
-      const payload = {email, password};
+      const payload = {email, password, fcm};
 
       const response =
         user?.type === 'vendor'

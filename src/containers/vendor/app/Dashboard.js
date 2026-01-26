@@ -1,3 +1,4 @@
+import messaging from '@react-native-firebase/messaging';
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
@@ -18,6 +19,7 @@ import DashboardCard from '../../../components/dashboardCard';
 import RecentBookingCards from '../../../components/recentBookingCards';
 import RecentClientsCard from '../../../components/recentClientsCard';
 import {COLORS, fontFamly} from '../../../constants';
+import {helper} from '../../../helper';
 import {getDashboard} from '../../../services/Dashboard';
 
 const ViewMoreButton = React.memo(({heading, onPress, showViewAll}) => (
@@ -37,6 +39,40 @@ const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('Booking');
+
+  useEffect(() => {
+    // App launch se pehle ki notification handle
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          const {title, body} = remoteMessage.notification || {};
+          console.log('Initial Notification:', title, body);
+        }
+      })
+      .catch(console.error);
+
+    // App background se open hone pe notification
+    const unsubscribeOpened = messaging().onNotificationOpenedApp(
+      remoteMessage => {
+        if (remoteMessage) {
+          const {title, body} = remoteMessage.notification || {};
+          console.log('Notification Opened:', title, body);
+        }
+      },
+    );
+
+    // App foreground me notification receive hone pe
+    const unsubscribeForeground = messaging().onMessage(remoteMessage => {
+      const {title, body} = remoteMessage.notification || {};
+      helper.notificationCall(title, body, () => {});
+    });
+
+    return () => {
+      unsubscribeOpened();
+      unsubscribeForeground();
+    };
+  }, []);
 
   const dashboardStats = useMemo(
     () => [
