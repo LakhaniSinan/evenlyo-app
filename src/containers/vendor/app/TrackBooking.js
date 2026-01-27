@@ -1,111 +1,108 @@
-import React, {useState} from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React, {useMemo, useState} from 'react';
+import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
 import {COLORS, fontFamly} from '../../../constants';
 
-const TrackingBookingDetails = ({navigation}) => {
-  const [orderData] = useState({
-    orderId: 'ORD-003',
-    clientName: 'Global Supply Co',
-    phone: '+1-234-567-8903',
-    total: '$1,074.00',
-    status: 'On the way',
-  });
+const STATUS_CONFIG = {
+  accepted: {
+    title: 'Order Accepted',
+    description: 'Vendor accepted the order',
+    icon: 'checkmark-circle',
+    badge: 'Vendor',
+    badgeColor: '#FFF3E0',
+    textColor: '#FF9800',
+  },
+  on_the_way: {
+    title: 'On The Way',
+    description: 'Driver is on the way',
+    icon: 'car',
+    badge: 'Driver',
+    badgeColor: '#E3F2FD',
+    textColor: '#2196F3',
+  },
+  picked_up: {
+    title: 'Picked Up',
+    description: 'Order picked up from location',
+    icon: 'cube',
+    badge: 'Driver',
+    badgeColor: '#E8F5E8',
+    textColor: '#4CAF50',
+  },
+  received: {
+    title: 'Received',
+    description: 'Client received the order',
+    icon: 'person',
+    badge: 'Client',
+    badgeColor: '#E8F5E8',
+    textColor: '#4CAF50',
+  },
+  finished: {
+    title: 'Finished',
+    description: 'Order process finished',
+    icon: 'time',
+    badge: 'System',
+    badgeColor: '#EDE7F6',
+    textColor: '#673AB7',
+  },
+  received_back: {
+    title: 'Received Back',
+    description: 'Item received back',
+    icon: 'refresh',
+    badge: 'Warehouse',
+    badgeColor: '#FFFDE7',
+    textColor: '#FBC02D',
+  },
+  completed: {
+    title: 'Completed',
+    description: 'Order completed successfully',
+    icon: 'checkmark-done-circle',
+    badge: 'Completed',
+    badgeColor: '#E8F5E8',
+    textColor: '#2E7D32',
+  },
+};
 
-  const [timelineData] = useState([
-    {
-      id: 1,
-      status: 'Request Sent',
-      description: 'Client Sent Order Request',
-      time: '2025-01-07/07:45',
-      icon: 'time',
-      badge: 'On the way',
-      badgeColor: '#FFE5E5',
-      textColor: '#FF6B6B',
-      completed: true,
-    },
-    {
-      id: 2,
-      status: 'Order Accepted',
-      description: 'Vendor Accepted The Order',
-      time: '2025-01-07/07:45',
-      icon: 'checkmark-circle',
-      badge: 'Vendor',
-      badgeColor: '#FFF3E0',
-      textColor: '#FF9800',
-      completed: true,
-    },
-    {
-      id: 3,
-      status: 'Picked Up',
-      description: 'Order Picked Up From Location',
-      time: '2025-01-07/07:45',
-      icon: 'cube',
-      badge: 'Driver',
-      badgeColor: '#E8F5E8',
-      textColor: '#4CAF50',
-      completed: true,
-    },
-    {
-      id: 4,
-      status: 'Delivered',
-      description: '',
-      time: 'Pending',
-      icon: 'car',
-      badge: 'Pending',
-      badgeColor: '#F5F5F5',
-      textColor: '#9E9E9E',
-      completed: false,
-    },
-    {
-      id: 5,
-      status: 'Received',
-      description: 'Client Confirmed Receipt',
-      time: 'Pending',
-      icon: 'person',
-      badge: 'Pending',
-      badgeColor: '#F5F5F5',
-      textColor: '#9E9E9E',
-      completed: false,
-    },
-    {
-      id: 6,
-      status: 'Completed',
-      description: 'Total Price: $2100.00',
-      time: 'Pending',
-      icon: 'checkmark-circle',
-      badge: 'Pending',
-      badgeColor: '#F5F5F5',
-      textColor: '#9E9E9E',
-      completed: false,
-    },
-  ]);
+const TrackingBookingDetails = ({navigation, route}) => {
+  const data = route.params;
+  const statusHistory = data?.statusHistory || [];
+
+  const timelineData = useMemo(() => {
+    return statusHistory.map((item, index) => {
+      const config = STATUS_CONFIG[item.status] || {};
+
+      return {
+        id: item._id || index,
+        status: config.title || item.status,
+        description: config.description || '',
+        time: new Date(item.timestamp).toLocaleString(),
+        icon: config.icon || 'time',
+        badge: config.badge || 'Status',
+        badgeColor: config.badgeColor || '#F5F5F5',
+        textColor: config.textColor || '#9E9E9E',
+        completed: true,
+      };
+    });
+  }, [statusHistory]);
+
+  const [orderData] = useState({
+    orderId: data?.orderId || 'ORD-003',
+    clientName: data?.clientName || 'Global Supply Co',
+    phone: data?.phone || '+1-234-567-8903',
+    total: data?.total || '$1,074.00',
+    status: timelineData?.[timelineData.length - 1]?.status || 'Pending',
+  });
 
   const handleDownloadPDF = () => {
     console.log('Download PDF');
   };
 
-  const handleDelete = () => {
-    console.log('Delete order');
-  };
-
-  const handleDirection = () => {
-    navigation.navigate('TrackDirections');
-  };
-
   return (
     <View style={styles.container}>
       <AppHeader
-        headingText={'Order Track - TRK001'}
+        headingText={'Order Tracking'}
         leftIcon={ICONS.leftArrowIcon}
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={() => navigation.goBack()}
@@ -115,6 +112,7 @@ const TrackingBookingDetails = ({navigation}) => {
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}>
+        {/* ========= ORDER INFO ========= */}
         <View style={styles.orderInfoCard}>
           <View style={styles.orderInfoHeader}>
             <Text style={styles.orderInfoTitle}>Order Information</Text>
@@ -148,8 +146,10 @@ const TrackingBookingDetails = ({navigation}) => {
           </View>
         </View>
 
+        {/* ========= TIMELINE ========= */}
         <View style={styles.timelineSection}>
           <Text style={styles.sectionTitle}>Order Timeline</Text>
+
           <View style={styles.timeline}>
             {timelineData.map((item, index) => (
               <View key={item.id} style={styles.timelineItem}>
@@ -157,18 +157,15 @@ const TrackingBookingDetails = ({navigation}) => {
                   <View
                     style={[
                       styles.iconBackground,
-                      {backgroundColor: item.completed ? '#E8F5E8' : '#F5F5F5'},
+                      {backgroundColor: '#E8F5E8'},
                     ]}>
-                    <Icon
-                      name={item.icon}
-                      size={20}
-                      color={item.completed ? '#4CAF50' : '#9E9E9E'}
-                    />
+                    <Icon name={item.icon} size={20} color="#4CAF50" />
                   </View>
                   {index < timelineData.length - 1 && (
                     <View style={styles.timelineLine} />
                   )}
                 </View>
+
                 <View style={styles.timelineContent}>
                   <View style={styles.timelineHeader}>
                     <Text style={styles.updateStatus}>{item.status}</Text>
@@ -183,36 +180,24 @@ const TrackingBookingDetails = ({navigation}) => {
                       </Text>
                     </View>
                   </View>
-                  {item.description && (
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}>
-                      <Text style={styles.updateDescription}>
-                        {item.description}
-                      </Text>
-                      <Text style={styles.updateTime}>{item.time}</Text>
-                    </View>
-                  )}
+
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                    }}>
+                    <Text style={styles.updateDescription}>
+                      {item.description}
+                    </Text>
+                    <Text style={styles.updateTime}>{item.time}</Text>
+                  </View>
                 </View>
               </View>
             ))}
           </View>
         </View>
 
-        <View style={styles.progressNotesSection}>
-          <Text style={styles.progressNotesTitle}>Progress Notes</Text>
-          <View style={styles.progressNotesContent}>
-            <Icon name="trophy" size={20} color="#4CAF50" />
-            <Text style={styles.progressNotesText}>
-              Order Is In Progress. Next Phase Will Be Marked As Completed Once
-              The Current Step Is Finished.
-            </Text>
-          </View>
-        </View>
-
+        {/* ========= BUTTON ========= */}
         <View style={styles.directionButtonContainer}>
           <GradientButton
             icon={ICONS.downloadIcon}
@@ -229,6 +214,8 @@ const TrackingBookingDetails = ({navigation}) => {
     </View>
   );
 };
+
+export default TrackingBookingDetails;
 
 const styles = StyleSheet.create({
   container: {
@@ -437,5 +424,3 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 });
-
-export default TrackingBookingDetails;

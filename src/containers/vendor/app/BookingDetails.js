@@ -373,7 +373,9 @@ function BookingDetails({route}) {
               color: COLORS.white,
             }}
             text={'Track Now'}
-            onPress={() => navigation.navigate('TrackingBookingDetails')}
+            onPress={() =>
+              navigation.navigate('TrackingBookingDetails', booking)
+            }
             styleProps={{
               paddingVertical: width(3),
             }}

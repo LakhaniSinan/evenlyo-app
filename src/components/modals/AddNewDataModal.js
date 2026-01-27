@@ -18,7 +18,7 @@ const AddNewDataModal = ({
   const options = [
     {id: 1, label: t('Add More Category')},
     {id: 2, label: t('Booking Items')},
-    {id: 3, label: t('Add New Sale list')},
+    // {id: 3, label: t('Add New Sale list')},
   ];
 
   return (

@@ -55,13 +55,13 @@ const countBookingsByStatus = (bookings = []) => {
     pending: 0,
     accepted: 0,
     rejected: 0,
-    claim: 0,
-    'on the way': 0,
+    on_the_way: 0,
     received: 0,
     finished: 0,
-    'picked up': 0,
-    'received back': 0,
-    complete: 0,
+    picked_up: 0,
+    received_back: 0,
+    completed: 0,
+    claim: 0,
   };
 
   bookings.forEach(item => {
@@ -538,11 +538,11 @@ function AllBookingScreen() {
         onRightIconPress={() => navigation.navigate('Notifications')}
       />
 
-      <View style={styles.tabContainer}>
+      {/* <View style={styles.tabContainer}>
         {TABS.map(t => (
           <TabButton key={t} label={t} />
         ))}
-      </View>
+      </View> */}
 
       {activeTab === 'Booking Items' && (
         <ScrollView

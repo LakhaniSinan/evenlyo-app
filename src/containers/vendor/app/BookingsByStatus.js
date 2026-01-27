@@ -35,7 +35,7 @@ const BookingsByStatus = ({navigation, route}) => {
       setLoading(true);
 
       const response = await getBookingByStatus({
-        status: event?.status?.toLowerCase(),
+        status: event?.title?.toLowerCase(),
         vendorId: user?.id,
       });
       console.log(
@@ -66,8 +66,6 @@ const BookingsByStatus = ({navigation, route}) => {
   }, [handleGetCartListing]);
 
   const BookingCard = ({item}) => {
-    console.log(item, 'itemitemitemitemitemitemitemsdadad');
-
     return (
       <View style={styles.card}>
         <View style={styles.cardImageWrapper}>

@@ -186,7 +186,7 @@ const Dashboard = () => {
           columnWrapperStyle={styles.columnWrapper}
         />
 
-        <View style={styles.tabContainer}>
+        {/* <View style={styles.tabContainer}>
           {['Booking', 'Sale'].map(tab => (
             <TouchableOpacity
               key={tab}
@@ -209,7 +209,7 @@ const Dashboard = () => {
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </View> */}
 
         <View style={styles.chartContainer}>
           <LineChartComponent
@@ -331,14 +331,14 @@ const styles = {
     marginHorizontal: width(3),
     borderRadius: 12,
     paddingVertical: width(4),
+    marginBottom: width(2),
   },
   sectionContainer: {
     backgroundColor: COLORS.backgroundLight,
-    marginTop: width(3),
     marginHorizontal: width(3),
     borderRadius: 12,
     paddingVertical: width(4),
-    marginBottom: width(10),
+    marginBottom: width(2),
   },
   viewMoreContainer: {
     flexDirection: 'row',

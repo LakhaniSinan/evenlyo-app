@@ -379,7 +379,7 @@ const EventListingScreen = ({navigation}) => {
               />
             </TouchableOpacity>
           </View>
-          <View style={styles.tabContainer}>
+          {/* <View style={styles.tabContainer}>
             {renderTabs.map(tab => (
               <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
                 {activeTab === tab ? (
@@ -397,7 +397,7 @@ const EventListingScreen = ({navigation}) => {
                 )}
               </TouchableOpacity>
             ))}
-          </View>
+          </View> */}
           <View
             style={{
               flex: 1,
