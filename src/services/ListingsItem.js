@@ -101,6 +101,13 @@ export const toggleStatus = (id, params) => {
     requestType.PATCH,
   );
 };
+export const searchSubCategories = params => {
+  return Api(
+    `${endPoints.searchSubCategories}?q=${params}`,
+    null,
+    requestType.GET,
+  );
+};
 
 export const saveBookingOrder = params => {
   return Api(endPoints.saveBooking, params, requestType.POST);

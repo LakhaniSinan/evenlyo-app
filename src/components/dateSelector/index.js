@@ -7,116 +7,58 @@ import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 
 const DateSelector = ({
-  startDate,
-  endDate,
-  onStartDateChange,
-  onEndDateChange,
+  date,
+  onDateChange,
   containerStyle,
   placeholder = 'Select Date',
 }) => {
   const {t} = useTranslation();
   const [showCalendar, setShowCalendar] = useState(false);
-  const [range, setRange] = useState({
-    start: startDate ? moment(startDate).format('YYYY-MM-DD') : null,
-    end: endDate ? moment(endDate).format('YYYY-MM-DD') : null,
-  });
-  const [isSelectingEnd, setIsSelectingEnd] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(
+    date ? moment(date).format('YYYY-MM-DD') : null,
+  );
 
   useEffect(() => {
-    setRange({
-      start: startDate ? moment(startDate).format('YYYY-MM-DD') : null,
-      end: endDate ? moment(endDate).format('YYYY-MM-DD') : null,
-    });
-  }, [startDate, endDate]);
+    setSelectedDate(date ? moment(date).format('YYYY-MM-DD') : null);
+  }, [date]);
 
-  const formatDate = date =>
-    date ? moment(date).format('DD MMM YYYY') : placeholder;
+  const formatDate = d => (d ? moment(d).format('DD MMM YYYY') : placeholder);
 
-  const openCalendar = () => {
-    setShowCalendar(true);
-    setIsSelectingEnd(false);
-  };
-
+  const openCalendar = () => setShowCalendar(true);
   const closeCalendar = () => setShowCalendar(false);
 
   const onDayPress = day => {
     const selected = day.dateString;
 
-    if (!range.start || !isSelectingEnd) {
-      setRange({start: selected, end: null});
-      onStartDateChange && onStartDateChange(new Date(selected));
-      onEndDateChange && onEndDateChange(null);
-      setIsSelectingEnd(true);
-    } else {
-      let start = range.start;
-      let end = selected;
+    setSelectedDate(selected);
+    onDateChange && onDateChange(new Date(selected));
+    closeCalendar();
+  };
 
-      if (moment(selected).isBefore(range.start)) {
-        start = selected;
-        end = range.start;
+  const markedDates = selectedDate
+    ? {
+        [selectedDate]: {
+          selected: true,
+          selectedColor: COLORS.primary,
+        },
       }
-
-      setRange({start, end});
-      onStartDateChange && onStartDateChange(new Date(start));
-      onEndDateChange && onEndDateChange(new Date(end));
-      closeCalendar();
-    }
-  };
-
-  const getMarkedDates = () => {
-    const marked = {};
-
-    if (!range.start) return marked;
-
-    const start = moment(range.start);
-    const end = range.end ? moment(range.end) : start;
-
-    let current = start.clone();
-
-    while (current.isSameOrBefore(end)) {
-      const date = current.format('YYYY-MM-DD');
-
-      marked[date] = {
-        color: COLORS.primary,
-        textColor: COLORS.white,
-        startingDay: date === range.start,
-        endingDay: date === range.end,
-      };
-
-      current.add(1, 'day');
-    }
-
-    return marked;
-  };
-
-  const calendarCurrent = range.start || moment().format('YYYY-MM-DD');
+    : {};
 
   return (
-    <View style={[styles.container, containerStyle]}>
-      <View style={styles.dateRow}>
-        <View style={styles.dateSection}>
-          <Text style={styles.label}>{t('Start Date') || 'Start Date'}</Text>
-          <TouchableOpacity style={styles.dateButton} onPress={openCalendar}>
-            <Text style={styles.dateText}>{formatDate(range.start)}</Text>
-          </TouchableOpacity>
-        </View>
+    <View style={containerStyle}>
+      <Text style={styles.label}>{t('Select Date') || 'Select Date'}</Text>
 
-        <View style={styles.dateSection}>
-          <Text style={styles.label}>{t('End Date') || 'End Date'}</Text>
-          <TouchableOpacity style={styles.dateButton} onPress={openCalendar}>
-            <Text style={styles.dateText}>{formatDate(range.end)}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <TouchableOpacity style={styles.dateButton} onPress={openCalendar}>
+        <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
+      </TouchableOpacity>
 
       <Modal visible={showCalendar} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.calendarWrapper}>
             <Calendar
-              markingType="period"
-              markedDates={getMarkedDates()}
+              markedDates={markedDates}
               onDayPress={onDayPress}
-              current={calendarCurrent}
+              current={selectedDate || moment().format('YYYY-MM-DD')}
               theme={{
                 todayTextColor: COLORS.primary,
                 arrowColor: COLORS.primary,
@@ -133,10 +75,9 @@ const DateSelector = ({
   );
 };
 
+export default DateSelector;
+
 const styles = StyleSheet.create({
-  container: {marginTop: width(3)},
-  dateRow: {flexDirection: 'row', justifyContent: 'space-between'},
-  dateSection: {flex: 1, marginHorizontal: width(0.5)},
   label: {
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
@@ -169,17 +110,4 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 10,
   },
-  closeButton: {
-    marginTop: 10,
-    alignSelf: 'center',
-    padding: 10,
-    backgroundColor: COLORS.primary,
-    borderRadius: 5,
-  },
-  closeText: {
-    color: COLORS.white,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-  },
 });
-
-export default DateSelector;

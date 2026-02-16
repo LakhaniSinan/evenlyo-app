@@ -1,14 +1,13 @@
 import moment from 'moment';
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
-import {width} from 'react-native-dimension';
-import {COLORS, fontFamly} from '../../constants';
-import {useTranslation} from '../../hooks';
+import { StyleSheet, Text, View } from 'react-native';
+import { width } from 'react-native-dimension';
+import { COLORS, fontFamly } from '../../constants';
+import { useTranslation } from '../../hooks';
 
 const ActivityLogCard = ({item, index, dataLength}) => {
   const {currentLanguage} = useTranslation();
   const isLastItem = index === dataLength - 1;
-  console.log(item, 'itemitemitemitemitemitemitem3214351');
 
   const formattedTime = moment(item?.createdAt).format(
     'MMM DD, YYYY | hh:mm A',

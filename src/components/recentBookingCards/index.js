@@ -7,8 +7,6 @@ import {COLORS, fontFamly} from '../../constants';
 import StatusBadge from '../statusComponent';
 
 const RecentBookingCards = ({item, index, dataLength}) => {
-  console.log(item, 'itemitemitemitemitemitemitem,,,,,,');
-
   const isLastItem = index === dataLength - 1;
   const navigation = useNavigation();
 

@@ -24,7 +24,7 @@ import {
 import {width} from 'react-native-dimension';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {useSelector} from 'react-redux';
-import {ICONS} from '../../../assets';
+import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import ChatCard from '../../../components/chatCard';
 import NewRequestModal from '../../../components/modals/RequestModal';
@@ -33,38 +33,19 @@ import {SocketContext} from '../../../context';
 import {helper} from '../../../helper';
 import {useTranslation} from '../../../hooks';
 import {messageService} from '../../../services/Chat';
-
-const messagesData = [
-  {
-    id: '1',
-    text: 'Hi! I wanted to follow up on our previous discussion about the project timeline.',
-    isMe: false,
-    time: '12:30 AM',
-  },
-  {
-    id: '2',
-    text: "Hello! Of course, I've been working on the revised timeline. Let me share the updated schedule with you.",
-    isMe: true,
-    time: '10:32 AM',
-  },
-  {
-    id: '3',
-    text: 'That sounds great! When can we schedule the next meeting?',
-    isMe: false,
-    time: '10:35 AM',
-  },
-];
-
+import GradientButton from '../../../components/button';
+import CustomOfferModal from '../../../components/modals/CustomOffers';
 const ChatDetail = ({navigation, route}) => {
   const data = route.params;
   const {socket} = useContext(SocketContext);
   const {user} = useSelector(state => state.LoginSlice);
   const [attachedFile, setAttachedFile] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showViewOfferModal, setShowViewOfferModal] = useState(false);
   const [isError, setIsError] = useState(false);
   const [isAcceptingOffer, setIsAcceptingOffer] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const [messageText, setMessageText] = useState('');
   const [allMessages, setAllMessages] = useState([]);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
@@ -72,6 +53,7 @@ const ChatDetail = ({navigation, route}) => {
   const [reportReason, setReportReason] = useState('');
   const [isBlocking, setIsBlocking] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [offerObject, setOfferObject] = useState(null);
 
   useEffect(() => {
     if (socket && user) {
@@ -304,9 +286,18 @@ const ChatDetail = ({navigation, route}) => {
     return messageTime.format('MMM DD, YYYY [at] hh:mm A');
   };
 
+  const onViewOffer = offerObject => {
+    setOfferObject(offerObject);
+    setShowViewOfferModal(true);
+  };
+
   const renderMessage = useCallback(
     ({item}) => {
       const isOwn = item.senderId === user?.id;
+      const isOffer = item.isOffer;
+
+      console.log(isOffer ? item : '', 'asdkasdaskljdalksjjdlaskdjlasdkj');
+
       return (
         <>
           <View
@@ -316,7 +307,7 @@ const ChatDetail = ({navigation, route}) => {
             ]}>
             {!isOwn && (
               <Image
-                resizeMode="contain"
+                resizeMode="cover"
                 source={{uri: data?.participants?.vendor?.photo}}
                 style={styles.messageAvatar}
               />
@@ -327,7 +318,7 @@ const ChatDetail = ({navigation, route}) => {
                 {item?.attachment ? (
                   <Image
                     source={{uri: item?.attachment?.url}}
-                    resizeMode="contain"
+                    resizeMode="cover"
                     style={{height: '100%', width: '100%'}}
                   />
                 ) : (
@@ -347,6 +338,142 @@ const ChatDetail = ({navigation, route}) => {
                   <Text style={[styles.myMessageText, {color: COLORS.black}]}>
                     {item.message}
                   </Text>
+                )}
+                {isOffer && (
+                  <View style={{}}>
+                    <Text
+                      style={{
+                        color: COLORS.black,
+                        fontFamily: fontFamly.PlusJakartaSansBold,
+                        fontSize: 16,
+                        textAlign: 'center',
+                      }}>
+                      Custom Offer
+                    </Text>
+                    {item?.offerObject?.items?.map(vall => {
+                      return (
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            marginTop: width(2),
+                            backgroundColor: COLORS.white,
+                            borderRadius: width(4),
+                          }}>
+                          <View
+                            style={{
+                              height: width(15),
+                              width: width(15),
+                              borderRadius: width(4),
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}>
+                            <Image
+                              style={{height: '60%', width: '60%'}}
+                              source={{uri: vall?.images?.[0]}}
+                              resizeMode="contain"
+                            />
+                          </View>
+                          <View>
+                            <Text
+                              style={{
+                                fontFamily: fontFamly.PlusJakartaSansBold,
+                                fontSize: 12,
+                                marginLeft: width(2),
+                                color: COLORS.black,
+                              }}>
+                              {currentLanguage == 'en'
+                                ? vall?.title?.en
+                                : vall?.title?.nl}
+                            </Text>
+                            <View
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                              }}>
+                              <Text
+                                style={{
+                                  fontFamily: fontFamly.PlusJakartaSansMedium,
+                                  fontSize: 12,
+                                  marginLeft: width(2),
+                                  color: COLORS.green,
+                                }}>
+                                {vall?.discount}%
+                              </Text>
+                              <Text
+                                style={{
+                                  marginLeft: width(2),
+                                  color: COLORS.primary,
+                                }}>
+                                $ {item?.offerObject?.finalTotal}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      );
+                    })}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        paddingVertical: width(2),
+                        justifyContent: 'space-between',
+                      }}>
+                      <Text
+                        style={{
+                          fontFamily: fontFamly.PlusJakartaSansBold,
+                          fontSize: 16,
+                          marginLeft: width(2),
+                          color: COLORS.black,
+                        }}>
+                        Discount Amount
+                      </Text>
+                      <Text
+                        style={{
+                          fontFamily: fontFamly.PlusJakartaSansBold,
+                          fontSize: 16,
+                          marginLeft: width(2),
+                          color: COLORS.black,
+                        }}>
+                        ${item?.offerObject?.totalDiscount}
+                      </Text>
+                    </View>
+                    <Text
+                      style={{
+                        fontFamily: fontFamly.PlusJakartaSansBold,
+                        fontSize: 12,
+                        marginLeft: width(2),
+                        color: COLORS.textLight,
+                      }}>
+                      Valid for 24 hours
+                    </Text>
+                    <View style={{height: width(2)}} />
+                    {offerObject?.status == 'ACCEPTED' ? (
+                      <View
+                        style={{
+                          marginBottom: width(2),
+                          borderWidth: 1,
+                          borderColor: COLORS.green,
+                          backgroundColor: '#EFFFF2', // light green background
+                          borderRadius: width(2),
+                          paddingVertical: width(2),
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: fontFamly.PlusJakartaSansBold,
+                            fontSize: 14,
+                            color: COLORS.green,
+                            textAlign: 'center',
+                          }}>
+                          ACCEPTED
+                        </Text>
+                      </View>
+                    ) : (
+                      <GradientButton
+                        text={'View & Accept Offer'}
+                        onPress={() => onViewOffer(item?.offerObject)}
+                      />
+                    )}
+                  </View>
                 )}
               </View>
             )}
@@ -434,7 +561,6 @@ const ChatDetail = ({navigation, route}) => {
       // Send via socket
       socket.emit('send_message', finalMessage);
 
-      // ✅ Update local state (replace temp message with final one)
       setAllMessages(prev =>
         prev.map(msg => (msg._id === tempId ? finalMessage : msg)),
       );
@@ -522,99 +648,6 @@ const ChatDetail = ({navigation, route}) => {
           style={styles.messagesList}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{padding: width(2)}}
-          // ListFooterComponent={
-          //   <View
-          //     style={{
-          //       marginVertical: width(3),
-          //       marginHorizontal: width(3),
-          //       padding: width(4),
-          //       backgroundColor: COLORS.white,
-          //       borderRadius: 14,
-          //       shadowColor: '#000',
-          //       shadowOffset: {
-          //         width: 0,
-          //         height: 2,
-          //       },
-          //       shadowOpacity: 0.25,
-          //       shadowRadius: 3.84,
-          //       elevation: 5,
-          //     }}>
-          //     <View style={{flexDirection: 'row'}}>
-          //       <Image
-          //         source={IMAGES.profilePhoto}
-          //         style={{
-          //           height: width(13),
-          //           width: width(13),
-          //           borderRadius: 100,
-          //         }}
-          //       />
-          //       <View style={{margin: width(2)}}>
-          //         <Text
-          //           style={{
-          //             fontFamily: fontFamly.PlusJakartaSansBold,
-          //             fontSize: 12,
-          //             color: COLORS.textDark,
-          //           }}>
-          //           Sarah Johnson
-          //         </Text>
-          //         <Text
-          //           style={{
-          //             fontFamily: fontFamly.PlusJakartaSansBold,
-          //             fontSize: 10,
-          //             color: COLORS.textLight,
-          //           }}>
-          //           Thanks for the quick res....{' '}
-          //         </Text>
-          //       </View>
-          //     </View>
-          //     <Text
-          //       style={{
-          //         marginTop: width(3),
-          //         fontFamily: fontFamly.PlusJakartaSansBold,
-          //         fontSize: 12,
-          //         color: COLORS.textDark,
-          //       }}>
-          //       New Offer Send
-          //     </Text>
-          //     <Text
-          //       style={{
-          //         fontFamily: fontFamly.PlusJakartaSansBold,
-          //         fontSize: 10,
-          //         color: COLORS.textLight,
-          //       }}>
-          //       With over 7 years of event experience, DJ Ray...
-          //     </Text>
-          //     <View
-          //       style={{
-          //         flexDirection: 'row',
-          //         alignItems: 'baseline',
-          //         marginVertical: width(3),
-          //       }}>
-          //       <Text
-          //         style={{
-          //           fontFamily: fontFamly.PlusJakartaSansBold,
-          //           fontSize: 14,
-          //           color: COLORS.textDark,
-          //         }}>
-          //         $300
-          //       </Text>
-          //       <Text
-          //         style={{
-          //           fontFamily: fontFamly.PlusJakartaSansBold,
-          //           fontSize: 9,
-          //           color: COLORS.textLight,
-          //         }}>
-          //         /Day
-          //       </Text>
-          //     </View>
-          //     <GradientButton
-          //       text="View Detail"
-          //       onPress={() => onContinueToShipping()}
-          //       type="filled"
-          //       textStyle={styles.sendRequestText}
-          //     />
-          //   </View>
-          // }
         />
 
         <View style={styles.inputWrapper}>
@@ -674,6 +707,12 @@ const ChatDetail = ({navigation, route}) => {
         onClose={() => setShowRequestModal(!showRequestModal)}
         navigation={navigation}
       />
+      <CustomOfferModal
+        offerObject={offerObject}
+        isVisible={showViewOfferModal}
+        onClose={() => setShowViewOfferModal(!showViewOfferModal)}
+        navigation={navigation}
+      />
     </View>
   );
 };
@@ -694,6 +733,7 @@ const styles = StyleSheet.create({
     width: width(8),
     height: width(8),
     marginHorizontal: width(2),
+    borderRadius: width(4),
   },
   myMessageBubble: {
     width: width(70),

@@ -63,6 +63,7 @@ export const endPoints = {
   listingsItems: '/vendor/listings/overview',
   updateOrderStatus: '/update-order-status',
   saveBooking: '/vendor/bookings/on-payment-success',
+  searchSubCategories: '/listings/search/subcategories',
 
   //Notifications
   notifications: '/notifications',

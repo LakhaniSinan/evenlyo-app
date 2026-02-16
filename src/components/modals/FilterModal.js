@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -14,17 +15,16 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {searchSubCategories} from '../../services/ListingsItem';
 import GradientButton from '../button';
 import CustomPicker from '../customPicker';
 import DateSelector from '../dateSelector';
 import GradientText from '../gradiantText';
 import GooglePlacesInput from '../locationField';
-import TimeSelector from '../timingsSelector';
 
 const INITIAL_FILTERS = {
   mainCategory: '',
   subCategory: '',
-  location: '',
 };
 
 const INITIAL_DATES = {
@@ -32,10 +32,13 @@ const INITIAL_DATES = {
   endDate: null,
 };
 
-const INITIAL_TIMINGS = {
-  startTime: null,
-  endTime: null,
-};
+const RADIUS_OPTIONS = [
+  {name: '5'},
+  {name: '10'},
+  {name: '25'},
+  {name: '50'},
+  {name: '100'},
+];
 
 const FilterModal = ({
   isVisible,
@@ -44,22 +47,35 @@ const FilterModal = ({
   modalRef,
   onApplyPress = () => {},
 }) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const navigation = useNavigation();
+
   const mainCategoryRef = useRef(null);
   const subCategoryRef = useRef(null);
+  const radiusRef = useRef(null);
+
+  const debounceRef = useRef(null);
+
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [radius, setRadius] = useState(null);
+
+  const [subCatQuery, setSubCatQuery] = useState('');
+  const [subCatList, setSubCatList] = useState([]);
+  const [subCatLoading, setSubCatLoading] = useState(false);
+  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
+  console.log(
+    selectedSubCategory,
+    'selectedSubCategoryselectedSubCategoryselectedSubCategory',
+  );
+
+  const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [dates, setDates] = useState(INITIAL_DATES);
+
   const [address, setAddress] = useState({
     fullAddress: '',
     lat: 0,
     lng: 0,
   });
-
-  const [otherCategory, setOtherCategory] = useState(false);
-  const [filters, setFilters] = useState(INITIAL_FILTERS);
-  const [dates, setDates] = useState(INITIAL_DATES);
-  const [startTime, setStartTime] = useState(null);
-  const [endTime, setEndTime] = useState(null);
 
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () =>
@@ -75,46 +91,66 @@ const FilterModal = ({
     };
   }, []);
 
-  const openPicker = useCallback((ref, params) => {
-    ref?.current?.show(params);
+  const fetchSubCategories = useCallback(async text => {
+    try {
+      setSubCatLoading(true);
+      const res = await searchSubCategories(text);
+      setSubCatList(res?.data?.data || []);
+    } catch (err) {
+      console.log('SubCategory API Error:', err);
+    } finally {
+      setSubCatLoading(false);
+    }
   }, []);
 
+  const handleSubCatSearch = useCallback(
+    text => {
+      setSubCatQuery(text);
+
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+
+      debounceRef.current = setTimeout(() => {
+        if (text.trim().length > 0) fetchSubCategories(text);
+        else setSubCatList([]);
+      }, 500);
+    },
+    [fetchSubCategories],
+  );
+
   const handleSelect = useCallback((key, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value?.name || value,
-    }));
+    setFilters(prev => ({...prev, [key]: value?.name || value}));
   }, []);
 
   const handleApply = useCallback(() => {
     const payload = {
-      startTime: startTime,
-      endTime: endTime,
       startDate: dates.startDate,
       endDate: dates.endDate,
       location: address.fullAddress,
+      radius,
       lat: address.lat,
       lng: address.lng,
+      subCategory: selectedSubCategory?._id,
     };
 
-    console.log(payload, 'payloadpayloadpayloadpayloadpayload');
-
     onApplyPress(payload);
-    // onClose();
-    // handleReset();
-  }, [dates, filters, navigation, onClose]);
+  }, [dates, address, radius, selectedSubCategory]);
 
   const handleReset = useCallback(() => {
     setFilters(INITIAL_FILTERS);
     setDates(INITIAL_DATES);
-    setStartTime(null);
-    setEndTime(null);
+    setAddress({fullAddress: '', lat: 0, lng: 0});
+    setRadius(null);
+    setSubCatQuery('');
+    setSubCatList([]);
+    setSelectedSubCategory(null);
+  }, []);
+
+  const onLocationSelect = useCallback(item => {
     setAddress({
-      fullAddress: '',
-      lat: 0,
-      lng: 0,
+      fullAddress: item.userAddress,
+      lat: item?.latLng?.latitude,
+      lng: item?.latLng?.longitude,
     });
-    setOtherCategory(false);
   }, []);
 
   const FooterButtons = memo(() => (
@@ -142,14 +178,6 @@ const FilterModal = ({
     </View>
   ));
 
-  const onLocationSelect = item => {
-    setAddress({
-      fullAddress: item.userAddress,
-      lat: item?.latLng?.latitude,
-      lng: item?.latLng?.longitude,
-    });
-  };
-
   return (
     <Modal
       isVisible={isVisible}
@@ -172,8 +200,8 @@ const FilterModal = ({
             <>
               <CustomPicker
                 ref={mainCategoryRef}
-                labelll={t('Main Category')}
                 label={t('Main Category')}
+                labelll={t('Main Category')}
                 value={filters.mainCategory}
                 listData={[
                   {name: 'Entertainment & Attractions'},
@@ -184,72 +212,91 @@ const FilterModal = ({
                 ]}
                 name="mainCategory"
                 handleOpenModal={() =>
-                  openPicker(mainCategoryRef, {title: 'Main Category'})
-                }
-                handleSelectValue={handleSelect}
-              />
-
-              <CustomPicker
-                ref={subCategoryRef}
-                label={t('Sub Category')}
-                labelll={t('Sub Category')}
-                value={filters.subCategory}
-                listData={[
-                  {name: 'DJ'},
-                  {name: 'Live Band'},
-                  {name: 'Photo Booth'},
-                ]}
-                name="subCategory"
-                handleOpenModal={() =>
-                  openPicker(subCategoryRef, {title: 'Sub Category'})
+                  mainCategoryRef?.current?.show({title: 'Main Category'})
                 }
                 handleSelectValue={handleSelect}
               />
             </>
           )}
 
-          <View style={{height: width(4)}} />
+          {/* SubCategory Search */}
+          <View style={styles.searchWrapper}>
+            <Text style={styles.label}>Search Sub Category</Text>
+
+            <View style={styles.searchBox}>
+              <TextInput
+                value={subCatQuery}
+                placeholder="Type to search..."
+                placeholderTextColor={COLORS.textLight}
+                onChangeText={handleSubCatSearch}
+                style={styles.input}
+              />
+            </View>
+
+            {subCatList.length > 0 && (
+              <View style={styles.dropdown}>
+                {subCatList.map((item, index) => (
+                  <View key={item._id}>
+                    <TouchableOpacity
+                      style={styles.dropdownItem}
+                      onPress={() => {
+                        setSelectedSubCategory(item);
+                        setSubCatQuery(
+                          currentLanguage?.en ? item.name?.en : item.name?.nl,
+                        );
+                        setSubCatList([]);
+                      }}>
+                      <Text style={styles.dropdownText}>
+                        {currentLanguage?.en ? item.name?.en : item.name?.nl}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {/* {index !== subCatList.length - 1 && (
+                      <View style={styles.separator} />
+                    )} */}
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+
           <GooglePlacesInput
             selectedLocation={address.fullAddress}
             setSelectedLocation={onLocationSelect}
             placeholder="Search Your Location"
             bgcolor={COLORS.backgroundLight}
-            onEndIconPress={() => {
-              setAddress({
-                fullAddress: '',
-                lat: 0,
-                lng: 0,
-              });
-            }}
             showRightIcon={ICONS.locationIcon}
             lable="Search Location"
+            onEndIconPress={() => {
+              setAddress({fullAddress: '', lat: 0, lng: 0});
+              setSubCatQuery('');
+            }}
           />
 
-          <View style={styles.section}>
-            <Text style={styles.label}>{t('Date Range')}</Text>
-            <DateSelector
-              startDate={dates.startDate}
-              endDate={dates.endDate}
-              mode="range"
-              onStartDateChange={date =>
-                setDates(prev => ({...prev, startDate: date}))
-              }
-              onEndDateChange={date =>
-                setDates(prev => ({...prev, endDate: date}))
-              }
-            />
+          <View style={{flexDirection: 'row', gap: 12}}>
+            <View style={{flex: 1}}>
+              <DateSelector
+                date={dates.startDate}
+                placeholder="Start Date"
+                onDateChange={date =>
+                  setDates(prev => ({...prev, startDate: date}))
+                }
+              />
+            </View>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.label}>{t('Time Range')}</Text>
-            <TimeSelector
-              modalRef={modalRef}
-              endTime={endTime}
-              startTime={startTime}
-              onStartTimeChange={setStartTime}
-              onEndTimeChange={setEndTime}
-            />
-          </View>
+          <CustomPicker
+            ref={radiusRef}
+            label="Search Radius"
+            labelll="Search Radius"
+            value={radius ? `${radius}` : ''}
+            listData={RADIUS_OPTIONS}
+            name="radius"
+            handleOpenModal={() =>
+              radiusRef?.current?.show({title: 'Select Radius'})
+            }
+            handleSelectValue={(key, value) => setRadius(value)}
+          />
         </ScrollView>
 
         {!keyboardVisible && <FooterButtons />}
@@ -261,10 +308,7 @@ const FilterModal = ({
 export default memo(FilterModal);
 
 const styles = StyleSheet.create({
-  modal: {
-    margin: 0,
-    justifyContent: 'flex-end',
-  },
+  modal: {margin: 0, justifyContent: 'flex-end'},
 
   container: {
     backgroundColor: COLORS.white,
@@ -277,8 +321,8 @@ const styles = StyleSheet.create({
 
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     borderBottomWidth: 1,
     borderColor: COLORS.border,
     paddingVertical: 12,
@@ -290,42 +334,51 @@ const styles = StyleSheet.create({
     color: COLORS.black,
   },
 
-  section: {
-    marginTop: 18,
-  },
-
   label: {
     fontSize: 14,
-    fontFamily: fontFamly.medium,
+    fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.black,
     marginBottom: 8,
   },
 
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 14,
+  searchWrapper: {marginTop: 16},
+
+  searchBox: {
+    backgroundColor: COLORS.backgroundLight,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 48,
+    justifyContent: 'center',
   },
 
-  checkbox: {
-    width: 18,
-    height: 18,
-    resizeMode: 'contain',
-  },
-
-  checkboxEmpty: {
-    width: 18,
-    height: 18,
-    borderWidth: 1.5,
-    borderColor: COLORS.gray,
-    borderRadius: 4,
-  },
-
-  checkboxText: {
-    marginLeft: 10,
+  input: {
     fontSize: 14,
     fontFamily: fontFamly.regular,
     color: COLORS.black,
+  },
+
+  dropdown: {
+    backgroundColor: COLORS.backgroundLight,
+    borderRadius: 12,
+    marginTop: 6,
+    maxHeight: 200,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    overflow: 'hidden',
+  },
+
+  dropdownItem: {padding: 12},
+
+  dropdownText: {
+    fontSize: 14,
+    fontFamily: fontFamly.regular,
+    color: COLORS.black,
+  },
+
+  separator: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginHorizontal: 12,
   },
 
   buttonRow: {
@@ -335,24 +388,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
 
-  deliveryLabel: {
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    color: COLORS.textLight,
-  },
-
-  deliveryBox: {
-    backgroundColor: '#FDF0FA',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    padding: 12,
-    marginVertical: 12,
-  },
-
-  buttonWrapper: {
-    flex: 1,
-    paddingHorizontal: 6,
-  },
+  buttonWrapper: {flex: 1, paddingHorizontal: 6},
 
   cancelButton: {
     height: 48,

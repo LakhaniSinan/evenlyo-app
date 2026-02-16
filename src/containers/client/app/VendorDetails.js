@@ -33,6 +33,7 @@ function VendorDetails({navigation, route}) {
 
   const modalRef = useRef();
   const dispatch = useDispatch();
+  const {t, currentLanguage} = useTranslation();
   const {user} = useSelector(state => state.LoginSlice);
   const [isLoading, setIsLoading] = useState(false);
   const [vendorDetail, setVendorDetails] = useState(null);
@@ -41,9 +42,7 @@ function VendorDetails({navigation, route}) {
   const displayedReviews = showAll ? reviews : reviews.slice(0, 4);
   const {cartData} = useSelector(state => state.CartSlice);
   const [chatData, setChatData] = useState(null);
-  console.log(vendorDetail, 'chatDatachatDatachatDatachatData');
 
-  const {t, currentLanguage} = useTranslation();
   useEffect(() => {
     getVendorDetailsByID();
     handleCheckIsChatedBefore();
@@ -95,6 +94,7 @@ function VendorDetails({navigation, route}) {
       console.log('errorerrorerrorerrorerrorerror');
     }
   };
+
   const handleCheckIsChatedBefore = async () => {
     try {
       setIsLoading(true);
@@ -102,10 +102,15 @@ function VendorDetails({navigation, route}) {
       setIsLoading(false);
       if (responce?.status == 200 || responce.status == 201) {
         let data = responce?.data?.data;
-        setChatData({
-          ...data,
-          participants: formatParticipants(data?.participants),
-        });
+
+        setChatData(
+          data === null
+            ? null
+            : {
+                ...data,
+                participants: formatParticipants(data?.participants),
+              },
+        );
       } else {
         modalRef.current.show({
           status: 'error',
@@ -136,7 +141,12 @@ function VendorDetails({navigation, route}) {
       const responce = await createConnection(params);
 
       if (responce?.status == 200 || responce.status == 201) {
+        let data = responce?.data?.data;
         setChatData({
+          ...chatData,
+          participants: formatParticipants(data?.participants),
+        });
+        navigation.navigate('ChatDetail', {
           ...chatData,
           participants: formatParticipants(data?.participants),
         });
@@ -147,7 +157,7 @@ function VendorDetails({navigation, route}) {
         });
       }
     } catch (error) {
-      console.log('errorerrorerrorerrorerrorerror');
+      console.log(error, 'asdasdasdasdasdasdasdasd');
     } finally {
       setIsLoading(false);
     }

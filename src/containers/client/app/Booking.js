@@ -363,9 +363,9 @@ const BooKings = () => {
       <FlatList
         ListHeaderComponent={
           <>
-            <View style={styles.mainTabWrapper}>
+            {/* <View style={styles.mainTabWrapper}>
               {MAIN_TABS.map(renderMainTab)}
-            </View>
+            </View> */}
             <FlatList
               data={mainTab === 'Booking Items' ? BOOKING_TABS : SALE_TABS}
               horizontal

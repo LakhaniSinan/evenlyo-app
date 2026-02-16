@@ -338,7 +338,7 @@ function CartScreen({navigation}) {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
-        {renderTabs()}
+        {/* {renderTabs()} */}
 
         {isEmpty ? (
           <View
