@@ -138,7 +138,7 @@ function CartScreen({navigation}) {
 
     modalRef.current.show({
       status: 'alert',
-      message: 'Are you sure you want to remove this item from the wishlist?',
+      message: t('confirmRemoveFromWishlist'),
       handlePressOk: async () => {
         modalRef.current.hide();
         try {
@@ -350,21 +350,21 @@ function CartScreen({navigation}) {
                 color: COLORS.textLight,
               }}>
               {activeTab === 'bookingItem'
-                ? 'No Booking Item In Cart'
-                : 'No Sale Item In Cart'}
+                ? t('noBookingItemsInCart')
+                : t('noSaleItemsInCart')}
             </Text>
           </View>
         ) : activeTab === 'bookingItem' ? (
           <>
-            {renderSection('Request Add To Cart', listingCartData, () =>
+            {renderSection(t('Request Add To Cart'), listingCartData, () =>
               navigation.navigate('SeeAllRequestCart'),
             )}
-            {renderSection('Accepted Order', accepetedBookings, () =>
+            {renderSection(t('Accepted Order'), accepetedBookings, () =>
               navigation.navigate('SeeAllRequestCart'),
             )}
           </>
         ) : (
-          renderSection('Sale Items', saleItem)
+          renderSection(t('Sale Items'), saleItem)
         )}
       </ScrollView>
       {accepetedBookings?.length > 0 && activeTab === 'bookingItem' && (

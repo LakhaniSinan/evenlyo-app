@@ -509,4 +509,60 @@ export default {
   'Schedule Meeting': 'Vergadering plannen',
   'Reschedule': 'Herplannen',
   'Cancel Meeting': 'Vergadering annuleren',
+
+  // Home & Cart specific
+  noRelevantVendors: 'Geen relevante leveranciers gevonden!',
+  confirmRemoveFromWishlist:
+    'Weet je zeker dat je dit item uit de verlanglijst wilt verwijderen?',
+  noBookingItemsInCart: 'Geen boekingsitems in winkelwagen',
+  noSaleItemsInCart: 'Geen verkoopitems in winkelwagen',
+
+  // Vendor dashboard
+  failedToLoadDashboardData: 'Dashboardgegevens laden is mislukt',
+  welcomeUser: 'Welkom, {{name}}',
+  vendorDashboardOverview:
+    'Rol: Leverancier • Hier is een overzicht van je bedrijfsresultaten',
+  recentBookingOffers: 'Recente boekingsaanbiedingen',
+  activityLog: 'Activiteitenlogboek',
+  recentlyJoinedClients: 'Onlangs toegetreden klanten',
+
+  // Order booking modal & booking flow
+  pleaseAddAddressFirst: 'Voeg eerst een adres toe.',
+  pleaseSelectStartDateFirst: 'Selecteer eerst een startdatum.',
+  pleaseSelectStartAndEndTime: 'Selecteer een begin- en eindtijd.',
+  pleaseAcceptTermsAndConditionsFirst:
+    'Accepteer eerst de algemene voorwaarden.',
+  fullPaymentRequiredTitle: 'Volledige betaling vereist',
+  fullPaymentRequiredDescription:
+    'Omdat je boeking binnen 3 dagen plaatsvindt, is een volledige betaling van ${{amount}} vereist op het moment van boeken.',
+  upfrontPaymentRequiredTitle: 'Aanbetaling vereist',
+  upfrontPaymentRequiredDescription:
+    'Omdat je boeking meer dan 3 dagen vooruit is, is een aanbetaling van ${{amount}} vereist om je reservering te bevestigen. Het resterende bedrag moet zo snel mogelijk vóór de evenementdatum worden voldaan.',
+  orderBooking: 'Boekingsopdracht',
+  selectedDateAndTime: 'Geselecteerde datum en tijd',
+  timeRangeRequired: 'Tijdsbereik *',
+  startTime: 'Begintijd',
+  endTime: 'Eindtijd',
+  enterLocation: 'Voer locatie in',
+  addLocationRequired: 'Locatie toevoegen *',
+  kilometerRequired: 'Kilometer *',
+  kilometer: 'Kilometer',
+  addInstructionsRequired: 'Instructies toevoegen *',
+  specialRequirementsPlaceholder:
+    'Eventuele speciale vereisten of opstellingsinstructies...',
+  pricingSummary: 'Prijsoverzicht',
+  standardServiceHours: 'Standaardservice ({{hours}} uur)',
+  multiDayService: 'Meerdaagse service ({{days}} dagen × {{hours}}u)',
+  standardServiceRate: '{{hours}} uur × ${{rate}}/uur',
+  travelCostWithDistance: 'Reiskosten ({{distance}} km)',
+  securityDepositRefundable: 'Borg (restitueerbaar)',
+  platformServiceFeeWithPercent: 'Platformservicekosten ({{percent}}%)',
+  evenlyoProtectWithPercent: 'Evenlyo Protect ({{percent}}%)',
+  extraTimeWithRate: 'Extra tijd ({{hours}} uur × ${{rate}})',
+  totalLabel: 'Totaal:',
+  acceptCompanyPrefix: 'Ik accepteer de ',
+  termsAndConditions: 'Algemene voorwaarden',
+  updateWishlist: 'Verlanglijst bijwerken',
+  addToWishlistButton: 'Toevoegen aan verlanglijst',
+  sendBookingRequest: 'Boekingsverzoek verzenden',
 };

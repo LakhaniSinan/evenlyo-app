@@ -417,7 +417,7 @@ const OrderBooking = ({
     if (!selectedCoords) {
       modalRef.current?.show({
         status: 'error',
-        message: 'Please add address first.',
+        message: t('pleaseAddAddressFirst'),
       });
       return;
     }
@@ -425,7 +425,7 @@ const OrderBooking = ({
     if (!startDateStr) {
       modalRef.current?.show({
         status: 'error',
-        message: 'Please select start date first.',
+        message: t('pleaseSelectStartDateFirst'),
       });
       return;
     }
@@ -433,7 +433,7 @@ const OrderBooking = ({
     if (isSingleDateSelected && (!startTime || !endTime)) {
       modalRef.current?.show({
         status: 'error',
-        message: 'Please select start and end time.',
+        message: t('pleaseSelectStartAndEndTime'),
       });
       return;
     }
@@ -441,7 +441,7 @@ const OrderBooking = ({
     if (!acceptTerms) {
       modalRef.current?.show({
         status: 'error',
-        message: 'Please accept terms and conditions first.',
+        message: t('pleaseAcceptTermsAndConditionsFirst'),
       });
       return;
     }
@@ -644,22 +644,20 @@ const OrderBooking = ({
     if (diffInDays <= 3) {
       return {
         type: 'FULL',
-        title: 'Full Payment Required',
-        description: `Since your booking is within 3 days, full payment of $${totalAmount.toFixed(
-          2,
-        )} is required at the time of booking.`,
+        title: t('fullPaymentRequiredTitle'),
+        description: t('fullPaymentRequiredDescription', {
+          amount: totalAmount.toFixed(2),
+        }),
         payableAmount: totalAmount,
       };
     }
 
     return {
       type: 'HALF',
-      title: 'Upfront Payment Required',
-      description: `Since your booking is more than 3 days away, an upfront payment of $${(
-        totalAmount / 2
-      ).toFixed(
-        2,
-      )} is required to secure your reservation. The remaining balance should be cleared ASAP before the event date.`,
+      title: t('upfrontPaymentRequiredTitle'),
+      description: t('upfrontPaymentRequiredDescription', {
+        amount: (totalAmount / 2).toFixed(2),
+      }),
       payableAmount: totalAmount / 2,
     };
   };
@@ -835,7 +833,7 @@ const OrderBooking = ({
       <Loader isLoading={isLoadding} />
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Order Booking</Text>
+          <Text style={styles.title}>{t('orderBooking')}</Text>
           <TouchableOpacity
             onPress={() => {
               onClose?.();
@@ -866,7 +864,7 @@ const OrderBooking = ({
 
           <View style={styles.section}>
             <View style={styles.dateTimeHeader}>
-              <Text style={styles.label}>Selected Date & Time</Text>
+              <Text style={styles.label}>{t('selectedDateAndTime')}</Text>
               <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
                 {localStartDate && (
                   <Text style={styles.dateValue}>
@@ -884,16 +882,20 @@ const OrderBooking = ({
 
           {isSingleDateSelected && (
             <View style={styles.section}>
-              <Text style={styles.label}>Time Range *</Text>
+              <Text style={styles.label}>{t('timeRangeRequired')}</Text>
 
               <View style={styles.dateRangeContainer}>
                 {[
                   {
-                    label: 'Start Time',
+                    label: t('startTime'),
                     value: startTime,
                     setter: setShowStartPicker,
                   },
-                  {label: 'End Time', value: endTime, setter: setShowEndPicker},
+                  {
+                    label: t('endTime'),
+                    value: endTime,
+                    setter: setShowEndPicker,
+                  },
                 ].map(({label, value, setter}, idx) => (
                   <TouchableOpacity
                     key={idx}
@@ -940,15 +942,15 @@ const OrderBooking = ({
           <GooglePlacesInput
             selectedLocation={selectedCoords}
             setSelectedLocation={setSelectedCoords}
-            placeholder="Enter Location"
+            placeholder={t('enterLocation')}
             showRightIcon={ICONS.locationIcon}
-            lable="Add Location *"
+            lable={t('addLocationRequired')}
           />
 
           <View style={styles.section}>
             <TextField
-              label="Kilometer *"
-              placeholder="Kilometer"
+              label={t('kilometerRequired')}
+              placeholder={t('kilometer')}
               editable={false}
               value={distance}
               keyboardType="numeric"
@@ -958,8 +960,8 @@ const OrderBooking = ({
 
           <View style={styles.section}>
             <TextField
-              label="Add Instructions *"
-              placeholder="Any Special Requirements Or Setup Instructions..."
+              label={t('addInstructionsRequired')}
+              placeholder={t('specialRequirementsPlaceholder')}
               value={instructions}
               onChangeText={setInstructions}
               multiline
@@ -998,22 +1000,29 @@ const OrderBooking = ({
           )}
 
           <View style={styles.pricingSection}>
-            <Text style={styles.pricingTitle}>Pricing Summary</Text>
+            <Text style={styles.pricingTitle}>{t('pricingSummary')}</Text>
 
             <View style={styles.pricingRow}>
               <View>
                 {isSingleDateSelected ? (
                   <Text style={styles.pricingLabel}>
-                    {`Standard Service (${calculatedPricing.totalHours} hours)`}
+                    {t('standardServiceHours', {
+                      hours: calculatedPricing.totalHours,
+                    })}
                   </Text>
                 ) : (
                   <Text style={styles.pricingLabel}>
-                    {`Multi-day Service (${availableSelectedDays} days × ${hoursPerDay}h)`}
+                    {t('multiDayService', {
+                      days: availableSelectedDays,
+                      hours: hoursPerDay,
+                    })}
                   </Text>
                 )}
                 <Text style={styles.pricingLabel}>
-                  {calculatedPricing.totalHours} hours × $
-                  {calculatedPricing.pricePerHour}/hour
+                  {t('standardServiceRate', {
+                    hours: calculatedPricing.totalHours,
+                    rate: calculatedPricing.pricePerHour,
+                  })}
                 </Text>
               </View>
               <Text style={styles.pricingValue}>
@@ -1023,7 +1032,7 @@ const OrderBooking = ({
 
             <View style={styles.pricingRow}>
               <Text style={styles.pricingLabel}>
-                Travel Cost ({distance} km)
+                {t('travelCostWithDistance', {distance})}
               </Text>
               <Text style={styles.pricingValue}>
                 $ {calculatedPricing.travelCost.toFixed(2)}
@@ -1032,7 +1041,7 @@ const OrderBooking = ({
 
             <View style={styles.pricingRow}>
               <Text style={styles.pricingLabel}>
-                Security Deposit (Refundable)
+                {t('securityDepositRefundable')}
               </Text>
               <Text style={styles.pricingValue}>
                 $ {calculatedPricing.securityDeposit.toFixed(2)}
@@ -1041,8 +1050,9 @@ const OrderBooking = ({
 
             <View style={styles.pricingRow}>
               <Text style={styles.pricingLabel}>
-                Platform Service Fee (
-                {data?.paymentPolicy?.platformFeePercent || 5}%)
+                {t('platformServiceFeeWithPercent', {
+                  percent: data?.paymentPolicy?.platformFeePercent || 5,
+                })}
               </Text>
               <Text style={styles.pricingValue}>
                 $ {calculatedPricing.platformFee.toFixed(2)}
@@ -1052,8 +1062,9 @@ const OrderBooking = ({
             {isChecked && (
               <View style={styles.pricingRow}>
                 <Text style={styles.pricingLabel}>
-                  Evenlyo Protect (
-                  {data?.paymentPolicy?.evenlyoProtectFeePercent}%)
+                  {t('evenlyoProtectWithPercent', {
+                    percent: data?.paymentPolicy?.evenlyoProtectFeePercent,
+                  })}
                 </Text>
                 <Text style={styles.pricingValue}>
                   $ {calculatedPricing.evenlyoProtect.toFixed(2)}
@@ -1064,10 +1075,12 @@ const OrderBooking = ({
             {calculatedPricing.extraHours > 0 && (
               <View style={styles.pricingRow}>
                 <Text style={styles.pricingLabel}>
-                  Extra Time ({calculatedPricing.extraHours} hours × $
-                  {calculatedPricing.extratimeCost ||
-                    calculatedPricing.pricePerHour}
-                  )
+                  {t('extraTimeWithRate', {
+                    hours: calculatedPricing.extraHours,
+                    rate:
+                      calculatedPricing.extratimeCost ||
+                      calculatedPricing.pricePerHour,
+                  })}
                 </Text>
                 <Text style={styles.pricingValue}>
                   $ {calculatedPricing.extraTimeAmount.toFixed(2)}
@@ -1126,7 +1139,7 @@ const OrderBooking = ({
             )}
 
             <View style={styles.pricingRow}>
-              <Text style={styles.totalLabel}>Total:</Text>
+              <Text style={styles.totalLabel}>{t('totalLabel')}</Text>
               <Text style={styles.totalValue}>
                 $ {calculatedPricing.total.toFixed(2)}
               </Text>
@@ -1147,10 +1160,12 @@ const OrderBooking = ({
                 )}
               </View>
               <View style={styles.termsTextContainer}>
-                <Text style={styles.termsText}>I Accept The Company's </Text>
+                <Text style={styles.termsText}>
+                  {t('acceptCompanyPrefix')}
+                </Text>
                 <TouchableOpacity>
                   <GradientText
-                    text="Terms & Conditions"
+                    text={t('termsAndConditions')}
                     customStyles={styles.termsLink}
                   />
                 </TouchableOpacity>
@@ -1165,13 +1180,17 @@ const OrderBooking = ({
               onPress={type == 'add' ? handleAddToCart : handleUpdateCart}
               style={styles.wishlistBtn}>
               <GradientText
-                text={type === 'edit' ? 'Update Wishlist' : 'Add To Wishlist'}
+                text={
+                  type === 'edit'
+                    ? t('updateWishlist')
+                    : t('addToWishlistButton')
+                }
               />
             </TouchableOpacity>
 
             <View style={{width: width(50)}}>
               <GradientButton
-                text="Send Booking Request"
+                text={t('sendBookingRequest')}
                 onPress={handleBooking}
                 type="filled"
                 textStyle={styles.buttonText}

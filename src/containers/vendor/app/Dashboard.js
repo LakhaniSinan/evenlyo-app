@@ -21,6 +21,7 @@ import RecentClientsCard from '../../../components/recentClientsCard';
 import {COLORS, fontFamly} from '../../../constants';
 import {helper} from '../../../helper';
 import {getDashboard} from '../../../services/Dashboard';
+import useTranslation from '../../../hooks/useTranslation';
 
 const ViewMoreButton = React.memo(({heading, onPress, showViewAll}) => (
   <View style={styles.viewMoreContainer}>
@@ -35,6 +36,7 @@ const ViewMoreButton = React.memo(({heading, onPress, showViewAll}) => (
 
 const Dashboard = () => {
   const navigation = useNavigation();
+  const {t} = useTranslation();
   const modalRef = useRef(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -109,7 +111,8 @@ const Dashboard = () => {
       } else {
         modalRef.current?.show({
           status: 'error',
-          message: response?.data?.message || 'Failed to load dashboard data',
+          message:
+            response?.data?.message || t('failedToLoadDashboardData'),
         });
       }
     } catch (error) {
@@ -157,7 +160,7 @@ const Dashboard = () => {
   return (
     <>
       <AppHeader
-        headingText="Dashboard"
+        headingText={t('dashboard')}
         leftIcon={ICONS.drawerIcon}
         rightIcon={ICONS.notificationIcon}
         onLeftIconPress={() => navigation.openDrawer()}
@@ -171,9 +174,9 @@ const Dashboard = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
         <View style={styles.headerContainer}>
-          <Text style={styles.welcomeText}>Welcome, John Doe</Text>
+          <Text style={styles.welcomeText}>{t('welcomeUser', {name: 'John Doe'})}</Text>
           <Text style={styles.roleText}>
-            Role: Vendor • Here's an overview of your business performance
+            {t('vendorDashboardOverview')}
           </Text>
         </View>
 
@@ -222,7 +225,7 @@ const Dashboard = () => {
         {dashboardData?.recentBookings?.length > 0 && (
           <View style={styles.sectionContainer}>
             <ViewMoreButton
-              heading="Recent Bookings Offers"
+              heading={t('recentBookingOffers')}
               showViewAll={dashboardData?.recentBookings?.length > 3}
               onPress={() =>
                 navigation.navigate(
@@ -243,7 +246,7 @@ const Dashboard = () => {
           <View style={styles.sectionContainer}>
             <ViewMoreButton
               showViewAll={dashboardData?.activityLog?.length > 3}
-              heading="Activity Log"
+              heading={t('activityLog')}
               onPress={() =>
                 navigation.navigate(
                   'AllActivityLog',
@@ -263,7 +266,7 @@ const Dashboard = () => {
           <View style={styles.sectionContainer}>
             <ViewMoreButton
               showViewAll={dashboardData?.recentClients?.length > 3}
-              heading="Recently Joined Clients"
+              heading={t('recentlyJoinedClients')}
               onPress={() =>
                 navigation.navigate(
                   'AllRecentClients',

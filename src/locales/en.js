@@ -509,4 +509,60 @@ export default {
   'Schedule Meeting': 'Schedule Meeting',
   'Reschedule': 'Reschedule',
   'Cancel Meeting': 'Cancel Meeting',
+
+  // Home & Cart specific
+  noRelevantVendors: 'No Relevant Vendors Found!',
+  confirmRemoveFromWishlist:
+    'Are you sure you want to remove this item from the wishlist?',
+  noBookingItemsInCart: 'No Booking Item In Cart',
+  noSaleItemsInCart: 'No Sale Item In Cart',
+
+  // Vendor dashboard
+  failedToLoadDashboardData: 'Failed to load dashboard data',
+  welcomeUser: 'Welcome, {{name}}',
+  vendorDashboardOverview:
+    "Role: Vendor • Here's an overview of your business performance",
+  recentBookingOffers: 'Recent Bookings Offers',
+  activityLog: 'Activity Log',
+  recentlyJoinedClients: 'Recently Joined Clients',
+
+  // Order booking modal & booking flow
+  pleaseAddAddressFirst: 'Please add address first.',
+  pleaseSelectStartDateFirst: 'Please select start date first.',
+  pleaseSelectStartAndEndTime: 'Please select start and end time.',
+  pleaseAcceptTermsAndConditionsFirst:
+    'Please accept terms and conditions first.',
+  fullPaymentRequiredTitle: 'Full Payment Required',
+  fullPaymentRequiredDescription:
+    'Since your booking is within 3 days, full payment of ${{amount}} is required at the time of booking.',
+  upfrontPaymentRequiredTitle: 'Upfront Payment Required',
+  upfrontPaymentRequiredDescription:
+    'Since your booking is more than 3 days away, an upfront payment of ${{amount}} is required to secure your reservation. The remaining balance should be cleared ASAP before the event date.',
+  orderBooking: 'Order Booking',
+  selectedDateAndTime: 'Selected Date & Time',
+  timeRangeRequired: 'Time Range *',
+  startTime: 'Start Time',
+  endTime: 'End Time',
+  enterLocation: 'Enter Location',
+  addLocationRequired: 'Add Location *',
+  kilometerRequired: 'Kilometer *',
+  kilometer: 'Kilometer',
+  addInstructionsRequired: 'Add Instructions *',
+  specialRequirementsPlaceholder:
+    'Any Special Requirements Or Setup Instructions...',
+  pricingSummary: 'Pricing Summary',
+  standardServiceHours: 'Standard Service ({{hours}} hours)',
+  multiDayService: 'Multi-day Service ({{days}} days × {{hours}}h)',
+  standardServiceRate: '{{hours}} hours × ${{rate}}/hour',
+  travelCostWithDistance: 'Travel Cost ({{distance}} km)',
+  securityDepositRefundable: 'Security Deposit (Refundable)',
+  platformServiceFeeWithPercent: 'Platform Service Fee ({{percent}}%)',
+  evenlyoProtectWithPercent: 'Evenlyo Protect ({{percent}}%)',
+  extraTimeWithRate: 'Extra Time ({{hours}} hours × ${{rate}})',
+  totalLabel: 'Total:',
+  acceptCompanyPrefix: "I Accept The Company's ",
+  termsAndConditions: 'Terms & Conditions',
+  updateWishlist: 'Update Wishlist',
+  addToWishlistButton: 'Add To Wishlist',
+  sendBookingRequest: 'Send Booking Request',
 };

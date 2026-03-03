@@ -504,14 +504,14 @@ const Home = ({navigation, route}) => {
                   width: width(100),
                   height: width(10),
                 }}>
-                <Text
-                  style={{
-                    fontFamily: fontFamly.PlusJakartaSansBold,
-                    fontSize: 12,
-                    color: COLORS.textLight,
-                  }}>
-                  No Relevant Vendors Found!
-                </Text>
+            <Text
+              style={{
+                fontFamily: fontFamly.PlusJakartaSansBold,
+                fontSize: 12,
+                color: COLORS.textLight,
+              }}>
+              {t('noRelevantVendors')}
+            </Text>
               </View>
             )}
           />
