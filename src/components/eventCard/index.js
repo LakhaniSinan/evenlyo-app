@@ -7,6 +7,7 @@ import useTranslation from '../../hooks/useTranslation';
 
 const EventCard = ({item, navigation, platformFeePercentage}) => {
   const {currentLanguage, t} = useTranslation();
+  console.log(item, 'itemitemitemitemitemitemitemitemsncaksjdbwu');
 
   return (
     <TouchableOpacity

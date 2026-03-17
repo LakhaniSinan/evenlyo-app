@@ -64,6 +64,7 @@ export const endPoints = {
   updateOrderStatus: '/update-order-status',
   saveBooking: '/vendor/bookings/on-payment-success',
   searchSubCategories: '/listings/search/subcategories',
+  filterListings: '/vendor/listings/listings/filter',
 
   //Notifications
   notifications: '/notifications',
@@ -88,7 +89,7 @@ export const endPoints = {
   analyticsReport: '/vendor/earnings/service/analytics',
   bookingAnalyticsReport: '/vendor/earnings/analytics',
   orderHistory: '/vendor-order-history',
-  vendorBookingDetails: '/vendor/bookings/details',
+  vendorBookingDetails: '/booking',
 
   //subCategories by category Ids
   subCategoriesByCategoryIds: '/vendor/profile/get-sub-category-by-categoryIds',

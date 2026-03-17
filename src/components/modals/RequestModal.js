@@ -9,22 +9,196 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
-import {FlatList} from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {IMAGES} from '../../assets';
+import {ICONS, IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
+import DateRangePicker from '../customDatePicker';
 import GradientText from '../gradiantText';
-import NewRequestCard from '../newRequestCard';
+import GooglePlacesInput from '../locationField';
 
-const NewRequestModal = ({isVisible, onClose, type, navigation}) => {
+const NewRequestModal = ({
+  isVisible,
+  onClose,
+  type,
+  navigation,
+  selectedListing,
+  settingsData,
+}) => {
   const {t} = useTranslation();
-
+  const [selectedCoords, setSelectedCoords] = useState(null);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [singleDay, setSingleDay] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
 
-  // 🔹 Keyboard listeners
+  const normalizeCoords = coords => {
+    if (!coords) return null;
+
+    if (coords.latitude !== undefined && coords.longitude !== undefined) {
+      return {latitude: coords.latitude, longitude: coords.longitude};
+    }
+
+    if (coords.lat !== undefined && coords.lng !== undefined) {
+      return {latitude: coords.lat, longitude: coords.lng};
+    }
+
+    if (coords.latLng) {
+      return normalizeCoords(coords.latLng);
+    }
+
+    return null;
+  };
+
+  const distanceBetweenCoordsKm = (from, to) => {
+    const a = normalizeCoords(from);
+    const b = normalizeCoords(to);
+    if (!a || !b) return null;
+
+    const toRad = deg => (deg * Math.PI) / 180;
+
+    const R = 6371; // Earth radius in km
+    const dLat = toRad(b.latitude - a.latitude);
+    const dLon = toRad(b.longitude - a.longitude);
+    const lat1 = toRad(a.latitude);
+    const lat2 = toRad(b.latitude);
+
+    const sinLat = Math.sin(dLat / 2);
+    const sinLon = Math.sin(dLon / 2);
+
+    const haversine =
+      sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLon * sinLon;
+
+    const c = 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+
+    return R * c;
+  };
+
+  const listingCoords = normalizeCoords(
+    selectedListing?.location?.coordinates || selectedListing?.location,
+  );
+
+  const distanceToSelectedListingKm = React.useMemo(() => {
+    if (!selectedCoords || !listingCoords) return null;
+    return distanceBetweenCoordsKm(selectedCoords, listingCoords);
+  }, [selectedCoords, listingCoords]);
+
+  const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+  const getWeekdayKey = date => {
+    if (!date || !(date instanceof Date)) return null;
+    return DAY_KEYS[date.getDay()];
+  };
+
+  const countAvailableDays = (start, end, allowedDays = []) => {
+    if (!start || !end || !(start instanceof Date) || !(end instanceof Date))
+      return 0;
+
+    const cleanStart = new Date(start);
+    const cleanEnd = new Date(end);
+
+    if (cleanEnd < cleanStart) return 0;
+
+    const allowedSet = new Set((allowedDays || []).map(d => d?.toLowerCase()));
+    let count = 0;
+    const cursor = new Date(cleanStart);
+
+    while (cursor <= cleanEnd) {
+      const key = getWeekdayKey(cursor);
+      if (allowedSet.has(key)) count += 1;
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    return count;
+  };
+
+  const parseTimeString = timeStr => {
+    if (!timeStr || typeof timeStr !== 'string') return null;
+    const [hourRaw, minRaw] = timeStr.split(':');
+    const hour = parseInt(hourRaw, 10);
+    const minute = parseInt(minRaw, 10);
+    if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
+    return {hour, minute};
+  };
+
+  const getTimeOfDayHours = date => {
+    if (!(date instanceof Date)) return 0;
+    return date.getHours() + date.getMinutes() / 60;
+  };
+
+  const getRequestedHoursPerDay = () => {
+    // Use only the time-of-day difference (e.g. 10:00 -> 19:00 = 9 hours)
+    const start = getTimeOfDayHours(startDate);
+    const end = getTimeOfDayHours(endDate);
+    const diff = end - start;
+    return diff > 0 ? diff : 0;
+  };
+
+  const getAvailableSlotHours = () => {
+    const slot = selectedListing?.availability?.availableTimeSlots?.[0];
+    if (!slot) return 0;
+
+    const start = parseTimeString(slot.startTime);
+    const end = parseTimeString(slot.endTime);
+    if (!start || !end) return 0;
+
+    const startMs = start.hour * 60 + start.minute;
+    const endMs = end.hour * 60 + end.minute;
+
+    return Math.max(0, (endMs - startMs) / 60);
+  };
+
+  const selectedDaysCount = React.useMemo(() => {
+    if (singleDay) return 1;
+    return countAvailableDays(
+      startDate,
+      endDate,
+      selectedListing?.availability?.availableDays || [],
+    );
+  }, [singleDay, startDate, endDate, selectedListing]);
+
+  const requestedHoursPerDay = getRequestedHoursPerDay();
+  const availableHoursPerDay = getAvailableSlotHours();
+  const extraHoursPerDay = Math.max(
+    0,
+    requestedHoursPerDay - availableHoursPerDay,
+  );
+
+  const baseHourlyRate = selectedListing?.pricing?.amount || 0;
+  const extraHourlyRate = selectedListing?.pricing?.extratimeCost || 0;
+
+  const perDayBaseCost = baseHourlyRate * requestedHoursPerDay;
+  const perDayExtraCost = extraHoursPerDay * extraHourlyRate;
+  const totalExtraCost = perDayExtraCost * selectedDaysCount;
+
+  const totalPerDayCost = perDayBaseCost + perDayExtraCost;
+  const totalDaysCost = totalPerDayCost * selectedDaysCount;
+
+  const distanceCost =
+    distanceToSelectedListingKm != null
+      ? distanceToSelectedListingKm *
+        (selectedListing?.pricing?.pricePerKm || 0)
+      : 0;
+
+  const securityFee = selectedListing?.pricing?.securityFee || 0;
+
+  const bookingItemPlatformFee = settingsData?.bookingItemPlatformFee || 0;
+
+  const platformFee = (totalDaysCost * bookingItemPlatformFee) / 100;
+
+  const grandTotal = totalDaysCost + distanceCost + platformFee + securityFee;
+
+  useEffect(() => {
+    if (isVisible) {
+      setSingleDay(false);
+      setStartDate(new Date());
+      setEndDate(new Date());
+      setSelectedCoords(null);
+    }
+  }, [isVisible]);
+
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () =>
       setKeyboardVisible(true),
@@ -38,55 +212,6 @@ const NewRequestModal = ({isVisible, onClose, type, navigation}) => {
       hide?.remove();
     };
   }, []);
-
-  const data = [
-    {
-      iamge: IMAGES.backgroundImage2,
-      title: 'DJ Abz Wine...',
-      pricePerDay: '300',
-      subtotal: '$99.99',
-      tax: '$0.0',
-      securityFee: '$25',
-      discount: '30%',
-      kilometre: '$2Par Km',
-      total: '$99.99',
-    },
-    {
-      iamge: IMAGES.backgroundImage2,
-      title: 'DJ Abz Wine...',
-      pricePerDay: '300',
-      subtotal: '$99.99',
-      tax: '$0.0',
-      securityFee: '$25',
-      discount: '30%',
-      kilometre: '$2Par Km',
-      total: '$99.99',
-    },
-  ];
-  const data2 = [
-    {
-      iamge: IMAGES.vase,
-      title: 'Elegant Vase',
-      pricePerDay: '$300',
-      subtotal: '$99.99',
-      tax: '$0.0',
-      securityFee: '$25',
-      discount: '30%',
-      kilometre: '$2Par Km',
-      total: '$99.99',
-    },
-    {
-      iamge: IMAGES.vase,
-      title: 'Elegant Vase',
-      pricePerDay: '300',
-      subtotal: '$99.99',
-      tax: '$0.0',
-      securityFee: '$25',
-      discount: '30%',
-      kilometre: '$2Par Km',
-      total: '$99.99',
-    },
-  ];
 
   return (
     <Modal
@@ -108,105 +233,264 @@ const NewRequestModal = ({isVisible, onClose, type, navigation}) => {
           showsVerticalScrollIndicator={false}>
           <View
             style={{
-              flexDirection: 'row',
               backgroundColor: COLORS.backgroundLight,
               marginVertical: width(3),
-              padding: width(3),
               borderRadius: 12,
+              height: width(50),
             }}>
             <Image
-              source={IMAGES.profilePhoto}
-              style={{
-                height: width(13),
-                width: width(13),
-                borderRadius: 100,
-              }}
+              source={
+                selectedListing?.images
+                  ? {uri: selectedListing.images[0]}
+                  : IMAGES.backgroundImage2
+              }
+              resizeMode="contain"
+              style={{height: '100%', width: '100%', borderRadius: 12}}
             />
-            <View style={{margin: width(2)}}>
+          </View>
+          <View
+            style={{
+              backgroundColor: COLORS.backgroundLight,
+              borderRadius: 15,
+              padding: width(3),
+            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+              <Image
+                source={ICONS.infoIconInActive}
+                resizeMode="contain"
+                style={{
+                  height: width(5),
+                  width: width(5),
+                  marginRight: width(2),
+                }}
+              />
               <Text
                 style={{
                   fontFamily: fontFamly.PlusJakartaSansBold,
-                  fontSize: 12,
                   color: COLORS.textDark,
+                  marginVertical: width(2),
                 }}>
-                Sarah Johnson
+                Pricing Information
+              </Text>
+            </View>
+            <View
+              style={{
+                padding: width(4),
+                backgroundColor: COLORS.white,
+                borderRadius: width(3),
+              }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: COLORS.primary,
+                  fontFamily: fontFamly.PlusJakartaSansBold,
+                }}>
+                Pricing Type :{' '}
+                {selectedListing?.pricing?.type?.toUpperCase() || 'N/A'}
               </Text>
               <Text
                 style={{
-                  fontFamily: fontFamly.PlusJakartaSansBold,
                   fontSize: 10,
                   color: COLORS.textLight,
+                  fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                Thanks for the quick res....
+                Base Rate : €{selectedListing?.pricing?.amount || 'N/A'}{' '}
+                {selectedListing?.pricing?.type}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: COLORS.red,
+                  fontFamily: fontFamly.PlusJakartaSansBold,
+                }}>
+                Extra Time Cost : €
+                {selectedListing?.pricing?.extratimeCost || 'N/A'}{' '}
+                {selectedListing?.pricing?.type} beyond scheduled time
+              </Text>
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: COLORS.navyBlue,
+                  fontFamily: fontFamly.PlusJakartaSansBold,
+                }}>
+                Distance Cost: €{selectedListing?.pricing?.pricePerKm || 'N/A'}{' '}
+                per km from vendor location
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: COLORS.green,
+                  fontFamily: fontFamly.PlusJakartaSansBold,
+                }}>
+                Stock Available: {selectedListing?.quantity}
               </Text>
             </View>
           </View>
-          <Text
-            style={{
-              fontFamily: fontFamly.PlusJakartaSansBold,
-              color: COLORS.textDark,
-              marginVertical: width(2),
-            }}>
-            Booking Items
-          </Text>
           <View
             style={{
               backgroundColor: COLORS.backgroundLight,
               borderRadius: 15,
-              padding: width(3),
-            }}>
-            <FlatList
-              data={data}
-              renderItem={({item}) => <NewRequestCard item={item} />}
-            />
-          </View>
-          <Text
-            style={{
-              fontFamily: fontFamly.PlusJakartaSansBold,
-              color: COLORS.textDark,
               marginVertical: width(2),
-            }}>
-            Sale Items
-          </Text>
-          <View
-            style={{
-              backgroundColor: COLORS.backgroundLight,
-              borderRadius: 15,
               padding: width(3),
             }}>
-            <FlatList
-              data={data}
-              renderItem={({item}) => <NewRequestCard item={item} />}
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <Image
+                source={ICONS.calenderIcon}
+                resizeMode="contain"
+                tintColor={COLORS.textDark}
+                style={{
+                  height: width(5),
+                  width: width(5),
+                  marginRight: width(2),
+                }}
+              />
+              <Text
+                style={{
+                  fontFamily: fontFamly.PlusJakartaSansBold,
+                  color: COLORS.textDark,
+                  marginVertical: width(2),
+                }}>
+                Scheduled Date & Time
+              </Text>
+            </View>
+            <DateRangePicker
+              startDate={startDate}
+              setStartDate={setStartDate}
+              endDate={endDate}
+              setEndDate={setEndDate}
+              singleDay={singleDay}
+              onChangeSingleDay={setSingleDay}
             />
-          </View>
-          <View style={styles.progressNotesCard}>
-            <View style={styles.itemsList}>
-              <View style={styles.itemRow}>
-                <Text style={styles.itemName}>Subtotal</Text>
-                <Text style={styles.itemPrice}>$600</Text>
-              </View>
-              <View style={styles.itemRow}>
-                <Text style={styles.itemName}>Security Fee</Text>
-                <Text style={styles.itemPrice}>$25</Text>
-              </View>
-              <View style={styles.itemRow}>
-                <Text style={styles.itemName}>Kilometre Fee</Text>
-                <Text style={styles.itemPrice}>$5</Text>
-              </View>
-              <View style={styles.itemRow}>
-                <Text style={styles.itemName}>Service Charges</Text>
-                <Text style={styles.itemPrice}>$60</Text>
-              </View>
-              <View style={styles.itemRow}>
-                <Text style={styles.itemName}>Evenlyo Protect</Text>
-                <Text style={styles.itemPrice}>$25</Text>
-              </View>
-              <View style={[styles.itemRow, {borderBottomColor: COLORS.white}]}>
-                <Text style={styles.totalText}>Total</Text>
-                <Text style={styles.totalAmount}>$690</Text>
-              </View>
+            <View
+              style={{
+                padding: width(3),
+                backgroundColor: COLORS.white,
+                borderRadius: 12,
+              }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: COLORS.navyBlue,
+                  fontFamily: fontFamly.PlusJakartaSansBold,
+                }}>
+                Availability:
+              </Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: COLORS.navyBlue,
+                  fontFamily: fontFamly.PlusJakartaSansBold,
+                }}>
+                Time Slots:{' '}
+                {selectedListing?.availability?.availableTimeSlots[0]
+                  ?.startTime || 'N/A'}{' '}
+                -{' '}
+                {selectedListing?.availability?.availableTimeSlots[0]
+                  ?.endTime || 'N/A'}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: COLORS.navyBlue,
+                  fontFamily: fontFamly.PlusJakartaSansBold,
+                }}>
+                Time Slots:{' '}
+                {selectedListing?.availability?.availableDays
+                  ?.map(day => day.toUpperCase())
+                  .join(', ') || 'N/A'}
+              </Text>
+              {distanceToSelectedListingKm != null && (
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: COLORS.navyBlue,
+                    fontFamily: fontFamly.PlusJakartaSansBold,
+                  }}>
+                  Distance to selected location:{' '}
+                  {distanceToSelectedListingKm.toFixed(2)} km
+                </Text>
+              )}
+            </View>
+            <View
+              style={{
+                padding: width(3),
+                backgroundColor: COLORS.white,
+                borderRadius: 12,
+                marginVertical: width(3),
+              }}>
+              <GooglePlacesInput
+                selectedLocation={selectedCoords}
+                setSelectedLocation={v => setSelectedCoords(v)}
+                onEndIconPress={() => {
+                  setSelectedCoords(null);
+                }}
+                placeholder="Enter Location"
+                bgcolor={COLORS.white}
+                showRightIcon={ICONS.locationIcon}
+                lable="Add Location *"
+              />
             </View>
           </View>
+          <View
+            style={{
+              backgroundColor: COLORS.backgroundLight,
+              borderRadius: 15,
+              marginVertical: width(2),
+              padding: width(3),
+            }}>
+            <View style={styles.itemRow}>
+              <Text style={styles.itemName}>Base Cost (per day)</Text>
+              <Text style={styles.itemPrice}>
+                €{perDayBaseCost * selectedDaysCount}
+              </Text>
+            </View>
+            <View style={styles.itemRow}>
+              <Text style={styles.itemName}>
+                Available days in selected range
+              </Text>
+              <Text style={styles.itemPrice}>{selectedDaysCount} Days</Text>
+            </View>
+
+            {selectedCoords && (
+              <View style={styles.itemRow}>
+                <Text style={styles.itemName}>
+                  Distance cost ({distanceToSelectedListingKm?.toFixed(2)} km)
+                </Text>
+                <Text style={styles.itemPrice}>
+                  €{distanceCost?.toFixed(2) || '0.00'}
+                </Text>
+              </View>
+            )}
+
+            {extraHoursPerDay > 0 && (
+              <View style={styles.itemRow}>
+                <Text style={styles.itemName}>
+                  Extra Hours ({extraHoursPerDay.toFixed(2)} hrs / day)
+                </Text>
+                <Text style={styles.itemPrice}>
+                  €{perDayExtraCost.toFixed(2)}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.itemRow}>
+              <Text style={styles.itemName}>Platform Fee</Text>
+              <Text style={styles.itemPrice}>€{platformFee?.toFixed(2)}</Text>
+            </View>
+            <View style={styles.itemRow}>
+              <Text style={styles.itemName}>Security Fee</Text>
+              <Text style={styles.itemPrice}>€{securityFee?.toFixed(2)}</Text>
+            </View>
+            <View style={[styles.itemRow, {borderBottomColor: COLORS.white}]}>
+              <Text style={styles.totalText}>Total</Text>
+              <Text style={styles.totalAmount}>€{grandTotal?.toFixed(2)}</Text>
+            </View>
+          </View>
+
           <View
             style={{
               padding: width(3),
@@ -296,7 +580,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
   },
-  scrollView: {flex: 1},
+  // scrollView: {flex: 1},
   buttonContainer: {
     paddingTop: width(4),
     borderTopWidth: 1,
@@ -360,6 +644,12 @@ const styles = StyleSheet.create({
 
   totalAmount: {
     fontSize: 18,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textDark,
+  },
+
+  itemName: {
+    fontSize: 14,
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
   },

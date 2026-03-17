@@ -18,13 +18,21 @@ import GradientButton from '../button';
 import CustomPicker from '../customPicker';
 import GradientText from '../gradiantText';
 
-const BookingFilterPopUp = ({isVisible, onClose, nestedFilter}) => {
-  const {t} = useTranslation();
+const BookingFilterPopUp = ({
+  isLoading,
+  vendorsCategory,
+  isVisible,
+  onClose,
+  handleGetFilteredListings,
+}) => {
+  const {t, currentLanguage} = useTranslation();
   const navigation = useNavigation();
   const mainCategory = useRef(null);
   const subCategory = useRef(null);
 
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [subcategoryOptions, setSubcategoryOptions] = useState([]);
   const [inputVal, setInputVal] = useState({
     mainCategory: '',
     subCategory: '',
@@ -44,11 +52,66 @@ const BookingFilterPopUp = ({isVisible, onClose, nestedFilter}) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!vendorsCategory || !vendorsCategory?.length) {
+      setCategoryOptions([]);
+      setSubcategoryOptions([]);
+      setInputVal({mainCategory: '', subCategory: ''});
+      return;
+    }
+
+    const langKey = currentLanguage === 'nl' ? 'nl' : 'en';
+
+    const categories = vendorsCategory.map(cat => ({
+      ...cat,
+      name: cat?.name?.[langKey] || cat?.name?.en,
+    }));
+
+    setCategoryOptions(categories);
+
+    const firstCategory = categories[0];
+    const firstSubcategories = firstCategory?.subcategories || [];
+
+    const subcategories = firstSubcategories.map(sub => ({
+      ...sub,
+      name: sub?.name?.[langKey] || sub?.name?.en,
+    }));
+
+    setSubcategoryOptions(subcategories);
+
+    setInputVal({
+      mainCategory: firstCategory?._id || firstCategory?.id || '',
+      subCategory: subcategories[0]?._id || subcategories[0]?.id || '',
+    });
+  }, [vendorsCategory, currentLanguage]);
+
   const handleSelectValue = (name, value) => {
+    const valueId =
+      typeof value === 'object'
+        ? value?._id ?? value?.id ?? value?.name ?? value
+        : value;
+
     setInputVal(prev => ({
       ...prev,
-      [name]: value?.name || value,
+      [name]: valueId,
     }));
+
+    if (name === 'mainCategory') {
+      const selectedCat = categoryOptions.find(
+        cat => cat._id === valueId || cat.id === valueId,
+      );
+      const langKey = currentLanguage === 'nl' ? 'nl' : 'en';
+      const subs = selectedCat?.subcategories || [];
+      const mappedSubs = subs.map(sub => ({
+        ...sub,
+        name: sub?.name?.[langKey] || sub?.name?.en,
+      }));
+      setSubcategoryOptions(mappedSubs);
+      setInputVal(prev => ({
+        ...prev,
+        subCategory: mappedSubs[0]?._id || mappedSubs[0]?.id || '',
+      }));
+    }
   };
 
   return (
@@ -73,28 +136,18 @@ const BookingFilterPopUp = ({isVisible, onClose, nestedFilter}) => {
           <CustomPicker
             ref={mainCategory}
             label="Main_Category"
-            labelll="Main Category"
+            labelll={isLoading ? 'Loading Categories...' : 'Main Category'}
             value={inputVal?.mainCategory || ''}
-            listData={[
-              {name: 'Entertainment & Attractions'},
-              {name: 'Food & Drinks'},
-              {name: 'Decoration & Styling'},
-              {name: 'Locations & Party Tents'},
-              {name: 'Staff & Services'},
-            ]}
+            listData={categoryOptions}
             name="mainCategory"
             handleSelectValue={handleSelectValue}
           />
           <CustomPicker
             ref={subCategory}
             label="Sub_Category"
-            labelll="Sub Category"
+            labelll={isLoading ? 'Loading Sub-Categories...' : 'Sub Category'}
             value={inputVal?.subCategory || ''}
-            listData={[
-              {name: 'DJ'},
-              {name: 'Live Band'},
-              {name: 'Photo Booth'},
-            ]}
+            listData={subcategoryOptions}
             name="subCategory"
             handleSelectValue={handleSelectValue}
           />
@@ -115,6 +168,10 @@ const BookingFilterPopUp = ({isVisible, onClose, nestedFilter}) => {
               <GradientButton
                 text={t('Apply Filters')}
                 onPress={() => {
+                  handleGetFilteredListings(
+                    inputVal.mainCategory,
+                    inputVal.subCategory,
+                  );
                   onClose();
                 }}
                 type="filled"
@@ -155,6 +212,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
+    color: COLORS.black,
   },
   buttonRow: {
     position: 'absolute',

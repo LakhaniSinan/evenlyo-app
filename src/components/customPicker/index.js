@@ -38,7 +38,10 @@ const CustomPicker = React.forwardRef(
 
     const renderLabel = () => {
       if (value) {
-        const selectedItem = listData?.find(item => item?.name === value);
+        const selectedItem = listData?.find(
+          item =>
+            item?._id === value || item?.id === value || item?.name === value,
+        );
         return selectedItem ? selectedItem?.name : labelll;
       }
       return labelll;
@@ -128,7 +131,10 @@ const CustomPicker = React.forwardRef(
             <FlatList
               data={listData}
               renderItem={({item}) => {
-                const isSelected = value === item.name;
+                const isSelected =
+                  value === item.name ||
+                  value === item?._id ||
+                  value === item?.id;
 
                 return (
                   <TouchableOpacity
@@ -142,7 +148,9 @@ const CustomPicker = React.forwardRef(
                         handleSelectValue &&
                         typeof handleSelectValue === 'function'
                       ) {
-                        handleSelectValue(name, item?.name ? item?.name : item);
+                        const valueToSend =
+                          item?._id ?? item?.id ?? item?.name ?? item;
+                        handleSelectValue(name, valueToSend);
                       }
                     }}
                     style={styles.optionContainer}>

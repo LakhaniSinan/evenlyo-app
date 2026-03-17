@@ -35,13 +35,9 @@ const BookingsByStatus = ({navigation, route}) => {
       setLoading(true);
 
       const response = await getBookingByStatus({
-        status: event?.title?.toLowerCase(),
+        status: event?.status?.toLowerCase(),
         vendorId: user?.id,
       });
-      console.log(
-        response,
-        'responseresponseresponseresponseasdasdsadsaderfwetr',
-      );
 
       if (response?.status === 200 || response?.status === 201) {
         let data = response?.data?.data || [];
@@ -50,7 +46,7 @@ const BookingsByStatus = ({navigation, route}) => {
         console.log('Fetch failed:', response?.data?.message);
       }
     } catch (error) {
-      console.log('Error fetching bookings:', error);
+      console.log('Error fetching bookingssddsdsds:', error);
     } finally {
       setRefreshing(false);
       setLoading(false);
@@ -130,10 +126,10 @@ const BookingsByStatus = ({navigation, route}) => {
     <SafeAreaView style={styles.container}>
       <AppHeader
         headingText={`${
-          event?.status?.charAt(0).toUpperCase() +
-            event?.status?.slice(1).toLowerCase() ||
-          event?.title?.charAt(0).toUpperCase() +
-            event?.title?.slice(1).toLowerCase()
+          event?.status?.charAt(0)?.toUpperCase() +
+            event?.status?.slice(1)?.toLowerCase() ||
+          event?.title?.charAt(0)?.toUpperCase() +
+            event?.title?.slice(1)?.toLowerCase()
         } Booking`}
         leftIcon={ICONS.leftArrowIcon}
         rightIcon={ICONS.notificationIcon}

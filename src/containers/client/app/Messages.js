@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   Dimensions,
   FlatList,
@@ -10,82 +10,126 @@ import {
   View,
 } from 'react-native';
 import {height, width} from 'react-native-dimension';
-import {ICONS} from '../../../assets';
+import {useSelector} from 'react-redux';
+import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
-
-const chatData = [
-  {
-    id: '2',
-    name: 'Michael Chen',
-    message: 'Thanks for the quick response!',
-    time: '3 hrs ago',
-    unreadCount: 0,
-    avatar:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    isOnline: false,
-  },
-  {
-    id: '3',
-    name: 'Sarah Johnson',
-    message: 'Thanks for the quick response!',
-    time: '3 hrs ago',
-    unreadCount: 1,
-    avatar:
-      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-    isOnline: true,
-  },
-  {
-    id: '4',
-    name: 'Sarah Johnson',
-    message: 'Thanks for the quick response!',
-    time: '3 hrs ago',
-    unreadCount: 0,
-    avatar:
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
-    isOnline: false,
-  },
-  {
-    id: '5',
-    name: 'Sarah Johnson',
-    message: 'Thanks for the quick response!',
-    time: '3 hrs ago',
-    unreadCount: 3,
-    avatar:
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-    isOnline: true,
-  },
-  {
-    id: '6',
-    name: 'Sarah Johnson',
-    message: 'Thanks for the quick response!',
-    time: '3 hrs ago',
-    unreadCount: 0,
-    avatar:
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-    isOnline: false,
-  },
-];
+import {conversationService} from '../../../services/Chat';
 
 const Messages = ({navigation}) => {
   const {t} = useTranslation();
   const [searchText, setSearchText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const {user} = useSelector(state => state.LoginSlice);
+  console.log(user, 'useruseruseruseruseruseruser');
+
+  const [isError, setIsError] = useState(false);
+  const [allConversations, setAllConversations] = useState([]);
+  console.log(
+    allConversations,
+    'allConversationsallConversationsallConversationsallConversations',
+  );
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchAllConversations();
+  }, [refreshing]);
+
+  const formatedParticipants = useCallback(participantsData => {
+    const participants = {};
+    participantsData?.forEach(({role, refPath, userId}) => {
+      if (refPath === 'Vendor') {
+        participants[role === 'vendor' ? 'vendor' : 'user'] = {
+          userId: userId?._id,
+          name: userId?.businessName,
+          photo: userId?.businessLogo || null,
+          email: userId?.businessEmail,
+          role: 'vendor',
+        };
+      } else {
+        participants.user = {
+          userId: userId?._id,
+          name: `${userId?.firstName || ''} ${userId?.lastName || ''}`.trim(),
+          photo:
+            userId?.profileImage ||
+            userId?.businessLogo ||
+            userId?.photo ||
+            null,
+          email: userId?.email,
+          role: 'user',
+        };
+      }
+    });
+    return participants;
+  }, []);
+
+  const fetchAllConversations = useCallback(
+    async (isRefreshing = false) => {
+      try {
+        if (!isRefreshing) {
+          setIsLoading(true);
+        }
+        setIsError(false);
+
+        const response = await conversationService.fetchAllConversations(
+          user?.id,
+          'user',
+        );
+
+        console.log(response?.data, 'responseresponseresponseresponseresponse');
+
+        if (response?.success && Array.isArray(response?.data)) {
+          const formattedData = response.data.map(item => ({
+            ...item,
+            participants: formatedParticipants(item?.participants),
+          }));
+          setAllConversations(formattedData);
+        } else {
+          setIsError(true);
+        }
+      } catch {
+        setIsError(true);
+      } finally {
+        if (isRefreshing) {
+          setRefreshing(false);
+        }
+        if (!isRefreshing) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [user?.vendorId, formatedParticipants],
+  );
 
   const renderChatItem = ({item}) => {
     return (
       <TouchableOpacity
         style={styles.chatItem}
-        onPress={() => navigation.navigate('ChatDetail', {chat: item})}>
+        onPress={() => navigation.navigate('ChatDetail', item)}>
         <View style={styles.avatarContainer}>
-          <Image source={{uri: item.avatar}} style={styles.avatar} />
+          {item.participants?.vendor?.photo ? (
+            <Image
+              source={{uri: item.participants?.vendor?.photo}}
+              style={styles.avatar}
+            />
+          ) : (
+            <Image
+              source={IMAGES.avatarIcon}
+              resizeMethod="cover"
+              style={styles.avatar}
+            />
+          )}
           {item.isOnline && <View style={styles.onlineIndicator} />}
         </View>
 
         <View style={styles.chatContent}>
           <View style={styles.chatHeader}>
-            <Text style={styles.chatName}>{item.name}</Text>
+            <Text style={styles.chatName}>
+              {item.participants?.vendor?.name || 'Unknown Vendor'}
+            </Text>
             <View style={styles.rightSection}>
               <Text style={styles.timeText}>{item.time}</Text>
               {item.unreadCount > 0 && (
@@ -96,7 +140,7 @@ const Messages = ({navigation}) => {
             </View>
           </View>
           <Text style={styles.lastMessage} numberOfLines={1}>
-            {item.message}
+            {item.lastMessage || "Let's start a conversation"}
           </Text>
         </View>
       </TouchableOpacity>
@@ -130,7 +174,7 @@ const Messages = ({navigation}) => {
         </View>
       </View>
       <FlatList
-        data={chatData}
+        data={allConversations}
         renderItem={renderChatItem}
         keyExtractor={item => item.id}
         style={styles.chatList}

@@ -35,8 +35,13 @@ const Messages = ({navigation}) => {
   const {activeChat} = useSelector(state => state.activeChat);
   const {socket} = useContext(SocketContext);
   const [refreshing, setRefreshing] = useState(false);
-
   const [allConversations, setAllConversations] = useState([]);
+
+  console.log(
+    allConversations,
+    'allConversatiasdsdasdasdasdasd',
+  );
+
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [chatData, setChatData] = useState(null);
@@ -68,7 +73,9 @@ const Messages = ({navigation}) => {
   const fetchAllConversations = useCallback(
     async (isRefreshing = false) => {
       try {
-        if (!isRefreshing) {setIsLoading(true);}
+        if (!isRefreshing) {
+          setIsLoading(true);
+        }
         setIsError(false);
 
         const response = await conversationService.fetchAllConversations(
@@ -88,8 +95,12 @@ const Messages = ({navigation}) => {
       } catch {
         setIsError(true);
       } finally {
-        if (isRefreshing) {setRefreshing(false);}
-        if (!isRefreshing) {setIsLoading(false);}
+        if (isRefreshing) {
+          setRefreshing(false);
+        }
+        if (!isRefreshing) {
+          setIsLoading(false);
+        }
       }
     },
     [user?.vendorId, formatedParticipants],
@@ -102,7 +113,9 @@ const Messages = ({navigation}) => {
 
   // ✅ Check if already chated before
   const handleCheckIsChatedBefore = useCallback(async () => {
-    if (!activeChat?._id || !user?.vendorId) {return;}
+    if (!activeChat?._id || !user?.vendorId) {
+      return;
+    }
     try {
       setIsLoading(true);
       const response = await checkIsChatedBefore(user.vendorId, activeChat._id);
@@ -209,7 +222,9 @@ const Messages = ({navigation}) => {
 
   // ✅ Socket event listeners
   useEffect(() => {
-    if (!socket || !user?.vendorId) {return;}
+    if (!socket || !user?.vendorId) {
+      return;
+    }
 
     socket.emit('vendor_connected', {vendorId: user.vendorId});
     const handleEmitNewConversation = data =>
@@ -234,18 +249,24 @@ const Messages = ({navigation}) => {
 
   useFocusEffect(
     useCallback(() => {
-      if (user) {fetchAllConversations();}
+      if (user) {
+        fetchAllConversations();
+      }
     }, [user, fetchAllConversations]),
   );
 
   useEffect(() => {
-    if (activeChat) {handleCheckIsChatedBefore();}
+    if (activeChat) {
+      handleCheckIsChatedBefore();
+    }
   }, [activeChat, handleCheckIsChatedBefore]);
 
   // ✅ Filtered chats
   const filteredChats = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) {return allConversations;}
+    if (!query) {
+      return allConversations;
+    }
 
     return allConversations.filter(
       chat =>
@@ -256,7 +277,9 @@ const Messages = ({navigation}) => {
 
   // ✅ Relative time helper
   const getRelativeTime = useCallback(timestamp => {
-    if (!timestamp) {return '';}
+    if (!timestamp) {
+      return '';
+    }
     const now = moment();
     const time = moment(timestamp);
 
@@ -264,13 +287,21 @@ const Messages = ({navigation}) => {
     const diffInHours = now.diff(time, 'hours');
     const diffInDays = now.diff(time, 'days');
 
-    if (diffInMinutes < 1) {return 'Just now';}
-    if (diffInMinutes < 60)
-      {return `${diffInMinutes} min${diffInMinutes > 1 ? 's' : ''} ago`;}
-    if (diffInHours < 24)
-      {return `${diffInHours} hr${diffInHours > 1 ? 's' : ''} ago`;}
-    if (diffInDays === 1) {return 'Yesterday';}
-    if (diffInDays < 7) {return `${diffInDays} days ago`;}
+    if (diffInMinutes < 1) {
+      return 'Just now';
+    }
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} min${diffInMinutes > 1 ? 's' : ''} ago`;
+    }
+    if (diffInHours < 24) {
+      return `${diffInHours} hr${diffInHours > 1 ? 's' : ''} ago`;
+    }
+    if (diffInDays === 1) {
+      return 'Yesterday';
+    }
+    if (diffInDays < 7) {
+      return `${diffInDays} days ago`;
+    }
     return time.format('MMM D, YYYY');
   }, []);
 

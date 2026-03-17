@@ -15,6 +15,7 @@ import TextField from '../../../components/textInput';
 import {COLORS, fontFamly, SIZES} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 
+const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
 const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
   const {t, currentLanguage} = useTranslation();
   const modalRef = useRef(null);
@@ -95,17 +96,33 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
     const showError = message =>
       modalRef.current?.show({status: 'error', message});
 
-    if (!companyName) {return showError('Please enter Company Name.');}
-    if (!companyEmail) {return showError('Please enter Company Email.');}
-    if (!emailRegex.test(companyEmail))
-      {return showError('Please enter a valid email address.');}
-    if (!contact) {return showError('Please enter Contact Number.');}
-    if (contact.replace(/\D/g, '').length < 7)
-      {return showError('Please enter a valid contact number.');}
-    if (!companyAddress) {return showError('Please enter Company Address.');}
-    if (!companyWebsite) {return showError('Please enter Company Website.');}
-    if (!workType) {return showError('Please select your Work Type.');}
-    if (!teamSize) {return showError('Please select your Team Size.');}
+    if (!companyName) {
+      return showError('Please enter Company Name.');
+    }
+    if (!companyEmail) {
+      return showError('Please enter Company Email.');
+    }
+    if (!emailRegex.test(companyEmail)) {
+      return showError('Please enter a valid email address.');
+    }
+    if (!contact) {
+      return showError('Please enter Contact Number.');
+    }
+    if (contact.replace(/\D/g, '').length < 7) {
+      return showError('Please enter a valid contact number.');
+    }
+    if (!companyAddress) {
+      return showError('Please enter Company Address.');
+    }
+    if (!companyWebsite) {
+      return showError('Please enter Company Website.');
+    }
+    if (!workType) {
+      return showError('Please select your Work Type.');
+    }
+    if (!teamSize) {
+      return showError('Please select your Team Size.');
+    }
 
     handleNextStep(formData);
   };
@@ -272,10 +289,11 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
           {/* Buttons */}
           <View style={styles.buttonContainer}>
             <GradientButton
-              text={t('Back')}
+              text={t('back')}
+              useGradient
               onPress={onPressBack}
               type="outline"
-              gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+              gradientColors={GRADIENT_COLORS}
               icon={ICONS.backIcon}
               styleProps={{paddingVertical: 14}}
             />
@@ -300,7 +318,6 @@ const Spacing = () => <View style={{height: 10}} />;
 
 const styles = StyleSheet.create({
   scrollView: {flex: 1},
-  form: {marginBottom: SIZES.lg, marginTop: 20},
   titleText: {
     fontSize: 20,
     fontFamily: fontFamly.PlusJakartaSansBold,

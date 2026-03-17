@@ -20,7 +20,7 @@ import VerifyTab from './VerifyTab';
 const VendorPersonalDetails = ({navigation}) => {
   const [activeStep, setActiveStep] = useState(0);
   const [selectedType, setSelectedType] = useState('');
-  const [vendorType, setVendorType] = useState('');
+  const [vendorType, setVendorType] = useState('business');
   const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [personalInfo, setPersonalInfo] = useState(null);
@@ -157,6 +157,7 @@ const VendorPersonalDetails = ({navigation}) => {
               backgroundColor: COLORS.backgroundLight,
               borderRadius: width(5),
               paddingBottom: width(4),
+              marginHorizontal: width(3),
               shadowColor: '#000',
               shadowOffset: {width: 0, height: 1},
               shadowOpacity: 0.18,
@@ -170,11 +171,11 @@ const VendorPersonalDetails = ({navigation}) => {
               activeStepIconBorderColor="#FF2B7A"
               activeLabelColor="#FF2B7A"
               labelColor="#d3d3d3">
-              <ProgressStep removeBtnRow>
+              {/* <ProgressStep removeBtnRow>
                 <VendorTypeScreen onSelectType={handleNextStep} />
-              </ProgressStep>
+              </ProgressStep> */}
 
-              {selectedType === 'personal' ? (
+              {/* {selectedType === 'personal' ? (
                 <ProgressStep removeBtnRow>
                   <PersonalInfo
                     personalInfo={personalInfo}
@@ -190,7 +191,14 @@ const VendorPersonalDetails = ({navigation}) => {
                     handleNextStep={handleBusinessNext}
                   />
                 </ProgressStep>
-              )}
+                )} */}
+              <ProgressStep removeBtnRow>
+                <BusinessPersonalInfo
+                  businessInfo={businessInfo}
+                  onPressBack={() => setActiveStep(pre => pre - 1)}
+                  handleNextStep={handleBusinessNext}
+                />
+              </ProgressStep>
               <ProgressStep removeBtnRow>
                 <Categories
                   selectedCat={categoriesSelected}

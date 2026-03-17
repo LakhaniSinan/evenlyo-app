@@ -112,3 +112,10 @@ export const searchSubCategories = params => {
 export const saveBookingOrder = params => {
   return Api(endPoints.saveBooking, params, requestType.POST);
 };
+export const filterListings = (categoryId, subCategoryId) => {
+  return Api(
+    `${endPoints.filterListings}?category=${categoryId}&subCategory=${subCategoryId}`,
+    null,
+    requestType.GET,
+  );
+};

@@ -105,14 +105,14 @@ const Dashboard = () => {
   const handleGetDashboard = useCallback(async () => {
     try {
       const response = await getDashboard();
+      console.log(response, 'responseresponseresponseresponseresponseresponse');
 
       if (response?.status === 200 || response?.status === 201) {
         setDashboardData(response?.data || null);
       } else {
         modalRef.current?.show({
           status: 'error',
-          message:
-            response?.data?.message || t('failedToLoadDashboardData'),
+          message: response?.data?.message || t('failedToLoadDashboardData'),
         });
       }
     } catch (error) {
@@ -174,10 +174,10 @@ const Dashboard = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
         <View style={styles.headerContainer}>
-          <Text style={styles.welcomeText}>{t('welcomeUser', {name: 'John Doe'})}</Text>
-          <Text style={styles.roleText}>
-            {t('vendorDashboardOverview')}
+          <Text style={styles.welcomeText}>
+            {t('welcomeUser', {name: 'John Doe'})}
           </Text>
+          <Text style={styles.roleText}>{t('vendorDashboardOverview')}</Text>
         </View>
 
         <FlatList

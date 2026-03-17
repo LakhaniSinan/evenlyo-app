@@ -30,6 +30,7 @@ import {setCartData} from '../../../redux/slice/cart';
 
 function VendorDetails({navigation, route}) {
   const item = route.params;
+  console.log(item, 'itemitemitemitemitemitemitemitemasdadwq');
 
   const modalRef = useRef();
   const dispatch = useDispatch();
@@ -42,6 +43,7 @@ function VendorDetails({navigation, route}) {
   const displayedReviews = showAll ? reviews : reviews.slice(0, 4);
   const {cartData} = useSelector(state => state.CartSlice);
   const [chatData, setChatData] = useState(null);
+  console.log(chatData, 'chatDatachatDatachatDatachatDatachatData');
 
   useEffect(() => {
     getVendorDetailsByID();
@@ -76,8 +78,7 @@ function VendorDetails({navigation, route}) {
   const getVendorDetailsByID = async () => {
     try {
       setIsLoading(true);
-      const responce = await getVendorDetails(item?.userId);
-      console.log(responce, 'responceresponceresponceresponce');
+      const responce = await getVendorDetails(item?._id);
 
       setIsLoading(false);
       if (responce?.status == 200 || responce.status == 201) {
@@ -143,11 +144,11 @@ function VendorDetails({navigation, route}) {
       if (responce?.status == 200 || responce.status == 201) {
         let data = responce?.data?.data;
         setChatData({
-          ...chatData,
+          ...data,
           participants: formatParticipants(data?.participants),
         });
         navigation.navigate('ChatDetail', {
-          ...chatData,
+          ...data,
           participants: formatParticipants(data?.participants),
         });
       } else {

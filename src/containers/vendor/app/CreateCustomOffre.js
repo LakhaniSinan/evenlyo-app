@@ -1,7 +1,8 @@
 // CreateCustomOffer.js
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
+  FlatList,
   Image,
   SafeAreaView,
   SectionList,
@@ -11,94 +12,142 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
+import {useSelector} from 'react-redux';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
 import GradientText from '../../../components/gradiantText';
 import AddNewItemModal from '../../../components/modals/AddNewItem';
+import BookingFilterPopUp from '../../../components/modals/BookingFilterPopup';
 import NewRequestModal from '../../../components/modals/RequestModal';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {
+  fetchSubCategoriesByCategoryIds,
+  getVendorCategories,
+} from '../../../services/Categories';
+import {filterListings} from '../../../services/ListingsItem';
 
 const CreateCustomOffer = ({route}) => {
   const data = route.params;
-  const {t} = useTranslation();
+  console.log(data, 'vdatadatadatadatadatadatadata');
+
+  const {t, currentLanguage} = useTranslation();
   const navigation = useNavigation();
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [selectedListing, setSelectedListing] = useState(null);
+  const [vendorsCategory, setVendorsCategory] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const {user} = useSelector(state => state.LoginSlice);
+  const [filteredListings, setFilteredListings] = useState([]);
+  const [settingsData, setSettingsData] = useState([]);
+
+  console.log(settingsData, 'settingsDatasettingsDatasettingsData');
 
   const [showAddNew, setShowAddNew] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
+
+  useEffect(() => {
+    handleGetVendorCategories();
+  }, [modalVisible]);
+
+  const handleGetVendorCategories = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getVendorCategories(user?.id);
+      if (response.status == 200 || response?.status === 201) {
+        let ides =
+          response?.data?.data[0]?.mainCategories?.map(item => item?._id) || [];
+        console.log(ides, 'idesidesidesidesidesides');
+
+        handleGetVendorSubCategories(ides);
+      }
+    } catch (error) {
+      console.log('Error fetching vendor categorie', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const handleGetVendorSubCategories = async ides => {
+    try {
+      setIsLoading(true);
+      const res = await fetchSubCategoriesByCategoryIds({
+        categoryIds: ides,
+      });
+      if (res.status == 200 || res?.status === 201) {
+        setVendorsCategory(res?.data?.data || []);
+      } else {
+        console.log('Error fetching vendor subcategorie', res?.data?.message);
+      }
+    } catch (error) {
+      console.log('Error fetching vendor categorie', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGetFilteredListings = async (categoryId, subCategoryId) => {
+    try {
+      setIsLoading(true);
+      const response = await filterListings(categoryId, subCategoryId);
+      console.log(response, 'responseresponseresponseresponse');
+
+      if (response.status === 200 || response.status === 201) {
+        setFilteredListings(response?.data?.data || []);
+        setSettingsData(response?.data?.settings || []);
+      } else {
+        console.log(
+          'Error fetching filtered listings:',
+          response?.data?.message,
+        );
+      }
+    } catch (error) {
+      console.log('Error fetching filtered listings:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSelect = type => {
     setShowAddNew(false);
     navigation.navigate('BookingItems', type);
   };
 
-  // 🔹 Dummy Data (grouped by section)
-  const selectedData = [
-    {
-      title: 'Booking Items',
-      data: [
-        {
-          type: 'DJ',
-          title: 'DJ Abz Wine || DJ Ray Let the Bass Move You!',
-          price: '$300',
-          itemImage: IMAGES.backgroundImage2,
-        },
-        {
-          type: 'DJ',
-          title: 'DJ Abz Wine || DJ Beatz Let the Bass Move You!',
-          price: '$300',
-          itemImage: IMAGES.backgroundImage2,
-        },
-      ],
-    },
-    {
-      title: 'Sale Items',
-      data: [
-        {
-          type: 'DJ',
-          title: 'Elegant Vase',
-          price: '$300',
-          itemImage: IMAGES.vase,
-        },
-        {
-          type: 'DJ',
-          title: 'Elegant Vase',
-          price: '$300',
-          itemImage: IMAGES.vase,
-        },
-      ],
-    },
-  ];
+  const handleOpenForm = item => {
+    setSelectedListing(item);
+    setShowAddNew(true);
+  };
 
-  // 🔹 Render each item
-  const renderItem = ({item}) => (
-    <View style={styles.card}>
-      <View style={styles.imageWrapper}>
-        <Image
-          source={item?.itemImage}
-          style={styles.image}
-          resizeMode="cover"
-        />
-      </View>
-      <View style={styles.textWrapper}>
-        <Text style={styles.typeText}>• {item?.type}</Text>
-        <Text style={styles.titleText} numberOfLines={2}>
-          {item?.title}
-        </Text>
-      </View>
-      <View style={styles.priceWrapper}>
-        <Text style={styles.priceText}>{item?.price}</Text>
-        <Text style={styles.dayText}>/Day</Text>
-      </View>
-    </View>
-  );
-
-  // 🔹 Render section headers
-  const renderSectionHeader = ({section: {title}}) => (
-    <Text style={styles.sectionHeader}>{title}</Text>
-  );
+  const renderItem = ({item}) => {
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => handleOpenForm(item)}>
+        <View style={styles.imageWrapper}>
+          <Image
+            source={
+              item?.images ? {uri: item.images[0]} : IMAGES.backgroundImage2
+            }
+            style={styles.image}
+            resizeMode="cover"
+          />
+        </View>
+        <View style={styles.textWrapper}>
+          <Text style={styles.typeText}>• Listing</Text>
+          <Text style={styles.titleText} numberOfLines={2}>
+            {currentLanguage == 'en' ? item?.title?.en : item?.title?.nl}
+          </Text>
+        </View>
+        <View style={styles.priceWrapper}>
+          <Text style={styles.priceText}>€{item?.pricing?.amount}</Text>
+          <Text style={styles.dayText}>
+            /{item?.pricing?.type.toUpperCase()}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -111,20 +160,20 @@ const CreateCustomOffer = ({route}) => {
       <View style={styles.addBtnWrapper}>
         <GradientButton
           text={t('Add New Item')}
-          onPress={() => setShowAddNew(true)}
+          onPress={() => setModalVisible(true)}
           textStyle={styles.addBtnText}
           styleProps={styles.addBtn}
         />
       </View>
 
-      <SectionList
-        sections={data?.selected ? selectedData : []}
-        keyExtractor={(item, index) => index.toString()}
+      <FlatList
+        ListHeaderComponent={
+          <Text style={styles.sectionHeader}>Available Items</Text>
+        }
+        data={filteredListings}
         renderItem={renderItem}
-        renderSectionHeader={renderSectionHeader}
-        contentContainerStyle={{paddingBottom: 20}}
-        showsVerticalScrollIndicator={false}
       />
+
       <View style={styles.buttonRow}>
         <View style={{width: width(46)}}>
           <TouchableOpacity
@@ -138,7 +187,9 @@ const CreateCustomOffer = ({route}) => {
         <View style={{width: width(46)}}>
           <GradientButton
             text={t('Send Offer')}
-            onPress={() => navigation.navigate('ChatDetails', {offreShow: true})}
+            onPress={() =>
+              navigation.navigate('ChatDetails', {offreShow: true})
+            }
             type="filled"
             textStyle={styles.applyText}
           />
@@ -146,15 +197,24 @@ const CreateCustomOffer = ({route}) => {
       </View>
       <NewRequestModal
         type={'vendor'}
-        isVisible={showRequestModal}
-        onClose={() => setShowRequestModal(!showRequestModal)}
+        isVisible={showAddNew}
+        onClose={() => setShowAddNew(false)}
         navigation={navigation}
+        selectedListing={selectedListing}
+        settingsData={settingsData}
       />
-      <AddNewItemModal
+      {/* <AddNewItemModal
         isVisible={showAddNew}
         selectedOption={selectedOption}
         onClose={() => setShowAddNew(false)}
         handleSelect={handleSelect}
+      /> */}
+      <BookingFilterPopUp
+        isLoading={isLoading}
+        vendorsCategory={vendorsCategory}
+        isVisible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        handleGetFilteredListings={handleGetFilteredListings}
       />
     </SafeAreaView>
   );
@@ -163,6 +223,11 @@ const CreateCustomOffer = ({route}) => {
 export default CreateCustomOffer;
 
 const styles = StyleSheet.create({
+  contentContainer: {
+    paddingHorizontal: width(3),
+    paddingBottom: width(20),
+    backgroundColor: 'red',
+  },
   addBtnWrapper: {
     paddingHorizontal: width(4),
     marginTop: width(3),
@@ -203,7 +268,6 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: width(2.5),
     borderRadius: 12,
     backgroundColor: COLORS.white,
     marginVertical: width(2),
@@ -239,7 +303,6 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   priceWrapper: {
-    marginLeft: width(2),
     alignItems: 'flex-end',
   },
   priceText: {
@@ -250,5 +313,6 @@ const styles = StyleSheet.create({
   dayText: {
     fontSize: 10,
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: COLORS.textDark,
   },
 });

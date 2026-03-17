@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState, memo} from 'react';
 import {
   Alert,
   FlatList,
@@ -21,37 +21,79 @@ import {fetchSubCategoriesByCategoryIds} from '../../../services/Categories';
 
 const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
 
+const SubCategoryItem = memo(
+  ({subItem, isSelected, toggleSelect, currentLanguage}) => {
+    const name =
+      currentLanguage === 'en' ? subItem?.name?.en : subItem?.name?.nl;
+
+    const containerStyle = isSelected
+      ? styles.activeContainer
+      : styles.inactiveContainer;
+
+    const textStyle = isSelected ? styles.activeText : styles.inactiveText;
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => toggleSelect(subItem._id)}
+        style={styles.subCategoryWrapper}>
+        {isSelected ? (
+          <LinearGradient
+            colors={GRADIENT_COLORS}
+            start={{x: 0, y: 0}}
+            end={{x: 0, y: 1}}
+            style={containerStyle}>
+            <View style={styles.iconWrapper}>
+              <SvgUri width={20} height={20} uri={subItem?.icon} />
+            </View>
+            <Text style={textStyle}>{name}</Text>
+          </LinearGradient>
+        ) : (
+          <View style={containerStyle}>
+            <View style={[styles.iconWrapper, styles.iconSpacing]}>
+              <SvgUri width={20} height={20} uri={subItem?.icon} />
+            </View>
+            <Text style={textStyle}>{name}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Return true if props are equal (skip re-render), false if different (re-render)
+    return (
+      prevProps.isSelected === nextProps.isSelected &&
+      prevProps.currentLanguage === nextProps.currentLanguage &&
+      prevProps.subItem._id === nextProps.subItem._id
+    );
+  },
+);
+
 const SubCategories = ({
-  selectedSubCat,
-  categoriesSelected,
+  selectedSubCat = [],
+  categoriesSelected = [],
   onPressBack,
   handleNextStep,
 }) => {
   const {t, currentLanguage} = useTranslation();
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef(null);
+
+  const [selectedItems, setSelectedItems] = useState(new Set(selectedSubCat));
+  const [isLoading, setIsLoading] = useState(false);
   const [allSubCategories, setAllSubCategories] = useState([]);
+  const [selectionVersion, setSelectionVersion] = useState(0);
 
-  useEffect(() => {
-    if (selectedSubCat) {
-      setSelectedItems(selectedSubCat);
-    }
-  }, [selectedSubCat]);
-
-  useEffect(() => {
-    handleGetAllSubCategories();
-  }, []);
+  /* ---------------- FETCH ---------------- */
 
   const handleGetAllSubCategories = useCallback(async () => {
     try {
       setIsLoading(true);
+
       const response = await fetchSubCategoriesByCategoryIds({
         categoryIds: categoriesSelected,
       });
-      setIsLoading(false);
 
-      if (response?.status == 200 || response?.status == 201) {
+      if (response?.status === 200 || response?.status === 201) {
         setAllSubCategories(response?.data?.data || []);
       } else {
         modalRef.current?.show({
@@ -60,87 +102,88 @@ const SubCategories = ({
         });
       }
     } catch (error) {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Failed to load subcategories.',
+      });
+    } finally {
       setIsLoading(false);
-      console.log('Error fetching subcategories:', error);
-      modalRef.current?.showAlert('Error', 'Failed to load subcategories.');
     }
-  }, []);
+  }, [categoriesSelected]);
+
+  useEffect(() => {
+    handleGetAllSubCategories();
+  }, [handleGetAllSubCategories]);
+
+  /* ---------------- TOGGLE ---------------- */
 
   const toggleSelect = useCallback(id => {
-    setSelectedItems(prev =>
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id],
-    );
+    setSelectedItems(prev => {
+      const updated = new Set(prev);
+      updated.has(id) ? updated.delete(id) : updated.add(id);
+      return updated;
+    });
+    setSelectionVersion(v => v + 1);
   }, []);
 
-  const renderSubCategory = useCallback(
-    (subItem, isSelected) => {
-      console.log(subItem, 'subItemsubItemsubItemsubItem');
-
-      const containerStyle = isSelected
-        ? styles.activeContainer
-        : styles.inactiveContainer;
-
-      const textStyle = isSelected ? styles.activeText : styles.inactiveText;
-
-      const iconUri = subItem?.icon;
-      const name =
-        currentLanguage == 'en' ? subItem?.name?.en : subItem?.name?.nl;
-      return (
-        <TouchableOpacity
-          key={subItem._id}
-          activeOpacity={0.8}
-          onPress={() => toggleSelect(subItem._id)}
-          style={styles.subCategoryWrapper}>
-          {isSelected ? (
-            <LinearGradient
-              colors={GRADIENT_COLORS}
-              start={{x: 0, y: 0}}
-              end={{x: 0, y: 1}}
-              style={containerStyle}>
-              <View style={styles.iconWrapper}>
-                <SvgUri width={20} height={20} uri={iconUri} />
-              </View>
-              <Text style={textStyle}>{name}</Text>
-            </LinearGradient>
-          ) : (
-            <View style={containerStyle}>
-              <View style={[styles.iconWrapper, styles.iconSpacing]}>
-                <SvgUri width={20} height={20} uri={iconUri} />
-              </View>
-              <Text style={textStyle}>{name}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      );
-    },
-    [currentLanguage, toggleSelect],
-  );
+  /* ---------------- RENDER CATEGORY ---------------- */
 
   const renderItem = useCallback(
-    ({item}) =>
-      (
+    ({item}) => {
+      const title = currentLanguage === 'en' ? item?.name?.en : item?.name?.nl;
+
+      return (
         <View style={styles.categoryBox}>
-          <Text style={styles.roleTitle}>
-            {currentLanguage == 'en' ? item.name?.en : item?.name?.nl}
-          </Text>
+          <Text style={styles.roleTitle}>{title}</Text>
+
           <View style={styles.subCategoryContainer}>
-            {item.subcategories?.map(subItem => {
-              renderSubCategory(subItem, selectedItems.includes(subItem._id));
-            })}
+            {item?.subcategories?.map(subItem => (
+              <SubCategoryItem
+                key={subItem._id}
+                subItem={subItem}
+                isSelected={selectedItems.has(subItem._id)}
+                toggleSelect={toggleSelect}
+                currentLanguage={currentLanguage}
+              />
+            ))}
           </View>
         </View>
-      )[(selectedItems, renderSubCategory, currentLanguage)],
+      );
+    },
+    [currentLanguage, selectedItems, toggleSelect],
   );
+
+  /* ---------------- CONTINUE ---------------- */
+
+  const handleContinue = () => {
+    if (selectedItems.size === 0) {
+      Alert.alert(
+        'Error',
+        'Please select at least one category or subcategory.',
+      );
+      return;
+    }
+
+    handleNextStep(Array.from(selectedItems));
+  };
+
+  /* ---------------- UI ---------------- */
 
   return (
     <View style={styles.form}>
       <Text style={styles.headerText}>Select Your Subcategories</Text>
+
       <FlatList
         data={allSubCategories}
-        renderItem={renderItem}
         keyExtractor={item => item._id}
-        scrollEnabled={false}
+        renderItem={renderItem}
+        extraData={selectionVersion}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={5}
+        showsVerticalScrollIndicator={false}
       />
+
       <View style={styles.buttonContainer}>
         <GradientButton
           text={t('back')}
@@ -151,28 +194,23 @@ const SubCategories = ({
           gradientColors={GRADIENT_COLORS}
           icon={ICONS.backIcon}
         />
+
         <GradientButton
           text={t('continue')}
-          onPress={() => {
-            if (!selectedItems?.length) {
-              Alert.alert(
-                'Error',
-                'Please select at least one category or subcategory.',
-              );
-              return;
-            }
-            handleNextStep(selectedItems);
-          }}
+          onPress={handleContinue}
           type="filled"
           gradientColors={GRADIENT_COLORS}
           styleProps={{flex: 1}}
         />
       </View>
+
       <Loader isLoading={isLoading} />
       <CommonAlert ref={modalRef} />
     </View>
   );
 };
+
+export default SubCategories;
 
 const styles = StyleSheet.create({
   form: {
@@ -255,5 +293,3 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
 });
-
-export default SubCategories;

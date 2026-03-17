@@ -72,6 +72,8 @@ const STATUS_CONFIG = {
 };
 
 function BookingDetails({route}) {
+  console.log(route, 'routerouterouterouteroute');
+
   const navigation = useNavigation();
   const {currentLanguage} = useTranslation();
   const {_id} = route.params || {};
@@ -104,7 +106,7 @@ function BookingDetails({route}) {
       const response = await getVendorBookingById(_id);
 
       if (response?.status === 200 || response?.status === 201) {
-        setBooking(response?.data?.data);
+        setBooking(response?.data?.data?.booking);
       } else {
         showAlert('error', response?.data?.message);
       }
@@ -300,7 +302,7 @@ function BookingDetails({route}) {
           <Text style={styles.sectionLabel}>Seller Details</Text>
 
           {renderUserRow(
-            booking?.vendorId,
+            booking?.vendorDetails,
             booking?.listingId?.location?.userAddress,
           )}
         </View>
@@ -422,17 +424,21 @@ const renderInfoRow = (icon, title, value) => (
   </View>
 );
 
-const renderUserRow = (user, address) => (
-  <View style={styles.dividerRow}>
-    <Image source={IMAGES.profilePhoto} style={styles.avatar} />
-    <View style={styles.infoText}>
-      <Text style={styles.infoValue}>
-        {user?.firstName} {user?.lastName}
-      </Text>
-      <Text style={styles.infoSubValue}>{address}</Text>
+const renderUserRow = (user, address) => {
+  console.log(user, address, 'user, addressuser, addressuser, address');
+
+  return (
+    <View style={styles.dividerRow}>
+      <Image source={IMAGES.profilePhoto} style={styles.avatar} />
+      <View style={styles.infoText}>
+        <Text style={styles.infoValue}>
+          {user?.firstName} {user?.lastName}
+        </Text>
+        <Text style={styles.infoSubValue}>{address}</Text>
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 /* -------------------- Styles -------------------- */
 

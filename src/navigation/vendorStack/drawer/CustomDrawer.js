@@ -48,7 +48,7 @@ const CustomDrawer = ({navigation}) => {
           params: {screen: 'Messages'},
         });
       },
-      badge: 6, // example notification
+      // badge: 6, // example notification
     },
   ];
 
