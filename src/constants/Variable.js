@@ -111,6 +111,11 @@ export const endPoints = {
   amountToPay: '/vendor/bookings/amount-to-pay',
   buySaleItem: '/sale-item-purchase',
 
+  // Vendor Stripe Connect
+  vendorStripeConnect: '/auth/vendor/stripe/connect',
+  vendorStripeOnboardingLink: '/auth/vendor/stripe/onboarding-link',
+  vendorStripeOnboardingStatus: '/auth/vendor/stripe/onboarding-status',
+
   messages: {
     all: (id, userId) => `/messages/${id}/${userId}`,
     delete: (conversationId, userId) => `/messages/${conversationId}/${userId}`,

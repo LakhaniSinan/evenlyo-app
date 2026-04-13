@@ -50,7 +50,6 @@ const getSaleItemsTabs = t => [
 
 const EventDetails = ({route, navigation}) => {
   const data = route?.params;
-  console.log(data, 'datadatadatadatadata');
 
   const {cartData} = useSelector(state => state.CartSlice);
   const {t} = useTranslation();

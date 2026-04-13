@@ -17,7 +17,7 @@ const RegistrationOtp = ({route, navigation}) => {
   console.log(data, 'datadatadatadatadatadata');
 
   const modalRef = useRef(null);
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -97,19 +97,28 @@ const RegistrationOtp = ({route, navigation}) => {
       if (response?.status === 200 || response?.status === 201) {
         navigation.navigate('AuthSuccess', {
           type: data?.type == 'vendor' ? 'register' : data?.type,
-          message: response?.data?.message,
+          message:
+            currentLanguage == 'en'
+              ? response.data?.message.en
+              : response.data?.message.nl,
         });
       } else {
         modalRef.current?.show({
           status: 'error',
-          message: response?.data?.message || 'Something went wrong.',
+          message:
+            currentLanguage == 'en'
+              ? response.data?.message.en
+              : response.data?.message.nl,
         });
       }
     } catch (error) {
       console.log('Registration error:', error);
       modalRef.current?.show({
         status: 'error',
-        message: 'Something went wrong, please try again.',
+        message:
+          currentLanguage == 'en'
+            ? 'Something went wrong, please try again.'
+            : 'Iets is misgegaan, probeer het opnieuw.',
       });
     } finally {
       setIsLoading(false);
@@ -129,7 +138,10 @@ const RegistrationOtp = ({route, navigation}) => {
       modalRef.current?.show({
         status:
           response?.status === 200 || response?.status === 201 ? 'ok' : 'error',
-        message: response?.data?.message || 'Failed to resend code.',
+        message:
+          currentLanguage == 'en'
+            ? response.data?.message.en
+            : response.data?.message.nl,
       });
     } catch (error) {
       console.log('Resend code error:', error);

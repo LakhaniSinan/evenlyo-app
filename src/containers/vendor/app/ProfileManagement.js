@@ -597,7 +597,7 @@ function ProfileManagement({navigation, route}) {
             <View style={styles.businessInfo}>
               <Text style={styles.businessName}>
                 {formData.companyName ||
-                  `${formData.firstName}``${formData.lastName}`}
+                  `${formData.firstName || ''} ${formData.lastName || ''}`.trim()}
               </Text>
 
               <View style={styles.ratingContainer}>

@@ -491,7 +491,7 @@ const OrderBooking = ({
           total: calculatedPricing.total,
 
           calculationDetails: isSingleDateSelected
-            ? `Standard pricing: ${calculatedPricing.totalHours} hours × $${calculatedPricing.pricePerHour}/hour`
+            ? `Standard pricing: ${calculatedPricing.totalHours} hours × €${calculatedPricing.pricePerHour}/hour`
             : `Standard pricing: ${availableSelectedDays} days`,
 
           breakdown: [
@@ -501,7 +501,7 @@ const OrderBooking = ({
                 : `Standard Service (${availableSelectedDays} days)`,
               amount: calculatedPricing.serviceCost,
               explanation: isSingleDateSelected
-                ? `${calculatedPricing.totalHours} hours × $${calculatedPricing.pricePerHour}/hour`
+                ? `${calculatedPricing.totalHours} hours × €${calculatedPricing.pricePerHour}/hour`
                 : `${availableSelectedDays} days`,
             },
             {
@@ -687,7 +687,7 @@ const OrderBooking = ({
       const validationErrors = [];
       if ((calculatedPricing.extraHours || 0) > 0) {
         validationErrors.push(
-          `ℹ️ Booking outside available hours (${slotStart}-${slotEnd}) will include an extra time fee of $${extraTimeCost.toFixed(
+          `ℹ️ Booking outside available hours (${slotStart}-${slotEnd}) will include an extra time fee of €${extraTimeCost.toFixed(
             2,
           )} (${calculatedPricing.extraHours} extra hours)`,
         );
@@ -729,7 +729,7 @@ const OrderBooking = ({
           total,
 
           calculationDetails: isSingleDateSelected
-            ? `Standard pricing: ${calculatedPricing.totalHours} hours × $${calculatedPricing.pricePerHour}/hour`
+            ? `Standard pricing: ${calculatedPricing.totalHours} hours × €${calculatedPricing.pricePerHour}/hour`
             : `Standard pricing: ${availableSelectedDays} days`,
 
           breakdown: [
@@ -739,7 +739,7 @@ const OrderBooking = ({
                 : `Standard Service (${availableSelectedDays} days)`,
               amount: baseAmount,
               explanation: isSingleDateSelected
-                ? `${calculatedPricing.totalHours} hours × $${calculatedPricing.pricePerHour}/hour`
+                ? `${calculatedPricing.totalHours} hours × €${calculatedPricing.pricePerHour}/hour`
                 : `${availableSelectedDays} days`,
             },
             {
@@ -1026,7 +1026,7 @@ const OrderBooking = ({
                 </Text>
               </View>
               <Text style={styles.pricingValue}>
-                $ {calculatedPricing.serviceCost.toFixed(2)}
+                € {calculatedPricing.serviceCost.toFixed(2)}
               </Text>
             </View>
 
@@ -1035,7 +1035,7 @@ const OrderBooking = ({
                 {t('travelCostWithDistance', {distance})}
               </Text>
               <Text style={styles.pricingValue}>
-                $ {calculatedPricing.travelCost.toFixed(2)}
+                € {calculatedPricing.travelCost.toFixed(2)}
               </Text>
             </View>
 
@@ -1044,7 +1044,7 @@ const OrderBooking = ({
                 {t('securityDepositRefundable')}
               </Text>
               <Text style={styles.pricingValue}>
-                $ {calculatedPricing.securityDeposit.toFixed(2)}
+                € {calculatedPricing.securityDeposit.toFixed(2)}
               </Text>
             </View>
 
@@ -1055,7 +1055,7 @@ const OrderBooking = ({
                 })}
               </Text>
               <Text style={styles.pricingValue}>
-                $ {calculatedPricing.platformFee.toFixed(2)}
+                € {calculatedPricing.platformFee.toFixed(2)}
               </Text>
             </View>
 
@@ -1067,7 +1067,7 @@ const OrderBooking = ({
                   })}
                 </Text>
                 <Text style={styles.pricingValue}>
-                  $ {calculatedPricing.evenlyoProtect.toFixed(2)}
+                  € {calculatedPricing.evenlyoProtect.toFixed(2)}
                 </Text>
               </View>
             )}
@@ -1083,7 +1083,7 @@ const OrderBooking = ({
                   })}
                 </Text>
                 <Text style={styles.pricingValue}>
-                  $ {calculatedPricing.extraTimeAmount.toFixed(2)}
+                  € {calculatedPricing.extraTimeAmount.toFixed(2)}
                 </Text>
               </View>
             )}
@@ -1141,7 +1141,7 @@ const OrderBooking = ({
             <View style={styles.pricingRow}>
               <Text style={styles.totalLabel}>{t('totalLabel')}</Text>
               <Text style={styles.totalValue}>
-                $ {calculatedPricing.total.toFixed(2)}
+                € {calculatedPricing.total.toFixed(2)}
               </Text>
             </View>
           </View>
@@ -1160,9 +1160,7 @@ const OrderBooking = ({
                 )}
               </View>
               <View style={styles.termsTextContainer}>
-                <Text style={styles.termsText}>
-                  {t('acceptCompanyPrefix')}
-                </Text>
+                <Text style={styles.termsText}>{t('acceptCompanyPrefix')}</Text>
                 <TouchableOpacity>
                   <GradientText
                     text={t('termsAndConditions')}

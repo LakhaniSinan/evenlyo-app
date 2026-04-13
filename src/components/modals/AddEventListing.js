@@ -38,7 +38,7 @@ import TextField from '../textInput';
 const EventListingModal = ({isVisible, onClose, toEditData}) => {
   console.log(toEditData, 'toEditDatatoEditDatatoEditDatatoEditDatatoEditData');
 
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const [formData, setFormData] = useState({
     title: {en: '', nl: ''},
     subTitle: {en: '', nl: ''},
@@ -277,23 +277,42 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       modalRef.current.show({status: 'error', message});
 
     // ✅ Validations
-    if (!title.en.trim() && !title.nl.trim())
-      {return showError('Title is required');}
-    if (!subTitle.en.trim() && !subTitle.nl.trim())
-      {return showError('SubTitle is required');}
-    if (!mainCategory) {return showError('Main Category is required');}
-    if (!subCategory) {return showError('Sub Category is required');}
-    if (!description.en.trim() && !description.nl.trim())
-      {return showError('Description is required');}
-    if (!pricingType) {return showError('Pricing Type is required');}
-    if (!cost.trim()) {return showError('Cost is required');}
-    if (availableDays.length === 0)
-      {return showError('Select at least one available day');}
-    if (!startTime) {return showError('Start Time is required');}
-    if (!endTime) {return showError('End Time is required');}
-    if (!selectedCoords) {return showError('Please select a valid location');}
-    if (!termsAccepted)
-      {return showError('You must agree to Terms & Conditions');}
+    if (!title.en.trim() && !title.nl.trim()) {
+      return showError('Title is required');
+    }
+    if (!subTitle.en.trim() && !subTitle.nl.trim()) {
+      return showError('SubTitle is required');
+    }
+    if (!mainCategory) {
+      return showError('Main Category is required');
+    }
+    if (!subCategory) {
+      return showError('Sub Category is required');
+    }
+    if (!description.en.trim() && !description.nl.trim()) {
+      return showError('Description is required');
+    }
+    if (!pricingType) {
+      return showError('Pricing Type is required');
+    }
+    if (!cost.trim()) {
+      return showError('Cost is required');
+    }
+    if (availableDays.length === 0) {
+      return showError('Select at least one available day');
+    }
+    if (!startTime) {
+      return showError('Start Time is required');
+    }
+    if (!endTime) {
+      return showError('End Time is required');
+    }
+    if (!selectedCoords) {
+      return showError('Please select a valid location');
+    }
+    if (!termsAccepted) {
+      return showError('You must agree to Terms & Conditions');
+    }
 
     // ✅ Build Final Payload
     const payload = {
@@ -346,8 +365,9 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       modalRef.current.show({
         status: isSuccess ? 'ok' : 'error',
         message:
-          response?.data?.message ||
-          (isSuccess ? 'Success' : 'Something went wrong'),
+          currentLanguage == 'en'
+            ? response.data?.message.en
+            : response.data?.message.nl,
         handlePressOk: () => {
           modalRef.current.hide();
           onClose();
@@ -356,7 +376,11 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       });
     } catch (error) {
       console.log('❌ handleSubmit error:', error);
-      showError('Something went wrong, please try again later');
+      showError(
+        currentLanguage == 'en'
+          ? 'Something went wrong, please try again later'
+          : 'Iets is misgegaan, probeer het opnieuw later.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -369,21 +393,35 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         selectionLimit: 3, // user can only pick up to 3 at once
       },
       async response => {
-        if (response.didCancel) {return;}
+        if (response.didCancel) {
+          return;
+        }
         if (response.errorCode) {
-          Alert.alert('Error', response.errorMessage || 'Failed to pick image');
+          Alert.alert(
+            'Error',
+            currentLanguage == 'en'
+              ? response.errorMessage.en
+              : response.errorMessage.nl,
+          );
           return;
         }
 
         const assets = response?.assets || [];
-        if (assets.length === 0) {return;}
+        if (assets.length === 0) {
+          return;
+        }
 
         // ✅ Check how many images already exist
         const existingCount = formData?.productImage?.length || 0;
         const newCount = assets.length;
 
         if (existingCount + newCount > 3) {
-          Alert.alert('Limit Reached', 'You can upload a maximum of 3 images.');
+          Alert.alert(
+            'Limit Reached',
+            currentLanguage == 'en'
+              ? 'You can upload a maximum of 3 images.'
+              : 'Je kunt maximaal 3 afbeeldingen uploaden.',
+          );
           return;
         }
 
@@ -400,7 +438,9 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
 
             const result = await helper.uploadMediaToCloudinary(file);
             const uploadedUrl = result?.secure_url || result?.secureUrl;
-            if (uploadedUrl) {uploadedUrls.push(uploadedUrl);}
+            if (uploadedUrl) {
+              uploadedUrls.push(uploadedUrl);
+            }
           }
 
           // ✅ Merge with existing images
@@ -412,7 +452,12 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
           console.log('✅ Uploaded images:', uploadedUrls);
         } catch (err) {
           console.error('❌ Upload error:', err);
-          Alert.alert('Error', 'Failed to upload images. Please try again.');
+          Alert.alert(
+            'Error',
+            currentLanguage == 'en'
+              ? 'Failed to upload images. Please try again.'
+              : 'Fout bij het uploaden van afbeeldingen. Probeer het opnieuw.',
+          );
         } finally {
           setIsLoading(false);
         }
@@ -423,7 +468,9 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
   // ✅ render uploaded media
   // ✅ render uploaded media safely
   const renderMedia = (mediaList = [], setter) => {
-    if (!Array.isArray(mediaList)) {return null;} // ensure it's an array
+    if (!Array.isArray(mediaList)) {
+      return null;
+    } // ensure it's an array
 
     return mediaList.map((item, index) => (
       <View key={index} style={styles.mediaPreviewContainer}>
@@ -495,7 +542,11 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>{t('Add New Listing')}</Text>
+          <Text style={styles.title}>
+            {currentLanguage == 'en'
+              ? 'Add New Listing'
+              : 'Nieuwe vermelding toevoegen'}
+          </Text>
           <TouchableOpacity onPress={onClose}>
             <Icon name="close" size={24} color="#333" />
           </TouchableOpacity>
@@ -505,10 +556,18 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         <ScrollView style={{flex: 1}}>
           {/* Basic Information */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('Basic Information')}</Text>
+            <Text style={styles.sectionTitle}>
+              {currentLanguage == 'en'
+                ? 'Basic Information'
+                : 'Basis informatie'}
+            </Text>
 
             <View style={styles.languageRow}>
-              <Text style={styles.langLabel}>Select Language:</Text>
+              <Text style={styles.langLabel}>
+                {currentLanguage == 'en'
+                  ? 'Select Language:'
+                  : 'Selecteer taal:'}
+              </Text>
               <View style={styles.radioGroup}>
                 <TouchableOpacity
                   style={styles.radioOption}
@@ -519,7 +578,9 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                       selectedLang === 'en' && styles.radioSelected,
                     ]}
                   />
-                  <Text style={styles.radioText}>US English</Text>
+                  <Text style={styles.radioText}>
+                    {currentLanguage == 'en' ? 'US English' : 'US Engels'}
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -531,7 +592,9 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                       selectedLang === 'nl' && styles.radioSelected,
                     ]}
                   />
-                  <Text style={styles.radioText}>NL Dutch</Text>
+                  <Text style={styles.radioText}>
+                    {currentLanguage == 'en' ? 'NL Dutch' : 'NL Nederlands'}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -539,8 +602,10 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
             {/* Dynamic Fields */}
             <TextField
               bgColor={COLORS.white}
-              label={`Title (${selectedLang === 'en' ? 'English' : 'Dutch'})`}
-              placeholder={t('Enter title')}
+              label={`Title (${currentLanguage == 'en' ? 'English' : 'Dutch'})`}
+              placeholder={
+                currentLanguage == 'en' ? 'Enter title' : 'Voer titel in'
+              }
               value={formData.title[selectedLang]}
               onChangeText={v => handleTextChange('title', v)}
             />

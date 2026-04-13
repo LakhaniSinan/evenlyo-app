@@ -470,7 +470,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
                 color: '#000',
                 fontSize: 15,
               }}>
-              $ {data?.sellingPrice || data?.pricing?.amount}
+              € {data?.sellingPrice || data?.pricing?.amount}
             </Text>
             <Text
               style={{

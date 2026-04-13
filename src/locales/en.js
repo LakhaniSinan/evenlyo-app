@@ -275,6 +275,30 @@ export default {
   'Music': 'Music',
 
   // Billing and Payments
+  Payment: 'Payment',
+  Payouts: 'Payouts',
+  'Receive your earnings': 'Receive your earnings',
+  'Connect your Stripe account to receive payouts from your bookings and sales. You will complete verification securely on Stripe.':
+    'Connect your Stripe account to receive payouts from your bookings and sales. You will complete verification securely on Stripe.',
+  'Stripe account': 'Stripe account',
+  'Checking…': 'Checking…',
+  Connected: 'Connected',
+  'Not connected': 'Not connected',
+  Active: 'Active',
+  'Action needed': 'Action needed',
+  'Connect Stripe account': 'Connect Stripe account',
+  'After tapping Connect, sign in or create your Stripe account in the secure browser. You can return here anytime to check your status.':
+    'After tapping Connect, sign in or create your Stripe account in the secure browser. You can return here anytime to check your status.',
+  Stripe: 'Stripe',
+  'Could not start Stripe connection. Please try again.':
+    'Could not start Stripe connection. Please try again.',
+  'Could not get Stripe onboarding link. Please try again.':
+    'Could not get Stripe onboarding link. Please try again.',
+  'Invalid onboarding link from server.':
+    'Invalid onboarding link from server.',
+  'Something went wrong. Please try again.':
+    'Something went wrong. Please try again.',
+
   'Filter by date': 'Filter by date',
   'Export': 'Export',
   'Billing ID': 'Billing ID',
@@ -534,10 +558,10 @@ export default {
     'Please accept terms and conditions first.',
   fullPaymentRequiredTitle: 'Full Payment Required',
   fullPaymentRequiredDescription:
-    'Since your booking is within 3 days, full payment of ${{amount}} is required at the time of booking.',
+    'Since your booking is within 3 days, full payment of €{{amount}} is required at the time of booking.',
   upfrontPaymentRequiredTitle: 'Upfront Payment Required',
   upfrontPaymentRequiredDescription:
-    'Since your booking is more than 3 days away, an upfront payment of ${{amount}} is required to secure your reservation. The remaining balance should be cleared ASAP before the event date.',
+    'Since your booking is more than 3 days away, an upfront payment of €{{amount}} is required to secure your reservation. The remaining balance should be cleared ASAP before the event date.',
   orderBooking: 'Order Booking',
   selectedDateAndTime: 'Selected Date & Time',
   timeRangeRequired: 'Time Range *',
@@ -553,12 +577,12 @@ export default {
   pricingSummary: 'Pricing Summary',
   standardServiceHours: 'Standard Service ({{hours}} hours)',
   multiDayService: 'Multi-day Service ({{days}} days × {{hours}}h)',
-  standardServiceRate: '{{hours}} hours × ${{rate}}/hour',
+  standardServiceRate: '{{hours}} hours × €{{rate}}/hour',
   travelCostWithDistance: 'Travel Cost ({{distance}} km)',
   securityDepositRefundable: 'Security Deposit (Refundable)',
   platformServiceFeeWithPercent: 'Platform Service Fee ({{percent}}%)',
   evenlyoProtectWithPercent: 'Evenlyo Protect ({{percent}}%)',
-  extraTimeWithRate: 'Extra Time ({{hours}} hours × ${{rate}})',
+  extraTimeWithRate: 'Extra Time ({{hours}} hours × €{{rate}})',
   totalLabel: 'Total:',
   acceptCompanyPrefix: "I Accept The Company's ",
   termsAndConditions: 'Terms & Conditions',

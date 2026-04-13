@@ -16,8 +16,10 @@ import SecurityTab from './SecurityTab';
 import SubCategories from './SubCategories';
 import VendorTypeScreen from './VendorTypeScreen';
 import VerifyTab from './VerifyTab';
+import {useTranslation} from '../../../hooks';
 
 const VendorPersonalDetails = ({navigation}) => {
+  const {t, currentLanguage} = useTranslation();
   const [activeStep, setActiveStep] = useState(0);
   const [selectedType, setSelectedType] = useState('');
   const [vendorType, setVendorType] = useState('business');
@@ -118,11 +120,16 @@ const VendorPersonalDetails = ({navigation}) => {
 
         setIsLoading(true);
         const response = await registerUser({email: data?.email});
+        console.log(response, 'responseresponseresponse');
+
         setIsLoading(false);
         if (response?.status == 200 || response?.status == 201) {
           modalRef.current.show({
             status: 'ok',
-            message: response.data?.message,
+            message:
+              currentLanguage == 'en'
+                ? response.data?.message.en
+                : response.data?.message.nl,
             handlePressOk: () => {
               modalRef.current.hide();
               navigation.navigate('RegistrationOtp', {
@@ -134,7 +141,10 @@ const VendorPersonalDetails = ({navigation}) => {
         } else {
           modalRef.current.show({
             status: 'error',
-            message: response?.data?.message,
+            message:
+              currentLanguage == 'en'
+                ? response.data?.message.en
+                : response.data?.message.nl,
           });
         }
       } catch (error) {

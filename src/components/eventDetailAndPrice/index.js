@@ -145,7 +145,7 @@ const EventAndPriceDetails = ({
             color: '#000',
             fontSize: 15,
           }}>
-          $ {data?.pricing?.amount}
+          € {data?.pricing?.amount}
         </Text>
         <Text
           style={{

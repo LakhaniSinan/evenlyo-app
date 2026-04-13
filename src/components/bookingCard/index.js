@@ -43,7 +43,7 @@ const BookingCard = ({item}) => {
           </TouchableOpacity>
           <View style={styles.priceContainer}>
             <Text style={styles.price}>
-              $ {item?.listingDetails?.pricing?.amount}
+              € {item?.listingDetails?.pricing?.amount}
             </Text>
             <Text style={styles.perEvent}>
               /{item?.pricingBreakdown?.pricingType?.toUpperCase()}

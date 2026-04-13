@@ -104,9 +104,10 @@ function BookingDetails({route}) {
     try {
       setIsLoading(true);
       const response = await getVendorBookingById(_id);
+      console.log(response, 'responseresponseresponseresponseasdasdw');
 
       if (response?.status === 200 || response?.status === 201) {
-        setBooking(response?.data?.data?.booking);
+        setBooking(response?.data?.data);
       } else {
         showAlert('error', response?.data?.message);
       }

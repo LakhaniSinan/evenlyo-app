@@ -275,6 +275,30 @@ export default {
   'Music': 'Muziek',
 
   // Billing and Payments
+  Payment: 'Betalingen',
+  Payouts: 'Uitbetalingen',
+  'Receive your earnings': 'Ontvang je verdiensten',
+  'Connect your Stripe account to receive payouts from your bookings and sales. You will complete verification securely on Stripe.':
+    'Koppel je Stripe-account om uitbetalingen van boekingen en verkopen te ontvangen. Je voltooit de verificatie veilig bij Stripe.',
+  'Stripe account': 'Stripe-account',
+  'Checking…': 'Controleren…',
+  Connected: 'Verbonden',
+  'Not connected': 'Niet verbonden',
+  Active: 'Actief',
+  'Action needed': 'Actie vereist',
+  'Connect Stripe account': 'Stripe-account koppelen',
+  'After tapping Connect, sign in or create your Stripe account in the secure browser. You can return here anytime to check your status.':
+    'Na Koppelen meld je je aan of maak je je Stripe-account aan in de beveiligde browser. Je kunt hier altijd terugkomen om je status te bekijken.',
+  Stripe: 'Stripe',
+  'Could not start Stripe connection. Please try again.':
+    'Stripe-koppeling kon niet starten. Probeer het opnieuw.',
+  'Could not get Stripe onboarding link. Please try again.':
+    'Stripe onboardinglink ophalen mislukt. Probeer het opnieuw.',
+  'Invalid onboarding link from server.':
+    'Ongeldige onboardinglink van de server.',
+  'Something went wrong. Please try again.':
+    'Er ging iets mis. Probeer het opnieuw.',
+
   'Filter by date': 'Filteren op datum',
   'Export': 'Exporteren',
   'Billing ID': 'Facturatie ID',
@@ -534,10 +558,10 @@ export default {
     'Accepteer eerst de algemene voorwaarden.',
   fullPaymentRequiredTitle: 'Volledige betaling vereist',
   fullPaymentRequiredDescription:
-    'Omdat je boeking binnen 3 dagen plaatsvindt, is een volledige betaling van ${{amount}} vereist op het moment van boeken.',
+    'Omdat je boeking binnen 3 dagen plaatsvindt, is een volledige betaling van €{{amount}} vereist op het moment van boeken.',
   upfrontPaymentRequiredTitle: 'Aanbetaling vereist',
   upfrontPaymentRequiredDescription:
-    'Omdat je boeking meer dan 3 dagen vooruit is, is een aanbetaling van ${{amount}} vereist om je reservering te bevestigen. Het resterende bedrag moet zo snel mogelijk vóór de evenementdatum worden voldaan.',
+    'Omdat je boeking meer dan 3 dagen vooruit is, is een aanbetaling van €{{amount}} vereist om je reservering te bevestigen. Het resterende bedrag moet zo snel mogelijk vóór de evenementdatum worden voldaan.',
   orderBooking: 'Boekingsopdracht',
   selectedDateAndTime: 'Geselecteerde datum en tijd',
   timeRangeRequired: 'Tijdsbereik *',
@@ -553,12 +577,12 @@ export default {
   pricingSummary: 'Prijsoverzicht',
   standardServiceHours: 'Standaardservice ({{hours}} uur)',
   multiDayService: 'Meerdaagse service ({{days}} dagen × {{hours}}u)',
-  standardServiceRate: '{{hours}} uur × ${{rate}}/uur',
+  standardServiceRate: '{{hours}} uur × €{{rate}}/uur',
   travelCostWithDistance: 'Reiskosten ({{distance}} km)',
   securityDepositRefundable: 'Borg (restitueerbaar)',
   platformServiceFeeWithPercent: 'Platformservicekosten ({{percent}}%)',
   evenlyoProtectWithPercent: 'Evenlyo Protect ({{percent}}%)',
-  extraTimeWithRate: 'Extra tijd ({{hours}} uur × ${{rate}})',
+  extraTimeWithRate: 'Extra tijd ({{hours}} uur × €{{rate}})',
   totalLabel: 'Totaal:',
   acceptCompanyPrefix: 'Ik accepteer de ',
   termsAndConditions: 'Algemene voorwaarden',

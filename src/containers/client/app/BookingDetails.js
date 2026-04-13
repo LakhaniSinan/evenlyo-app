@@ -326,10 +326,10 @@ const BookingDetails = ({route, navigation}) => {
             }`}
           />
 
-          <InfoRow label="Total Price" value={`$${bookingData?.totalPrice}`} />
+          <InfoRow label="Total Price" value={`€${bookingData?.totalPrice}`} />
           <InfoRow
             label="Security"
-            value={`$${bookingData?.pricingBreakdown?.securityFee}`}
+            value={`€${bookingData?.pricingBreakdown?.securityFee}`}
           />
         </View>
         {/* LOCATION */}
@@ -402,7 +402,7 @@ const BookingDetails = ({route, navigation}) => {
         </View>
       )}
 
-      {!bookingData?.isReviewed && (
+      {!bookingData?.isReviewed && bookingData?.status == 'completed' && (
         <View
           style={{
             backgroundColor: COLORS.white,
