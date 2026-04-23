@@ -17,8 +17,18 @@ import {useTranslation} from '../../../hooks';
 const PersonalInfo = ({personalInfo, onPressBack, handleNextStep}) => {
   const modalRef = useRef(null);
   const phoneInput = useRef(null);
-  const {t, currentLanguage} = useTranslation();
+  const {t} = useTranslation();
   console.log(personalInfo, 'personalInfopersonalInfopersonalInfo');
+
+  const normalizeLocalizedValue = value => {
+    if (typeof value === 'string') {
+      return {en: value, nl: ''};
+    }
+    return {
+      en: value?.en || '',
+      nl: value?.nl || '',
+    };
+  };
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -44,8 +54,8 @@ const PersonalInfo = ({personalInfo, onPressBack, handleNextStep}) => {
         postalCode: personalInfo?.postalCode || 0,
         address: personalInfo?.address || '',
         cnicPassport: personalInfo?.cnicPassport || '',
-        tagline: personalInfo?.tagline || {en: '', nl: ''},
-        description: personalInfo?.description || {en: '', nl: ''},
+        tagline: normalizeLocalizedValue(personalInfo?.tagline),
+        description: normalizeLocalizedValue(personalInfo?.description),
       });
     }
   }, [personalInfo]);
@@ -83,11 +93,13 @@ const PersonalInfo = ({personalInfo, onPressBack, handleNextStep}) => {
     }
     handleNextStep(formData);
   };
-  const handleLangBasedInput = (field, text) => {
+  const handleLangBasedInput = (field, language, text) => {
     setFormData(prev => ({
       ...prev,
-      [field]:
-        currentLanguage === 'en' ? {en: text, nl: ''} : {en: '', nl: text},
+      [field]: {
+        ...prev[field],
+        [language]: text,
+      },
     }));
   };
 
@@ -193,32 +205,49 @@ const PersonalInfo = ({personalInfo, onPressBack, handleNextStep}) => {
 
           <View style={{height: 10}} />
           <TextField
-            label={t('Tagline')}
-            placeholder={t('Add Why Choose Us')}
-            value={
-              currentLanguage === 'en'
-                ? formData.tagline.en
-                : formData.tagline.nl
-            }
+            label={t('Tagline (English)')}
+            placeholder={t('Add Why Choose Us (English)')}
+            value={formData.tagline.en}
             bgColor={COLORS.white}
-            onChangeText={text => handleLangBasedInput('tagline', text)}
+            onChangeText={text => handleLangBasedInput('tagline', 'en', text)}
           />
 
           <View style={{height: 10}} />
           <TextField
-            label={t('description')}
+            label={t('Tagline (Dutch)')}
+            placeholder={t('Add Why Choose Us (Dutch)')}
+            value={formData.tagline.nl}
+            bgColor={COLORS.white}
+            onChangeText={text => handleLangBasedInput('tagline', 'nl', text)}
+          />
+
+          <View style={{height: 10}} />
+          <TextField
+            label={t('Description (English)')}
             placeholder={t(
-              'Focused on creating vibes through immersive sound...',
+              'Focused on creating vibes through immersive sound... (English)',
             )}
             multiline
             numberOfLines={3}
             bgColor={COLORS.white}
-            value={
-              currentLanguage === 'en'
-                ? formData.description.en
-                : formData.description.nl
+            value={formData.description.en}
+            onChangeText={text =>
+              handleLangBasedInput('description', 'en', text)
             }
-            onChangeText={text => handleLangBasedInput('description', text)}
+          />
+          <View style={{height: 10}} />
+          <TextField
+            label={t('Description (Dutch)')}
+            placeholder={t(
+              'Focused on creating vibes through immersive sound... (Dutch)',
+            )}
+            multiline
+            numberOfLines={3}
+            bgColor={COLORS.white}
+            value={formData.description.nl}
+            onChangeText={text =>
+              handleLangBasedInput('description', 'nl', text)
+            }
           />
           <View style={styles.buttonContainer}>
             <GradientButton

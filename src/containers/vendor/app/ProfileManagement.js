@@ -59,6 +59,26 @@ function ProfileManagement({navigation, route}) {
     kvkNumber: '',
   });
 
+  const normalizeLocalizedValue = useCallback(value => {
+    if (typeof value === 'string') {
+      return {en: value, nl: ''};
+    }
+    return {
+      en: value?.en || '',
+      nl: value?.nl || '',
+    };
+  }, []);
+
+  const handleLocalizedInputChange = useCallback((field, language, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: {
+        ...prev[field],
+        [language]: value,
+      },
+    }));
+  }, []);
+
   useEffect(() => {
     if (!data) {
       return;
@@ -70,14 +90,8 @@ function ProfileManagement({navigation, route}) {
       email: data?.email || '',
       contact: data?.contactNumber || data?.businessPhone || '',
       address: data?.address || '',
-      tagline: {
-        en: data?.tagline?.en || '',
-        nl: data?.tagline?.nl || '',
-      },
-      description: {
-        en: data?.description?.en || '',
-        nl: data?.description?.nl || '',
-      },
+      tagline: normalizeLocalizedValue(data?.tagline),
+      description: normalizeLocalizedValue(data?.description),
       businessImage: data?.businessImage || '',
       businessLogo: data?.businessLogo || '',
       city: data?.city || '',
@@ -106,7 +120,7 @@ function ProfileManagement({navigation, route}) {
         ...commonFields,
       }));
     }
-  }, [data]);
+  }, [data, normalizeLocalizedValue]);
 
   const handleInputChange = useCallback((field, value) => {
     setFormData(prev => ({...prev, [field]: value}));
@@ -211,46 +225,46 @@ function ProfileManagement({navigation, route}) {
 
       <Spacing />
 
-      {/* Tagline */}
       <TextField
-        label={t('Tagline')}
-        placeholder={t('Add Why Choose Us')}
-        value={
-          currentLanguage === 'en'
-            ? formData?.tagline?.en
-            : formData?.tagline?.nl
-        }
-        onChangeText={val =>
-          setFormData(prev => ({
-            ...prev,
-            tagline: {
-              ...prev.tagline,
-              [currentLanguage]: val,
-            },
-          }))
-        }
+        label={t('Tagline (English)')}
+        placeholder={t('Add Why Choose Us (English)')}
+        value={formData?.tagline?.en}
+        onChangeText={val => handleLocalizedInputChange('tagline', 'en', val)}
         bgColor={COLORS.backgroundLight}
       />
 
       <Spacing />
 
-      {/* Description */}
       <TextField
-        label={t('Description')}
-        placeholder={t('Focused on creating vibes through immersive sound...')}
-        value={
-          currentLanguage === 'en'
-            ? formData?.description?.en
-            : formData?.description?.nl
-        }
+        label={t('Tagline (Dutch)')}
+        placeholder={t('Add Why Choose Us (Dutch)')}
+        value={formData?.tagline?.nl}
+        onChangeText={val => handleLocalizedInputChange('tagline', 'nl', val)}
+        bgColor={COLORS.backgroundLight}
+      />
+
+      <Spacing />
+
+      <TextField
+        label={t('Description (English)')}
+        placeholder={t('Focused on creating vibes through immersive sound... (English)')}
+        value={formData?.description?.en}
         onChangeText={val =>
-          setFormData(prev => ({
-            ...prev,
-            description: {
-              ...prev.description,
-              [currentLanguage]: val,
-            },
-          }))
+          handleLocalizedInputChange('description', 'en', val)
+        }
+        bgColor={COLORS.backgroundLight}
+        multiline
+        numberOfLines={3}
+      />
+
+      <Spacing />
+
+      <TextField
+        label={t('Description (Dutch)')}
+        placeholder={t('Focused on creating vibes through immersive sound... (Dutch)')}
+        value={formData?.description?.nl}
+        onChangeText={val =>
+          handleLocalizedInputChange('description', 'nl', val)
         }
         bgColor={COLORS.backgroundLight}
         multiline
@@ -344,42 +358,43 @@ function ProfileManagement({navigation, route}) {
       <Spacing />
 
       <TextField
-        label={t('Tagline')}
-        placeholder={t('Add Why Choose Us')}
-        value={
-          currentLanguage === 'en'
-            ? formData?.tagline?.en
-            : formData?.tagline?.nl
-        }
-        onChangeText={val =>
-          setFormData(prev => ({
-            ...prev,
-            tagline: {
-              ...prev.tagline,
-              [currentLanguage]: val,
-            },
-          }))
-        }
+        label={t('Tagline (English)')}
+        placeholder={t('Add Why Choose Us (English)')}
+        value={formData?.tagline?.en}
+        onChangeText={val => handleLocalizedInputChange('tagline', 'en', val)}
         bgColor={COLORS.backgroundLight}
       />
 
       <Spacing />
       <TextField
-        label={t('Description')}
-        placeholder={t('Focused on creating vibes through immersive sound...')}
-        value={
-          currentLanguage === 'en'
-            ? formData?.description?.en
-            : formData?.description?.nl
-        }
+        label={t('Tagline (Dutch)')}
+        placeholder={t('Add Why Choose Us (Dutch)')}
+        value={formData?.tagline?.nl}
+        onChangeText={val => handleLocalizedInputChange('tagline', 'nl', val)}
+        bgColor={COLORS.backgroundLight}
+      />
+
+      <Spacing />
+      <TextField
+        label={t('Description (English)')}
+        placeholder={t('Focused on creating vibes through immersive sound... (English)')}
+        value={formData?.description?.en}
         onChangeText={val =>
-          setFormData(prev => ({
-            ...prev,
-            description: {
-              ...prev.description,
-              [currentLanguage]: val,
-            },
-          }))
+          handleLocalizedInputChange('description', 'en', val)
+        }
+        bgColor={COLORS.backgroundLight}
+        multiline
+        numberOfLines={3}
+      />
+
+      <Spacing />
+
+      <TextField
+        label={t('Description (Dutch)')}
+        placeholder={t('Focused on creating vibes through immersive sound... (Dutch)')}
+        value={formData?.description?.nl}
+        onChangeText={val =>
+          handleLocalizedInputChange('description', 'nl', val)
         }
         bgColor={COLORS.backgroundLight}
         multiline
@@ -714,7 +729,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     marginBottom: 10,
   },
-
   categoryContainer: {
     paddingHorizontal: width(4),
   },

@@ -78,7 +78,8 @@ function VendorDetails({navigation, route}) {
   const getVendorDetailsByID = async () => {
     try {
       setIsLoading(true);
-      const responce = await getVendorDetails(item?._id);
+      const responce = await getVendorDetails(item?.userId);
+      console.log(responce, 'responceresponceresponceresponce');
 
       setIsLoading(false);
       if (responce?.status == 200 || responce.status == 201) {
@@ -294,7 +295,7 @@ function VendorDetails({navigation, route}) {
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={() => navigation.goBack()}
         setModalVisible={() => {}}
-        onRightIconPress={() => navigation.navigate('MessagesScreen')}
+        onRightIconPress={handleConnect}
         containerStyle={{
           marginVertical: 10,
         }}
@@ -383,15 +384,13 @@ function VendorDetails({navigation, route}) {
             marginTop: width(25),
             marginHorizontal: width(5),
           }}>
-          <View style={{width: width(75)}}>
             <GradientButton
               text={chatData === null ? t('contactMe') : t('Chat with Vendor')}
               onPress={handleConnect}
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
             />
-          </View>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={{
               height: width(13),
               width: width(13),
@@ -404,7 +403,7 @@ function VendorDetails({navigation, route}) {
               resizeMode="contain"
               style={{height: '100%', width: '100%'}}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
         <View
           style={{
@@ -489,7 +488,7 @@ function VendorDetails({navigation, route}) {
             handleAddToWishList={handleAddToWishList}
           />
         </View>
-        <View>
+        {/* <View>
           <HeadingComponent
             heading={t('Sale Item')}
             gradientText={`(${vendorDetail?.saleItems?.length || 0})`}
@@ -502,7 +501,7 @@ function VendorDetails({navigation, route}) {
             data={vendorDetail?.saleItems || []}
             handleAddToCart={handleAddToCart}
           />
-        </View>
+        </View> */}
         <View
           style={{
             marginTop: width(5),

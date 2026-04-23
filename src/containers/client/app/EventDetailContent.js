@@ -22,6 +22,7 @@ import {
   listingAddToCart,
   sendBookingRequest,
 } from '../../../services/ListingsItem';
+import {checkIsChatedBefore, createConnection} from '../../../services/Chat';
 import {getDistance} from '../../../utils';
 
 const getInitialMarkedDates = availableDays => {
@@ -58,6 +59,7 @@ const getInitialMarkedDates = availableDays => {
 
 const DetailsContent = ({data, selectedTab, navigation}) => {
   const {cartData} = useSelector(state => state.CartSlice);
+  const {user} = useSelector(state => state.LoginSlice);
   const dispatch = useDispatch(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const {currentLanguage} = useTranslation();
@@ -99,6 +101,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [resuestModalVisible, setResuestModalVisible] = useState(false);
+  const [chatData, setChatData] = useState(null);
   const [markedDates, setMarkedDates] = useState(() =>
     getInitialMarkedDates(availableDays),
   );
@@ -339,6 +342,96 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
   };
 
   const {distance} = getDistance(coLatLng, coords);
+
+  const formatParticipants = participantsData => {
+    const participants = {};
+    participantsData?.forEach(({role, refPath, userId}) => {
+      if (refPath === 'Vendor') {
+        participants[role === 'vendor' ? 'vendor' : 'user'] = {
+          userId: userId?._id,
+          name: userId?.businessName,
+          photo: userId?.businessLogo || null,
+          email: userId?.businessEmail,
+          role: 'vendor',
+        };
+      } else {
+        participants.user = {
+          userId: userId?._id,
+          name: `${userId?.firstName || ''} ${userId?.lastName || ''}`.trim(),
+          photo:
+            userId?.profileImage ||
+            userId?.businessLogo ||
+            userId?.photo ||
+            null,
+          email: userId?.email,
+          role: 'user',
+        };
+      }
+    });
+    return participants;
+  };
+
+  const handleCreateChatConnection = async () => {
+    try {
+      const response = await createConnection({
+        userId: user?.id,
+        vendorId: data?.vendor?._id,
+      });
+      if (response?.status === 200 || response?.status === 201) {
+        const conversation = response?.data?.data;
+        const finalChatData = {
+          ...conversation,
+          participants: formatParticipants(conversation?.participants),
+        };
+        setChatData(finalChatData);
+        navigation.navigate('ChatDetail', finalChatData);
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message || 'Unable to open chat',
+        });
+      }
+    } catch {
+      modalRef.current.show({
+        status: 'error',
+        message: 'Unable to open chat',
+      });
+    }
+  };
+
+  const handleOpenChat = async () => {
+    if (chatData?.conversationId) {
+      navigation.navigate('ChatDetail', chatData);
+      return;
+    }
+    try {
+      const response = await checkIsChatedBefore(user?.id, data?.vendor?._id);
+      if (response?.status === 200 || response?.status === 201) {
+        const conversation = response?.data?.data;
+        if (!conversation) {
+          handleCreateChatConnection();
+          return;
+        }
+        const finalChatData = {
+          ...conversation,
+          participants: formatParticipants(conversation?.participants),
+        };
+        setChatData(finalChatData);
+        navigation.navigate('ChatDetail', finalChatData);
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message: response?.data?.message || 'Unable to open chat',
+        });
+      }
+    } catch {
+      modalRef.current.show({
+        status: 'error',
+        message: 'Unable to open chat',
+      });
+    }
+  };
+
   return (
     <>
       {selectedTab === 'gallery' ? (
@@ -535,7 +628,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
           </Text>
         </View>
         <TouchableOpacity
-          onPress={() => navigation.navigate('ChatDetail')}
+          onPress={handleOpenChat}
           style={{flex: 1, justifyContent: 'center', alignItems: 'flex-end'}}>
           <Image style={{width: 32, height: 32}} source={ICONS.chatIcon} />
         </TouchableOpacity>

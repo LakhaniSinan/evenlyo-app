@@ -7,7 +7,8 @@ import useTranslation from '../../hooks/useTranslation';
 
 const EventCard = ({item, navigation, platformFeePercentage}) => {
   const {currentLanguage, t} = useTranslation();
-  console.log(item, 'itemitemitemitemitemitemitemitemsncaksjdbwu');
+  const averageRating = Number(item?.rating?.average || 0);
+  const totalReviews = Number(item?.rating?.totalReviews || 0);
 
   return (
     <TouchableOpacity
@@ -42,6 +43,7 @@ const EventCard = ({item, navigation, platformFeePercentage}) => {
             justifyContent: 'space-between',
           }}>
           <Text
+            numberOfLines={1}
             style={{
               fontFamily: fontFamly.PlusJakartaSansBold,
               color: COLORS.textDark,
@@ -68,6 +70,7 @@ const EventCard = ({item, navigation, platformFeePercentage}) => {
           </View> */}
         </View>
         <Text
+          numberOfLines={2}
           style={{
             fontFamily: fontFamly.PlusJakartaSansSemiRegular,
             color: COLORS.textLight,
@@ -81,8 +84,8 @@ const EventCard = ({item, navigation, platformFeePercentage}) => {
             alignItems: 'center',
           }}>
           <Rating
-            count={item?.rating?.stars}
-            defaultRating={4}
+            count={5}
+            startingValue={averageRating}
             imageSize={12}
             selectedColor={'#FCAD38'}
             isDisabled={true}
@@ -97,9 +100,7 @@ const EventCard = ({item, navigation, platformFeePercentage}) => {
               fontSize: 12,
               marginLeft: 5,
             }}>
-            {`${item?.rating?.average?.toFixed(1)} (${
-              item?.rating?.totalReviews
-            } ${t('reviews')})`}
+            {`${averageRating.toFixed(1)} (${totalReviews} ${t('reviews')})`}
           </Text>
         </View>
         <Text

@@ -12,15 +12,25 @@ import GradientButton from '../../../components/button';
 import CommonAlert from '../../../components/commanAlert';
 import CustomPicker from '../../../components/customPicker';
 import TextField from '../../../components/textInput';
-import {COLORS, fontFamly, SIZES} from '../../../constants';
+import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 
 const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
 const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
-  const {t, currentLanguage} = useTranslation();
+  const {t} = useTranslation();
   const modalRef = useRef(null);
   const workTypeRef = useRef(null);
   const teamSizeRef = useRef(null);
+
+  const normalizeLocalizedValue = value => {
+    if (typeof value === 'string') {
+      return {en: value, nl: ''};
+    }
+    return {
+      en: value?.en || '',
+      nl: value?.nl || '',
+    };
+  };
 
   const [formData, setFormData] = useState({
     companyName: '',
@@ -48,9 +58,12 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
         passportNumber: businessInfo?.passportNumber || '',
         kvknumber: businessInfo?.kvknumber || '',
         workType: businessInfo?.workType || '',
-        teamSize: businessInfo?.teamSize || '',
-        tagline: businessInfo?.tagline || {en: '', nl: ''},
-        description: businessInfo?.description || {en: '', nl: ''},
+        teamSize:
+          businessInfo?.workType === 'Single'
+            ? "It's Just Me"
+            : businessInfo?.teamSize || '',
+        tagline: normalizeLocalizedValue(businessInfo?.tagline),
+        description: normalizeLocalizedValue(businessInfo?.description),
       });
     }
   }, [businessInfo]);
@@ -61,22 +74,38 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
   };
 
   // language-based tagline & description handler
-  const handleLangBasedInput = (field, text) => {
+  const handleLangBasedInput = (field, language, text) => {
     setFormData(prev => ({
       ...prev,
       [field]: {
         ...prev[field],
-        [currentLanguage]: text,
+        [language]: text,
       },
     }));
   };
 
   // select value handler for dropdowns
   const handleSelectValue = (name, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value?.name || value,
-    }));
+    const selectedValue = value?.name || value;
+    setFormData(prev => {
+      if (name === 'workType') {
+        const isSingle = selectedValue === 'Single';
+        return {
+          ...prev,
+          workType: selectedValue,
+          teamSize: isSingle
+            ? "It's Just Me"
+            : prev.teamSize === "It's Just Me"
+            ? ''
+            : prev.teamSize,
+        };
+      }
+
+      return {
+        ...prev,
+        [name]: selectedValue,
+      };
+    });
   };
 
   // validation and next
@@ -235,17 +264,20 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
             labelll={t('Team Size')}
             label={t('Team Size')}
             value={formData.teamSize}
-            listData={[
-              {name: "It's Just Me"},
-              {name: '1-5'},
-              {name: '11-20'},
-              {name: '21-50'},
-              {name: '51-100'},
-              {name: '101-200'},
-              {name: '201-500'},
-              {name: '501-1000'},
-              {name: '1001-2000'},
-            ]}
+            listData={
+              formData.workType === 'Single'
+                ? [{name: "It's Just Me"}]
+                : [
+                    {name: '1-5'},
+                    {name: '11-20'},
+                    {name: '21-50'},
+                    {name: '51-100'},
+                    {name: '101-200'},
+                    {name: '201-500'},
+                    {name: '501-1000'},
+                    {name: '1001-2000'},
+                  ]
+            }
             name="teamSize"
             handleSelectValue={handleSelectValue}
             disable={formData.workType === 'Single'}
@@ -254,33 +286,55 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
 
           <Spacing />
 
-          {/* Tagline */}
+          {/* Tagline (English) */}
           <TextField
-            label={t('Tagline')}
-            placeholder={t('Add Why Choose Us')}
-            value={
-              currentLanguage === 'en'
-                ? formData.tagline.en
-                : formData.tagline.nl
-            }
-            onChangeText={text => handleLangBasedInput('tagline', text)}
+            label={t('Tagline (English)')}
+            placeholder={t('Add Why Choose Us (English)')}
+            value={formData.tagline.en}
+            onChangeText={text => handleLangBasedInput('tagline', 'en', text)}
             bgColor={COLORS.white}
           />
 
           <Spacing />
 
-          {/* Description */}
+          {/* Tagline (Dutch) */}
           <TextField
-            label={t('Description')}
+            label={t('Tagline (Dutch)')}
+            placeholder={t('Add Why Choose Us (Dutch)')}
+            value={formData.tagline.nl}
+            onChangeText={text => handleLangBasedInput('tagline', 'nl', text)}
+            bgColor={COLORS.white}
+          />
+
+          <Spacing />
+
+          {/* Description (English) */}
+          <TextField
+            label={t('Description (English)')}
             placeholder={t(
-              'Focused on creating vibes through immersive sound...',
+              'Focused on creating vibes through immersive sound... (English)',
             )}
-            value={
-              currentLanguage === 'en'
-                ? formData.description.en
-                : formData.description.nl
+            value={formData.description.en}
+            onChangeText={text =>
+              handleLangBasedInput('description', 'en', text)
             }
-            onChangeText={text => handleLangBasedInput('description', text)}
+            bgColor={COLORS.white}
+            multiline
+            numberOfLines={3}
+          />
+
+          <Spacing />
+
+          {/* Description (Dutch) */}
+          <TextField
+            label={t('Description (Dutch)')}
+            placeholder={t(
+              'Focused on creating vibes through immersive sound... (Dutch)',
+            )}
+            value={formData.description.nl}
+            onChangeText={text =>
+              handleLangBasedInput('description', 'nl', text)
+            }
             bgColor={COLORS.white}
             multiline
             numberOfLines={3}

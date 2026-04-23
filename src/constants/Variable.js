@@ -115,6 +115,8 @@ export const endPoints = {
   vendorStripeConnect: '/auth/vendor/stripe/connect',
   vendorStripeOnboardingLink: '/auth/vendor/stripe/onboarding-link',
   vendorStripeOnboardingStatus: '/auth/vendor/stripe/onboarding-status',
+  payoutOrders: vendorId => `/admin/payments/${vendorId}/payout-orders`,
+  disbursePayments: vendorId => `/admin/payments/${vendorId}/disburse-payments`,
 
   messages: {
     all: (id, userId) => `/messages/${id}/${userId}`,

@@ -8,6 +8,8 @@ import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 
 const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
+  console.log(item,'itemitemitemitemitemitemitemitemqe222eeee');
+  
   const navigation = useNavigation();
   const {t, currentLanguage} = useTranslation();
 

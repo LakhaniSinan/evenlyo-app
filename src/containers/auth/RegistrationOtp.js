@@ -21,6 +21,16 @@ const RegistrationOtp = ({route, navigation}) => {
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const normalizeLocalizedValue = value => {
+    if (typeof value === 'string') {
+      return {en: value, nl: ''};
+    }
+    return {
+      en: value?.en || '',
+      nl: value?.nl || '',
+    };
+  };
+
   const handleVerifyOtp = async () => {
     try {
       const vendorPersonalPayload = {
@@ -37,8 +47,8 @@ const RegistrationOtp = ({route, navigation}) => {
         subCategories: data?.subCategories,
         businessLogo: data?.media?.workImages,
         businessImage: data?.media?.banner,
-        description: data?.personalInfo?.description,
-        tagline: data?.personalInfo?.tagline,
+        description: normalizeLocalizedValue(data?.personalInfo?.description),
+        tagline: normalizeLocalizedValue(data?.personalInfo?.tagline),
         password: data?.security?.password,
         confirmPassword: data?.security?.confirmPassword,
         otp,
@@ -58,8 +68,8 @@ const RegistrationOtp = ({route, navigation}) => {
         subCategories: data?.subCategories,
         city: data?.businessInfo?.companyAddress,
         fullAddress: data?.businessInfo?.companyAddress,
-        description: data?.businessInfo?.description,
-        tagline: data?.businessInfo?.tagline,
+        description: normalizeLocalizedValue(data?.businessInfo?.description),
+        tagline: normalizeLocalizedValue(data?.businessInfo?.tagline),
         kvkNumber: data?.businessInfo?.kvknumber,
         passportDetails: data?.businessInfo?.passportNumber,
         postalCode: data?.businessInfo?.postalCode || '0000',

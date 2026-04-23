@@ -486,6 +486,7 @@ const Home = ({navigation, route}) => {
           <FlatList
             data={homedata?.releventVendors || []}
             horizontal={true}
+            showsHorizontalScrollIndicator={false}
             renderItem={({item}) => {
               return (
                 <EventCard
@@ -504,14 +505,14 @@ const Home = ({navigation, route}) => {
                   width: width(100),
                   height: width(10),
                 }}>
-            <Text
-              style={{
-                fontFamily: fontFamly.PlusJakartaSansBold,
-                fontSize: 12,
-                color: COLORS.textLight,
-              }}>
-              {t('noRelevantVendors')}
-            </Text>
+                <Text
+                  style={{
+                    fontFamily: fontFamly.PlusJakartaSansBold,
+                    fontSize: 12,
+                    color: COLORS.textLight,
+                  }}>
+                  {t('noRelevantVendors')}
+                </Text>
               </View>
             )}
           />

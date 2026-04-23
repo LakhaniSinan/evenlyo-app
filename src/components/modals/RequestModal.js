@@ -44,6 +44,7 @@ const NewRequestModal = ({
   const [includeSecurityFee, setIncludeSecurityFee] = useState(true);
   const [offerAmount, setOfferAmount] = useState('');
   const [priceError, setPriceError] = useState('');
+  const [showOfferInfoModal, setShowOfferInfoModal] = useState(false);
 
   const normalizeCoords = coords => {
     if (!coords) return null;
@@ -193,25 +194,58 @@ const NewRequestModal = ({
         (selectedListing?.pricing?.pricePerKm || 0)
       : 0;
 
-  const securityFee = selectedListing?.pricing?.securityFee || 0;
+  const securityFee = Number(
+    selectedListing?.pricing?.securityFee ||
+      selectedListing?.paymentPolicy?.securityDeposit ||
+      0,
+  );
 
-  const bookingItemPlatformFee = settingsData?.bookingItemPlatformFee || 0;
+  const parsePercent = value => {
+    if (value === null || value === undefined) return 0;
+    const numeric = Number(String(value).replace('%', '').trim());
+    return Number.isFinite(numeric) ? numeric : 0;
+  };
 
-  const platformFee = (totalDaysCost * bookingItemPlatformFee) / 100;
+  const bookingItemPlatformFee = parsePercent(
+    settingsData?.bookingItemPlatformFee ||
+      selectedListing?.paymentPolicy?.platformFeePercent ||
+      11,
+  );
+  const bookingVatFeePercent = parsePercent(
+    settingsData?.vat ||
+      settingsData?.bookingVatFee ||
+      settingsData?.vatFee ||
+      settingsData?.vatPercentage ||
+      settingsData?.vatPercent ||
+      19,
+  );
 
   const discountBasePrice = perDayBaseCost * selectedDaysCount;
   const enteredOfferAmount = Number(offerAmount || 0);
+  const hasEnteredOffer =
+    offerAmount?.trim() !== '' && Number.isFinite(enteredOfferAmount);
   const safeOfferAmount =
-    Number.isFinite(enteredOfferAmount) && enteredOfferAmount >= 0
-      ? enteredOfferAmount
+    hasEnteredOffer && enteredOfferAmount >= 0 ? enteredOfferAmount : 0;
+  const platformFee =
+    hasEnteredOffer && safeOfferAmount > 0
+      ? (safeOfferAmount * bookingItemPlatformFee) / 100
+      : 0;
+  const vatFee =
+    hasEnteredOffer && safeOfferAmount > 0
+      ? (safeOfferAmount * bookingVatFeePercent) / 100
       : 0;
   const conditionalSecurityFee = includeSecurityFee ? securityFee : 0;
+  const appliedSecurityFee = hasEnteredOffer ? conditionalSecurityFee : 0;
+  const calculatedOfferPrice =
+    hasEnteredOffer && safeOfferAmount > 0
+      ? safeOfferAmount
+      : discountBasePrice;
+  const calculatedPricingTotal = calculatedOfferPrice + totalExtraCost;
   const grandTotal =
-    safeOfferAmount +
-    totalExtraCost +
-    distanceCost +
+    (hasEnteredOffer ? safeOfferAmount : 0) +
     platformFee +
-    conditionalSecurityFee;
+    vatFee +
+    appliedSecurityFee;
   const discountPercent =
     discountBasePrice > 0
       ? Math.max(
@@ -230,15 +264,10 @@ const NewRequestModal = ({
       setSelectedCoords(null);
       setSpecialRequest('');
       setIncludeSecurityFee(true);
+      setOfferAmount('');
       setPriceError('');
     }
   }, [isVisible]);
-
-  useEffect(() => {
-    setOfferAmount(
-      String((perDayBaseCost * selectedDaysCount || 0).toFixed(2)),
-    );
-  }, [perDayBaseCost, selectedDaysCount]);
 
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () =>
@@ -345,6 +374,14 @@ const NewRequestModal = ({
       return;
     }
 
+    if (!hasEnteredOffer || safeOfferAmount <= 0) {
+      modalRef.current?.show({
+        status: 'error',
+        message: t('Please enter your offer price first.'),
+      });
+      return;
+    }
+
     const payload = {
       listingId: selectedListing?._id,
       vendorId: selectedListing?.vendorId || selectedListing?.vendor?._id,
@@ -365,17 +402,18 @@ const NewRequestModal = ({
         extraTimeCost: Number(totalExtraCost.toFixed(2)),
         distanceCost: Number(distanceCost.toFixed(2)),
         total: Number(grandTotal.toFixed(2)),
-        securityFee: Number(conditionalSecurityFee.toFixed(2)),
+        securityFee: Number(appliedSecurityFee.toFixed(2)),
+        platformFee: Number(platformFee.toFixed(2)),
+        vatFee: Number(vatFee.toFixed(2)),
         unit: selectedListing?.pricing?.type || 'per-day',
         pricingBreakdown: {
           baseAmount: Number(discountBasePrice.toFixed(2)),
           extraTimeCost: Number(totalExtraCost.toFixed(2)),
           distanceCost: Number(distanceCost.toFixed(2)),
-          securityFee: Number(conditionalSecurityFee.toFixed(2)),
+          securityFee: Number(appliedSecurityFee.toFixed(2)),
           platformFee: Number(platformFee.toFixed(2)),
-          subtotal: Number(
-            (safeOfferAmount + totalExtraCost + distanceCost).toFixed(2),
-          ),
+          vatFee: Number(vatFee.toFixed(2)),
+          subtotal: Number(safeOfferAmount.toFixed(2)),
           total: Number(grandTotal.toFixed(2)),
           breakdown: [
             {
@@ -397,12 +435,17 @@ const NewRequestModal = ({
             },
             {
               label: 'Security Deposit(Refundable)',
-              amount: Number(conditionalSecurityFee.toFixed(2)),
+              amount: Number(appliedSecurityFee.toFixed(2)),
               explanation: '',
             },
             {
               label: `Platform Service Fee (${bookingItemPlatformFee}%)`,
               amount: Number(platformFee.toFixed(2)),
+              explanation: '',
+            },
+            {
+              label: `VAT Fee (${bookingVatFeePercent}%)`,
+              amount: Number(vatFee.toFixed(2)),
               explanation: '',
             },
           ],
@@ -447,20 +490,16 @@ const NewRequestModal = ({
   };
 
   const handleOfferAmountChange = value => {
-    const numeric = value.replace(/[^0-9.]/g, '');
-    const parsed = Number(numeric || 0);
-    const maxPrice = discountBasePrice || 0;
-
-    if (parsed > maxPrice) {
-      setPriceError(`Price cannot exceed €${maxPrice.toFixed(2)}`);
-    } else {
-      setPriceError('');
-    }
-
+    const cleaned = value.replace(/,/g, '.').replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    const numeric =
+      parts.length > 1
+        ? `${parts[0]}.${parts.slice(1).join('').slice(0, 2)}`
+        : parts[0];
+    setPriceError('');
     setOfferAmount(numeric);
   };
 
-  let baseCost = discountBasePrice;
   return (
     <Modal
       isVisible={isVisible}
@@ -693,103 +732,33 @@ const NewRequestModal = ({
               />
             </View>
           </View>
-          <View
-            style={{
-              backgroundColor: COLORS.backgroundLight,
-              borderRadius: 15,
-              marginVertical: width(2),
-              padding: width(3),
-            }}>
-            <View style={styles.itemRow}>
-              <Text style={styles.itemName}>Base Cost (per day)</Text>
-              <Text style={styles.itemPrice}>€{baseCost?.toFixed(2)}</Text>
-            </View>
-            <View style={styles.itemRow}>
-              <Text style={styles.itemName}>
-                Available days in selected range
-              </Text>
-              <Text style={styles.itemPrice}>{selectedDaysCount} Days</Text>
+          <View style={styles.pricingCard}>
+            <View style={styles.sectionTitleRow}>
+              <Text style={styles.sectionTitleIcon}>€</Text>
+              <Text style={styles.sectionTitleText}>Pricing Breakdown</Text>
             </View>
 
-            {selectedCoords && (
-              <View style={styles.itemRow}>
-                <Text style={styles.itemName}>
-                  Distance cost ({distanceToSelectedListingKm?.toFixed(2)} km)
-                </Text>
-                <Text style={styles.itemPrice}>
-                  €{distanceCost?.toFixed(2) || '0.00'}
-                </Text>
-              </View>
-            )}
-
-            {extraHoursPerDay > 0 && (
-              <View style={styles.itemRow}>
-                <Text style={styles.itemName}>
-                  Extra Hours ({extraHoursPerDay.toFixed(2)} hrs / day)
-                </Text>
-                <Text style={styles.itemPrice}>
-                  €{perDayExtraCost.toFixed(2)}
-                </Text>
-              </View>
-            )}
-
-            <View style={styles.itemRow}>
-              <Text style={styles.itemName}>Platform Fee</Text>
-              <Text style={styles.itemPrice}>€{platformFee?.toFixed(2)}</Text>
+            <View style={styles.offerLabelRow}>
+              <Text style={styles.offerInputLabel}>Your Offer Price (€)</Text>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setShowOfferInfoModal(true)}>
+                <Icon
+                  name="information-circle-outline"
+                  size={17}
+                  color={COLORS.primary}
+                />
+              </TouchableOpacity>
             </View>
-            <View style={styles.itemRow}>
-              <Text style={styles.itemName}>Security Fee</Text>
-              <Text style={styles.itemPrice}>
-                €{conditionalSecurityFee?.toFixed(2)}
-              </Text>
-            </View>
-            <View style={[styles.itemRow, {borderBottomColor: COLORS.white}]}>
-              <Text style={styles.totalText}>Total</Text>
-              <Text style={styles.totalAmount}>€{grandTotal?.toFixed(2)}</Text>
-            </View>
-            {grandTotal > 0 && (
-              <View style={styles.finalTotalInfoBox}>
-                <Text style={styles.finalTotalHeading}>Final Total:</Text>
-                <Text style={styles.finalTotalAmount}>
-                  €{grandTotal?.toFixed(2)}
-                </Text>
-                <Text style={styles.finalTotalDescription}>
-                  Final total includes your offer amount, extra charges,
-                  optional security fee, platform fee, and VAT.
-                </Text>
-              </View>
-            )}
-            {extraHoursPerDay > 0 && (
-              <View style={styles.extraTimeInfoBox}>
-                <Text style={styles.extraTimeInfoText}>
-                  ℹ️ Booking outside available hours (
-                  {selectedListing?.availability?.availableTimeSlots?.[0]
-                    ?.startTime || 'N/A'}
-                  -
-                  {selectedListing?.availability?.availableTimeSlots?.[0]
-                    ?.endTime || 'N/A'}
-                  ) will include an extra time fee of €
-                  {totalExtraCost.toFixed(2)} ({extraHoursPerDay.toFixed(0)}{' '}
-                  hours)
-                </Text>
-              </View>
-            )}
-
-            <View style={{marginTop: width(2)}}>
-              <Text style={[styles.itemName, {fontSize: 12}]}>
-                Your Offer Price
-              </Text>
-              <TextInput
-                value={offerAmount}
-                onChangeText={handleOfferAmountChange}
-                keyboardType="decimal-pad"
-                placeholder="Enter discounted price"
-                style={styles.input}
-              />
-              {!!priceError && (
-                <Text style={styles.errorText}>{priceError}</Text>
-              )}
-            </View>
+            <TextInput
+              value={offerAmount}
+              onChangeText={handleOfferAmountChange}
+              keyboardType="decimal-pad"
+              placeholder="Enter your offer price"
+              placeholderTextColor={COLORS.textLight}
+              style={styles.offerInput}
+            />
+            {!!priceError && <Text style={styles.errorText}>{priceError}</Text>}
 
             <TouchableOpacity
               activeOpacity={0.7}
@@ -804,17 +773,75 @@ const NewRequestModal = ({
                   <Icon name="checkmark" size={12} color={COLORS.white} />
                 ) : null}
               </View>
+              <Icon
+                name="shield-outline"
+                size={15}
+                color={COLORS.primary}
+                style={{marginRight: 6}}
+              />
               <Text style={styles.checkboxLabel}>
                 Include Security Fee (€{securityFee?.toFixed(2)})
               </Text>
             </TouchableOpacity>
 
-            <View style={[styles.itemRow, {borderBottomWidth: 0}]}>
-              <Text style={styles.itemName}>Discount</Text>
-              <Text style={[styles.itemPrice, {color: COLORS.green}]}>
-                {discountPercent}%
-              </Text>
+            <View style={styles.feeContainer}>
+              <View style={styles.feeRow}>
+                <Text style={styles.feeLabel}>
+                  Security Fee ({includeSecurityFee ? 'Included' : 'Excluded'})
+                </Text>
+                <Text style={styles.feeAmount}>
+                  +€{appliedSecurityFee.toFixed(2)}
+                </Text>
+              </View>
+              {platformFee > 0 && (
+                <View style={styles.feeRow}>
+                  <Text style={styles.feeLabel}>
+                    Platform Fee ({bookingItemPlatformFee}%)
+                  </Text>
+                  <Text style={styles.feeAmount}>
+                    +€{platformFee.toFixed(2)}
+                  </Text>
+                </View>
+              )}
+              {vatFee > 0 && (
+                <View style={[styles.feeRow, {borderBottomWidth: 0}]}>
+                  <Text style={styles.feeLabel}>
+                    VAT Fee ({bookingVatFeePercent}%)
+                  </Text>
+                  <Text style={styles.feeAmount}>+€{vatFee.toFixed(2)}</Text>
+                </View>
+              )}
             </View>
+
+            {hasEnteredOffer && safeOfferAmount > 0 && (
+              <View style={styles.finalTotalInfoBox}>
+                <View style={styles.finalTotalRow}>
+                  <Text style={styles.finalTotalHeading}>Final Total:</Text>
+                  <Text style={styles.finalTotalAmount}>
+                    €{grandTotal?.toFixed(2)}
+                  </Text>
+                </View>
+                <Text style={styles.finalTotalDescription}>
+                  Final total includes your offer amount, extra charges,
+                  optional security fee, platform fee, and VAT.
+                </Text>
+              </View>
+            )}
+
+            {extraHoursPerDay > 0 && (
+              <View style={styles.extraTimeInfoBox}>
+                <Text style={styles.extraTimeInfoText}>
+                  Booking outside available hours (
+                  {selectedListing?.availability?.availableTimeSlots?.[0]
+                    ?.startTime || 'N/A'}
+                  -
+                  {selectedListing?.availability?.availableTimeSlots?.[0]
+                    ?.endTime || 'N/A'}
+                  ) will include an extra time fee of €
+                  {totalExtraCost.toFixed(2)}.
+                </Text>
+              </View>
+            )}
           </View>
 
           <View
@@ -885,6 +912,37 @@ const NewRequestModal = ({
           </View>
         )}
       </View>
+      <Modal
+        isVisible={showOfferInfoModal}
+        onBackdropPress={() => setShowOfferInfoModal(false)}
+        style={styles.infoModalWrap}
+        backdropOpacity={0.4}>
+        <View style={styles.infoModalCard}>
+          <Text style={styles.infoModalTitle}>Calculated pricing details</Text>
+
+          <View style={styles.infoModalRow}>
+            <Text style={styles.infoModalLabel}>Calculated offer price</Text>
+            <Text style={styles.infoModalValue}>
+              €{calculatedOfferPrice.toFixed(2)}
+            </Text>
+          </View>
+          <View style={styles.infoModalRow}>
+            <Text style={[styles.infoModalLabel, {color: '#FF5B00'}]}>
+              Extra Time Cost
+            </Text>
+            <Text style={[styles.infoModalValue, {color: '#FF5B00'}]}>
+              +€{totalExtraCost.toFixed(2)}
+            </Text>
+          </View>
+
+          <View style={[styles.infoModalRow, styles.infoModalTotalRow]}>
+            <Text style={styles.infoModalTotalLabel}>Calculated Total</Text>
+            <Text style={styles.infoModalTotalValue}>
+              €{calculatedPricingTotal.toFixed(2)}
+            </Text>
+          </View>
+        </View>
+      </Modal>
       <CommonAlert ref={modalRef} />
     </Modal>
   );
@@ -894,10 +952,12 @@ const styles = StyleSheet.create({
   modal: {margin: 0, justifyContent: 'flex-end', backgroundColor: '#8b8b8b66'},
   container: {
     height: '90%',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    backgroundColor: COLORS.white,
-    padding: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    backgroundColor: '#F8F8FA',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
     elevation: 5,
   },
   buttonRow: {
@@ -921,12 +981,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: 25,
-    borderBottomColor: COLORS.backgroundLight,
+    paddingBottom: 14,
+    borderBottomColor: '#ECECF2',
     borderBottomWidth: 1,
   },
   title: {
-    fontSize: 18,
+    fontSize: 19,
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
   },
@@ -1003,6 +1063,52 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.textDark,
   },
+  pricingCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    marginVertical: width(2),
+    padding: width(3),
+    borderWidth: 1,
+    borderColor: '#ECECF2',
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: width(2),
+  },
+  sectionTitleIcon: {
+    fontSize: 24,
+    lineHeight: 26,
+    marginRight: 8,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.primary,
+  },
+  sectionTitleText: {
+    fontSize: 16,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: '#1F2937',
+  },
+  offerLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  offerInputLabel: {
+    fontSize: 13,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: '#111827',
+  },
+  offerInput: {
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    borderRadius: 12,
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    fontSize: 14,
+    color: COLORS.textDark,
+  },
   input: {
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -1027,7 +1133,7 @@ const styles = StyleSheet.create({
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: width(2),
+    marginTop: width(2.2),
   },
   checkbox: {
     width: 18,
@@ -1044,24 +1150,58 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
   },
   checkboxLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: COLORS.textDark,
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
+  feeContainer: {
+    marginTop: width(2),
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FAFAFB',
+    paddingHorizontal: 10,
+  },
+  feeRow: {
+    minHeight: 42,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ECECF2',
+  },
+  feeLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+    flex: 1,
+    paddingRight: 10,
+  },
+  feeAmount: {
+    fontSize: 32 / 2,
+    color: '#2C2C2C',
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
   finalTotalInfoBox: {
     marginTop: width(2),
-    borderRadius: 10,
-    backgroundColor: '#F2F6FF',
-    padding: 10,
+    borderRadius: 12,
+    backgroundColor: '#ECFDF3',
+    borderWidth: 1,
+    borderColor: '#B7E4C8',
+    padding: 12,
+  },
+  finalTotalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   finalTotalHeading: {
-    fontSize: 12,
+    fontSize: 16,
     color: COLORS.textDark,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
   finalTotalAmount: {
-    marginTop: 2,
-    fontSize: 16,
+    fontSize: 34 / 2,
     color: COLORS.primary,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
@@ -1083,6 +1223,55 @@ const styles = StyleSheet.create({
     color: COLORS.navyBlue,
     fontFamily: fontFamly.PlusJakartaSansMedium,
     lineHeight: 15,
+  },
+  infoModalWrap: {
+    justifyContent: 'center',
+    marginHorizontal: width(5),
+  },
+  infoModalCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#F4BCD8',
+    padding: 14,
+  },
+  infoModalTitle: {
+    fontSize: 22 / 2,
+    color: '#111827',
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    marginBottom: 8,
+  },
+  infoModalRow: {
+    minHeight: 36,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ECECF2',
+  },
+  infoModalLabel: {
+    fontSize: 24 / 2,
+    color: '#32363F',
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+  },
+  infoModalValue: {
+    fontSize: 24 / 2,
+    color: '#32363F',
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  infoModalTotalRow: {
+    borderBottomWidth: 0,
+    marginTop: 2,
+  },
+  infoModalTotalLabel: {
+    fontSize: 14,
+    color: '#111827',
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  infoModalTotalValue: {
+    fontSize: 15,
+    color: '#111827',
+    fontFamily: fontFamly.PlusJakartaSansBold,
   },
 });
 

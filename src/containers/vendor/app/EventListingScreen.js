@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   FlatList,
   Image,
@@ -46,7 +46,7 @@ const requested = [];
 // const saleItem = [];
 
 const EventListingScreen = ({navigation}) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('Booking Items');
@@ -71,6 +71,7 @@ const EventListingScreen = ({navigation}) => {
 
   const [editSaleData, setEditSaleData] = useState(null);
   const [showAddSaleItem, setShowAddSaleItem] = useState(false);
+  const [searchText, setSearchText] = useState('');
   const {user} = useSelector(state => state.LoginSlice);
 
   useEffect(() => {
@@ -332,6 +333,34 @@ const EventListingScreen = ({navigation}) => {
     handleGetAllBookingListings();
   };
 
+  const listingsData =
+    activeTab === 'Booking Items' ? vendroBookingListings : saleItem || [];
+
+  const filteredListings = useMemo(() => {
+    const query = searchText.trim().toLowerCase();
+    if (!query) {
+      return listingsData;
+    }
+
+    const languageKey = currentLanguage === 'nl' ? 'nl' : 'en';
+
+    return listingsData.filter(item => {
+      const title = item?.title;
+
+      if (typeof title === 'string') {
+        return title.toLowerCase().includes(query);
+      }
+
+      if (title && typeof title === 'object') {
+        const localizedTitle =
+          title?.[languageKey] || title?.en || title?.nl || '';
+        return localizedTitle.toLowerCase().includes(query);
+      }
+
+      return false;
+    });
+  }, [currentLanguage, listingsData, searchText]);
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <ScrollView>
@@ -402,30 +431,32 @@ const EventListingScreen = ({navigation}) => {
             style={{
               flex: 1,
               width: '100%',
-              paddingLeft: width(4),
               flexDirection: 'row',
               alignItems: 'center',
               marginVertical: width(3),
-              justifyContent: 'space-between',
+              justifyContent: 'center',
+              alignItems: 'center',
             }}>
             <TextField
               placeholder={t('searchEvent')}
               placeholderTextColor="#aaa"
               bgColor={COLORS.white}
               startIcon={ICONS.search}
+              value={searchText}
+              onChangeText={setSearchText}
               inputContainer={{
                 paddingVertical: 0,
                 paddingHorizontal: 10,
                 height: 45,
-                width: '80%',
                 marginTop: 0,
+                width: '95%',
               }}
               styleProps={{
                 fontSize: 14,
                 color: '#000',
               }}
             />
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={() => setModalVisible(true)}
               style={{
                 flexDirection: 'row',
@@ -437,32 +468,30 @@ const EventListingScreen = ({navigation}) => {
                 style={{width: 40, height: 40}}
                 source={ICONS.filters}
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
         <FlatList
-          data={
-            activeTab === 'Booking Items'
-              ? vendroBookingListings
-              : saleItem || []
-          }
+          data={filteredListings}
           keyExtractor={(item, index) =>
             item?.id ? String(item.id) : String(index)
           }
-          renderItem={({item}) =>
-            activeTab === 'Booking Items' ? (
+          renderItem={
+            ({item}) => (
+              // activeTab === 'Booking Items' ? (
               <BookingListingCard
                 item={item}
                 onDeleteIconPress={handleDeleteBooking}
                 onEditIconPress={handleEditBooking}
               />
-            ) : (
-              <EventListingCard
-                item={item}
-                onDeleteIconPress={handleDeleteSaleItem}
-                onEditIconPress={handleEditSaleItem}
-              />
             )
+            // ) : (
+            //   <EventListingCard
+            //     item={item}
+            //     onDeleteIconPress={handleDeleteSaleItem}
+            //     onEditIconPress={handleEditSaleItem}
+            //   />
+            // )
           }
           contentContainerStyle={{
             padding: 16,

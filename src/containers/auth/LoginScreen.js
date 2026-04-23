@@ -35,7 +35,7 @@ const LoginScreen = ({navigation, route}) => {
   const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
 
   useEffect(() => {
     handleGetFCM();
@@ -112,7 +112,10 @@ const LoginScreen = ({navigation, route}) => {
         } else {
           modalRef.current.show({
             status: 'error',
-            message: response.data.message,
+            message:
+              currentLanguage == 'en'
+                ? response.data.message.en
+                : response.data.message.nl,
           });
         }
       } catch (error) {
@@ -154,7 +157,10 @@ const LoginScreen = ({navigation, route}) => {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: response?.data?.message || 'Login failed. Please try again.',
+          message:
+            currentLanguage == 'en'
+              ? response?.data?.message.en
+              : response?.data?.message.nl,
         });
       }
     } catch (error) {
@@ -267,7 +273,6 @@ const LoginScreen = ({navigation, route}) => {
             iconPosition="left"
           />
         )}
-        <View style={{height: 10}} />
         {/* <GradientButton
           text={t('continueWithLinkedin')}
           onPress={() => {}}
@@ -276,7 +281,6 @@ const LoginScreen = ({navigation, route}) => {
           icon={ICONS.linkedInIcon}
           iconPosition="left"
         /> */}
-        <View style={{height: 100}} />
         <View style={styles.footer}>
           <Text style={styles.footerText}>{t('dontHaveAccount')}</Text>
           <TouchableOpacity onPress={navigateToRegister}>

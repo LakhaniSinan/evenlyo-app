@@ -10,7 +10,8 @@ import CustomDrawer from './CustomDrawer';
 import ChatDetail from '../../../containers/vendor/app/ChatDetails';
 import CreateCustomOffer from '../../../containers/vendor/app/CreateCustomOffre';
 import BookingItems from '../../../containers/vendor/app/BookingItems';
-import VendorPaymentsScreen from '../../../containers/vendor/app/VendorPaymentsScreen';
+import VendorStripeConnectScreen from '../../../containers/vendor/app/VendorStripeConnectScreen';
+import VendorPaymentManagementScreen from '../../../containers/vendor/app/VendorPaymentManagementScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -115,7 +116,14 @@ function CustomerDrawer() {
       <Drawer.Screen name="ChatDetails" component={ChatDetail} />
       <Drawer.Screen name="CreateCustomOffer" component={CreateCustomOffer} />
       <Drawer.Screen name="BookingItems" component={BookingItems} />
-      <Drawer.Screen name="VendorPayments" component={VendorPaymentsScreen} />
+      <Drawer.Screen
+        name="VendorStripeConnect"
+        component={VendorStripeConnectScreen}
+      />
+      <Drawer.Screen
+        name="VendorPaymentManagement"
+        component={VendorPaymentManagementScreen}
+      />
     </Drawer.Navigator>
   );
 }

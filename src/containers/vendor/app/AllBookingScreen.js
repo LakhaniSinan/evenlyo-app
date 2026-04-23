@@ -235,8 +235,6 @@ function AllBookingScreen() {
       }
       const res = await vendorOrderHistory();
 
-      console.log(res, 'resresresresresresresresasdasdasdaaaaa');
-
       if (res?.status === 200 || res?.status === 201) {
         setSaleOrders(res?.data?.order || []);
       }

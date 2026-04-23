@@ -29,7 +29,7 @@ import {globalStyles} from '../../styles/globalStyle';
 const RegisterScreen = ({navigation}) => {
   const phoneInput = useRef(null);
   const modalRef = useRef(null);
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   // const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -107,7 +107,10 @@ const RegisterScreen = ({navigation}) => {
       if (response?.status == 200 || response?.status == 201) {
         modalRef.current.show({
           status: 'ok',
-          message: response.data?.message,
+          message:
+            currentLanguage == 'en'
+              ? response.data?.message.en
+              : response.data?.message.nl,
           handlePressOk: () => {
             modalRef.current.hide();
             navigation.navigate('RegistrationOtp', payload);
@@ -116,11 +119,21 @@ const RegisterScreen = ({navigation}) => {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: response?.data?.message,
+          message:
+            currentLanguage == 'en'
+              ? response.data?.message.en
+              : response.data?.message.nl,
         });
       }
     } catch (error) {
-      console.log(error, 'errorerrorerrorerrorerror123123');
+      // modalRef.current.show({
+      //   status: 'error',
+      //   message:
+      //     currentLanguage == 'en'
+      //       ? 'Something went wrong, please try again.'
+      //       : 'Iets is misgegaan, probeer het opnieuw.',
+      // });
+      console.log(error, 'error', error.response.data.message);
     } finally {
       setIsLoading(false);
     }

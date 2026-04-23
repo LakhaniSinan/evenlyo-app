@@ -64,7 +64,6 @@ const ProfileScreen = () => {
   const {user} = useSelector(state => state.LoginSlice);
   const {fetchProfile, profileData} = useProfile();
   const [vendorDetails, setVendorDetails] = useState(null);
-  console.log(vendorDetails, 'asdalskdnaskdnalsdknalsdkl');
 
   const [isLoading, setIsLoading] = useState(false);
   useFocusEffect(
@@ -91,6 +90,7 @@ const ProfileScreen = () => {
     try {
       setIsLoading(true);
       const responce = await getVendorProfile();
+      console.log(responce, 'responceresponceresponceresponceresponce');
 
       setIsLoading(false);
       if (responce?.status == 200 || responce.status == 201) {
@@ -203,6 +203,34 @@ const ProfileScreen = () => {
           })}
         </View>
 
+        <View style={styles.stripeSection}>
+          {vendorDetails?.stripeOnboardingComplete ? (
+            <View style={styles.stripeConnectedCard}>
+              <Text style={styles.stripeConnectedTitle}>
+                {t('Stripe account connected')}
+              </Text>
+              <Text style={styles.stripeConnectedSubtitle}>
+                {t(
+                  'Your Stripe onboarding is complete and payouts are enabled.',
+                )}
+              </Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('VendorStripeConnect')}
+              style={styles.connectStripeButton}>
+              <Text style={styles.connectStripeButtonText}>
+                {t('Connect Stripe Account')}
+              </Text>
+              <Image
+                style={styles.connectStripeArrow}
+                resizeMode="contain"
+                source={ICONS.arrowRight}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+
         <View
           style={{
             marginTop: width(4),
@@ -296,6 +324,47 @@ const styles = StyleSheet.create({
   languageSwitcherContainer: {
     width: '100%',
     marginTop: 20,
+  },
+  stripeSection: {
+    marginTop: width(4),
+    marginHorizontal: width(3),
+  },
+  connectStripeButton: {
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    backgroundColor: COLORS.backgroundLight,
+    paddingVertical: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  connectStripeButtonText: {
+    color: COLORS.black,
+    fontSize: 13,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
+  },
+  connectStripeArrow: {
+    width: width(3),
+    height: width(3),
+  },
+  stripeConnectedCard: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#C8E6C9',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+  },
+  stripeConnectedTitle: {
+    color: '#2E7D32',
+    fontSize: 14,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  stripeConnectedSubtitle: {
+    color: '#2E7D32',
+    fontSize: 12,
+    marginTop: 4,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
   },
 });
 

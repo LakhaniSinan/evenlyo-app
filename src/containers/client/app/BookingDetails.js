@@ -34,6 +34,7 @@ import {
   markAsComplete,
   markAsRecived,
 } from '../../../services/BookingItem';
+import {checkIsChatedBefore, createConnection} from '../../../services/Chat';
 
 /* -------------------------------------------------------------------------- */
 /*                                HELPERS                                     */
@@ -113,6 +114,7 @@ const BookingDetails = ({route, navigation}) => {
   const [reviewModal, setReviewModal] = useState(false);
 
   const [bookingData, setBookingData] = useState(null);
+  const [chatData, setChatData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [openCancelModal, setOpenCancelModal] = useState(false);
 
@@ -165,6 +167,95 @@ const BookingDetails = ({route, navigation}) => {
   useEffect(() => {
     animateMap();
   }, [animateMap]);
+
+  const formatParticipants = participantsData => {
+    const participants = {};
+    participantsData?.forEach(({role, refPath, userId}) => {
+      if (refPath === 'Vendor') {
+        participants[role === 'vendor' ? 'vendor' : 'user'] = {
+          userId: userId?._id,
+          name: userId?.businessName,
+          photo: userId?.businessLogo || null,
+          email: userId?.businessEmail,
+          role: 'vendor',
+        };
+      } else {
+        participants.user = {
+          userId: userId?._id,
+          name: `${userId?.firstName || ''} ${userId?.lastName || ''}`.trim(),
+          photo:
+            userId?.profileImage ||
+            userId?.businessLogo ||
+            userId?.photo ||
+            null,
+          email: userId?.email,
+          role: 'user',
+        };
+      }
+    });
+    return participants;
+  };
+
+  const getVendorIdForChat = () =>
+    bookingData?.vendorDetails?._id ||
+    bookingData?.listingDetails?.vendor?._id ||
+    bookingData?.details?.vendorId;
+
+  const handleCreateChatConnection = async () => {
+    try {
+      const vendorId = getVendorIdForChat();
+      if (!vendorId || !user?.id) {
+        navigation.navigate('MessagesScreen');
+        return;
+      }
+      const response = await createConnection({userId: user?.id, vendorId});
+      if (response?.status === 200 || response?.status === 201) {
+        const conversation = response?.data?.data;
+        const finalChatData = {
+          ...conversation,
+          participants: formatParticipants(conversation?.participants),
+        };
+        setChatData(finalChatData);
+        navigation.navigate('ChatDetail', finalChatData);
+      } else {
+        navigation.navigate('MessagesScreen');
+      }
+    } catch {
+      navigation.navigate('MessagesScreen');
+    }
+  };
+
+  const handleOpenChat = async () => {
+    if (chatData?.conversationId) {
+      navigation.navigate('ChatDetail', chatData);
+      return;
+    }
+    const vendorId = getVendorIdForChat();
+    if (!vendorId || !user?.id) {
+      navigation.navigate('MessagesScreen');
+      return;
+    }
+    try {
+      const response = await checkIsChatedBefore(user?.id, vendorId);
+      if (response?.status === 200 || response?.status === 201) {
+        const conversation = response?.data?.data;
+        if (!conversation) {
+          handleCreateChatConnection();
+          return;
+        }
+        const finalChatData = {
+          ...conversation,
+          participants: formatParticipants(conversation?.participants),
+        };
+        setChatData(finalChatData);
+        navigation.navigate('ChatDetail', finalChatData);
+      } else {
+        navigation.navigate('MessagesScreen');
+      }
+    } catch {
+      navigation.navigate('MessagesScreen');
+    }
+  };
 
   const handleConfirmCancel = async val => {
     try {
@@ -257,7 +348,7 @@ const BookingDetails = ({route, navigation}) => {
           headingText="Booking"
           rightIcon={ICONS.chatIcon}
           onLeftIconPress={() => navigation.goBack()}
-          onRightIconPress={() => navigation.navigate('MessagesScreen')}
+          onRightIconPress={handleOpenChat}
         />
 
         <CarouselComponent data={bookingData?.listingDetails?.images} />
@@ -464,7 +555,7 @@ const BookingDetails = ({route, navigation}) => {
         }}>
         <View style={{width: width(45)}}>
           <GradientButton
-            onPress={() => navigation.navigate('ChatDetail')}
+            onPress={handleOpenChat}
             text={'Chat with Vendor'}
             type="outline"
             icon={ICONS.chatIconfilled}

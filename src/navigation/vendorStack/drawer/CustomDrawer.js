@@ -51,10 +51,10 @@ const CustomDrawer = ({navigation}) => {
       // badge: 6, // example notification
     },
     {
-      label: 'Payment',
+      label: 'Payment Management',
       onPress: () => {
         setActiveIndex(3);
-        navigation.navigate('VendorPayments');
+        navigation.navigate('VendorPaymentManagement');
       },
     },
   ];
