@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import Loader from '../../../components/loder';
@@ -21,7 +22,6 @@ import {
   getPayoutOrders,
 } from '../../../services/VendorPaymentManagement';
 import {vendorStripeOnboardingStatus} from '../../../services/VendorStripe';
-import {useSelector} from 'react-redux';
 
 const getOrderId = order =>
   order?._id || order?.id || order?.orderId || order?.bookingId || '';
@@ -72,7 +72,7 @@ const normalizeOrdersFromResponse = body => {
 const VendorPaymentManagementScreen = () => {
   const navigation = useNavigation();
   const {user} = useSelector(state => state.LoginSlice);
-  const VENDOR_ID = user?.vendorId;
+  const VENDOR_ID = user?.id;
 
   const {t} = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -92,11 +92,8 @@ const VendorPaymentManagementScreen = () => {
         vendorStripeOnboardingStatus(),
       ]);
 
-      console.log(
-        ordersRes,
-        stripeRes,
-        'ordersRes, stripeResordersRes, stripeResordersRes, stripeRes',
-      );
+      console.log(stripeRes, 'stripeResstripeResstripeResstripeRes');
+      console.log(ordersRes, 'ordersResordersResordersResordersRes');
 
       if (ordersRes?.status === 200 || ordersRes?.status === 201) {
         const fetchedOrders = normalizeOrdersFromResponse(ordersRes?.data);

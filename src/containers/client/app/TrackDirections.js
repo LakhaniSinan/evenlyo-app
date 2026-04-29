@@ -3,19 +3,27 @@ import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import MapView, {Marker} from 'react-native-maps';
 import Icon from 'react-native-vector-icons/Ionicons';
-
-import {ICONS, IMAGES} from '../../../assets';
+import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import {COLORS, fontFamly} from '../../../constants';
 
 const TrackDirections = ({navigation, route}) => {
   const data = route.params;
-  console.log(data, 'datadatadatadatadatadatadatadatadata');
-
   const mapRef = useRef(null);
-
-  const latitude = Number(data?.eventLatitude);
-  const longitude = Number(data?.eventLongitude);
+  const rawLatitude =
+    data?.eventLatitude ??
+    data?.details?.location?.coordinates?.latitude ??
+    data?.listingDetails?.location?.coordinates?.latitude ??
+    data?.location?.coordinates?.latitude;
+  const rawLongitude =
+    data?.eventLongitude ??
+    data?.details?.location?.coordinates?.longitude ??
+    data?.listingDetails?.location?.coordinates?.longitude ??
+    data?.location?.coordinates?.longitude;
+  const latitude = Number(rawLatitude);
+  const longitude = Number(rawLongitude);
+  const hasValidCoordinates =
+    Number.isFinite(latitude) && Number.isFinite(longitude);
 
   const region = {
     latitude,
@@ -25,14 +33,14 @@ const TrackDirections = ({navigation, route}) => {
   };
 
   useEffect(() => {
-    if (latitude && longitude && mapRef.current) {
+    if (hasValidCoordinates && mapRef.current) {
       const timer = setTimeout(() => {
         mapRef.current.animateToRegion(region, 800);
       }, 500);
 
       return () => clearTimeout(timer);
     }
-  }, [latitude, longitude]);
+  }, [hasValidCoordinates, region]);
 
   const handleRecenter = () => {
     if (mapRef.current) {
@@ -53,21 +61,22 @@ const TrackDirections = ({navigation, route}) => {
       </View>
 
       <View style={styles.mapContainer}>
-        {latitude && longitude && (
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            showsUserLocation
-            showsMyLocationButton={false}
-            mapType="standard">
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          initialRegion={hasValidCoordinates ? region : undefined}
+          showsUserLocation
+          showsMyLocationButton={false}
+          mapType="standard">
+          {hasValidCoordinates && (
             <Marker
               coordinate={{latitude, longitude}}
               title="Event Location"
               description={data?.eventLocation}
-              pinColor={COLORS.primary}
+              image={ICONS.locationWithoutBg}
             />
-          </MapView>
-        )}
+          )}
+        </MapView>
 
         <TouchableOpacity
           style={styles.recenterButton}

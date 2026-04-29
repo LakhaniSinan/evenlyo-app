@@ -1,6 +1,7 @@
 import moment from 'moment';
-import React, {useRef} from 'react';
+import React from 'react';
 import {
+  Alert,
   FlatList,
   Modal,
   Platform,
@@ -18,12 +19,10 @@ import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import BookingTable from '../bookingTable';
 import GradientButton from '../button';
-import CommonAlert from '../commanAlert';
 import GradientText from '../gradiantText';
 
 const ReportingModal = ({data, visible, onClose}) => {
   const {t} = useTranslation();
-  const modalRef = useRef(null);
   const earningsData = [
     {label: 'Report Date:', value: moment().format('MMMM D, YYYY')},
     {label: 'Today Earning:', value: `$${data?.stats?.todayEarnings || 0}`},
@@ -152,16 +151,8 @@ const ReportingModal = ({data, visible, onClose}) => {
         }
 
         await RNFS.copyFile(pdf.filePath, destinationPath);
-        modalRef.current?.show({
-          status: 'ok',
-          message: 'PDF saved to Downloads folder.',
-          handlePressOk: () => {
-            modalRef.current?.hide();
-            setTimeout(() => {
-              onClose();
-            }, 500);
-          },
-        });
+        Alert.alert('Success', 'PDF saved to Downloads folder.');
+        onClose();
         console.log('Saved to Android Downloads:', destinationPath);
       } else {
         const destinationPath = `${RNFS.DocumentDirectoryPath}/Report_${timeStamp}.pdf`;
@@ -175,6 +166,7 @@ const ReportingModal = ({data, visible, onClose}) => {
       }
     } catch (error) {
       console.log('PDF Error:', error);
+      Alert.alert('Error', 'Failed to generate PDF. Please try again.');
     }
   };
 
@@ -225,7 +217,6 @@ const ReportingModal = ({data, visible, onClose}) => {
           </View>
         </View>
       </TouchableOpacity>
-      <CommonAlert ref={modalRef} />
     </Modal>
   );
 };

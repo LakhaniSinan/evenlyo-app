@@ -37,9 +37,7 @@ const Categories = ({data, selected, setSelected}) => {
                 <SvgUri
                   width={20}
                   height={20}
-                  source={{
-                    uri: item?.icon,
-                  }}
+                  uri={item?.icon}
                 />
               </LinearGradient>
             ) : (
@@ -47,9 +45,7 @@ const Categories = ({data, selected, setSelected}) => {
                 <SvgUri
                   width={20}
                   height={20}
-                  source={{
-                    uri: item?.icon,
-                  }}
+                  uri={item?.icon}
                 />
               </View>
             )}

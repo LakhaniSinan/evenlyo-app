@@ -133,7 +133,7 @@ const Notification = ({navigation}) => {
         </View>
 
         {/* Search */}
-        <View
+        {/* <View
           style={{
             width: '100%',
             paddingLeft: width(4),
@@ -157,7 +157,7 @@ const Notification = ({navigation}) => {
               color: '#000',
             }}
           />
-        </View>
+        </View> */}
       </View>
       <FlatList
         data={vendorNotifications}

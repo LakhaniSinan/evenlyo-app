@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
+import {useSelector} from 'react-redux';
 import {IMAGES} from '../../../assets';
 import {COLORS, fontFamly} from '../../../constants';
 
@@ -59,12 +60,22 @@ const CustomDrawer = ({navigation}) => {
     },
   ];
 
+  const {user} = useSelector(state => state.LoginSlice);
+  console.log(user, 'userDatauserDatauserDatauserData');
+
   return (
     <View style={styles.drawerContent}>
       <View style={styles.profileSection}>
-        <Image source={IMAGES.profilePhoto} style={styles.profileImage} />
-        <Text style={styles.profileName}>Asima Khan</Text>
-        <Text style={styles.profileEmail}>Webpixels</Text>
+        <Image
+          source={
+            user?.vendorDetails?.businessLogo
+              ? {uri: user?.vendorDetails?.businessLogo}
+              : IMAGES.avatarIcon
+          }
+          style={styles.profileImage}
+        />
+        <Text style={styles.profileName}>{user?.firstName}</Text>
+        <Text style={styles.profileEmail}>{user?.email}</Text>
       </View>
 
       {/* Menu */}

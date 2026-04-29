@@ -32,11 +32,11 @@ const getProfileMenuData = t => [
     navigate: 'ResetPassword',
     icon: ICONS.security,
   },
-  {
-    name: t('Billing Management'),
-    navigate: 'BillingManagement',
-    icon: ICONS.wallet,
-  },
+  // {
+  //   name: t('Billing Management'),
+  //   navigate: 'BillingManagement',
+  //   icon: ICONS.wallet,
+  // },
   {
     name: t('Settings'),
     navigate: 'Settings',

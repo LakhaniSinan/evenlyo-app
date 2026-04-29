@@ -122,11 +122,9 @@ const EventDetails = ({route, navigation}) => {
           onRightIconPress={() => navigation.navigate('Notifications')}
           onLeftIconPress={() => navigation.goBack()}
         />
-
+        {/* data?.type == 'saleItem' ? getSaleItemsTabs(t) : */}
         <Tabs
-          tabsData={
-            data?.type == 'saleItem' ? getSaleItemsTabs(t) : getTabsData(t)
-          }
+          tabsData={getTabsData(t)}
           selectedTab={selectedTab}
           onPress={setSelectedTab}
         />
@@ -144,7 +142,7 @@ const EventDetails = ({route, navigation}) => {
         {selectedTab === 'gallery' && (
           <DetailsContent data={data} selectedTab={selectedTab} />
         )}
-        {selectedTab === 'reviews' && <AllReviews data={data} />}
+        {selectedTab === 'reviews' && <AllReviews data={bookingDetails || data} />}
       </ScrollView>
       <Loader isLoading={isLoading} />
       <CommonAlert isLoading={modalRef} />

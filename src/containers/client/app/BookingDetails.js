@@ -114,6 +114,8 @@ const BookingDetails = ({route, navigation}) => {
   const [reviewModal, setReviewModal] = useState(false);
 
   const [bookingData, setBookingData] = useState(null);
+  console.log(bookingData, 'bookingDatabookingDatabookingDatabookingData');
+
   const [chatData, setChatData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [openCancelModal, setOpenCancelModal] = useState(false);
@@ -324,7 +326,10 @@ const BookingDetails = ({route, navigation}) => {
       if (responce.status == 200 || responce.status == 201) {
         modalRef.current.show({
           status: 'ok',
-          message: responce?.data?.message,
+          message:
+            currentLanguage === 'en'
+              ? responce?.data?.message?.en
+              : responce?.data?.message?.nl,
           handlePressOk: () => {
             fetchBookingDetails();
           },
@@ -414,10 +419,13 @@ const BookingDetails = ({route, navigation}) => {
             }`}
           />
 
-          <InfoRow label="Total Price" value={`€${bookingData?.totalPrice}`} />
+          <InfoRow
+            label="Total Price"
+            value={`€${bookingData?.totalPrice?.toFixed(2)}`}
+          />
           <InfoRow
             label="Security"
-            value={`€${bookingData?.pricingBreakdown?.securityFee}`}
+            value={`€${bookingData?.pricingBreakdown?.securityFee?.toFixed(2)}`}
           />
         </View>
         {/* LOCATION */}
@@ -556,7 +564,7 @@ const BookingDetails = ({route, navigation}) => {
             type="filled"
             onPress={() =>
               navigation.navigate('TrackDirections', {
-                ...bookingData?.details,
+                ...bookingData,
                 ...bookingData?.vendorDetails,
               })
             }

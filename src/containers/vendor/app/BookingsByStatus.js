@@ -35,7 +35,7 @@ const BookingsByStatus = ({navigation, route}) => {
       setLoading(true);
 
       const response = await getBookingByStatus({
-        status: event?.status?.toLowerCase(),
+        status: event?.status?.toLowerCase() || event?.title?.toLowerCase(),
         vendorId: user?.id,
       });
 

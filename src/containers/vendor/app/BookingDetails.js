@@ -19,7 +19,6 @@ import CommonAlert from '../../../components/commanAlert';
 import Loader from '../../../components/loder';
 import PickedupModal from '../../../components/modals/PickedupModal';
 import RejectRequestModal from '../../../components/modals/RejectRequest';
-import StatusBadge from '../../../components/statusComponent';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {
@@ -81,6 +80,8 @@ function BookingDetails({route}) {
 
   const [isLoading, setIsLoading] = useState(false);
   const [booking, setBooking] = useState(null);
+  console.log(booking, 'bookingbookingbookingbookingbookingbooking');
+
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
 
   const alertRef = useRef(null);
@@ -272,7 +273,7 @@ function BookingDetails({route}) {
 
             <View>
               <Text style={styles.price}>
-                $ {booking?.listingDetails?.pricing?.amount}
+                € {booking?.listingDetails?.pricing?.amount}
               </Text>
               <Text style={styles.priceType}>
                 /{booking?.listingDetails?.pricing?.type}
@@ -337,7 +338,7 @@ function BookingDetails({route}) {
 
           {renderUserRow(
             booking?.vendorDetails,
-            booking?.listingId?.location?.userAddress,
+            booking?.details?.eventLocation,
           )}
         </View>
       </ScrollView>
@@ -459,11 +460,14 @@ const renderInfoRow = (icon, title, value) => (
 );
 
 const renderUserRow = (user, address) => {
-  console.log(user, address, 'user, addressuser, addressuser, address');
-
   return (
     <View style={styles.dividerRow}>
-      <Image source={IMAGES.profilePhoto} style={styles.avatar} />
+      <Image
+        source={
+          user?.businessLogo ? {uri: user?.businessLogo} : IMAGES.profilePhoto
+        }
+        style={styles.avatar}
+      />
       <View style={styles.infoText}>
         <Text style={styles.infoValue}>
           {user?.firstName} {user?.lastName}
@@ -541,6 +545,7 @@ const styles = StyleSheet.create({
   avatar: {
     height: width(10),
     width: width(10),
+    borderRadius: 100,
   },
   infoText: {
     marginLeft: width(3),

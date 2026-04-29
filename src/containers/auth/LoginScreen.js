@@ -98,6 +98,7 @@ const LoginScreen = ({navigation, route}) => {
           type == 'client'
             ? await loginClient(payload)
             : await loginVendor(payload);
+        console.log(response, 'responseresponseresponseresponseresponse');
 
         let data = response?.data?.user;
         setIsLoading(false);
@@ -112,10 +113,11 @@ const LoginScreen = ({navigation, route}) => {
         } else {
           modalRef.current.show({
             status: 'error',
-            message:
-              currentLanguage == 'en'
-                ? response.data.message.en
-                : response.data.message.nl,
+            message: response?.data?.message?.en
+              ? currentLanguage == 'en'
+                ? response?.data?.message?.en
+                : response?.data?.message?.nl
+              : response?.data?.message,
           });
         }
       } catch (error) {

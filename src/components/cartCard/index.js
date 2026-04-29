@@ -51,7 +51,7 @@ const CartCard = ({
       },
       {
         label: 'Total Paid Amount',
-        value: item?.AmountPaid,
+        value: item?.AmountPaid?.toFixed(2),
         color: item?.isUpfrontPaid ? COLORS.green : COLORS.red,
       },
       {
@@ -209,14 +209,18 @@ const CartCard = ({
                 {backgroundColor: '#FEE2E2', borderColor: COLORS.red},
               ]}>
               <Text style={[styles.warningText, {color: COLORS.red}]}>
-                Full payment of €{`${item?.pricingBreakdown?.total}`} required
+                Full payment of €
+                {`${Number(item?.pricingBreakdown?.total)?.toFixed(2)}`}{' '}
+                required
               </Text>
             </View>
           ) : (
             <View style={styles.warningBox}>
               <Text style={styles.warningText}>
                 Remaining balance of{' '}
-                {item?.AmountLeft ? `€${item?.AmountLeft.toFixed(2)}` : ''}{' '}
+                {item?.AmountLeft
+                  ? `€${Number(item?.AmountLeft)?.toFixed(2)}`
+                  : ''}{' '}
                 should be cleared by (one day before event).
               </Text>
             </View>

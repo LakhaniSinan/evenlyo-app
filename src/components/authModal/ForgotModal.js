@@ -27,7 +27,7 @@ import ContactNumberInput from '../phoneInput';
 import TextField from '../textInput';
 
 const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('phone');
@@ -71,12 +71,20 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
         setTimer(60);
         modalRef.current.show({
           status: 'ok',
-          message: response.data.message || 'OTP sent successfully!',
+          message: response?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl
+            : response?.data?.message,
         });
       } else {
         modalRef.current.show({
           status: 'error',
-          message: response?.data?.message || 'Something went wrong!',
+          message: response?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl
+            : response?.data?.message,
         });
       }
     } catch (error) {
@@ -119,10 +127,16 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
       if (response?.status === 200 || response?.status === 201) {
         const tokenFromResp =
           response?.data?.token || response?.data?.resetToken || null;
-        if (tokenFromResp) {setResetToken(tokenFromResp);}
+        if (tokenFromResp) {
+          setResetToken(tokenFromResp);
+        }
         modalRef.current.show({
           status: 'ok',
-          message: 'OTP verified successfully!',
+          message: response?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl
+            : response?.data?.message,
           handlePressOk: () => {
             setStep('reset');
           },
@@ -130,17 +144,17 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: response?.data?.message || 'Invalid OTP!',
+          message: response?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl
+            : response?.data?.message,
         });
       }
     } catch (error) {
       console.log(error, 'errorerrorerrorerrorerror');
 
       setIsLoading(false);
-      modalRef.current.show({
-        status: 'error',
-        message: 'OTP verification failed. Try again.',
-      });
     }
   };
 
@@ -171,7 +185,11 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
       if (response?.status === 200 || response?.status === 201) {
         modalRef.current.show({
           status: 'ok',
-          message: response?.data?.message || 'Password reset successfully!',
+          message: response?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl
+            : response?.data?.message,
           handlePressOk: () => {
             modalRef.current.hide();
             handlePressFun('reset');
@@ -180,7 +198,11 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: response?.data?.message || 'Failed to reset password.',
+          message: response?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl
+            : response?.data?.message,
         });
       }
     } catch (error) {
@@ -194,7 +216,9 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
   };
 
   const handleResendOtp = async () => {
-    if (timer > 0) {return;}
+    if (timer > 0) {
+      return;
+    }
     setIsResending(true);
     const response = await sendOtpRequest();
     setIsResending(false);
@@ -203,13 +227,21 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
       setTimer(60);
       modalRef.current.show({
         status: 'ok',
-        message: response.data?.message || 'OTP resent successfully',
+        message: response?.data?.message?.en
+          ? currentLanguage == 'en'
+            ? response?.data?.message?.en
+            : response?.data?.message?.nl
+          : response?.data?.message,
       });
       setOtp('');
     } else {
       modalRef.current.show({
         status: 'error',
-        message: response?.data?.message || 'Failed to resend OTP',
+        message: response?.data?.message?.en
+          ? currentLanguage == 'en'
+            ? response?.data?.message?.en
+            : response?.data?.message?.nl
+          : response?.data?.message,
       });
     }
   };
@@ -228,7 +260,9 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
       }, 1000);
     }
     return () => {
-      if (interval) {clearInterval(interval);}
+      if (interval) {
+        clearInterval(interval);
+      }
     };
   }, [step, timer]);
 

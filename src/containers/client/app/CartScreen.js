@@ -59,12 +59,13 @@ function CartScreen({navigation}) {
   const [resuestModalVisible, setResuestModalVisible] = useState(false);
   const [cardDetails, setCardDetails] = useState(null);
   const [amountToPay, setAmountToPay] = useState(0);
+
   const [clientSecret, setClientSecret] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      handleGetCartListing();
+      user?.id && handleGetCartListing();
     }, [modalVisible, payModalVisible, user, orderBookingForm]),
   );
 
@@ -80,16 +81,15 @@ function CartScreen({navigation}) {
     }
     try {
       const response = await getAmountToPay(selectedData?._id);
+      console.log(response, 'responseresponseresponseresponseresponse');
 
       if (response.status == 200 || response?.status === 201) {
         setIsLoadding(true);
-        setAmountToPay(response?.data?.amountToPay);
+        setAmountToPay(response?.data?.amountToPay?.toFixed(2));
         const res = await createPaymentIntent({
-          amount: Math.round(response?.data?.amountToPay),
+          amount: response?.data?.amountToPay?.toFixed(2),
           bookingId: selectedData?._id,
         });
-        console.log(res, 'resresresresresresresresres');
-
         if (res?.data?.clientSecret) {
           setPayModalVisible(true);
           const clientSecretValue = res.data.clientSecret;

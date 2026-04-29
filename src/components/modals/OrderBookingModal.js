@@ -267,12 +267,30 @@ const OrderBooking = ({
     onClose();
   }, [availableDays]);
 
+  const listingCoordinates = useMemo(() => {
+    const rawCoordinates =
+      data?.location?.coordinates ||
+      data?.listingDetails?.location?.coordinates ||
+      data?.listingId?.location?.coordinates;
+
+    if (Array.isArray(rawCoordinates)) {
+      return {
+        latitude: Number(rawCoordinates?.[1] || 0),
+        longitude: Number(rawCoordinates?.[0] || 0),
+      };
+    }
+
+    return {
+      latitude: Number(rawCoordinates?.latitude || rawCoordinates?.lat || 0),
+      longitude: Number(rawCoordinates?.longitude || rawCoordinates?.lng || 0),
+    };
+  }, [data]);
+
   const distance = useMemo(() => {
     return (
-      getDistance(data?.location?.coordinates, selectedCoords?.latLng)
-        ?.distance || 0
+      getDistance(listingCoordinates, selectedCoords?.latLng)?.distance || 0
     );
-  }, [data?.location?.coordinates, selectedCoords]);
+  }, [listingCoordinates, selectedCoords]);
 
   const startDateStr = localStartDate || null;
   const endDateStr = localEndDate || null;
@@ -288,6 +306,12 @@ const OrderBooking = ({
 
     const platformFeePercent = Number(
       data?.paymentPolicy?.platformFeePercent || 5,
+    );
+    const vatPercent = Number(
+      data?.settings?.vat ??
+        data?.vatFeePercent ??
+        data?.pricingBreakdown?.vatFeePercent ??
+        0,
     );
 
     const protectPercent = Number(
@@ -329,12 +353,14 @@ const OrderBooking = ({
     const travelCost = (Number(distance) || 0) * pricePerKm;
 
     const subTotal = serviceCost + travelCost + extraTimeAmount;
+    const vatFee = (subTotal * vatPercent) / 100;
 
     const platformFee = (subTotal * platformFeePercent) / 100;
 
     const evenlyoProtect = isChecked ? (subTotal * protectPercent) / 100 : 0;
 
-    const total = subTotal + platformFee + evenlyoProtect + securityDeposit;
+    const total =
+      subTotal + vatFee + platformFee + evenlyoProtect + securityDeposit;
 
     return {
       serviceCost,
@@ -342,6 +368,8 @@ const OrderBooking = ({
       extraHours,
       extraTimeAmount,
       subTotal,
+      vatFee,
+      vatPercent,
       platformFee,
       evenlyoProtect,
       securityDeposit,
@@ -478,17 +506,19 @@ const OrderBooking = ({
         willPayUpfront: paymentRequirement?.type === 'HALF',
 
         pricingBreakdown: {
-          baseAmount: calculatedPricing.serviceCost,
-          extraTimeCost: calculatedPricing.extraTimeAmount,
+          baseAmount: calculatedPricing.serviceCost?.toFixed(2),
+          extraTimeCost: calculatedPricing.extraTimeAmount?.toFixed(2),
           distanceCost: calculatedPricing.travelCost,
-          securityFee: calculatedPricing.securityDeposit,
+          securityFee: calculatedPricing.securityDeposit?.toFixed(2),
 
-          subtotal: calculatedPricing.subTotal,
-          platformFee: calculatedPricing.platformFee,
-          evenyloProtectFee: calculatedPricing.evenlyoProtect,
+          subtotal: calculatedPricing.subTotal?.toFixed(2),
+          vatFeePercent: calculatedPricing.vatPercent,
+          vatFee: calculatedPricing.vatFee?.toFixed(2),
+          platformFee: calculatedPricing.platformFee?.toFixed(2),
+          evenyloProtectFee: calculatedPricing.evenlyoProtect?.toFixed(2),
 
-          upfrontFee: paymentRequirement?.payableAmount || 0,
-          total: calculatedPricing.total,
+          upfrontFee: paymentRequirement?.payableAmount?.toFixed(2) || 0,
+          total: calculatedPricing.total?.toFixed(2),
 
           calculationDetails: isSingleDateSelected
             ? `Standard pricing: ${calculatedPricing.totalHours} hours × €${calculatedPricing.pricePerHour}/hour`
@@ -505,8 +535,18 @@ const OrderBooking = ({
                 : `${availableSelectedDays} days`,
             },
             {
+              label: `Extra Time Fee`,
+              amount: calculatedPricing.extraTimeAmount,
+              explanation: '',
+            },
+            {
               label: `Travel Cost (${distance}km)`,
               amount: calculatedPricing.travelCost,
+              explanation: '',
+            },
+            {
+              label: `VAT (${calculatedPricing.vatPercent}%)`,
+              amount: calculatedPricing.vatFee,
               explanation: '',
             },
             {
@@ -679,6 +719,7 @@ const OrderBooking = ({
       const distanceCost = Number(calculatedPricing.travelCost || 0);
       const securityFee = Number(calculatedPricing.securityDeposit || 0);
       const subtotal = Number(calculatedPricing.subTotal || 0);
+      const vatFee = Number(calculatedPricing.vatFee || 0);
       const platformFee = Number(calculatedPricing.platformFee || 0);
       const evenyloProtectFee = Number(calculatedPricing.evenlyoProtect || 0);
       const upfrontFee = Number(paymentRequirement?.payableAmount || 0);
@@ -722,6 +763,8 @@ const OrderBooking = ({
           securityFee,
 
           subtotal,
+          vatFeePercent: Number(calculatedPricing.vatPercent || 0),
+          vatFee,
           platformFee,
           evenyloProtectFee,
 
@@ -750,6 +793,11 @@ const OrderBooking = ({
             {
               label: `Travel Cost (${distance}km)`,
               amount: distanceCost,
+              explanation: '',
+            },
+            {
+              label: `VAT (${Number(calculatedPricing.vatPercent || 0)}%)`,
+              amount: vatFee,
               explanation: '',
             },
             {
@@ -1056,6 +1104,15 @@ const OrderBooking = ({
               </Text>
               <Text style={styles.pricingValue}>
                 € {calculatedPricing.platformFee.toFixed(2)}
+              </Text>
+            </View>
+
+            <View style={styles.pricingRow}>
+              <Text style={styles.pricingLabel}>
+                VAT ({calculatedPricing.vatPercent}%)
+              </Text>
+              <Text style={styles.pricingValue}>
+                € {calculatedPricing.vatFee.toFixed(2)}
               </Text>
             </View>
 

@@ -8,9 +8,13 @@ const RecentClientsCard = ({item, index, dataLength}) => {
   const isLastItem = index === dataLength - 1;
 
   const getInitials = name => {
-    if (!name) {return '';}
+    if (!name) {
+      return '';
+    }
     const parts = name.split(' ');
-    if (parts.length === 1) {return parts[0].charAt(0).toUpperCase();}
+    if (parts.length === 1) {
+      return parts[0].charAt(0).toUpperCase();
+    }
     return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
   };
 
@@ -37,11 +41,11 @@ const RecentClientsCard = ({item, index, dataLength}) => {
           <Text style={styles.time}>⏱ {formattedDate}</Text>
         </View>
 
-        <View style={{alignItems: 'center', justifyContent: 'space-between'}}>
+        {/* <View style={{alignItems: 'center', justifyContent: 'space-between'}}>
           <TouchableOpacity style={styles.trackButton}>
             <Text style={styles.trackText}>More Details</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
     </View>
   );

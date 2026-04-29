@@ -364,10 +364,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
 
       modalRef.current.show({
         status: isSuccess ? 'ok' : 'error',
-        message:
-          currentLanguage == 'en'
-            ? response.data?.message.en
-            : response.data?.message.nl,
+        message: response?.data?.message,
         handlePressOk: () => {
           modalRef.current.hide();
           onClose();

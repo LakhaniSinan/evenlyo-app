@@ -56,7 +56,7 @@ const ListingCard = ({item, navigation}) => {
           justifyContent: 'space-between',
           paddingHorizontal: width(2),
         }}>
-        <View
+        {/* <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -87,7 +87,7 @@ const ListingCard = ({item, navigation}) => {
               style={{marginLeft: width(1)}}
             />
           </View>
-        </View>
+        </View> */}
 
         <View>
           <Text

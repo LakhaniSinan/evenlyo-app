@@ -24,6 +24,7 @@ import {
 } from '../../../services/ListingsItem';
 import {checkIsChatedBefore, createConnection} from '../../../services/Chat';
 import {getDistance} from '../../../utils';
+import CarouselComponent from '../../../components/carousel';
 
 const getInitialMarkedDates = availableDays => {
   let marked = {};
@@ -58,8 +59,6 @@ const getInitialMarkedDates = availableDays => {
 };
 
 const DetailsContent = ({data, selectedTab, navigation}) => {
-  console.log(data, 'datadatadatadatadatadatadatadata');
-
   const {cartData} = useSelector(state => state.CartSlice);
   const {user} = useSelector(state => state.LoginSlice);
   const dispatch = useDispatch(null);
@@ -344,6 +343,12 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
   };
 
   const {distance} = getDistance(coLatLng, coords);
+  const averageRating = Number(
+    data?.reviews?.averageRating ?? data?.rating?.average ?? 0,
+  );
+  const totalReviews = Number(
+    data?.reviews?.totalReviews ?? data?.rating?.totalReviews ?? 0,
+  );
 
   const formatParticipants = participantsData => {
     const participants = {};
@@ -463,24 +468,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
   return (
     <>
       {selectedTab === 'gallery' ? (
-        // <CarouselComponent data={data} />
-        <View
-          style={{
-            height: width(80),
-            backgroundColor: COLORS.white,
-            margin: width(2),
-            borderRadius: width(5),
-            overflow: 'hidden',
-          }}>
-          <Image
-            source={{uri: data?.image}}
-            resizeMode="cover"
-            style={{
-              height: '100%',
-              width: '100%',
-            }}
-          />
-        </View>
+        <CarouselComponent data={data?.images || []} />
       ) : (
         <>
           <Calendar
@@ -543,7 +531,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
               }}>
               {currentLanguage == 'en' ? data?.title?.en : data?.title?.nl}
             </Text>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            {/* <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <Image
                 source={ICONS.locationWithoutBg}
                 resizeMode="contain"
@@ -559,7 +547,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
                 }}>
                 {distance} Km Away
               </Text>
-            </View>
+            </View> */}
             <View
               style={{
                 alignItems: 'flex-start',
@@ -568,10 +556,10 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
               }}>
               <Rating
                 ratingCount={5}
-                minValue={data?.rating?.totalReviews}
+                startingValue={averageRating}
                 readonly={true}
                 imageSize={15}
-                style={{}}
+                fractions={1}
               />
               <Text
                 style={{
@@ -580,7 +568,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
                   marginLeft: width(2),
                   color: COLORS.semiLightText,
                 }}>
-                {data?.rating?.average}
+                {`${averageRating.toFixed(1)} (${totalReviews})`}
               </Text>
             </View>
           </View>

@@ -33,6 +33,7 @@ function ProfileManagement({navigation, route}) {
   const data = route.params;
   const teamSizeRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
+  const modalRef = useRef(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -247,7 +248,9 @@ function ProfileManagement({navigation, route}) {
 
       <TextField
         label={t('Description (English)')}
-        placeholder={t('Focused on creating vibes through immersive sound... (English)')}
+        placeholder={t(
+          'Focused on creating vibes through immersive sound... (English)',
+        )}
         value={formData?.description?.en}
         onChangeText={val =>
           handleLocalizedInputChange('description', 'en', val)
@@ -261,7 +264,9 @@ function ProfileManagement({navigation, route}) {
 
       <TextField
         label={t('Description (Dutch)')}
-        placeholder={t('Focused on creating vibes through immersive sound... (Dutch)')}
+        placeholder={t(
+          'Focused on creating vibes through immersive sound... (Dutch)',
+        )}
         value={formData?.description?.nl}
         onChangeText={val =>
           handleLocalizedInputChange('description', 'nl', val)
@@ -377,7 +382,9 @@ function ProfileManagement({navigation, route}) {
       <Spacing />
       <TextField
         label={t('Description (English)')}
-        placeholder={t('Focused on creating vibes through immersive sound... (English)')}
+        placeholder={t(
+          'Focused on creating vibes through immersive sound... (English)',
+        )}
         value={formData?.description?.en}
         onChangeText={val =>
           handleLocalizedInputChange('description', 'en', val)
@@ -391,7 +398,9 @@ function ProfileManagement({navigation, route}) {
 
       <TextField
         label={t('Description (Dutch)')}
-        placeholder={t('Focused on creating vibes through immersive sound... (Dutch)')}
+        placeholder={t(
+          'Focused on creating vibes through immersive sound... (Dutch)',
+        )}
         value={formData?.description?.nl}
         onChangeText={val =>
           handleLocalizedInputChange('description', 'nl', val)
@@ -503,15 +512,25 @@ function ProfileManagement({navigation, route}) {
         }
 
         const response = await updateVendorDetails(payload);
+        console.log(response, 'responseresponseresponseresponseasd');
 
-        if (response?.status === 201 || response?.status === 200) {
-          Alert.alert('Success', response?.data?.message);
+        if (response?.status === 200 || response?.status === 201) {
+          modalRef.current?.show({
+            status: 'ok',
+            message: response?.data?.message,
+          });
         } else {
-          Alert.alert('Error', response?.data?.message);
+          modalRef.current?.show({
+            status: 'error',
+            message: response?.data?.message,
+          });
         }
       } catch (error) {
         console.error('handleUpdate error:', error);
-        Alert.alert('Error', 'Failed to update vendor.');
+        modalRef.current?.show({
+          status: 'error',
+          message: 'Failed to update vendor.',
+        });
       } finally {
         setIsLoading(false);
       }
@@ -571,7 +590,7 @@ function ProfileManagement({navigation, route}) {
       <Loader isLoading={isLoading} />
       <AppHeader
         leftIcon={ICONS.leftArrowIcon}
-        headingText={t('Profile Management')}
+        // headingText={t('Profile Management')}
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={() => navigation.goBack()}
         onRightIconPress={() => navigation.navigate('Messages')}
@@ -612,7 +631,9 @@ function ProfileManagement({navigation, route}) {
             <View style={styles.businessInfo}>
               <Text style={styles.businessName}>
                 {formData.companyName ||
-                  `${formData.firstName || ''} ${formData.lastName || ''}`.trim()}
+                  `${formData.firstName || ''} ${
+                    formData.lastName || ''
+                  }`.trim()}
               </Text>
 
               <View style={styles.ratingContainer}>

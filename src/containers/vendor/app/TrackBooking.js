@@ -1,12 +1,31 @@
-import React, {useMemo, useState} from 'react';
-import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import React, {useMemo} from 'react';
+import {
+  Alert,
+  Platform,
+  Pressable,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {ICONS} from '../../../assets';
-import AppHeader from '../../../components/appHeader';
+import {generatePDF} from 'react-native-html-to-pdf';
+import RNFS from 'react-native-fs';
 import GradientButton from '../../../components/button';
 import {COLORS, fontFamly} from '../../../constants';
+import {ICONS} from '../../../assets';
+import AppHeader from '../../../components/appHeader';
 
 const STATUS_CONFIG = {
+  requested: {
+    title: 'New Request',
+    description: 'Booking request received',
+    icon: 'checkmark-circle',
+    badge: 'Client',
+    badgeColor: '#FFF2E2',
+    textColor: '#D98B2B',
+  },
   accepted: {
     title: 'Order Accepted',
     description: 'Vendor accepted the order',
@@ -17,67 +36,117 @@ const STATUS_CONFIG = {
   },
   on_the_way: {
     title: 'On The Way',
-    description: 'Driver is on the way',
+    description: 'Status updated',
     icon: 'car',
     badge: 'Driver',
     badgeColor: '#E3F2FD',
     textColor: '#2196F3',
   },
   picked_up: {
-    title: 'Picked Up',
-    description: 'Order picked up from location',
-    icon: 'cube',
-    badge: 'Driver',
-    badgeColor: '#E8F5E8',
-    textColor: '#4CAF50',
-  },
-  received: {
-    title: 'Received',
-    description: 'Client received the order',
-    icon: 'person',
+    title: 'Service Received',
+    description: 'Status updated',
+    icon: 'checkmark-circle',
     badge: 'Client',
     badgeColor: '#E8F5E8',
-    textColor: '#4CAF50',
+    textColor: '#2E7D32',
   },
-  finished: {
-    title: 'Finished',
-    description: 'Order process finished',
-    icon: 'time',
-    badge: 'System',
-    badgeColor: '#EDE7F6',
-    textColor: '#673AB7',
-  },
-  received_back: {
-    title: 'Received Back',
-    description: 'Item received back',
-    icon: 'refresh',
-    badge: 'Warehouse',
-    badgeColor: '#FFFDE7',
-    textColor: '#FBC02D',
-  },
-  completed: {
-    title: 'Completed',
-    description: 'Order completed successfully',
-    icon: 'checkmark-done-circle',
-    badge: 'Completed',
+  received: {
+    title: 'Order Accepted',
+    description: 'Vendor accepted the booking',
+    icon: 'checkmark-circle',
+    badge: 'Vendor',
     badgeColor: '#E8F5E8',
     textColor: '#2E7D32',
+  },
+  finished: {
+    title: 'Service Finished',
+    description: 'Status updated',
+    icon: 'checkmark-circle',
+    badge: 'Vendor',
+    badgeColor: '#E8F5E8',
+    textColor: '#2E7D32',
+  },
+  received_back: {
+    title: 'Service Finished',
+    description: 'Item received back',
+    icon: 'checkmark-circle',
+    badge: 'Vendor',
+    badgeColor: '#E8F5E8',
+    textColor: '#2E7D32',
+  },
+  completed: {
+    title: 'Order Completed',
+    description: 'Order completed successfully',
+    icon: 'checkmark-circle',
+    badge: 'System',
+    badgeColor: '#FFF1E6',
+    textColor: '#E58845',
   },
 };
 
 const TrackingBookingDetails = ({navigation, route}) => {
-  const data = route.params;
+  const data = route?.params || {};
+  const detailsData = data?.details || {};
   const statusHistory = data?.statusHistory || [];
+  const pricingRows = data?.pricingBreakdown?.breakdown || [];
+
+  const formatAmount = amount =>
+    `€ ${Number(amount || 0)
+      .toFixed(2)
+      .replace('.', ',')}`;
+
+  const formatDisplayDate = dateValue => {
+    if (!dateValue) {
+      return 'Invalid date';
+    }
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const formatTimelineDateTime = dateValue => {
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    return date.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
 
   const timelineData = useMemo(() => {
-    return statusHistory.map((item, index) => {
+    const initialTimeline = data?.createdAt
+      ? [
+          {
+            _id: 'requested-status',
+            status: 'requested',
+            timestamp: data.createdAt,
+          },
+        ]
+      : [];
+
+    const mergedHistory = [...initialTimeline, ...statusHistory];
+
+    return mergedHistory.map((item, index) => {
       const config = STATUS_CONFIG[item.status] || {};
 
       return {
         id: item._id || index,
         status: config.title || item.status,
         description: config.description || '',
-        time: new Date(item.timestamp).toLocaleString(),
+        timestamp: item.timestamp,
+        time: formatTimelineDateTime(item.timestamp),
         icon: config.icon || 'time',
         badge: config.badge || 'Status',
         badgeColor: config.badgeColor || '#F5F5F5',
@@ -85,18 +154,179 @@ const TrackingBookingDetails = ({navigation, route}) => {
         completed: true,
       };
     });
-  }, [statusHistory]);
+  }, [data?.createdAt, statusHistory]);
 
-  const [orderData] = useState({
-    orderId: data?.orderId || 'ORD-003',
-    clientName: data?.clientName || 'Global Supply Co',
-    phone: data?.phone || '+1-234-567-8903',
-    total: data?.total || '$1,074.00',
-    status: timelineData?.[timelineData.length - 1]?.status || 'Pending',
-  });
+  const formatPDFDateTime = dateValue => {
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    const day = `${date.getDate()}`.padStart(2, '0');
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    const hours24 = date.getHours();
+    const hours12 = hours24 % 12 || 12;
+    const minutes = `${date.getMinutes()}`.padStart(2, '0');
+    const ampm = hours24 >= 12 ? 'PM' : 'AM';
+    return `${month} ${day}, ${year} ${hours12}:${minutes} ${ampm}`;
+  };
 
-  const handleDownloadPDF = () => {
-    console.log('Download PDF');
+  const escapeHtml = value =>
+    String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+  const createOrderTrackingPDFHtml = () => {
+    const timelineRows = timelineData
+      .map(
+        item => `
+          <tr>
+            <td>${escapeHtml(item.status)}</td>
+            <td>Status updated to ${escapeHtml(item.status)}</td>
+            <td>${escapeHtml(formatPDFDateTime(item.timestamp))}</td>
+            <td>${escapeHtml(item.badge)}</td>
+          </tr>
+        `,
+      )
+      .join('');
+
+    const pricingHtmlRows = pricingRows
+      .map(
+        row => `
+          <tr>
+            <td>${escapeHtml(row?.label || '-')}</td>
+            <td style="text-align:right;">${escapeHtml(
+              formatAmount(row?.amount).replace(',', '.'),
+            )}</td>
+          </tr>
+        `,
+      )
+      .join('');
+
+    const generatedAt = formatPDFDateTime(new Date().toISOString());
+    const totalAmount = formatAmount(
+      data?.totalPrice || data?.pricingBreakdown?.total || 0,
+    ).replace(',', '.');
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <style>
+          body { font-family: Arial, sans-serif; padding: 26px; color: #1f2a37; background: #ffffff; }
+          .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+          .brand { display: flex; align-items: center; gap: 8px; }
+          .brand-icon {
+            width: 24px; height: 34px; border-radius: 10px;
+            background: linear-gradient(180deg, #FF2C78 0%, #E31B95 60%, #C817AE 100%);
+            color: #fff; font-weight: 700; font-size: 26px; line-height: 34px; text-align: center;
+          }
+          .brand-name { font-size: 42px; font-weight: 700; color: #0f2940; line-height: 1; }
+          .report-title { color: #E31B95; font-size: 36px; font-weight: 700; }
+          .section-title {
+            color: #E31B95; font-size: 14px; font-weight: 700; margin-top: 14px; margin-bottom: 8px; text-transform: uppercase;
+            border-bottom: 1px solid #EBC8DF; padding-bottom: 4px;
+          }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+          th, td { border: 1px solid #EBC8DF; padding: 9px 10px; font-size: 11px; vertical-align: top; }
+          th { background: #E31B95; color: #fff; text-align: left; font-weight: 700; }
+          .key { width: 18%; font-weight: 700; }
+          .value { width: 32%; }
+          .total-row td { font-weight: 700; background: #F9F2F7; }
+          .footer { margin-top: 28px; display: flex; justify-content: space-between; color: #374151; font-size: 10px; font-weight: 600; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="brand">
+            <div class="brand-icon">E</div>
+            <div class="brand-name">Evenlyo</div>
+          </div>
+          <div class="report-title">Order Tracking Report</div>
+        </div>
+
+        <div class="section-title">Order Information</div>
+        <table>
+          <tr><td class="key">Order ID</td><td class="value">${escapeHtml(data?.trackingId || 'N/A')}</td><td class="key">Status</td><td class="value">${escapeHtml(data?.status || 'N/A')}</td></tr>
+          <tr><td class="key">Client Name</td><td class="value">${escapeHtml(data?.client?.fullName || data?.userId?.fullName || 'N/A')}</td><td class="key">Phone</td><td class="value">${escapeHtml(data?.client?.contactNumber || data?.userId?.contactNumber || 'N/A')}</td></tr>
+          <tr><td class="key">Email</td><td class="value">${escapeHtml(data?.client?.email || data?.userId?.email || 'N/A')}</td><td class="key">Client Location</td><td class="value">${escapeHtml(data?.eventLocation || detailsData?.eventLocation || 'N/A')}</td></tr>
+          <tr><td class="key">Event Location</td><td class="value">${escapeHtml(data?.eventLocation || detailsData?.eventLocation || 'N/A')}</td><td class="key">Event Date</td><td class="value">${escapeHtml(formatDisplayDate(detailsData?.startDate || data?.bookingDateTime?.start))}</td></tr>
+          <tr><td class="key">Start Time</td><td class="value">${escapeHtml(detailsData?.schedule?.[0]?.startTime || 'Invalid date')}</td><td class="key">End Time</td><td class="value">${escapeHtml(detailsData?.schedule?.[0]?.endTime || 'Invalid date')}</td></tr>
+        </table>
+
+        <div class="section-title">Pricing Breakdown</div>
+        <table>
+          <tr><th>Description</th><th style="text-align:right;">Amount</th></tr>
+          ${pricingHtmlRows}
+          <tr class="total-row"><td>Total</td><td style="text-align:right;">${escapeHtml(totalAmount)}</td></tr>
+        </table>
+
+        <div class="section-title">Order Timeline</div>
+        <table>
+          <tr><th>Title</th><th>Description</th><th>Date</th><th>Actor</th></tr>
+          ${timelineRows}
+        </table>
+
+        <div class="footer">
+          <span>Generated on: ${escapeHtml(generatedAt)}</span>
+          <span>Page 1</span>
+        </div>
+      </body>
+      </html>
+    `;
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      const fileName = `order-tracking-${data?.trackingId || 'report'}`;
+      const pdf = await generatePDF({
+        html: createOrderTrackingPDFHtml(),
+        fileName,
+        directory: 'Documents',
+      });
+
+      if (Platform.OS === 'android') {
+        const folderPath = RNFS.DownloadDirectoryPath;
+        const destinationPath = `${folderPath}/${fileName}.pdf`;
+        const folderExists = await RNFS.exists(folderPath);
+
+        if (!folderExists) {
+          await RNFS.mkdir(folderPath);
+        }
+
+        await RNFS.copyFile(pdf.filePath, destinationPath);
+        Alert.alert('Success', 'PDF saved to Downloads folder.');
+      } else {
+        const destinationPath = `${RNFS.DocumentDirectoryPath}/${fileName}.pdf`;
+        await RNFS.moveFile(pdf.filePath, destinationPath);
+        await Share.share({
+          url: `file://${destinationPath}`,
+          type: 'application/pdf',
+          title: 'Order Tracking PDF',
+        });
+      }
+    } catch (error) {
+      console.log('PDF generation failed:', error);
+      Alert.alert('Error', 'Failed to generate PDF. Please try again.');
+    }
   };
 
   return (
@@ -112,54 +342,130 @@ const TrackingBookingDetails = ({navigation, route}) => {
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}>
-        {/* ========= ORDER INFO ========= */}
+        <View style={styles.topHeader}>
+          <Text style={styles.pageTitle}>
+            Order Tracking - {data?.trackingId || 'N/A'}
+          </Text>
+          <View style={styles.completedPill}>
+            <Text style={styles.completedPillText}>
+              {data?.status?.toUpperCase()}
+            </Text>
+          </View>
+        </View>
+
+        <Text style={styles.sectionHeading}>Order Information</Text>
         <View style={styles.orderInfoCard}>
-          <View style={styles.orderInfoHeader}>
-            <Text style={styles.orderInfoTitle}>Order Information</Text>
-            <View style={[styles.statusBadge, {backgroundColor: '#FFE5E5'}]}>
-              <Text style={[styles.statusText, {color: '#FF0092'}]}>
-                {orderData.status}
+          <View style={styles.fieldsRow}>
+            <View style={styles.fieldBlock}>
+              <Text style={styles.fieldLabel}>Tracking ID</Text>
+              <Text style={styles.fieldValue}>{data?.trackingId || 'N/A'}</Text>
+            </View>
+            <View style={styles.fieldBlock}>
+              <Text style={styles.fieldLabel}>Client Name</Text>
+              <Text style={styles.fieldValue}>
+                {data?.client?.fullName || data?.userId?.fullName || 'N/A'}
               </Text>
             </View>
           </View>
 
-          <View style={styles.orderDetails}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Order ID:</Text>
-              <Text style={styles.detailValue}>{orderData.orderId}</Text>
+          <View style={styles.fieldsRow}>
+            <View style={styles.fieldBlock}>
+              <Text style={styles.fieldLabel}>Phone</Text>
+              <Text style={styles.fieldValue}>
+                {data?.client?.contactNumber ||
+                  data?.userId?.contactNumber ||
+                  'N/A'}
+              </Text>
             </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Client Name:</Text>
-              <Text style={styles.detailValue}>{orderData.clientName}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Phone:</Text>
-              <Text style={styles.detailValue}>{orderData.phone}</Text>
+            <View style={styles.fieldBlock}>
+              <Text style={styles.fieldLabel}>Email</Text>
+              <Text style={styles.fieldValue}>
+                {data?.client?.email || data?.userId?.email || 'N/A'}
+              </Text>
             </View>
           </View>
 
-          <View style={styles.divider} />
+          <View style={styles.fieldsRow}>
+            <View style={[styles.fieldBlock, styles.fullWidth]}>
+              <Text style={styles.fieldLabel}>Client Location</Text>
+              <Text style={styles.fieldValue}>
+                {data?.eventLocation || detailsData?.eventLocation || 'N/A'}
+              </Text>
+            </View>
+          </View>
 
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total:</Text>
-            <Text style={styles.totalValue}>{orderData.total}</Text>
+          <View style={styles.fieldsRow}>
+            <View style={[styles.fieldBlock, styles.fullWidth]}>
+              <Text style={styles.fieldLabel}>Event Location</Text>
+              <Text style={styles.fieldValue}>
+                {data?.eventLocation || detailsData?.eventLocation || 'N/A'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.fieldsRow}>
+            <View style={styles.fieldBlock}>
+              <Text style={styles.fieldLabel}>Event Date</Text>
+              <Text style={styles.fieldValue}>
+                {formatDisplayDate(
+                  detailsData?.startDate || data?.bookingDateTime?.start,
+                )}
+              </Text>
+            </View>
+            <View style={styles.fieldBlock}>
+              <Text style={styles.fieldLabel}>Start Time</Text>
+              <Text style={styles.fieldValue}>
+                {detailsData?.schedule?.[0]?.startTime || 'Invalid date'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.fieldsRow}>
+            <View style={styles.fieldBlock}>
+              <Text style={styles.fieldLabel}>End Time</Text>
+              <Text style={styles.fieldValue}>
+                {detailsData?.schedule?.[0]?.endTime || 'Invalid date'}
+              </Text>
+            </View>
+            <View style={styles.fieldBlock} />
           </View>
         </View>
 
-        {/* ========= TIMELINE ========= */}
+        <Text style={styles.sectionHeading}>Pricing Breakdown</Text>
+        <View style={styles.pricingCard}>
+          {pricingRows.map((row, index) => (
+            <View
+              key={`${row?.label}-${index}`}
+              style={[
+                styles.pricingRow,
+                index !== pricingRows.length - 1 && styles.borderBottom,
+              ]}>
+              <Text style={styles.pricingLabel}>{row?.label || '-'}</Text>
+              <Text style={styles.pricingValue}>
+                {formatAmount(row?.amount)}
+              </Text>
+            </View>
+          ))}
+
+          <View style={styles.pricingRow}>
+            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalValue}>
+              {formatAmount(
+                data?.totalPrice || data?.pricingBreakdown?.total || 0,
+              )}
+            </Text>
+          </View>
+        </View>
+
         <View style={styles.timelineSection}>
-          <Text style={styles.sectionTitle}>Order Timeline</Text>
+          <Text style={styles.sectionHeading}>Order Timeline</Text>
 
           <View style={styles.timeline}>
             {timelineData.map((item, index) => (
               <View key={item.id} style={styles.timelineItem}>
                 <View style={styles.timelineIconContainer}>
-                  <View
-                    style={[
-                      styles.iconBackground,
-                      {backgroundColor: '#E8F5E8'},
-                    ]}>
-                    <Icon name={item.icon} size={20} color="#4CAF50" />
+                  <View style={styles.iconBackground}>
+                    <Icon name={item.icon} size={12} color="#4CAF50" />
                   </View>
                   {index < timelineData.length - 1 && (
                     <View style={styles.timelineLine} />
@@ -181,35 +487,35 @@ const TrackingBookingDetails = ({navigation, route}) => {
                     </View>
                   </View>
 
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                    }}>
-                    <Text style={styles.updateDescription}>
-                      {item.description}
-                    </Text>
-                    <Text style={styles.updateTime}>{item.time}</Text>
-                  </View>
+                  <Text style={styles.updateDescription}>
+                    {item.description}
+                  </Text>
+                  <Text style={styles.updateTime}>{item.time}</Text>
                 </View>
               </View>
             ))}
           </View>
         </View>
 
-        {/* ========= BUTTON ========= */}
-        <View style={styles.directionButtonContainer}>
-          <GradientButton
-            icon={ICONS.downloadIcon}
-            text="Download PDF"
-            onPress={handleDownloadPDF}
-            textStyle={{
-              fontSize: 12,
-              fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-              color: 'white',
-            }}
-          />
+        <Text style={styles.sectionHeading}>Progress Notes</Text>
+        <View style={styles.progressNotesSection}>
+          <Icon name="alert-circle-outline" size={14} color="#E6A100" />
+          <Text style={styles.progressNotesText}>
+            Current status:{' '}
+            {timelineData[timelineData.length - 1]?.status || 'Completed'}
+          </Text>
         </View>
+
+        <GradientButton
+          text="Download PDF"
+          onPress={handleDownloadPDF}
+          styleContainer={styles.pdfButton}
+          textStyle={{
+            fontSize: 12,
+            fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+            color: 'white',
+          }}
+        />
       </ScrollView>
     </View>
   );
@@ -220,143 +526,151 @@ export default TrackingBookingDetails;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-
-    paddingTop: 50,
-    paddingBottom: 20,
-    backgroundColor: COLORS.white,
-  },
-  headerTitle: {
-    fontSize: 12,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    color: COLORS.textDark,
-  },
-  downloadButton: {
-    backgroundColor: '#FF6B6B',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    gap: 8,
-  },
-  downloadButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontFamily: fontFamly.PlusJakartaSansSemiBold,
+    backgroundColor: '#F8F8F8',
   },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 14,
+  },
+  topHeader: {
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  pageTitle: {
+    fontSize: 14,
+    color: '#222222',
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  completedPill: {
+    marginTop: 6,
+    alignSelf: 'flex-start',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    backgroundColor: '#FDE8F4',
+  },
+  completedPillText: {
+    fontSize: 9,
+    color: '#D62B8A',
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+  },
+  closeIconWrap: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#D62B8A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sectionHeading: {
+    fontSize: 13,
+    color: '#232323',
+    marginBottom: 8,
+    fontFamily: fontFamly.PlusJakartaSansBold,
   },
   orderInfoCard: {
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: 16,
+    backgroundColor: '#F1F2F4',
+    borderRadius: 10,
     padding: 12,
-    marginVertical: 20,
+    marginBottom: 14,
   },
-  orderInfoHeader: {
+  fieldsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
+    gap: 8,
+    marginBottom: 8,
   },
-  orderInfoTitle: {
-    fontSize: 14,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    color: COLORS.textDark,
+  fieldBlock: {
+    flex: 1,
+    backgroundColor: '#F6F7F9',
+    borderWidth: 1,
+    borderColor: '#E1E2E5',
+    borderRadius: 6,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
   },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+  fullWidth: {
+    flex: 1,
   },
-  statusText: {
-    fontSize: 10,
-    fontFamily: fontFamly.PlusJakartaSansSemiBold,
-  },
-  orderDetails: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  detailLabel: {
-    fontSize: 12,
+  fieldLabel: {
+    fontSize: 8,
+    color: '#8A8A8A',
+    marginBottom: 2,
     fontFamily: fontFamly.PlusJakartaSansMedium,
-    color: COLORS.textLight,
   },
-  detailValue: {
-    fontSize: 12,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    color: COLORS.textDark,
+  fieldValue: {
+    fontSize: 10,
+    color: '#2A2A2A',
+    fontFamily: fontFamly.PlusJakartaSansMedium,
   },
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.backgroundLight,
-    marginBottom: 15,
+  pricingCard: {
+    backgroundColor: '#F1F2F4',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 14,
   },
-  totalRow: {
+  pricingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 6,
+  },
+  borderBottom: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#E4E5E8',
+  },
+  pricingLabel: {
+    fontSize: 9,
+    color: '#666',
+    flex: 1,
+    marginRight: 8,
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+  },
+  pricingValue: {
+    fontSize: 10,
+    color: '#363636',
+    fontFamily: fontFamly.PlusJakartaSansMedium,
   },
   totalLabel: {
-    fontSize: 12,
-    fontFamily: fontFamly.PlusJakartaSansMedium,
-    color: COLORS.textDark,
+    fontSize: 11,
+    color: '#232323',
+    fontFamily: fontFamly.PlusJakartaSansBold,
   },
   totalValue: {
-    fontSize: 14,
+    fontSize: 11,
+    color: '#232323',
     fontFamily: fontFamly.PlusJakartaSansBold,
-    color: COLORS.textDark,
   },
   timelineSection: {
-    marginBottom: 24,
-    borderRadius: 18,
-    padding: 12,
-    backgroundColor: COLORS.backgroundLight,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    color: COLORS.textDark,
-    marginBottom: 10,
+    marginBottom: 14,
+    borderRadius: 10,
+    padding: 10,
+    backgroundColor: '#F1F2F4',
   },
   timeline: {
-    gap: 20,
+    gap: 12,
   },
   timelineItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    paddingBottom: 10,
+    paddingBottom: 4,
   },
   timelineIconContainer: {
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 10,
   },
   iconBackground: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#E7F6EA',
     alignItems: 'center',
     justifyContent: 'center',
   },
   timelineLine: {
     width: 2,
-    height: 40,
-    backgroundColor: COLORS.green,
-    marginTop: 8,
+    height: 34,
+    backgroundColor: '#D9E7DA',
+    marginTop: 2,
   },
   timelineContent: {
     flex: 1,
@@ -367,60 +681,70 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   updateStatus: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: fontFamly.PlusJakartaSansBold,
-    color: COLORS.textDark,
+    color: '#2B2B2B',
   },
   updateDescription: {
     fontSize: 9,
     fontFamily: fontFamly.PlusJakartaSansMedium,
-    color: COLORS.textLight,
+    color: '#6E6E6E',
   },
   updateTime: {
-    fontSize: 10,
+    fontSize: 8,
     fontFamily: fontFamly.PlusJakartaSansMedium,
-    color: COLORS.textLight,
+    color: '#8C8C8C',
   },
   progressNotesSection: {
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-  },
-  progressNotesTitle: {
-    fontSize: 14,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    color: COLORS.textDark,
-  },
-  progressNotesContent: {
+    backgroundColor: '#FFF8DD',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
   },
   progressNotesText: {
-    fontSize: 12,
+    fontSize: 9,
     fontFamily: fontFamly.PlusJakartaSansMedium,
-    color: COLORS.textLight,
-    flex: 1,
-    lineHeight: 20,
+    color: '#9B7A00',
   },
   actionSection: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 40,
-    gap: 16,
+    marginBottom: 24,
+    gap: 8,
   },
-  deleteButton: {
-    backgroundColor: '#FF6B6B',
-    width: 60,
-    height: 60,
-    borderRadius: 12,
+  pinkRoundButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#D62B8A',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  directionButtonContainer: {
-    flex: 1,
-    marginBottom: 20,
+  pinkRoundText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  closeButton: {
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F2F2F2',
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonText: {
+    color: '#333333',
+    fontSize: 11,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  pdfButton: {
+    flex: 0,
+    minWidth: 130,
   },
 });

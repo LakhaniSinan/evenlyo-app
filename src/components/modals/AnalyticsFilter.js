@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import moment from 'moment';
+import React, {useEffect, useState} from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
@@ -10,11 +11,44 @@ import GradientButton from '../button';
 import CustomCalendar from '../customCalendar';
 import GradientText from '../gradiantText';
 
-const AnalyticsFilter = ({isVisible, onClose}) => {
+const AnalyticsFilter = ({isVisible, onClose, onApplyFilters, onResetFilters, filters}) => {
   const {t} = useTranslation();
   const [showCalendar, setShowCalendar] = useState(false);
-  const handleDateSelect = () => {};
+  const [activeField, setActiveField] = useState(null);
   const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  useEffect(() => {
+    if (!isVisible) return;
+    setStartDate(filters?.startDate || '');
+    setEndDate(filters?.endDate || '');
+  }, [filters?.endDate, filters?.startDate, isVisible]);
+
+  const formatDateLabel = dateValue =>
+    dateValue ? moment(dateValue).format('DD/MM/YYYY') : t('DD/MM/YYYY');
+
+  const handleDateSelect = date => {
+    const selectedDate = date?.format ? date.format('YYYY-MM-DD') : '';
+    if (!selectedDate) return;
+
+    if (activeField === 'endDate') {
+      setEndDate(selectedDate);
+    } else {
+      setStartDate(selectedDate);
+    }
+  };
+
+  const handleApplyFilters = () => {
+    onApplyFilters?.({startDate, endDate});
+    onClose?.();
+  };
+
+  const handleResetFilters = () => {
+    setStartDate('');
+    setEndDate('');
+    onResetFilters?.();
+    onClose?.();
+  };
 
   return (
     <Modal
@@ -38,10 +72,13 @@ const AnalyticsFilter = ({isVisible, onClose}) => {
               fontSize: 12,
               color: COLORS.black,
             }}>
-{t('Start Date')}
+            {t('Start Date')}
           </Text>
           <TouchableOpacity
-            onPress={() => setShowCalendar(true)}
+            onPress={() => {
+              setActiveField('startDate');
+              setShowCalendar(true);
+            }}
             style={{
               marginTop: width(2),
               height: width(13),
@@ -59,7 +96,7 @@ const AnalyticsFilter = ({isVisible, onClose}) => {
                 fontFamily: fontFamly.PlusJakartaSansSemiRegular,
                 color: COLORS.textLight,
               }}>
-{t('DD/MM/YYYY')}
+              {formatDateLabel(startDate)}
             </Text>
             <Image
               source={ICONS.calenderIcon}
@@ -75,10 +112,13 @@ const AnalyticsFilter = ({isVisible, onClose}) => {
               fontSize: 12,
               color: COLORS.black,
             }}>
-{t('End Date')}
+            {t('End Date')}
           </Text>
           <TouchableOpacity
-            onPress={() => setShowCalendar(true)}
+            onPress={() => {
+              setActiveField('endDate');
+              setShowCalendar(true);
+            }}
             style={{
               marginTop: width(2),
               height: width(13),
@@ -96,7 +136,7 @@ const AnalyticsFilter = ({isVisible, onClose}) => {
                 fontFamily: fontFamly.PlusJakartaSansSemiRegular,
                 color: COLORS.textLight,
               }}>
-{t('DD/MM/YYYY')}
+              {formatDateLabel(endDate)}
             </Text>
             <Image
               source={ICONS.calenderIcon}
@@ -114,9 +154,9 @@ const AnalyticsFilter = ({isVisible, onClose}) => {
             left: 20,
             width: '100%',
           }}>
-          <View style={{width: width(43)}}>
+          <View style={{}}>
             <TouchableOpacity
-              onPress={() => onClose()}
+              onPress={handleResetFilters}
               style={{
                 backgroundColor: COLORS.backgroundLight,
                 paddingVertical: 16,
@@ -129,12 +169,10 @@ const AnalyticsFilter = ({isVisible, onClose}) => {
               <GradientText text={t('Reset All')} />
             </TouchableOpacity>
           </View>
-          <View style={{width: width(40)}}>
+          <View style={{}}>
             <GradientButton
               text={t('Apply Filters')}
-              onPress={() => {
-                onClose();
-              }}
+              onPress={handleApplyFilters}
               type="filled"
               textStyle={{
                 fontSize: 12,
@@ -149,7 +187,7 @@ const AnalyticsFilter = ({isVisible, onClose}) => {
         isVisible={showCalendar}
         onClose={() => setShowCalendar(false)}
         onDateSelect={handleDateSelect}
-        selectedStartDate={startDate}
+        selectedStartDate={activeField === 'endDate' ? endDate : startDate}
         selectedEndDate={null}
         mode="single"
         title={t('selectDate') || 'Select Date'}
@@ -165,7 +203,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#8b8b8b66',
   },
   container: {
-    height: '80%',
+    height: '50%',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     backgroundColor: COLORS.white,
@@ -189,6 +227,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.black,
   },
 });
 

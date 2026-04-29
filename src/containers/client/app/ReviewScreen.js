@@ -1,23 +1,20 @@
 import React from 'react';
 import {
   FlatList,
-  Image,
   SafeAreaView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
-import {ICONS} from '../../../assets';
 import ReviewsCard from '../../../components/reviewsCard';
 import {COLORS, fontFamly} from '../../../constants';
 
 const RatingSummary = ({
-  averageRating = 4.8,
-  totalRatings = 40,
-  starCounts = {5: 20, 4: 10, 3: 6, 2: 3, 1: 1},
+  averageRating = 0,
+  totalRatings = 0,
+  starCounts = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0},
 }) => {
   const total = Object.values(starCounts).reduce((a, b) => a + b, 0);
 
@@ -29,8 +26,16 @@ const RatingSummary = ({
 
       <View style={styles.topSection}>
         <View style={styles.leftSection}>
-          <Text style={styles.averageText}>{averageRating}</Text>
-          <Rating count={5} readonly imageSize={16} showRating={false} />
+          <Text style={styles.averageText}>
+            {Number(averageRating || 0).toFixed(1)}
+          </Text>
+          <Rating
+            count={5}
+            readonly
+            imageSize={16}
+            showRating={false}
+            startingValue={Number(averageRating || 0)}
+          />
           <Text style={styles.totalText}>{totalRatings} Ratings</Text>
         </View>
 
@@ -55,40 +60,45 @@ const RatingSummary = ({
   );
 };
 
-const AllReviews = () => {
-  const reviews = [
-    {
-      id: 'r1',
-      user: {
-        name: 'Areeba Khan',
-        avatar: 'https://example.com/images/user1.jpg',
-      },
-      rating: 5,
-      date: '17 July 2025',
-      comment:
-        'Ahsan Bhai organized our wedding flawlessly. Everything was on point!',
+const AllReviews = ({data}) => {
+  const reviewsFromApi = data?.reviews?.reviews || [];
+  const reviews = reviewsFromApi.map((review, index) => ({
+    _id: review?._id || `review-${index}`,
+    rating: review?.rating || 0,
+    review: review?.review || '',
+    createdAt: review?.createdAt || data?.updatedAt || data?.createdAt,
+    userId: {
+      firstName:
+        review?.userId?.firstName ||
+        review?.vendor?.firstName ||
+        review?.client?.firstName ||
+        '',
+      lastName:
+        review?.userId?.lastName ||
+        review?.vendor?.lastName ||
+        review?.client?.lastName ||
+        '',
+      email:
+        review?.userId?.email || review?.vendor?.email || review?.client?.email,
     },
-    {
-      id: 'r2',
-      user: {
-        name: 'Hassan Ali',
-        avatar: 'https://example.com/images/user2.jpg',
-      },
-      rating: 4,
-      date: '10 July 2025',
-      comment: 'Sound and lights were amazing. Highly recommended!',
+  }));
+
+  const starCounts = reviews.reduce(
+    (acc, item) => {
+      const rounded = Math.round(Number(item?.rating || 0));
+      if (rounded >= 1 && rounded <= 5) acc[rounded] += 1;
+      return acc;
     },
-    {
-      id: 'r3',
-      user: {
-        name: 'Maha Yousuf',
-        avatar: 'https://example.com/images/user3.jpg',
-      },
-      rating: 5,
-      date: '5 July 2025',
-      comment: 'Professional and creative team. Loved the decor and stage.',
-    },
-  ];
+    {5: 0, 4: 0, 3: 0, 2: 0, 1: 0},
+  );
+
+  const averageRating =
+    data?.reviews?.averageRating ??
+    (reviews.length
+      ? reviews.reduce((sum, item) => sum + Number(item?.rating || 0), 0) /
+        reviews.length
+      : 0);
+  const totalRatings = data?.reviews?.totalReviews ?? reviews.length;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -96,48 +106,18 @@ const AllReviews = () => {
         ListHeaderComponent={() => (
           <>
             <RatingSummary
-              averageRating={4.8}
-              totalRatings={40}
-              starCounts={{5: 22, 4: 10, 3: 6, 2: 2, 1: 0}}
+              averageRating={averageRating}
+              totalRatings={totalRatings}
+              starCounts={starCounts}
             />
-            <TouchableOpacity
-              style={{
-                paddingHorizontal: width(4),
-                paddingVertical: width(2),
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}>
-              <Text
-                style={{
-                  fontFamily: fontFamly.PlusJakartaSansBold,
-                  fontSize: 16,
-                  color: COLORS.black,
-                }}>
-                Most Recent
-              </Text>
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontFamily: fontFamly.PlusJakartaSansBold,
-                  color: COLORS.textLight,
-                }}>
-                (7)
-              </Text>
-              <Image
-                source={ICONS.arrowDown}
-                resizeMode="contain"
-                style={{
-                  height: 12,
-                  width: 12,
-                  marginTop: width(2),
-                  marginLeft: width(1),
-                }}
-              />
-            </TouchableOpacity>
+            <View style={styles.recentHeadingWrapper}>
+              <Text style={styles.recentHeadingText}>Most Recent</Text>
+              <Text style={styles.recentCountText}>({reviews.length})</Text>
+            </View>
           </>
         )}
         data={reviews}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item?._id}
         renderItem={({item}) => (
           <View style={{paddingHorizontal: width(3)}}>
             <ReviewsCard item={item} />
@@ -225,5 +205,22 @@ const styles = StyleSheet.create({
     color: '#999',
     fontSize: 16,
     fontWeight: '600',
+  },
+  recentHeadingWrapper: {
+    paddingHorizontal: width(4),
+    paddingVertical: width(2),
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  recentHeadingText: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 16,
+    color: COLORS.black,
+  },
+  recentCountText: {
+    fontSize: 16,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textLight,
+    marginLeft: width(1),
   },
 });

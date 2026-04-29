@@ -10,7 +10,7 @@ const HeadingComponent = ({rightArrow, heading, gradientText, onPress}) => {
       style={{
         height: width(10),
         alignItems: 'center',
-        justifyContent: rightArrow ? 'space-between' : 'center',
+        justifyContent: rightArrow ? 'space-between' : null,
         paddingHorizontal: 10,
         flexDirection: 'row',
       }}>

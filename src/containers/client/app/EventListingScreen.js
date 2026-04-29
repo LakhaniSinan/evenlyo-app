@@ -2,12 +2,12 @@ import React, {useEffect, useRef, useState} from 'react';
 import {
   FlatList,
   Image,
+  RefreshControl,
   SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  RefreshControl,
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../../assets';
@@ -15,7 +15,6 @@ import CommonAlert from '../../../components/commanAlert';
 import ListingCard from '../../../components/listingCard';
 import Loader from '../../../components/loder';
 import FilterModal from '../../../components/modals/FilterModal';
-import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {getListingData} from '../../../services/ListingsItem';
@@ -67,73 +66,50 @@ const EventListingScreen = ({navigation}) => {
   };
 
   // ✅ Header component (ScrollView hata kar yahan shift kiya)
-  const ListHeader = () => (
-    <View
-      style={{
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: COLORS.backgroundLight,
-        borderBottomRightRadius: 20,
-        borderBottomLeftRadius: 20,
-      }}>
-      <View
-        style={{
-          width: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingVertical: width(2),
-          paddingHorizontal: width(2),
-        }}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image style={{width: 40, height: 40}} source={ICONS.leftArrowIcon} />
-        </TouchableOpacity>
-
-        <Text
-          style={{
-            fontFamily: fontFamly.PlusJakartaSansBold,
-            color: COLORS.black,
-          }}>
-          All Booking Items
-        </Text>
-
-        <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
-          <Image
-            style={{width: 40, height: 40}}
-            source={ICONS.notificationIcon}
-          />
-        </TouchableOpacity>
-      </View>
-
-      <View
-        style={{
-          width: '100%',
-          paddingLeft: width(4),
-          flexDirection: 'row',
-          alignItems: 'center',
-          marginVertical: width(3),
-          justifyContent: 'space-between',
-        }}>
-        <TextField
-          placeholder={t('searchEvent')}
-          placeholderTextColor="#aaa"
-          bgColor={COLORS.white}
-          startIcon={ICONS.search}
-          inputContainer={{
-            height: 45,
-            width: '80%',
-          }}
-        />
-
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <Image style={{width: 40, height: 40}} source={ICONS.filters} />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
+      <View
+        style={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: COLORS.backgroundLight,
+          borderBottomRightRadius: 20,
+          borderBottomLeftRadius: 20,
+          paddingVertical: width(2),
+        }}>
+        <View
+          style={{
+            width: '100%',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingVertical: width(2),
+            paddingHorizontal: width(2),
+          }}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Image
+              style={{width: 40, height: 40}}
+              source={ICONS.leftArrowIcon}
+            />
+          </TouchableOpacity>
+
+          <Text
+            style={{
+              fontFamily: fontFamly.PlusJakartaSansBold,
+              color: COLORS.black,
+            }}>
+            All Booking Items
+          </Text>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
+            <Image
+              style={{width: 40, height: 40}}
+              source={ICONS.notificationIcon}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
       <FlatList
         data={allListings}
         keyExtractor={(item, index) => index.toString()}
@@ -144,16 +120,12 @@ const EventListingScreen = ({navigation}) => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        // ✅ Header
-        ListHeaderComponent={ListHeader}
       />
-
       <FilterModal
         isVisible={modalVisible}
         onClose={() => setModalVisible(false)}
         nestedFilter={true}
       />
-
       <Loader isLoading={isLoading} />
       <CommonAlert ref={modalRef} />
     </SafeAreaView>

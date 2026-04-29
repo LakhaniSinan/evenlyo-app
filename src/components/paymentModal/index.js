@@ -67,8 +67,6 @@ const PaymentModal = ({
         paymentMethodType: 'Card',
       });
 
-      console.log(paymentIntent, 'paymentIntentpaymentIntentpaymentIntent');
-
       if (error) {
         modalRef.current.show({
           status: error,
@@ -82,7 +80,7 @@ const PaymentModal = ({
           const params = {
             bookingId: selectedData?._id,
             paymentIntent: paymentIntent?.id,
-            amount: paymentIntent?.amount,
+            amount: amountToPay,
           };
           const res = await saveBookingOrder(params);
           if (res.status === 200 || res.status === 201) {
@@ -137,7 +135,7 @@ const PaymentModal = ({
 
           <View style={styles.amountRow}>
             <Text style={styles.amountLabel}>Booking Amount</Text>
-            <Text style={styles.amountValue}>€ {amountToPay?.toFixed(2)}</Text>
+            <Text style={styles.amountValue}>€ {amountToPay}</Text>
           </View>
         </View>
 

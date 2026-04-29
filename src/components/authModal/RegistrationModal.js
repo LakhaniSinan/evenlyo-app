@@ -9,12 +9,11 @@ import {
 import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import {register, registerUser} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
-
-import {ICONS} from '../../assets';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
 import GradientText from '../gradiantText';
@@ -24,7 +23,7 @@ import ContactNumberInput from '../phoneInput';
 import TextField from '../textInput';
 
 const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const modalRef = useRef(null);
   const [showOtp, setShowOtp] = useState(false);
   const phoneInput = useRef(null);
@@ -64,19 +63,27 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
       !address ||
       !password ||
       !confirmPassword
-    )
-      {return 'Please fill out all required fields.';}
-    if (!emailRegex.test(email)) {return 'Please enter a valid email address.';}
-    if (password.length < 8)
-      {return 'Password must be at least 8 characters long.';}
-    if (password !== confirmPassword) {return 'Passwords do not match.';}
+    ) {
+      return 'Please fill out all required fields.';
+    }
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address.';
+    }
+    if (password.length < 8) {
+      return 'Password must be at least 8 characters long.';
+    }
+    if (password !== confirmPassword) {
+      return 'Passwords do not match.';
+    }
     return null;
   };
 
   // ✅ Register User
   const handleRegister = async () => {
     const error = validateFields();
-    if (error) {return modalRef.current.show({status: 'error', message: error});}
+    if (error) {
+      return modalRef.current.show({status: 'error', message: error});
+    }
 
     try {
       setIsLoading(true);
@@ -96,7 +103,11 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
       if (status === 200 || status === 201) {
         modalRef.current.show({
           status: 'ok',
-          message: data?.message || 'Registration successful!',
+          message: data?.message?.en
+            ? currentLanguage == 'en'
+              ? data?.message?.en
+              : data?.message?.nl
+            : data?.message,
           handlePressOk: () => {
             modalRef.current.hide();
             setShowOtp(true);
@@ -105,7 +116,11 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: data?.message || 'Something went wrong.',
+          message: data?.message?.en
+            ? currentLanguage == 'en'
+              ? data?.message?.en
+              : data?.message?.nl
+            : data?.message,
         });
       }
     } catch (err) {
@@ -127,12 +142,20 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
       if (response?.status == 200 || response?.status == 201) {
         modalRef.current.show({
           status: 'ok',
-          message: response.data?.message,
+          message: response?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl
+            : response?.data?.message,
         });
       } else {
         modalRef.current.show({
           status: 'error',
-          message: response?.data?.message,
+          message: response?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl
+            : response?.data?.message,
         });
       }
     } catch (error) {
@@ -156,14 +179,17 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
       };
       console.log(payload, 'payloadpayloadpayload');
 
-      return;
       setIsLoading(true);
       const response = await register(payload);
       setIsLoading(false);
       if (response?.status == 200 || response?.status == 201) {
         modalRef.current.show({
           status: 'ok',
-          message: response.data.message,
+          message: response?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl
+            : response?.data?.message,
           handlePressOk: () => {
             modalRef.current.hide();
             onClose();
@@ -173,7 +199,11 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: response?.data?.message,
+          message: response?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl
+            : response?.data?.message,
         });
       }
     } catch (error) {

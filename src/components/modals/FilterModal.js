@@ -63,10 +63,6 @@ const FilterModal = ({
   const [subCatList, setSubCatList] = useState([]);
   const [subCatLoading, setSubCatLoading] = useState(false);
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
-  console.log(
-    selectedSubCategory,
-    'selectedSubCategoryselectedSubCategoryselectedSubCategory',
-  );
 
   const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [dates, setDates] = useState(INITIAL_DATES);

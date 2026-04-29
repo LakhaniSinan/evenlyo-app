@@ -39,10 +39,6 @@ const Home = ({navigation, route}) => {
   const [homedata, setHomeData] = useState(null);
   const [selected, setSelected] = useState(null);
   const [subCategoriesSelected, setSubCategoriesSelected] = useState(null);
-  console.log(
-    homedata,
-    'subCategoriesSelectedsubCategoriesSelectedsubCategoriesSelected',
-  );
 
   const [isModalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -376,22 +372,22 @@ const Home = ({navigation, route}) => {
           </View>
         );
 
-      case 'banner':
-        return (
-          <View
-            style={{
-              height: width(55),
-              borderRadius: 20,
-              backgroundColor: 'red',
-              margin: width(3),
-            }}>
-            <Image
-              resizeMode="cover"
-              source={IMAGES.backgroundImage}
-              style={{width: '100%', height: '100%', borderRadius: 20}}
-            />
-          </View>
-        );
+      // case 'banner':
+      //   return (
+      //     <View
+      //       style={{
+      //         height: width(55),
+      //         borderRadius: 20,
+      //         backgroundColor: 'red',
+      //         margin: width(3),
+      //       }}>
+      //       <Image
+      //         resizeMode="cover"
+      //         source={IMAGES.backgroundImage}
+      //         style={{width: '100%', height: '100%', borderRadius: 20}}
+      //       />
+      //     </View>
+      //   );
 
       case 'categories':
         return (
@@ -477,7 +473,7 @@ const Home = ({navigation, route}) => {
           <HeadingComponent
             heading={t('relevant')}
             gradientText={t('vendors')}
-            rightArrow
+            // rightArrow
           />
         );
 
