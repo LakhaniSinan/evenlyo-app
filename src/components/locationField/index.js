@@ -24,7 +24,7 @@ const GooglePlacesInput = ({
   setSelectedLocation,
   showLeftIcon,
   showRightIcon,
-  onEndIconPress,
+  onEndIconPress = () => {},
   callApi,
   lable,
   bgcolor,
@@ -205,7 +205,7 @@ const GooglePlacesInput = ({
                 setQuery('');
                 setResults([]);
                 setSelectedLocation({...selectedLocation, userAddress: ''});
-                onEndIconPress();
+                onEndIconPress && onEndIconPress();
               }}>
               <AntDesign size={20} name="closecircleo" color={COLORS.black} />
             </TouchableOpacity>

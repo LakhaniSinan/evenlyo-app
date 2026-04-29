@@ -9,7 +9,7 @@ import {useTranslation} from '../../hooks';
 const ListingCard = ({item, navigation}) => {
   const {currentLanguage} = useTranslation();
 
-  console.log(item, 'itemitemitemitemitem123132');
+  console.log(item, 'itemitemitemitemitem');
 
   const title =
     currentLanguage == 'en' ? item?.title?.en : item?.title?.nl || 'Untitled';
@@ -91,6 +91,7 @@ const ListingCard = ({item, navigation}) => {
 
         <View>
           <Text
+            numberOfLines={1}
             style={{
               fontSize: 14,
               color: COLORS.textDark,

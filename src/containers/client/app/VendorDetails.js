@@ -53,24 +53,54 @@ function VendorDetails({navigation, route}) {
   const formatParticipants = data => {
     const participants = {};
     data?.forEach(({role, refPath, userId}) => {
-      if (refPath == 'User') {
-        participants[role === 'user' ? 'user' : 'vendor'] = {
-          userId: userId?._id,
-          name: `${userId?.firstName} ${userId?.lastName}`,
-          photo: userId?.photo || null,
-          email: userId?.email,
-          role: 'user',
+      const normalizedRole = String(role || '').toLowerCase();
+      const normalizedRefPath = String(refPath || '').toLowerCase();
+      const isVendorParticipant =
+        normalizedRole === 'vendor' || normalizedRefPath === 'vendor';
+
+      if (isVendorParticipant) {
+        participants.vendor = {
+          userId: userId?._id || userId?.id || item?._id,
+          name: userId?.businessName || userId?.fullName || 'Vendor',
+          photo: userId?.businessLogo || userId?.photo || null,
+          email: userId?.businessEmail || userId?.email || '',
+          role: 'vendor',
         };
       } else {
-        participants.vendor = {
-          userId: userId?._id,
-          name: userId?.businessName,
-          photo: userId?.businessLogo || null,
-          email: userId?.businessEmail,
-          role: 'vendor',
+        participants.user = {
+          userId: userId?._id || userId?.id || user?.id,
+          name:
+            `${userId?.firstName || ''} ${userId?.lastName || ''}`.trim() ||
+            userId?.fullName ||
+            user?.fullName ||
+            'User',
+          photo: userId?.photo || userId?.profileImage || null,
+          email: userId?.email || user?.email || '',
+          role: 'user',
         };
       }
     });
+
+    if (!participants.vendor) {
+      participants.vendor = {
+        userId: item?._id,
+        name:
+          item?.businessName || item?.vendorName || item?.fullName || 'Vendor',
+        photo: item?.businessLogo || item?.photo || null,
+        email: item?.businessEmail || item?.email || '',
+        role: 'vendor',
+      };
+    }
+
+    if (!participants.user) {
+      participants.user = {
+        userId: user?.id,
+        name: user?.fullName || 'User',
+        photo: user?.photo || null,
+        email: user?.email || '',
+        role: 'user',
+      };
+    }
 
     return participants;
   };

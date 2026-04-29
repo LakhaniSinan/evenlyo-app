@@ -58,6 +58,8 @@ const getInitialMarkedDates = availableDays => {
 };
 
 const DetailsContent = ({data, selectedTab, navigation}) => {
+  console.log(data, 'datadatadatadatadatadatadatadata');
+
   const {cartData} = useSelector(state => state.CartSlice);
   const {user} = useSelector(state => state.LoginSlice);
   const dispatch = useDispatch(null);
@@ -346,12 +348,17 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
   const formatParticipants = participantsData => {
     const participants = {};
     participantsData?.forEach(({role, refPath, userId}) => {
-      if (refPath === 'Vendor') {
-        participants[role === 'vendor' ? 'vendor' : 'user'] = {
-          userId: userId?._id,
-          name: userId?.businessName,
-          photo: userId?.businessLogo || null,
-          email: userId?.businessEmail,
+      const normalizedRole = String(role || '').toLowerCase();
+      const normalizedRefPath = String(refPath || '').toLowerCase();
+      const isVendorParticipant =
+        normalizedRole === 'vendor' || normalizedRefPath === 'vendor';
+
+      if (isVendorParticipant) {
+        participants.vendor = {
+          userId: userId?._id || userId?.id || data?.vendor?._id,
+          name: userId?.businessName || userId?.fullName || 'Vendor',
+          photo: userId?.businessLogo || userId?.photo || null,
+          email: userId?.businessEmail || userId?.email || '',
           role: 'vendor',
         };
       } else {
@@ -368,6 +375,27 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         };
       }
     });
+
+    if (!participants.vendor) {
+      participants.vendor = {
+        userId: data?.vendor?._id,
+        name: data?.vendor?.businessName || data?.vendor?.fullName || 'Vendor',
+        photo: data?.vendor?.businessLogo || data?.vendor?.photo || null,
+        email: data?.vendor?.businessEmail || data?.vendor?.email || '',
+        role: 'vendor',
+      };
+    }
+
+    if (!participants.user) {
+      participants.user = {
+        userId: user?.id,
+        name: user?.fullName || 'User',
+        photo: user?.photo || null,
+        email: user?.email || '',
+        role: 'user',
+      };
+    }
+
     return participants;
   };
 
@@ -616,7 +644,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
               fontSize: 15,
               fontFamily: fontFamly.PlusJakartaSansSemiBold,
             }}>
-            {data?.vendor?.businessName || data?.vendor?.fullName}
+            {data?.vendor?.firstName}
           </Text>
           <Text
             style={{

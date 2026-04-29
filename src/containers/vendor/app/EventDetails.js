@@ -48,12 +48,16 @@ function EventDetailsScreen({navigation, route}) {
     setIsLoading(true);
     try {
       const response = await getBookingDetails(item?._id);
+
       if (response.status === 200 || response.status === 201) {
         setListingDetails(response.data.data);
       } else {
         modalRef.current?.show({
           status: 'error',
-          message: response?.data?.message,
+          message:
+            currentLanguage === 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl,
         });
       }
     } catch (error) {
@@ -74,7 +78,10 @@ function EventDetailsScreen({navigation, route}) {
       if (response?.status === 200 || response?.status === 201) {
         modalRef.current?.show({
           status: 'ok',
-          message: response?.data?.message,
+          message:
+            currentLanguage === 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl,
           handlePressOk: async () => {
             modalRef.current?.hide();
             await handleGetListingDetails();
@@ -83,7 +90,10 @@ function EventDetailsScreen({navigation, route}) {
       } else {
         modalRef.current?.show({
           status: 'error',
-          message: response?.data?.message,
+          message:
+            currentLanguage === 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl,
         });
       }
     } catch (error) {
@@ -107,7 +117,9 @@ function EventDetailsScreen({navigation, route}) {
   }, []);
 
   const scheduleData = useMemo(() => {
-    if (!listingDetails) {return [];}
+    if (!listingDetails) {
+      return [];
+    }
     const slot = listingDetails?.availability?.availableTimeSlots?.[0] || {};
     return DAYS.map(day => {
       const isAvailable = listingDetails?.availability?.availableDays?.includes(

@@ -158,7 +158,14 @@ const CartCard = ({
           {renderDate('End Date', item?.details?.endDate)}
 
           {type === 'requested' && (
-            <Text style={styles.metaText}>Time {item?.details?.startTime}</Text>
+            <>
+              <Text style={styles.metaText}>
+                Start Time {item?.details?.startTime}
+              </Text>
+              <Text style={styles.metaText}>
+                End Time {item?.details?.endTime}
+              </Text>
+            </>
           )}
         </View>
       </View>
@@ -187,7 +194,7 @@ const CartCard = ({
                   </Text>
                   <Text style={[styles.metaText, {color: row.color}]}>
                     {!isNaN(row.value)
-                      ? `$${Number(row.value).toFixed(2)}`
+                      ? `€${Number(row.value).toFixed(2)}`
                       : row.value}
                   </Text>
                 </View>
@@ -202,14 +209,14 @@ const CartCard = ({
                 {backgroundColor: '#FEE2E2', borderColor: COLORS.red},
               ]}>
               <Text style={[styles.warningText, {color: COLORS.red}]}>
-                Full payment of ${`${item?.pricingBreakdown?.total}`} required
+                Full payment of €{`${item?.pricingBreakdown?.total}`} required
               </Text>
             </View>
           ) : (
             <View style={styles.warningBox}>
               <Text style={styles.warningText}>
                 Remaining balance of{' '}
-                {item?.AmountLeft ? `$${item?.AmountLeft.toFixed(2)}` : ''}{' '}
+                {item?.AmountLeft ? `€${item?.AmountLeft.toFixed(2)}` : ''}{' '}
                 should be cleared by (one day before event).
               </Text>
             </View>

@@ -39,6 +39,7 @@ export const endPoints = {
 
   //Listings
   listings: '/listings',
+  getAllListingsFullData: '/getAllListingsFull',
   vendorListings: '/listings/vendor',
   createBooking: '/booking/request',
   populorItems: '/listings/popular?limit',

@@ -5,23 +5,21 @@ import {
   FlatList,
   Image,
   SafeAreaView,
-  SectionList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
-import GradientText from '../../../components/gradiantText';
-import AddNewItemModal from '../../../components/modals/AddNewItem';
 import BookingFilterPopUp from '../../../components/modals/BookingFilterPopup';
 import NewRequestModal from '../../../components/modals/RequestModal';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {removeItem} from '../../../redux/slice/offers';
 import {
   fetchSubCategoriesByCategoryIds,
   getVendorCategories,
@@ -29,13 +27,14 @@ import {
 import {filterListings} from '../../../services/ListingsItem';
 
 const CreateCustomOffer = ({route}) => {
-  const data = route.params;
+  const data = route?.params || {};
   console.log(data, 'vdatadatadatadatadatadatadata');
 
   const {t, currentLanguage} = useTranslation();
   const navigation = useNavigation();
-  const [showRequestModal, setShowRequestModal] = useState(false);
+  const dispatch = useDispatch();
   const [selectedListing, setSelectedListing] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
   const [vendorsCategory, setVendorsCategory] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +42,8 @@ const CreateCustomOffer = ({route}) => {
   const [filteredListings, setFilteredListings] = useState([]);
   const [settingsData, setSettingsData] = useState([]);
 
-  console.log(settingsData, 'settingsDatasettingsDatasettingsData');
+  const offerItems = useSelector(state => state.OffersSlice.items);
+  console.log(offerItems, 'offerItemsofferItemsofferItems');
 
   const [showAddNew, setShowAddNew] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -116,7 +116,33 @@ const CreateCustomOffer = ({route}) => {
 
   const handleOpenForm = item => {
     setSelectedListing(item);
+    setEditingItem(null);
     setShowAddNew(true);
+  };
+
+  const handleAddMoreItems = () => {
+    const fallbackItem =
+      selectedListing ||
+      filteredListings?.[0] ||
+      offerItems?.[offerItems.length - 1] ||
+      null;
+
+    if (fallbackItem) {
+      handleOpenForm(fallbackItem);
+      return;
+    }
+
+    setModalVisible(true);
+  };
+
+  const handleEditOfferItem = item => {
+    setSelectedListing(item);
+    setEditingItem(item);
+    setShowAddNew(true);
+  };
+
+  const handleDeleteOfferItem = item => {
+    dispatch(removeItem(item?.uniqueId || item?.id || item?._id));
   };
 
   const renderItem = ({item}) => {
@@ -148,6 +174,71 @@ const CreateCustomOffer = ({route}) => {
       </TouchableOpacity>
     );
   };
+  const selectedOfferItem = ({item}) => {
+    const title = currentLanguage == 'en' ? item?.title?.en : item?.title?.nl;
+    const subtotalWithSecurity =
+      item?.pricingBreakdown?.subtotal !== undefined
+        ? Number(item?.pricingBreakdown?.subtotal || 0) +
+          Number(item?.securityFee || 0)
+        : undefined;
+    const displayPrice =
+      item?.offerPrice ??
+      item?.pricingBreakdown?.offerPrice ??
+      subtotalWithSecurity ??
+      item?.discountedPrice ??
+      item?.pricing?.amount;
+    const unit = item?.unit || item?.pricing?.type;
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.imageWrapper}>
+          <Image
+            source={
+              item?.images ? {uri: item.images[0]} : IMAGES.backgroundImage2
+            }
+            style={styles.image}
+            resizeMode="cover"
+          />
+        </View>
+        <View style={styles.selectedTextWrapper}>
+          <Text style={styles.titleText} numberOfLines={2}>
+            {title}
+          </Text>
+          <Text style={styles.typeText}>Rental</Text>
+        </View>
+        <View style={styles.selectedRightWrap}>
+          <View style={styles.selectedPriceWrapper}>
+            <Text style={styles.priceText}>
+              €{Number(displayPrice || 0).toFixed(2)}
+            </Text>
+            {!!unit && (
+              <Text style={styles.dayText}>/{String(unit).toUpperCase()}</Text>
+            )}
+          </View>
+          <View style={styles.offerActionWrap}>
+            <TouchableOpacity
+              onPress={() => handleEditOfferItem(item)}
+              style={styles.offerActionBtn}>
+              <Image
+                source={ICONS.editGridientIcon}
+                style={styles.offerActionIcon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => handleDeleteOfferItem(item)}
+              style={styles.offerActionBtn}>
+              <Image
+                source={ICONS.deleteIcon}
+                style={styles.offerActionIcon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -157,50 +248,82 @@ const CreateCustomOffer = ({route}) => {
         onLeftIconPress={() => navigation.goBack()}
       />
 
-      <View style={styles.addBtnWrapper}>
-        <GradientButton
-          text={t('Add New Item')}
-          onPress={() => setModalVisible(true)}
-          textStyle={styles.addBtnText}
-          styleProps={styles.addBtn}
-        />
-      </View>
-
-      <FlatList
-        ListHeaderComponent={
-          <Text style={styles.sectionHeader}>Available Items</Text>
-        }
-        data={filteredListings}
-        renderItem={renderItem}
-      />
-
-      <View style={styles.buttonRow}>
-        <View style={{width: width(46)}}>
-          <TouchableOpacity
-            onPress={() => setShowRequestModal(true)}
-            style={styles.cancelButton}
-            activeOpacity={0.7}>
-            <GradientText text={'Offer Preview'} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={{width: width(46)}}>
+      {!offerItems?.length > 0 ? (
+        <View style={styles.addBtnWrapper}>
           <GradientButton
-            text={t('Send Offer')}
-            onPress={() =>
-              navigation.navigate('ChatDetails', {offreShow: true})
-            }
-            type="filled"
-            textStyle={styles.applyText}
+            text={t('Add New Item')}
+            onPress={() => setModalVisible(true)}
+            textStyle={styles.addBtnText}
+            styleProps={styles.addBtn}
           />
         </View>
-      </View>
+      ) : null}
+
+      {offerItems?.length > 0 ? (
+        <FlatList
+          ListHeaderComponent={
+            <Text style={styles.sectionHeader}>
+              Selected Items ({offerItems?.length})
+            </Text>
+          }
+          data={offerItems}
+          renderItem={selectedOfferItem}
+          ListFooterComponent={
+            <>
+              {offerItems?.length > 0 && (
+                <View style={{width: width(46), marginLeft: width(3)}}>
+                  <GradientButton
+                    text={t('Add More Items')}
+                    type="filled"
+                    onPress={handleAddMoreItems}
+                    textStyle={styles.applyText}
+                    styleProps={{width: width(46)}}
+                  />
+                </View>
+              )}
+            </>
+          }
+        />
+      ) : (
+        <FlatList
+          ListHeaderComponent={
+            <Text style={styles.sectionHeader}>Available Items</Text>
+          }
+          data={filteredListings}
+          renderItem={renderItem}
+        />
+      )}
+
+      {offerItems?.length > 0 && (
+        <View
+          style={{alignSelf: 'center', marginVertical: width(4), width: '90%'}}>
+          <GradientButton
+            text={t('Preview Offer')}
+            onPress={() =>
+              navigation.navigate('OfferPreview', {
+                chatParams: data?.chatParams || data,
+              })
+            }
+            type="filled"
+            textStyle={{
+              fontSize: 12,
+              fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+              color: COLORS.white,
+            }}
+          />
+        </View>
+      )}
+
       <NewRequestModal
         type={'vendor'}
         isVisible={showAddNew}
-        onClose={() => setShowAddNew(false)}
+        onClose={() => {
+          setShowAddNew(false);
+          setEditingItem(null);
+        }}
         navigation={navigation}
         selectedListing={selectedListing}
+        editingItem={editingItem}
         settingsData={settingsData}
       />
       {/* <AddNewItemModal
@@ -267,7 +390,7 @@ const styles = StyleSheet.create({
   },
   card: {
     flexDirection: 'row',
-    alignItems: 'center',
+    // alignItems: 'center',
     borderRadius: 12,
     backgroundColor: COLORS.white,
     marginVertical: width(2),
@@ -276,6 +399,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    padding: width(2),
   },
   imageWrapper: {
     height: width(18),
@@ -291,9 +415,14 @@ const styles = StyleSheet.create({
     marginLeft: width(3),
     width: width(55),
   },
+  selectedTextWrapper: {
+    marginLeft: width(3),
+    flex: 1,
+    paddingRight: width(2),
+  },
   typeText: {
-    fontSize: 9,
-    color: COLORS.green,
+    fontSize: 12,
+    color: COLORS.textLight,
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
   titleText: {
@@ -305,6 +434,14 @@ const styles = StyleSheet.create({
   priceWrapper: {
     alignItems: 'flex-end',
   },
+  selectedRightWrap: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  selectedPriceWrapper: {
+    alignItems: 'flex-end',
+    marginBottom: 4,
+  },
   priceText: {
     fontSize: 14,
     fontFamily: fontFamly.PlusJakartaSansBold,
@@ -314,5 +451,18 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
     color: COLORS.textDark,
+  },
+  offerActionWrap: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  offerActionBtn: {
+    padding: 2,
+    marginLeft: width(1.2),
+  },
+  offerActionIcon: {
+    width: width(5),
+    height: width(5),
   },
 });

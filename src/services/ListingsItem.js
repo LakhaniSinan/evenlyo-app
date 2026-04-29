@@ -20,6 +20,12 @@ export const getHomeData = params => {
 export const getAllListingData = () => {
   return Api(endPoints.listings, null, requestType.GET);
 };
+export const getListingData = () => {
+  return Api(`${endPoints.listings}/all`, null, requestType.GET);
+};
+export const getAllListingFullData = () => {
+  return Api(endPoints.getAllListingsFullData, null, requestType.GET);
+};
 
 export const getVendorListingsById = vendorId => {
   return Api(`${endPoints.vendorListings}/${vendorId}`, null, requestType.GET);

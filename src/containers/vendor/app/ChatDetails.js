@@ -12,6 +12,7 @@ import {
   FlatList,
   Image,
   KeyboardAvoidingView,
+  Modal,
   PermissionsAndroid,
   Platform,
   Share,
@@ -81,10 +82,13 @@ const ChatDetail = ({navigation, route}) => {
   const [refreshing, setRefreshing] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [offerDetailsVisible, setOfferDetailsVisible] = useState(false);
+  const [selectedOfferDetails, setSelectedOfferDetails] = useState(null);
 
   // refs
   const flatListRef = useRef(null);
   const allMessagesRef = useRef([]);
+  const lastInjectedOfferMessageIdRef = useRef(null);
   const isMountedRef = useRef(true);
   const lastConversationIdRef = useRef(data?.conversationId);
 
@@ -94,6 +98,34 @@ const ChatDetail = ({navigation, route}) => {
   }, [allMessages]);
 
   useEffect(() => {
+    const sentOfferMessage = route?.params?.sentOfferMessage;
+    if (!sentOfferMessage?._id) {
+      return;
+    }
+
+    if (lastInjectedOfferMessageIdRef.current === sentOfferMessage._id) {
+      return;
+    }
+
+    const alreadyExists = allMessagesRef.current.some(
+      message =>
+        message?._id === sentOfferMessage._id ||
+        message?.offerObject?.uniqueId === sentOfferMessage?.offerObject?.uniqueId,
+    );
+
+    if (!alreadyExists) {
+      setAllMessages(prev => {
+        const next = [...prev, sentOfferMessage];
+        allMessagesRef.current = next;
+        return next;
+      });
+      setTimeout(scrollToBottom, 100);
+    }
+
+    lastInjectedOfferMessageIdRef.current = sentOfferMessage._id;
+  }, [route?.params?.sentOfferMessage, scrollToBottom]);
+
+  useEffect(() => {
     return () => {
       isMountedRef.current = false;
     };
@@ -101,6 +133,14 @@ const ChatDetail = ({navigation, route}) => {
 
   const handleSelectEmoji = emoji => {
     setMessageText(prev => prev + emoji);
+  };
+
+  const handleOpenOfferDetails = offerObject => {
+    if (!offerObject) {
+      return;
+    }
+    setSelectedOfferDetails(offerObject);
+    setOfferDetailsVisible(true);
   };
 
   /** ---------- helpers ---------- **/
@@ -590,6 +630,7 @@ const ChatDetail = ({navigation, route}) => {
   const renderMessage = useCallback(
     ({item}) => {
       const isOwn = item?.senderId === user?.vendorId;
+      const isOfferMessage = Boolean(item?.isOffer || item?.offerObject);
 
       const imageUri = !isOwn
         ? data?.participants?.user?.photo ||
@@ -604,6 +645,25 @@ const ChatDetail = ({navigation, route}) => {
       const isPDF =
         item?.attachment?.type === 'file' ||
         item?.attachment?.url?.endsWith('.pdf');
+      const offerObject = item?.offerObject || {};
+      const firstOfferItem = offerObject?.items?.[0] || {};
+      const offerTitle =
+        firstOfferItem?.title?.en ||
+        firstOfferItem?.title?.nl ||
+        firstOfferItem?.title ||
+        'Custom Offer';
+      const offerDisplayPrice =
+        firstOfferItem?.offerPrice ||
+        firstOfferItem?.pricingBreakdown?.offerPrice ||
+        firstOfferItem?.pricingBreakdown?.subtotal ||
+        firstOfferItem?.discountedPrice ||
+        0;
+      const offerFinalTotal = offerObject?.finalTotal || offerDisplayPrice || 0;
+      const offerStatus = offerObject?.status || 'PENDING';
+      const offerImage =
+        firstOfferItem?.images?.[0] ||
+        firstOfferItem?.image ||
+        firstOfferItem?.featuredImage;
 
       // ✅ Replaced with RNFS-based download from URL
       const handleDownloadPDF = async (url, name = 'Document') => {
@@ -675,84 +735,215 @@ const ChatDetail = ({navigation, route}) => {
             )}
 
             {isOwn ? (
-              <LinearGradient
-                colors={['#FF295D', '#E31B95', '#C817AE']}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 1}}
-                style={[
-                  styles.myMessageBubble,
-                  {maxWidth: width(80), alignSelf: 'flex-end'},
-                ]}>
-                {isSending ? (
-                  <Text style={styles.sendingText}>Sending...</Text>
-                ) : isImage ? (
-                  <TouchableOpacity
-                    activeOpacity={0.9}
-                    onPress={() => {
-                      setPreviewImage(item?.attachment?.url);
-                      setPreviewVisible(true);
-                    }}>
+              isOfferMessage ? (
+                <View style={[styles.offerMessageCard]}>
+                  <View style={styles.offerMessageHeader}>
+                    <View style={styles.offerMessageIconWrap}>
+                      <Image
+                        source={ICONS.giftIcon || ICONS.cartIcon}
+                        style={styles.offerMessageIcon}
+                        resizeMode="contain"
+                      />
+                    </View>
+                    <Text style={styles.offerMessageHeaderText}>
+                      Custom Offer
+                    </Text>
+                  </View>
+
+                  <View style={styles.offerMessageItemRow}>
                     <Image
-                      source={{uri: item?.attachment?.url}}
-                      resizeMode="contain"
-                      style={{
-                        height: 300,
-                        width: '100%',
-                        borderRadius: width(5),
-                      }}
+                      source={offerImage ? {uri: offerImage} : ICONS.event2}
+                      style={styles.offerMessageItemImage}
+                      resizeMode="cover"
                     />
-                    {item?.message ? (
-                      <Text style={[styles.messageText, styles.myMessageText]}>
-                        {item?.message}
-                      </Text>
-                    ) : null}
-                  </TouchableOpacity>
-                ) : isPDF ? (
-                  <View
-                    style={{
-                      backgroundColor: 'white',
-                      borderRadius: width(2),
-                      padding: width(3),
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}>
-                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                      <Icon name="file-pdf-box" size={32} color="#FF0000" />
+                    <View style={{flex: 1, marginLeft: width(2)}}>
                       <Text
-                        style={{
-                          marginLeft: 8,
-                          fontWeight: 'bold',
-                          color: '#000',
-                          maxWidth: width(45),
-                        }}
-                        numberOfLines={1}>
-                        {item?.attachment?.name || 'PDF Document'}
+                        style={styles.offerMessageItemTitle}
+                        numberOfLines={2}>
+                        {offerTitle}
+                      </Text>
+                      <Text style={styles.offerMessageItemPrice}>
+                        €{Number(offerDisplayPrice || 0).toFixed(0)}
+                      </Text>
+                      <Text style={styles.offerMessageItemStatus}>
+                        Status: {offerStatus}
                       </Text>
                     </View>
-                    <TouchableOpacity
-                      onPress={() =>
-                        handleDownloadPDF(
-                          item?.attachment?.url,
-                          item?.attachment?.name,
-                        )
-                      }>
-                      <Icon name="download" size={28} color="#E31B95" />
-                    </TouchableOpacity>
                   </View>
-                ) : (
-                  <Text style={[styles.messageText, styles.myMessageText]}>
-                    {item?.message}
+
+                  <View style={styles.offerMessageDivider} />
+
+                  <View style={styles.offerMessageTotalRow}>
+                    <Text style={styles.offerMessageTotalLabel}>Total</Text>
+                    <Text style={styles.offerMessageTotalAmount}>
+                      €{Number(offerFinalTotal || 0).toFixed(0)}
+                    </Text>
+                  </View>
+                  <Text style={styles.offerMessageSubText}>
+                    Valid for 24 hours
                   </Text>
-                )}
-              </LinearGradient>
+                  <Text style={styles.offerMessageSubText}>
+                    Status: {offerStatus}
+                  </Text>
+
+                  <LinearGradient
+                    colors={['#FF295D', '#E31B95', '#7A3FF2']}
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 1}}
+                    style={styles.offerViewBtnGradient}>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      style={styles.offerViewBtn}
+                        onPress={() => handleOpenOfferDetails(offerObject)}>
+                      <Text style={styles.offerViewBtnText}>View Offer</Text>
+                      <Text style={styles.offerViewBtnArrow}>{'->'}</Text>
+                    </TouchableOpacity>
+                  </LinearGradient>
+                </View>
+              ) : (
+                <LinearGradient
+                  colors={['#FF295D', '#E31B95', '#C817AE']}
+                  start={{x: 0, y: 0}}
+                  end={{x: 1, y: 1}}
+                  style={[
+                    styles.myMessageBubble,
+                    {maxWidth: width(80), alignSelf: 'flex-end'},
+                  ]}>
+                  {isSending ? (
+                    <Text style={styles.sendingText}>Sending...</Text>
+                  ) : isImage ? (
+                    <TouchableOpacity
+                      activeOpacity={0.9}
+                      onPress={() => {
+                        setPreviewImage(item?.attachment?.url);
+                        setPreviewVisible(true);
+                      }}>
+                      <Image
+                        source={{uri: item?.attachment?.url}}
+                        resizeMode="contain"
+                        style={{
+                          height: 300,
+                          width: '100%',
+                          borderRadius: width(5),
+                        }}
+                      />
+                      {item?.message ? (
+                        <Text
+                          style={[styles.messageText, styles.myMessageText]}>
+                          {item?.message}
+                        </Text>
+                      ) : null}
+                    </TouchableOpacity>
+                  ) : isPDF ? (
+                    <View
+                      style={{
+                        backgroundColor: 'white',
+                        borderRadius: width(2),
+                        padding: width(3),
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}>
+                      <View
+                        style={{flexDirection: 'row', alignItems: 'center'}}>
+                        <Icon name="file-pdf-box" size={32} color="#FF0000" />
+                        <Text
+                          style={{
+                            marginLeft: 8,
+                            fontWeight: 'bold',
+                            color: '#000',
+                            maxWidth: width(45),
+                          }}
+                          numberOfLines={1}>
+                          {item?.attachment?.name || 'PDF Document'}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() =>
+                          handleDownloadPDF(
+                            item?.attachment?.url,
+                            item?.attachment?.name,
+                          )
+                        }>
+                        <Icon name="download" size={28} color="#E31B95" />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <Text style={[styles.messageText, styles.myMessageText]}>
+                      {item?.message}
+                    </Text>
+                  )}
+                </LinearGradient>
+              )
             ) : (
               <View
-                style={[
-                  styles.otherMessageBubble,
-                  {maxWidth: width(80), alignSelf: 'flex-start'},
-                ]}>
-                {isImage ? (
+                style={[styles.otherMessageBubble, {alignSelf: 'flex-start'}]}>
+                {isOfferMessage ? (
+                  <View style={[styles.offerMessageCard]}>
+                    <View style={styles.offerMessageHeader}>
+                      <View style={styles.offerMessageIconWrap}>
+                        <Image
+                          source={ICONS.giftIcon || ICONS.cartIcon}
+                          style={styles.offerMessageIcon}
+                          resizeMode="contain"
+                        />
+                      </View>
+                      <Text style={styles.offerMessageHeaderText}>
+                        Custom Offer
+                      </Text>
+                    </View>
+
+                    <View style={styles.offerMessageItemRow}>
+                      <Image
+                        source={offerImage ? {uri: offerImage} : ICONS.event2}
+                        style={styles.offerMessageItemImage}
+                        resizeMode="cover"
+                      />
+                      <View style={{flex: 1, marginLeft: width(2)}}>
+                        <Text
+                          style={styles.offerMessageItemTitle}
+                          numberOfLines={2}>
+                          {offerTitle}
+                        </Text>
+                        <Text style={styles.offerMessageItemPrice}>
+                          €{Number(offerDisplayPrice || 0).toFixed(0)}
+                        </Text>
+                        <Text style={styles.offerMessageItemStatus}>
+                          Status: {offerStatus}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.offerMessageDivider} />
+
+                    <View style={styles.offerMessageTotalRow}>
+                      <Text style={styles.offerMessageTotalLabel}>Total</Text>
+                      <Text style={styles.offerMessageTotalAmount}>
+                        €{Number(offerFinalTotal || 0).toFixed(0)}
+                      </Text>
+                    </View>
+                    <Text style={styles.offerMessageSubText}>
+                      Valid for 24 hours
+                    </Text>
+                    <Text style={styles.offerMessageSubText}>
+                      Status: {offerStatus}
+                    </Text>
+
+                    <LinearGradient
+                      colors={['#FF295D', '#E31B95', '#7A3FF2']}
+                      start={{x: 0, y: 0}}
+                      end={{x: 1, y: 1}}
+                      style={styles.offerViewBtnGradient}>
+                      <TouchableOpacity
+                        activeOpacity={0.85}
+                        style={styles.offerViewBtn}
+                        onPress={() => handleOpenOfferDetails(offerObject)}>
+                        <Text style={styles.offerViewBtnText}>View Offer</Text>
+                        <Text style={styles.offerViewBtnArrow}>{'->'}</Text>
+                      </TouchableOpacity>
+                    </LinearGradient>
+                  </View>
+                ) : isImage ? (
                   <TouchableOpacity
                     activeOpacity={0.9}
                     onPress={() => {
@@ -829,7 +1020,7 @@ const ChatDetail = ({navigation, route}) => {
         </>
       );
     },
-    [user?.vendorId, data?.participants, getMessageTime],
+    [user?.vendorId, data?.participants, getMessageTime, navigation],
   );
 
   // keyExtractor (safety if messages generated as temp)
@@ -1085,7 +1276,7 @@ const ChatDetail = ({navigation, route}) => {
           }
         />
 
-        {isBlockedByMe ? (
+        {activeChat?.isBlocked ? (
           <View
             style={{
               padding: width(3),
@@ -1101,13 +1292,17 @@ const ChatDetail = ({navigation, route}) => {
                 fontFamily: fontFamly.PlusJakartaSansMedium,
                 fontSize: 13,
               }}>
-              You have blocked this user. You can’t send messages.
+              {isBlockedByMe
+                ? 'You have blocked this user. You can’t send messages.'
+                : 'This conversation has been blocked by client.'}
             </Text>
           </View>
         ) : (
           <>
             <TouchableOpacity
-              onPress={() => navigation.navigate('CreateCustomOffer')}
+              onPress={() =>
+                navigation.navigate('CreateCustomOffer', {chatParams: data})
+              }
               style={{
                 height: width(10),
                 width: width(10),
@@ -1237,6 +1432,99 @@ const ChatDetail = ({navigation, route}) => {
         emojis={commonEmojis}
         onSelectEmoji={handleSelectEmoji}
       />
+      <Modal
+        visible={offerDetailsVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOfferDetailsVisible(false)}>
+        <View style={styles.offerDetailsOverlay}>
+          <View style={styles.offerDetailsCard}>
+            <View style={styles.offerDetailsHeader}>
+              <View style={styles.offerDetailsTitleWrap}>
+                <View style={styles.offerDetailsIconWrap}>
+                  <Image
+                    source={ICONS.giftIcon || ICONS.cartIcon}
+                    style={styles.offerDetailsIcon}
+                    resizeMode="contain"
+                  />
+                </View>
+                <Text style={styles.offerDetailsTitle}>Offer Details</Text>
+              </View>
+              <TouchableOpacity onPress={() => setOfferDetailsVisible(false)}>
+                <Text style={styles.offerDetailsClose}>x</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.offerDetailsItemsHeading}>
+              Items ({selectedOfferDetails?.items?.length || 0})
+            </Text>
+
+            <View style={styles.offerDetailsItemCard}>
+              <Image
+                source={
+                  selectedOfferDetails?.items?.[0]?.images?.[0]
+                    ? {uri: selectedOfferDetails.items[0].images[0]}
+                    : ICONS.event2
+                }
+                style={styles.offerDetailsItemImage}
+                resizeMode="cover"
+              />
+              <View style={{flex: 1, marginLeft: width(2.5)}}>
+                <Text style={styles.offerDetailsItemTitle} numberOfLines={2}>
+                  {selectedOfferDetails?.items?.[0]?.title?.en ||
+                    selectedOfferDetails?.items?.[0]?.title?.nl ||
+                    selectedOfferDetails?.items?.[0]?.title ||
+                    'Offer Item'}
+                </Text>
+                <Text style={styles.offerDetailsItemType}>Booking</Text>
+                <Text style={styles.offerDetailsSecurityText}>
+                  Security fee included
+                </Text>
+              </View>
+              <Text style={styles.offerDetailsItemPrice}>
+                €
+                {Number(
+                  selectedOfferDetails?.items?.[0]?.offerPrice ||
+                    selectedOfferDetails?.items?.[0]?.pricingBreakdown
+                      ?.offerPrice ||
+                    selectedOfferDetails?.items?.[0]?.discountedPrice ||
+                    0,
+                ).toFixed(2)}
+              </Text>
+            </View>
+
+            <View style={styles.offerDetailsSummaryCard}>
+              <Text style={styles.offerDetailsSummaryTitle}>Pricing Summary</Text>
+              <View style={styles.offerDetailsRow}>
+                <Text style={styles.offerDetailsLabel}>Subtotal</Text>
+                <Text style={styles.offerDetailsValue}>
+                  €{Number(selectedOfferDetails?.subtotal || 0).toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.offerDetailsRow}>
+                <Text style={[styles.offerDetailsLabel, {color: '#1D4ED8'}]}>
+                  Security Fees
+                </Text>
+                <Text style={[styles.offerDetailsValue, {color: '#1D4ED8'}]}>
+                  +€{Number(selectedOfferDetails?.totalSecurity || 0).toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.offerDetailsDivider} />
+              <View style={styles.offerDetailsRow}>
+                <Text style={styles.offerDetailsTotalLabel}>Total Amount</Text>
+                <Text style={styles.offerDetailsTotalValue}>
+                  €{Number(selectedOfferDetails?.finalTotal || 0).toFixed(2)}
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.offerDetailsStatusText}>
+              Status: {selectedOfferDetails?.status || 'PENDING'}
+            </Text>
+            <Text style={styles.offerDetailsExpiryText}>Valid for 24 hours</Text>
+          </View>
+        </View>
+      </Modal>
       {/* Image Preview Modal */}
       {previewVisible && (
         <View style={styles.fullScreenModal}>
@@ -1454,6 +1742,258 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
     color: COLORS.textDark,
+  },
+  offerMessageCard: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F7B2DA',
+    borderRadius: 18,
+    padding: width(3),
+    width: width(70),
+  },
+  offerMessageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: width(2.5),
+  },
+  offerMessageIconWrap: {
+    height: width(9),
+    width: width(9),
+    borderRadius: width(4.5),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary,
+    marginRight: width(2),
+  },
+  offerMessageIcon: {
+    height: width(4.2),
+    width: width(4.2),
+    tintColor: COLORS.white,
+  },
+  offerMessageHeaderText: {
+    fontSize: 13,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerMessageItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  offerMessageItemImage: {
+    width: width(16),
+    height: width(16),
+    borderRadius: 10,
+    backgroundColor: COLORS.backgroundLight,
+  },
+  offerMessageItemTitle: {
+    fontSize: 13,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerMessageItemPrice: {
+    marginTop: 2,
+    fontSize: 11,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    textDecorationLine: 'line-through',
+  },
+  offerMessageItemStatus: {
+    marginTop: 1,
+    fontSize: 11,
+    color: COLORS.textLight,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  offerMessageDivider: {
+    marginVertical: width(2.6),
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  offerMessageTotalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  offerMessageTotalLabel: {
+    fontSize: 17,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerMessageTotalAmount: {
+    fontSize: 17,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerMessageSubText: {
+    marginTop: 4,
+    fontSize: 11,
+    color: COLORS.textLight,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  offerViewBtnGradient: {
+    borderRadius: 14,
+    marginTop: width(3),
+  },
+  offerViewBtn: {
+    minHeight: width(10.5),
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  offerViewBtnText: {
+    fontSize: 13,
+    color: COLORS.white,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerViewBtnArrow: {
+    marginLeft: width(2),
+    fontSize: 15,
+    color: COLORS.white,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerDetailsOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    paddingHorizontal: width(4),
+  },
+  offerDetailsCard: {
+    backgroundColor: '#F5F6F8',
+    borderRadius: 20,
+    padding: width(4),
+  },
+  offerDetailsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  offerDetailsTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  offerDetailsIconWrap: {
+    width: width(11),
+    height: width(11),
+    borderRadius: width(5.5),
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: width(2),
+  },
+  offerDetailsIcon: {
+    width: width(5),
+    height: width(5),
+    tintColor: COLORS.white,
+  },
+  offerDetailsTitle: {
+    fontSize: 18,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerDetailsClose: {
+    fontSize: 28,
+    color: COLORS.textLight,
+    lineHeight: 28,
+  },
+  offerDetailsItemsHeading: {
+    marginTop: width(4),
+    fontSize: 16,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerDetailsItemCard: {
+    marginTop: width(3),
+    backgroundColor: '#ECEEF2',
+    borderRadius: 14,
+    padding: width(3),
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  offerDetailsItemImage: {
+    width: width(18),
+    height: width(18),
+    borderRadius: 10,
+  },
+  offerDetailsItemTitle: {
+    fontSize: 15,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerDetailsItemType: {
+    marginTop: 2,
+    fontSize: 13,
+    color: COLORS.textLight,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  offerDetailsSecurityText: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#1D4ED8',
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  offerDetailsItemPrice: {
+    fontSize: 14,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    alignSelf: 'flex-end',
+  },
+  offerDetailsSummaryCard: {
+    marginTop: width(4),
+    backgroundColor: '#ECEEF2',
+    borderRadius: 14,
+    padding: width(3),
+  },
+  offerDetailsSummaryTitle: {
+    fontSize: 17,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    marginBottom: width(2),
+  },
+  offerDetailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: width(1.2),
+  },
+  offerDetailsLabel: {
+    fontSize: 13,
+    color: COLORS.textLight,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  offerDetailsValue: {
+    fontSize: 13,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  offerDetailsDivider: {
+    borderTopWidth: 1,
+    borderTopColor: '#D1D5DB',
+    marginTop: width(2),
+    marginBottom: width(1),
+  },
+  offerDetailsTotalLabel: {
+    fontSize: 16,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerDetailsTotalValue: {
+    fontSize: 16,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerDetailsStatusText: {
+    marginTop: width(4),
+    textAlign: 'center',
+    fontSize: 14,
+    color: COLORS.textLight,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  offerDetailsExpiryText: {
+    marginTop: 4,
+    textAlign: 'center',
+    fontSize: 13,
+    color: '#9CA3AF',
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
   },
 });
 

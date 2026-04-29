@@ -10,6 +10,7 @@ import CustomDrawer from './CustomDrawer';
 import ChatDetail from '../../../containers/vendor/app/ChatDetails';
 import CreateCustomOffer from '../../../containers/vendor/app/CreateCustomOffre';
 import BookingItems from '../../../containers/vendor/app/BookingItems';
+import OfferPreviewScreen from '../../../containers/vendor/app/OfferPreviewScreen';
 import VendorStripeConnectScreen from '../../../containers/vendor/app/VendorStripeConnectScreen';
 import VendorPaymentManagementScreen from '../../../containers/vendor/app/VendorPaymentManagementScreen';
 
@@ -116,6 +117,7 @@ function CustomerDrawer() {
       <Drawer.Screen name="ChatDetails" component={ChatDetail} />
       <Drawer.Screen name="CreateCustomOffer" component={CreateCustomOffer} />
       <Drawer.Screen name="BookingItems" component={BookingItems} />
+      <Drawer.Screen name="OfferPreview" component={OfferPreviewScreen} />
       <Drawer.Screen
         name="VendorStripeConnect"
         component={VendorStripeConnectScreen}

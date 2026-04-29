@@ -12,11 +12,12 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
+import {useDispatch} from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {ICONS, IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
-import {sendBookingRequest} from '../../services/ListingsItem';
+import {addItem} from '../../redux/slice/offers';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
 import DateRangePicker from '../customDatePicker';
@@ -30,10 +31,12 @@ const NewRequestModal = ({
   type,
   navigation,
   selectedListing,
+  editingItem,
   settingsData,
 }) => {
   const {t} = useTranslation();
   const modalRef = useRef(null);
+  const dispatch = useDispatch();
   const [selectedCoords, setSelectedCoords] = useState(null);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,6 +51,16 @@ const NewRequestModal = ({
 
   const normalizeCoords = coords => {
     if (!coords) return null;
+
+    // Support GeoJSON-style coordinates: [lng, lat]
+    if (Array.isArray(coords) && coords.length >= 2) {
+      const lng = Number(coords[0]);
+      const lat = Number(coords[1]);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        return {latitude: lat, longitude: lng};
+      }
+      return null;
+    }
 
     if (coords.latitude !== undefined && coords.longitude !== undefined) {
       return {latitude: coords.latitude, longitude: coords.longitude};
@@ -256,6 +269,70 @@ const NewRequestModal = ({
         )
       : 0;
 
+  const isDateTimeSelected = Boolean(startDate && endDate);
+
+  const validateDateTime = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedStartDate = new Date(startDate);
+    selectedStartDate.setHours(0, 0, 0, 0);
+
+    if (selectedStartDate < today) {
+      modalRef.current?.show({
+        status: 'error',
+        message: t('Start date cannot be in the past'),
+      });
+      return false;
+    }
+
+    if (!singleDay && endDate < startDate) {
+      modalRef.current?.show({
+        status: 'error',
+        message: t('End date must be later than start date'),
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const calculateDiscount = () => discountPercent;
+
+  const sanitizeBreakdown = (breakdown = [], shouldIncludeSecurityFee = true) =>
+    (breakdown || []).filter(
+      row =>
+        shouldIncludeSecurityFee ||
+        !String(row?.label || '')
+          .toLowerCase()
+          .includes('security'),
+    );
+
+  const calculateOfferFees = (offerPrice, listing, offerSettings) => {
+    const platformFeePercent = parsePercent(
+      offerSettings?.bookingItemPlatformFee ||
+        listing?.paymentPolicy?.platformFeePercent ||
+        5,
+    );
+    const vatFeePercent = parsePercent(
+      offerSettings?.vat ||
+        offerSettings?.bookingVatFee ||
+        offerSettings?.vatFee ||
+        offerSettings?.vatPercentage ||
+        offerSettings?.vatPercent ||
+        0,
+    );
+    const platformFee = (offerPrice * platformFeePercent) / 100;
+    const vatFee = (offerPrice * vatFeePercent) / 100;
+
+    return {
+      platformFeePercent,
+      vatFeePercent,
+      platformFee: Number(platformFee.toFixed(2)),
+      vatFee: Number(vatFee.toFixed(2)),
+      evenlyoProtectFee: 0,
+    };
+  };
+
   useEffect(() => {
     if (isVisible) {
       setSingleDay(false);
@@ -268,6 +345,36 @@ const NewRequestModal = ({
       setPriceError('');
     }
   }, [isVisible]);
+
+  useEffect(() => {
+    if (!isVisible || !editingItem) return;
+
+    const parsedStart = editingItem?.startDate
+      ? new Date(editingItem.startDate)
+      : new Date();
+    const parsedEnd = editingItem?.endDate
+      ? new Date(editingItem.endDate)
+      : parsedStart;
+
+    setSingleDay(
+      Boolean(editingItem?.startDate && editingItem?.endDate) &&
+        editingItem?.startDate === editingItem?.endDate,
+    );
+    setStartDate(parsedStart);
+    setEndDate(parsedEnd);
+    setSelectedCoords({
+      userAddress: editingItem?.eventLocation || '',
+      latLng: normalizeCoords(editingItem?.locationData?.latLng),
+    });
+    setSpecialRequest(editingItem?.specialRequest || '');
+    setIncludeSecurityFee(Number(editingItem?.securityFee || 0) > 0);
+    setOfferAmount(
+      editingItem?.discountedPrice !== undefined
+        ? String(editingItem.discountedPrice)
+        : '',
+    );
+    setPriceError('');
+  }, [isVisible, editingItem]);
 
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () =>
@@ -299,7 +406,7 @@ const NewRequestModal = ({
     onClose?.();
   };
 
-  const handleAddItem = async () => {
+  const handleAddItem = () => {
     if (!selectedListing?._id) {
       modalRef.current?.show({
         status: 'error',
@@ -333,29 +440,22 @@ const NewRequestModal = ({
       return;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const selectedStartDate = new Date(startDate);
-    selectedStartDate.setHours(0, 0, 0, 0);
-    if (selectedStartDate < today) {
+    if (!isDateTimeSelected) {
       modalRef.current?.show({
         status: 'error',
-        message: t('Start date cannot be in the past'),
+        message: t('Please fill in all date and time fields'),
       });
       return;
     }
 
-    if (!singleDay && endDate < startDate) {
-      modalRef.current?.show({
-        status: 'error',
-        message: t('End date must be later than start date'),
-      });
+    if (!validateDateTime()) {
       return;
     }
 
     if (
       distanceToSelectedListingKm == null ||
-      distanceToSelectedListingKm <= 0
+      Number.isNaN(distanceToSelectedListingKm) ||
+      distanceToSelectedListingKm < 0
     ) {
       modalRef.current?.show({
         status: 'error',
@@ -377,116 +477,134 @@ const NewRequestModal = ({
     if (!hasEnteredOffer || safeOfferAmount <= 0) {
       modalRef.current?.show({
         status: 'error',
-        message: t('Please enter your offer price first.'),
+        message: t('Please enter your offer price'),
       });
       return;
     }
 
-    const payload = {
-      listingId: selectedListing?._id,
-      vendorId: selectedListing?.vendorId || selectedListing?.vendor?._id,
-      details: {
-        startDate: moment(startDate).format('YYYY-MM-DD'),
-        endDate: moment(singleDay ? startDate : endDate).format('YYYY-MM-DD'),
-        startTime: moment(startDate).format('HH:mm'),
-        endTime: moment(endDate).format('HH:mm'),
-        eventLocation: selectedCoords?.userAddress,
-        eventLatitude: normalizedCoords.latitude,
-        eventLongitude: normalizedCoords.longitude,
-        distanceKm: Number(distanceToSelectedListingKm) || 0,
-        specialRequests: specialRequest?.trim() || '',
-        specialRequest: specialRequest?.trim() || '',
-        discountedPrice: Number(safeOfferAmount.toFixed(2)),
-        discount: discountPercent,
-        basePrice: Number(discountBasePrice.toFixed(2)),
-        extraTimeCost: Number(totalExtraCost.toFixed(2)),
-        distanceCost: Number(distanceCost.toFixed(2)),
-        total: Number(grandTotal.toFixed(2)),
-        securityFee: Number(appliedSecurityFee.toFixed(2)),
-        platformFee: Number(platformFee.toFixed(2)),
-        vatFee: Number(vatFee.toFixed(2)),
-        unit: selectedListing?.pricing?.type || 'per-day',
-        pricingBreakdown: {
-          baseAmount: Number(discountBasePrice.toFixed(2)),
-          extraTimeCost: Number(totalExtraCost.toFixed(2)),
-          distanceCost: Number(distanceCost.toFixed(2)),
-          securityFee: Number(appliedSecurityFee.toFixed(2)),
-          platformFee: Number(platformFee.toFixed(2)),
-          vatFee: Number(vatFee.toFixed(2)),
-          subtotal: Number(safeOfferAmount.toFixed(2)),
-          total: Number(grandTotal.toFixed(2)),
-          breakdown: [
-            {
-              label: `Base Service (${selectedDaysCount} days)`,
-              amount: Number(discountBasePrice.toFixed(2)),
-              explanation: '',
-            },
-            {
-              label: 'Extra Time Fee',
-              amount: Number(totalExtraCost.toFixed(2)),
-              explanation: '',
-            },
-            {
-              label: `Travel Cost (${Number(
-                distanceToSelectedListingKm || 0,
-              ).toFixed(2)}km)`,
-              amount: Number(distanceCost.toFixed(2)),
-              explanation: '',
-            },
-            {
-              label: 'Security Deposit(Refundable)',
-              amount: Number(appliedSecurityFee.toFixed(2)),
-              explanation: '',
-            },
-            {
-              label: `Platform Service Fee (${bookingItemPlatformFee}%)`,
-              amount: Number(platformFee.toFixed(2)),
-              explanation: '',
-            },
-            {
-              label: `VAT Fee (${bookingVatFeePercent}%)`,
-              amount: Number(vatFee.toFixed(2)),
-              explanation: '',
-            },
-          ],
-          validationErrors: [],
-          pricingType: selectedListing?.pricing?.type || 'per hour',
-          numDays: selectedDaysCount,
-          isSingleDate: singleDay,
-          paymentPolicy:
-            selectedListing?.paymentPolicy || selectedListing?.subCategory,
+    const offerPrice = Number(safeOfferAmount.toFixed(2));
+    const finalSecurityFee = includeSecurityFee
+      ? selectedListing?.pricing?.securityFee || 0
+      : 0;
+    const pricingBreakdown = {
+      baseAmount: Number(discountBasePrice.toFixed(2)),
+      extraTimeCost: Number(totalExtraCost.toFixed(2)),
+      distanceCost: Number(distanceCost.toFixed(2)),
+      subtotal: offerPrice,
+      total: Number(grandTotal.toFixed(2)),
+      pricingType: selectedListing?.pricing?.type || 'perhour',
+      paymentPolicy:
+        selectedListing?.paymentPolicy || selectedListing?.subCategory,
+      breakdown: [
+        {
+          label: `Base Service (${selectedDaysCount} days)`,
+          amount: Number(discountBasePrice.toFixed(2)),
+          explanation: '',
         },
-      },
+        {
+          label: 'Extra Time Fee',
+          amount: Number(totalExtraCost.toFixed(2)),
+          explanation: '',
+        },
+        {
+          label: `Travel Cost (${Number(
+            distanceToSelectedListingKm || 0,
+          ).toFixed(2)}km)`,
+          amount: Number(distanceCost.toFixed(2)),
+          explanation: '',
+        },
+        {
+          label: 'Security Deposit(Refundable)',
+          amount: Number(finalSecurityFee.toFixed(2)),
+          explanation: '',
+        },
+        {
+          label: `Platform Service Fee (${bookingItemPlatformFee}%)`,
+          amount: Number(platformFee.toFixed(2)),
+          explanation: '',
+        },
+        {
+          label: `VAT Fee (${bookingVatFeePercent}%)`,
+          amount: Number(vatFee.toFixed(2)),
+          explanation: '',
+        },
+      ],
+      validationErrors: [],
+      numDays: selectedDaysCount,
+      isSingleDate: singleDay,
     };
 
-    try {
-      setIsLoading(true);
-      const response = await sendBookingRequest(payload);
+    const finalBreakdown = sanitizeBreakdown(
+      pricingBreakdown.breakdown,
+      includeSecurityFee && finalSecurityFee > 0,
+    );
+    const offerFees = calculateOfferFees(
+      offerPrice,
+      selectedListing,
+      settingsData || {bookingItemPlatformFee: 5},
+    );
+    const payloadTotal = Number(
+      (
+        offerPrice +
+        finalSecurityFee +
+        offerFees.platformFee +
+        offerFees.vatFee
+      ).toFixed(2),
+    );
 
-      if (response?.status === 200 || response?.status === 201) {
-        modalRef.current?.show({
-          status: 'ok',
-          message: response?.data?.message || t('Item added successfully'),
-          handlePressOk: () => {
-            modalRef.current?.hide?.();
-            handleCancel();
-            navigation?.navigate?.('ChatDetails', {offreShow: true});
-          },
-        });
-      } else {
-        modalRef.current?.show({
-          status: 'error',
-          message: response?.data?.message || t('Failed to add item'),
-        });
-      }
-    } catch (error) {
-      modalRef.current?.show({
-        status: 'error',
-        message: t('Something went wrong while adding item'),
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    const finalItem = {
+      ...selectedListing,
+      id: selectedListing?._id || selectedListing?.id,
+      type: 'booking',
+      discount: calculateDiscount(),
+      startDate: moment(startDate).format('YYYY-MM-DD'),
+      endDate: moment(singleDay ? startDate : endDate).format('YYYY-MM-DD'),
+      startTime: moment(startDate).format('HH:mm'),
+      endTime: moment(endDate).format('HH:mm'),
+      eventLocation: selectedCoords?.userAddress?.trim(),
+      locationData: {
+        ...selectedCoords,
+        latLng: normalizedCoords,
+      },
+      distanceKm: Number(distanceToSelectedListingKm) || 0,
+      total: payloadTotal,
+      basePrice: pricingBreakdown.baseAmount,
+      extraTimeCost: pricingBreakdown.extraTimeCost,
+      distanceCost: pricingBreakdown.distanceCost,
+      unit: selectedListing?.pricing?.type || 'perday',
+      specialRequest: specialRequest.trim(),
+      discountedPrice: offerPrice,
+      securityFee: finalSecurityFee,
+      offerPrice: Number((offerPrice + finalSecurityFee).toFixed(2)),
+      pricingBreakdown: {
+        ...pricingBreakdown,
+        breakdown: finalBreakdown,
+        securityFee: finalSecurityFee,
+        platformFeePercent: offerFees.platformFeePercent,
+        vatFeePercent: offerFees.vatFeePercent,
+        platformFee: offerFees.platformFee,
+        vatFee: offerFees.vatFee,
+        evenlyoProtectFee: offerFees.evenlyoProtectFee,
+        offerPrice: Number((offerPrice + finalSecurityFee).toFixed(2)),
+        total: payloadTotal,
+      },
+      totalWithoutDiscount: 0,
+      paymentPolicy: pricingBreakdown.paymentPolicy,
+      uniqueId: editingItem?.uniqueId,
+    };
+
+    console.log(finalItem, 'finalItemfinalItemfinalItemfinalItem');
+
+    dispatch(addItem(finalItem));
+    modalRef.current?.show({
+      status: 'ok',
+      message: t('Item added to offer!'),
+      handlePressOk: () => {
+        modalRef.current?.hide?.();
+        handleCancel();
+        // navigation?.navigate?.('ChatDetails', {offreShow: true});
+      },
+    });
   };
 
   const handleOfferAmountChange = value => {

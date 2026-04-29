@@ -1,7 +1,6 @@
-import React, {memo, useEffect, useMemo, useState} from 'react';
+import React, {memo, useMemo} from 'react';
 import {
   Image,
-  Keyboard,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,65 +10,45 @@ import {
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {width} from 'react-native-dimension';
+import {IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 
-/* ---------------- REUSABLE ROW ---------------- */
-
-const PriceRow = ({label, value}) => (
-  <View style={styles.row}>
-    <Text style={styles.rowLabel}>{label}</Text>
-    <Text style={styles.rowValue}>{value}</Text>
-  </View>
-);
-
-/* ---------------- MAIN COMPONENT ---------------- */
-
-const CustomOfferModal = ({isVisible, onClose, offerObject}) => {
+const CustomOfferModal = ({isVisible, onClose, offerObject, onAccept, isAccepting}) => {
   const {t, currentLanguage} = useTranslation();
-  const [evenlyoProtect, setEvenlyoProtect] = useState(true);
-
-  useEffect(() => {
-    const show = Keyboard.addListener('keyboardDidShow', () => {});
-    const hide = Keyboard.addListener('keyboardDidHide', () => {});
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
 
   const item = offerObject?.items?.[0];
-  const breakdown = item?.pricingBreakdown;
-  const paymentPolicy = breakdown?.paymentPolicy;
+  const breakdown = item?.pricingBreakdown || {};
 
-  /* ---------------- FEES ---------------- */
+  const title = useMemo(() => {
+    return currentLanguage === 'en' ? item?.title?.en : item?.title?.nl;
+  }, [currentLanguage, item]);
 
-  const serviceTimeRow = useMemo(() => {
-    return breakdown?.breakdown?.find(row =>
-      row?.label?.startsWith('Service Time'),
-    );
-  }, [breakdown]);
+  const subtitle = useMemo(() => {
+    return currentLanguage === 'en'
+      ? item?.subtitle?.en || item?.subtitle
+      : item?.subtitle?.nl || item?.subtitle;
+  }, [currentLanguage, item]);
 
-  const platformFee = useMemo(() => breakdown?.platformFee || 0, [breakdown]);
+  const securityFee = Number(
+    item?.securityFee || offerObject?.totalSecurity || 0,
+  );
+  const platformFee = Number(breakdown?.platformFee || 0);
+  const vatFee = Number(breakdown?.vatFee || 0);
+  const offerBasePrice = Number(
+    breakdown?.subtotal ||
+      item?.discountedPrice ||
+      (item?.offerPrice ? Number(item.offerPrice) - securityFee : 0) ||
+      0,
+  );
+  const totalAmount = Number(offerObject?.finalTotal || item?.total || 0);
 
-  const platformPercent = useMemo(() => {
-    const row = breakdown?.breakdown?.find(b =>
-      b?.label?.includes('Platform Fee'),
-    );
-    return row ? row.label.match(/\d+/)?.[0] : 0;
-  }, [breakdown]);
-
-  const evenlyoProtectFee = useMemo(() => {
-    if (!evenlyoProtect) return 0;
-    return breakdown?.evenlyoProtectFee || 0;
-  }, [evenlyoProtect, breakdown]);
-
-  const totalPayable = useMemo(() => {
-    return offerObject?.finalTotal + evenlyoProtectFee;
-  }, [offerObject, evenlyoProtectFee]);
-
-  /* ---------------- RENDER ---------------- */
+  const platformPercent = Number(breakdown?.platformFeePercent || 0);
+  const formatEuro = value => `€${Number(value || 0).toFixed(2)}`;
+  const offerItems = offerObject?.items || [];
+  const evenlyoProtectByItem = offerItems.map(() => true);
+  const selectedItems = offerItems.map(() => true);
 
   return (
     <Modal
@@ -79,104 +58,92 @@ const CustomOfferModal = ({isVisible, onClose, offerObject}) => {
       backdropOpacity={0.5}
       avoidKeyboard>
       <View style={styles.container}>
-        {/* HEADER */}
         <View style={styles.header}>
-          <Text style={styles.title}>{t('Offer Preview')}</Text>
+          <View style={styles.headerLeft}>
+            <View style={styles.iconWrap}>
+              <Icon name="gift-outline" size={16} color={COLORS.white} />
+            </View>
+            <Text style={styles.title}>{t('Custom Offer')}</Text>
+          </View>
           <TouchableOpacity onPress={onClose}>
             <Icon name="close" size={24} color={COLORS.black} />
           </TouchableOpacity>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
-          {/* ITEMS */}
-          {offerObject?.items?.map((v, i) => (
-            <View key={i} style={styles.itemCard}>
+          <Text style={styles.selectedHeading}>{t('selected')}</Text>
+
+          <View style={styles.itemCard}>
+            <View style={styles.itemTopRow}>
               <View style={styles.imageWrapper}>
                 <Image
-                  source={{uri: v?.images?.[0]}}
-                  resizeMode="contain"
+                  source={
+                    item?.images?.[0]
+                      ? {uri: item.images[0]}
+                      : IMAGES.backgroundImage2
+                  }
+                  resizeMode="cover"
                   style={styles.image}
                 />
               </View>
 
               <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>
-                  {currentLanguage === 'en' ? v?.title?.en : v?.title?.nl}
-                </Text>
-                <Text style={styles.itemSubTitle}>
-                  {currentLanguage === 'en' ? v?.subtitle?.en : v?.subtitle?.nl}
-                </Text>
-
-                <View style={styles.discountRow}>
-                  <Text style={styles.discountText}>{v?.discount}%</Text>
-                  <Text style={styles.priceText}>
-                    ${offerObject?.finalTotal}
-                  </Text>
-                </View>
+                <Text style={styles.itemTitle}>{title}</Text>
+                {!!subtitle && (
+                  <Text style={styles.itemSubTitle}>{subtitle}</Text>
+                )}
+                <Text style={styles.mainPrice}>{formatEuro(totalAmount)}</Text>
               </View>
             </View>
-          ))}
 
-          {/* BREAKDOWN */}
-          {serviceTimeRow && (
-            <PriceRow
-              label={serviceTimeRow.label}
-              value={`$${serviceTimeRow.amount}`}
-            />
-          )}
-
-          <PriceRow
-            label="Extra Time"
-            value={`$${offerObject?.totalExtraTime}`}
-          />
-
-          <PriceRow
-            label={`Travel (${item?.distanceKm}km)`}
-            value={`$${offerObject?.totalDistance}`}
-          />
-
-          <PriceRow
-            label="Security Fee"
-            value={`$${offerObject?.totalSecurity}`}
-          />
-
-          <PriceRow
-            label={`Platform Fee (${platformPercent}%)`}
-            value={`$${platformFee}`}
-          />
-
-          {/* EVENLYO PROTECT */}
-          {paymentPolicy?.isEvenlyoProtectEnabled && (
-            <TouchableOpacity
-              style={styles.checkboxRow}
-              onPress={() => setEvenlyoProtect(!evenlyoProtect)}>
-              <Icon
-                name={evenlyoProtect ? 'checkbox' : 'square-outline'}
-                size={22}
-                color={COLORS.primary}
-              />
-              <Text style={styles.checkboxText}>
-                Evenlyo Protect ({paymentPolicy?.evenlyoProtectFeePercent}%)
-              </Text>
-              <Text style={styles.checkboxAmount}>${evenlyoProtectFee}</Text>
-            </TouchableOpacity>
-          )}
-
-          {/* TOTAL */}
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total Payable</Text>
-            <Text style={styles.totalValue}>${totalPayable}</Text>
+            <View style={styles.breakdownBox}>
+              <View style={styles.row}>
+                <Text style={styles.rowLabel}>
+                  Security Deposit(Refundable)
+                </Text>
+                <Text style={styles.rowValue}>{formatEuro(securityFee)}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.rowLabel}>
+                  Platform Service Fee ({platformPercent}%)
+                </Text>
+                <Text style={styles.rowValue}>{formatEuro(platformFee)}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.rowLabel}>VAT</Text>
+                <Text style={styles.rowValue}>{formatEuro(vatFee)}</Text>
+              </View>
+              <View style={styles.offerPriceRow}>
+                <Text style={styles.offerPriceLabel}>Offer Price</Text>
+                <Text style={styles.offerPriceValue}>
+                  {formatEuro(offerBasePrice)}
+                </Text>
+              </View>
+            </View>
           </View>
 
-          {/* ACCEPT */}
-          <GradientButton
-            text="Accept Offer"
-            type="filled"
-            style={{marginTop: width(4)}}
-          />
+          <Text style={styles.summaryHeading}>{t('Order Summary')}</Text>
+          <View style={styles.totalCard}>
+            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalValue}>{formatEuro(totalAmount)}</Text>
+          </View>
 
-          <Text style={styles.acceptText}>
-            By continuing, you agree to our Terms of Service and Payment Policy.
+          <View
+            style={{
+              margin: width(4),
+            }}>
+            <GradientButton
+              text={isAccepting ? 'Processing...' : 'View & Accept Offer'}
+              type="filled"
+              onPress={() => onAccept?.(evenlyoProtectByItem, selectedItems)}
+              style={{marginTop: width(4)}}
+            />
+          </View>
+
+          <Text style={styles.hintText}>
+            {t(
+              'You can add to wishlist without dates and specify them later, or select dates first for convenience',
+            )}
           </Text>
         </ScrollView>
       </View>
@@ -186,127 +153,179 @@ const CustomOfferModal = ({isVisible, onClose, offerObject}) => {
 
 export default memo(CustomOfferModal);
 
-/* ---------------- STYLES ---------------- */
-
 const styles = StyleSheet.create({
   modal: {
     margin: 0,
     justifyContent: 'flex-end',
   },
   container: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: width(8),
-    borderTopRightRadius: width(8),
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    height: '85%',
+    backgroundColor: '#F8F8FA',
+    borderTopLeftRadius: width(6),
+    borderTopRightRadius: width(6),
+    paddingBottom: width(4),
+    maxHeight: '88%',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     borderBottomWidth: 1,
     borderColor: COLORS.border,
-    paddingVertical: 12,
+    paddingVertical: width(3),
+    paddingHorizontal: width(4),
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconWrap: {
+    width: width(9),
+    height: width(9),
+    borderRadius: width(2.8),
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: width(2.5),
   },
   title: {
     fontSize: 18,
-    fontFamily: fontFamly.bold,
+    fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.black,
   },
+  selectedHeading: {
+    marginTop: width(4),
+    marginHorizontal: width(4),
+    fontSize: 14,
+    color: COLORS.black,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
   itemCard: {
+    marginTop: width(3),
+    marginHorizontal: width(4),
+    borderWidth: 1,
+    borderColor: '#F6C2E2',
+    borderRadius: width(3),
+    backgroundColor: '#F5F5F8',
+    overflow: 'hidden',
+  },
+  itemTopRow: {
     flexDirection: 'row',
-    marginTop: width(2),
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: width(4),
-    paddingVertical: width(2),
+    alignItems: 'center',
+    padding: width(3),
   },
   imageWrapper: {
     height: width(15),
     width: width(15),
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: width(2.5),
+    overflow: 'hidden',
   },
   image: {
-    height: '60%',
-    width: '60%',
+    height: '100%',
+    width: '100%',
   },
   itemContent: {
     flex: 1,
-    justifyContent: 'center',
+    marginLeft: width(2.5),
   },
   itemTitle: {
     fontFamily: fontFamly.PlusJakartaSansBold,
-    fontSize: 12,
-    marginLeft: width(2),
+    fontSize: 14,
     color: COLORS.black,
   },
   itemSubTitle: {
-    fontFamily: fontFamly.PlusJakartaSansBold,
-    fontSize: 10,
-    marginLeft: width(2),
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    fontSize: 12,
+    marginTop: 2,
     color: COLORS.textLight,
   },
-  discountRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  discountText: {
-    marginLeft: width(2),
-    color: COLORS.green,
-  },
-  priceText: {
-    marginLeft: width(2),
+  mainPrice: {
+    marginTop: width(1.2),
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 16,
     color: COLORS.primary,
+  },
+  breakdownBox: {
+    borderTopWidth: 1,
+    borderTopColor: '#F6C2E2',
+    backgroundColor: '#F7F7FA',
+    paddingHorizontal: width(3),
+    paddingVertical: width(2),
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: width(2),
+    paddingVertical: width(1),
   },
   rowLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: COLORS.textLight,
-    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
   },
   rowValue: {
+    fontSize: 14,
+    color: '#6B6B6B',
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerPriceRow: {
+    borderTopWidth: 1,
+    borderTopColor: '#E3E3E7',
+    paddingTop: width(2),
+    marginTop: width(1),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  offerPriceLabel: {
+    fontSize: 14,
+    color: COLORS.green,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerPriceValue: {
+    fontSize: 14,
+    color: COLORS.green,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  summaryHeading: {
+    marginTop: width(4),
+    marginHorizontal: width(4),
+    fontSize: 14,
+    color: COLORS.black,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  totalCard: {
+    marginTop: width(2),
+    marginHorizontal: width(4),
+    borderWidth: 1,
+    borderColor: '#F6C2E2',
+    borderRadius: width(3),
+    backgroundColor: '#F6EEF6',
+    paddingHorizontal: width(3),
+    paddingVertical: width(3.2),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalLabel: {
     fontSize: 16,
     color: COLORS.black,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: width(3),
-  },
-  checkboxText: {
-    flex: 1,
-    marginLeft: width(2),
-    fontSize: 13,
-    color: COLORS.black,
-  },
-  checkboxAmount: {
-    fontSize: 14,
-    fontFamily: fontFamly.bold,
-  },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: width(4),
-  },
-  totalLabel: {
-    fontSize: 14,
-    color: COLORS.textLight,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-  },
   totalValue: {
     fontSize: 18,
-    color: COLORS.black,
+    color: COLORS.primary,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
-  acceptText: {
+  hintText: {
+    marginHorizontal: width(4),
+    marginTop: width(4),
+    paddingHorizontal: width(3),
+    paddingVertical: width(3),
+    borderRadius: width(3),
+    borderWidth: 1,
+    borderColor: '#BFD8FF',
+    backgroundColor: '#EAF3FF',
     fontSize: 11,
-    color: COLORS.textLight,
+    color: '#5F646E',
     textAlign: 'center',
-    marginTop: width(2),
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
   },
 });

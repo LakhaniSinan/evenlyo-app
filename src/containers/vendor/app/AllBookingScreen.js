@@ -561,7 +561,7 @@ function AllBookingScreen() {
             }}
           />
 
-          <View
+          {/* <View
             style={{
               flexDirection: 'row',
               justifyContent: 'flex-end',
@@ -594,7 +594,7 @@ function AllBookingScreen() {
                 Filters
               </Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
 
           {!selectedDate ? (
             <Calendar

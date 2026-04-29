@@ -4,7 +4,7 @@ import io from 'socket.io-client';
 
 const SOCKET_URL = 'https://evenlyo-backend-20036df510ad.herokuapp.com'; // e.g. 'http://192.168.x.x:3000'
 // const SOCKET_URL = 'https://0g01d8wd-5000.inc1.devtunnels.ms'; // e.g. 'http://192.168.x.x:3000'
-// const SOCKET_URL = 'https://tk4c2l16-5000.euw.devtunnels.ms/'; // e.g. 'http://192.168.x.x:3000'
+// const SOCKET_URL = 'https://tk4c2l16-4040.euw.devtunnels.ms/'; // e.g. 'http://192.168.x.x:3000'
 export const SocketContext = createContext();
 
 export const SocketProvider = ({children}) => {

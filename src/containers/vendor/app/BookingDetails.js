@@ -104,10 +104,10 @@ function BookingDetails({route}) {
     try {
       setIsLoading(true);
       const response = await getVendorBookingById(_id);
-      console.log(response, 'responseresponseresponseresponseasdasdw');
+      console.log(response, 'responseresponseresponseresponse');
 
       if (response?.status === 200 || response?.status === 201) {
-        setBooking(response?.data?.data);
+        setBooking(response?.data?.data?.booking);
       } else {
         showAlert('error', response?.data?.message);
       }
@@ -132,12 +132,23 @@ function BookingDetails({route}) {
       const response = await acceptBooking(booking?._id);
 
       if (response?.status === 200 || response?.status === 201) {
-        showAlert('ok', response?.data?.message, () => {
-          alertRef.current?.hide();
-          fetchBookingDetails();
-        });
+        showAlert(
+          'ok',
+          currentLanguage === 'en'
+            ? response?.data?.message?.en
+            : response?.data?.message?.nl,
+          () => {
+            alertRef.current?.hide();
+            fetchBookingDetails();
+          },
+        );
       } else {
-        showAlert('error', response?.data?.message);
+        showAlert(
+          'error',
+          currentLanguage === 'en'
+            ? response?.data?.message?.en
+            : response?.data?.message?.nl,
+        );
       }
     } catch (error) {
       console.log('Accept booking error:', error);
@@ -155,12 +166,23 @@ function BookingDetails({route}) {
 
       if (response?.status === 200 || response?.status === 201) {
         setRejectModalVisible(false);
-        showAlert('ok', response?.data?.message, () => {
-          alertRef.current?.hide();
-          fetchBookingDetails();
-        });
+        showAlert(
+          'ok',
+          currentLanguage === 'en'
+            ? response?.data?.message?.en
+            : response?.data?.message?.nl,
+          () => {
+            alertRef.current?.hide();
+            fetchBookingDetails();
+          },
+        );
       } else {
-        showAlert('error', response?.data?.message);
+        showAlert(
+          'error',
+          currentLanguage === 'en'
+            ? response?.data?.message?.en
+            : response?.data?.message?.nl,
+        );
       }
     } catch (error) {
       console.log('Reject booking error:', error);
@@ -176,12 +198,23 @@ function BookingDetails({route}) {
       console.log(response, 'responceresponceresponceresponceresponce');
       if (response?.status === 200 || response?.status === 201) {
         setOpenPickedUpModal(false);
-        showAlert('ok', response?.data?.message, () => {
-          alertRef.current?.hide();
-          fetchBookingDetails();
-        });
+        showAlert(
+          'ok',
+          currentLanguage === 'en'
+            ? response?.data?.message?.en
+            : response?.data?.message?.nl,
+          () => {
+            alertRef.current?.hide();
+            fetchBookingDetails();
+          },
+        );
       } else {
-        showAlert('error', response?.data?.message);
+        showAlert(
+          'error',
+          currentLanguage === 'en'
+            ? response?.data?.message?.en
+            : response?.data?.message?.nl,
+        );
       }
     } catch (error) {
       console.log(error, 'errorerrorerrorerrorerrorerror');
@@ -224,7 +257,7 @@ function BookingDetails({route}) {
           <CarouselComponent data={booking?.listingDetails?.images || []} />
 
           <View style={styles.rowBetween}>
-            <View>
+            <View style={{flex: 1, marginRight: width(3)}}>
               <Text style={styles.title}>
                 {currentLanguage == 'en'
                   ? booking?.listingDetails?.title?.en
@@ -449,7 +482,6 @@ const styles = StyleSheet.create({
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
   },
   title: {
     fontFamily: fontFamly.PlusJakartaSansBold,

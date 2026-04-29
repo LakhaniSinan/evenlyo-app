@@ -6,12 +6,14 @@ import CartSlice, {setCartData} from './slice/cart';
 import LanguageSlice from './slice/language';
 import LocationSlice from './slice/location';
 import activeChatSlice from './slice/chat';
+import OffersSlice from './slice/offers';
 
 const rootReducer = combineReducers({
   LoginSlice: LoginSlice,
   LanguageSlice: LanguageSlice,
   LocationSlice: LocationSlice,
   CartSlice: CartSlice,
+  OffersSlice: OffersSlice,
   activeChat: activeChatSlice,
 });
 

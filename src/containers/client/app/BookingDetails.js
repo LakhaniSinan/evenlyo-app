@@ -196,10 +196,7 @@ const BookingDetails = ({route, navigation}) => {
     return participants;
   };
 
-  const getVendorIdForChat = () =>
-    bookingData?.vendorDetails?._id ||
-    bookingData?.listingDetails?.vendor?._id ||
-    bookingData?.details?.vendorId;
+  const getVendorIdForChat = () => bookingData?.vendorDetails?.vendorModelId;
 
   const handleCreateChatConnection = async () => {
     try {
@@ -553,21 +550,7 @@ const BookingDetails = ({route, navigation}) => {
           paddingHorizontal: width(4),
           marginVertical: width(2),
         }}>
-        <View style={{width: width(45)}}>
-          <GradientButton
-            onPress={handleOpenChat}
-            text={'Chat with Vendor'}
-            type="outline"
-            icon={ICONS.chatIconfilled}
-            useGradient={true}
-            styleProps={{}}
-            outlineButtonStyle={{
-              backgroundColor: COLORS.backgroundLight,
-              borderColor: COLORS.border,
-            }}
-          />
-        </View>
-        <View style={{width: width(42)}}>
+        <View style={{width: '100%'}}>
           <GradientButton
             text={'Track Booking'}
             type="filled"

@@ -59,10 +59,28 @@ const ChatDetail = ({navigation, route}) => {
   const {user} = useSelector(state => state.LoginSlice);
   const [attachedFile, setAttachedFile] = useState(null);
   const [conversation, setConversation] = useState(data);
+  console.log(user, 'conversationconversationconversationconversation');
+
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [isAcceptingOffer, setIsAcceptingOffer] = useState(false);
   const [showViewOfferModal, setShowViewOfferModal] = useState(false);
+  const [composerHeight, setComposerHeight] = useState(width(24));
+  const currentConversationId =
+    conversation?.conversationId || conversation?._id;
+  const vendorDisplayName = useMemo(() => {
+    const rawName =
+      conversation?.participants?.vendor?.name ||
+      conversation?.participants?.vendor?.businessName ||
+      '';
+
+    const normalized = String(rawName)
+      .replace(/\b(undefined|null)\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return normalized || 'Vendor';
+  }, [conversation?.participants?.vendor?.name]);
 
   useEffect(() => {
     setConversation(data);
@@ -88,39 +106,39 @@ const ChatDetail = ({navigation, route}) => {
   }, []);
 
   useEffect(() => {
-    if (user && conversation?.conversationId) {
+    if (user && currentConversationId) {
       fetchAllMessages();
     }
-  }, [user, conversation?.conversationId]);
+  }, [user, currentConversationId]);
 
   useEffect(() => {
-    if (socket && user && conversation?.participants?.vendor?.userId) {
+    if (socket && user && currentConversationId) {
       socket.emit('reset_unread_count', {
-        conversationId: conversation?.conversationId,
+        conversationId: currentConversationId,
         userType: 'user',
         userId: user?.id,
       });
     }
-  }, [conversation?.participants?.vendor?.userId, socket, allMessages]);
+  }, [currentConversationId, socket, allMessages, user]);
 
   const handleReceiveMessage = useCallback(
     newMessage => {
       setIsTyping(false);
-      if (newMessage.conversationId === conversation?.conversationId) {
+      if (newMessage.conversationId === currentConversationId) {
         setAllMessages(prev => [...prev, newMessage]);
         setTimeout(scrollToBottom, 100);
       }
     },
-    [conversation?.conversationId],
+    [currentConversationId],
   );
 
   useEffect(() => {
-    if (!socket || !conversation?.participants?.vendor?.userId || !user) {
+    if (!socket || !currentConversationId || !user) {
       return;
     }
 
     socket.emit('join_conversation_room', {
-      conversationId: conversation?.conversationId,
+      conversationId: currentConversationId,
     });
 
     socket.on('receive_message', handleReceiveMessage);
@@ -128,13 +146,7 @@ const ChatDetail = ({navigation, route}) => {
     return () => {
       socket.off('receive_message', handleReceiveMessage);
     };
-  }, [
-    socket,
-    user,
-    conversation?.conversationId,
-    conversation?.participants?.vendor?.userId,
-    handleReceiveMessage,
-  ]);
+  }, [socket, user, currentConversationId, handleReceiveMessage]);
 
   const flatListRef = useRef(null);
   const allMessagesRef = useRef([]);
@@ -152,10 +164,12 @@ const ChatDetail = ({navigation, route}) => {
     const handleOfferAcceptedWrapper = data => {
       handleOfferAccepted(data, allMessagesRef.current);
       setIsAcceptingOffer(false);
+      setShowViewOfferModal(false);
+      setOfferObject(null);
+      fetchAllMessages();
     };
 
     const handleOfferErrorWrapper = error => {
-      // toast.error('Something went wrong while accepting the offer');
       setIsAcceptingOffer(false);
     };
 
@@ -167,6 +181,66 @@ const ChatDetail = ({navigation, route}) => {
       socket.off('accept_offer_error', handleOfferErrorWrapper);
     };
   }, [socket, handleOfferAccepted]);
+
+  useEffect(() => {
+    if (!socket) {
+      return;
+    }
+
+    const handleConversationBlocked = payload => {
+      const currentConversationId =
+        conversation?.conversationId || conversation?._id;
+      const payloadConversationId = payload?.conversationId || payload?._id;
+      if (
+        !currentConversationId ||
+        currentConversationId !== payloadConversationId
+      ) {
+        return;
+      }
+
+      setConversation(prev => ({
+        ...prev,
+        isBlocked: true,
+        blockedBy: payload?.blockedBy,
+        blockedByRefrence: payload?.blockedByRefrence,
+        ...(payload?.isReported && {
+          isReported: true,
+          reportedBy: payload?.reportedBy,
+          reportedByRefrence: payload?.reportedByRefrence,
+        }),
+      }));
+    };
+
+    const handleConversationUnblocked = payload => {
+      const currentConversationId =
+        conversation?.conversationId || conversation?._id;
+      const payloadConversationId = payload?.conversationId || payload?._id;
+      if (
+        !currentConversationId ||
+        currentConversationId !== payloadConversationId
+      ) {
+        return;
+      }
+
+      setConversation(prev => ({
+        ...prev,
+        isBlocked: false,
+        blockedBy: null,
+        blockedByRefrence: null,
+        isReported: false,
+        reportedBy: null,
+        reportedByRefrence: null,
+      }));
+    };
+
+    socket.on('conversation_blocked', handleConversationBlocked);
+    socket.on('conversation_unblocked', handleConversationUnblocked);
+
+    return () => {
+      socket.off('conversation_blocked', handleConversationBlocked);
+      socket.off('conversation_unblocked', handleConversationUnblocked);
+    };
+  }, [socket, conversation?.conversationId, conversation?._id]);
 
   useEffect(() => {
     if (!socket) {
@@ -239,17 +313,33 @@ const ChatDetail = ({navigation, route}) => {
   };
 
   const fetchAllMessages = async () => {
+    if (!currentConversationId || !user?.id) {
+      return;
+    }
+
     try {
       setIsLoading(true);
       const response = await messageService.getAllMessages(
-        conversation?.conversationId,
+        currentConversationId,
         user?.id,
       );
 
-      console.log(response, 'responseresponseresponseresponseresponseasdw');
+      console.log(response, 'responseresponseresponseresponseresponseresponse');
 
-      if (response?.success) {
-        setAllMessages(response.data);
+      const responseMessages = Array.isArray(response?.data)
+        ? response.data
+        : Array.isArray(response)
+        ? response
+        : [];
+
+      const isValidMessagesResponse =
+        response?.success ||
+        Array.isArray(response?.data) ||
+        Array.isArray(response);
+
+      if (isValidMessagesResponse) {
+        setAllMessages(responseMessages);
+        setIsError(false);
         setTimeout(() => {
           scrollToBottom();
         }, 100);
@@ -297,10 +387,151 @@ const ChatDetail = ({navigation, route}) => {
     setShowViewOfferModal(true);
   };
 
+  const handleCloseOfferModal = () => {
+    // Web behavior: while accept request is in-flight, keep modal open.
+    if (isAcceptingOffer) {
+      return;
+    }
+    setShowViewOfferModal(false);
+    setOfferObject(null);
+    fetchAllMessages();
+  };
+
+  const handleAcceptOffer = (
+    obj,
+    evenlyoProtectByItem = [],
+    selectedItems = [],
+  ) => {
+    const hasSelection = selectedItems.some(Boolean);
+    if (!hasSelection) {
+      return;
+    }
+
+    setIsAcceptingOffer(true);
+
+    const items = (obj?.items || []).map((offerItem, idx) => {
+      const isProtectEnabled = Boolean(evenlyoProtectByItem[idx]);
+      const protectFee = isProtectEnabled
+        ? Number(offerItem?.pricingBreakdown?.evenlyoProtectFee || 0)
+        : 0;
+      const baseTotal = Number(offerItem?.pricingBreakdown?.total || 0);
+      const subTotal = Number(obj?.subtotal || 0);
+      const rawDistanceKm = Number(offerItem?.distanceKm || 0);
+      const pricePerKm = Number(offerItem?.pricing?.pricePerKm || 0);
+      const distanceCost = Number(
+        offerItem?.pricingBreakdown?.distanceCost ||
+          offerItem?.distanceCost ||
+          0,
+      );
+      const derivedDistanceKm =
+        rawDistanceKm > 0
+          ? rawDistanceKm
+          : pricePerKm > 0 && distanceCost > 0
+          ? distanceCost / pricePerKm
+          : 0;
+      const safeDistanceKm =
+        offerItem?.type === 'booking'
+          ? Number((derivedDistanceKm > 0 ? derivedDistanceKm : 0.1).toFixed(2))
+          : rawDistanceKm;
+
+      return {
+        ...offerItem,
+        distanceKm: safeDistanceKm,
+        offerStatus: selectedItems[idx] ? 'ACCEPTED' : 'REJECTED',
+        pricingBreakdown: {
+          ...offerItem?.pricingBreakdown,
+          evenlyoProtectFee: protectFee,
+          total: baseTotal + protectFee,
+          subtotal: subTotal,
+        },
+      };
+    });
+
+    const totalProtectFee = items.reduce(
+      (sum, i) => sum + Number(i?.pricingBreakdown?.evenlyoProtectFee || 0),
+      0,
+    );
+    const itemsTotal = items.reduce(
+      (sum, i) => sum + Number(i?.pricingBreakdown?.total || 0),
+      0,
+    );
+    const subTotal = Number(obj?.subtotal || 0);
+
+    const finalObject = {
+      ...obj,
+      userId: user?.id,
+      items,
+      status: 'ACCEPTED',
+      finalTotal: itemsTotal,
+      pricingBreakdown: {
+        ...obj?.pricingBreakdown,
+        evenlyoProtectFee: totalProtectFee,
+        total: itemsTotal,
+        subtotal: subTotal,
+      },
+    };
+
+    socket?.emit?.('accept_offer', finalObject);
+
+    // Fallback: if socket success event is delayed/missed, poll latest messages
+    // and close modal once this offer is marked ACCEPTED on server.
+    const targetOfferId = finalObject?.uniqueId;
+    let attempts = 0;
+    const maxAttempts = 5;
+    const intervalId = setInterval(async () => {
+      attempts += 1;
+      try {
+        const response = await messageService.getAllMessages(
+          currentConversationId,
+          user?.id,
+        );
+        if (response?.success) {
+          const latestMessages = response?.data || [];
+          setAllMessages(latestMessages);
+          const acceptedOfferMessage = latestMessages.find(
+            msg =>
+              msg?.offerObject?.uniqueId === targetOfferId &&
+              msg?.offerObject?.status === 'ACCEPTED',
+          );
+          if (acceptedOfferMessage) {
+            clearInterval(intervalId);
+            setIsAcceptingOffer(false);
+            setShowViewOfferModal(false);
+            setOfferObject(null);
+            return;
+          }
+        }
+      } catch (error) {}
+
+      if (attempts >= maxAttempts) {
+        clearInterval(intervalId);
+      }
+    }, 1200);
+  };
+
   const renderMessage = useCallback(
     ({item}) => {
       const isOwn = item.senderId === user?.id;
-      const isOffer = item.isOffer;
+      const isOfferMessage = Boolean(item?.isOffer || item?.offerObject);
+      const offerObjectData = item?.offerObject || {};
+      const firstOfferItem = offerObjectData?.items?.[0] || {};
+      const offerTitle =
+        currentLanguage === 'en'
+          ? firstOfferItem?.title?.en
+          : firstOfferItem?.title?.nl;
+      const offerDisplayPrice =
+        firstOfferItem?.offerPrice ||
+        firstOfferItem?.pricingBreakdown?.offerPrice ||
+        firstOfferItem?.pricingBreakdown?.subtotal ||
+        firstOfferItem?.discountedPrice ||
+        0;
+      const offerFinalTotal =
+        offerObjectData?.finalTotal || offerDisplayPrice || 0;
+      const offerStatus = offerObjectData?.status || 'PENDING';
+      const offerImage =
+        firstOfferItem?.images?.[0] ||
+        firstOfferItem?.image ||
+        firstOfferItem?.featuredImage;
 
       const isImage =
         item?.attachment?.type?.startsWith('image') ||
@@ -404,139 +635,77 @@ const ChatDetail = ({navigation, route}) => {
                     {item.message}
                   </Text>
                 )}
-                {isOffer && (
-                  <View style={{}}>
-                    <Text
-                      style={{
-                        color: COLORS.black,
-                        fontFamily: fontFamly.PlusJakartaSansBold,
-                        fontSize: 16,
-                        textAlign: 'center',
-                      }}>
-                      Custom Offer
-                    </Text>
-                    {item?.offerObject?.items?.map(vall => {
-                      return (
-                        <View
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            marginTop: width(2),
-                            backgroundColor: COLORS.white,
-                            borderRadius: width(4),
-                          }}>
-                          <View
-                            style={{
-                              height: width(15),
-                              width: width(15),
-                              borderRadius: width(4),
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}>
-                            <Image
-                              style={{height: '60%', width: '60%'}}
-                              source={{uri: vall?.images?.[0]}}
-                              resizeMode="contain"
-                            />
-                          </View>
-                          <View>
-                            <Text
-                              style={{
-                                fontFamily: fontFamly.PlusJakartaSansBold,
-                                fontSize: 12,
-                                marginLeft: width(2),
-                                color: COLORS.black,
-                              }}>
-                              {currentLanguage == 'en'
-                                ? vall?.title?.en
-                                : vall?.title?.nl}
-                            </Text>
-                            <View
-                              style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                              }}>
-                              <Text
-                                style={{
-                                  fontFamily: fontFamly.PlusJakartaSansMedium,
-                                  fontSize: 12,
-                                  marginLeft: width(2),
-                                  color: COLORS.green,
-                                }}>
-                                {vall?.discount}%
-                              </Text>
-                              <Text
-                                style={{
-                                  marginLeft: width(2),
-                                  color: COLORS.primary,
-                                }}>
-                                $ {item?.offerObject?.finalTotal}
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                      );
-                    })}
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        paddingVertical: width(2),
-                        justifyContent: 'space-between',
-                      }}>
-                      <Text
-                        style={{
-                          fontFamily: fontFamly.PlusJakartaSansBold,
-                          fontSize: 16,
-                          marginLeft: width(2),
-                          color: COLORS.black,
-                        }}>
-                        Discount Amount
-                      </Text>
-                      <Text
-                        style={{
-                          fontFamily: fontFamly.PlusJakartaSansBold,
-                          fontSize: 16,
-                          marginLeft: width(2),
-                          color: COLORS.black,
-                        }}>
-                        ${item?.offerObject?.totalDiscount}
+                {isOfferMessage && (
+                  <View style={styles.offerMessageCard}>
+                    <View style={styles.offerMessageHeader}>
+                      <View style={styles.offerMessageIconWrap}>
+                        <Image
+                          source={ICONS.giftIcon || ICONS.cartIcon}
+                          style={styles.offerMessageIcon}
+                          resizeMode="contain"
+                        />
+                      </View>
+                      <Text style={styles.offerMessageHeaderText}>
+                        Custom Offer
                       </Text>
                     </View>
-                    <Text
-                      style={{
-                        fontFamily: fontFamly.PlusJakartaSansBold,
-                        fontSize: 12,
-                        marginLeft: width(2),
-                        color: COLORS.textLight,
-                      }}>
+
+                    <View style={styles.offerMessageItemRow}>
+                      <Image
+                        source={offerImage ? {uri: offerImage} : ICONS.event2}
+                        style={styles.offerMessageItemImage}
+                        resizeMode="cover"
+                      />
+                      <View style={{flex: 1, marginLeft: width(2)}}>
+                        <Text
+                          style={styles.offerMessageItemTitle}
+                          numberOfLines={2}>
+                          {offerTitle}
+                        </Text>
+                        <Text style={styles.offerMessageItemPrice}>
+                          €{Number(offerDisplayPrice || 0).toFixed(0)}
+                        </Text>
+                        <Text style={styles.offerMessageItemStatus}>
+                          Status: {offerStatus}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.offerMessageDivider} />
+                    <View style={styles.offerMessageTotalRow}>
+                      <Text style={styles.offerMessageTotalLabel}>Total</Text>
+                      <Text style={styles.offerMessageTotalAmount}>
+                        €{Number(offerFinalTotal || 0).toFixed(0)}
+                      </Text>
+                    </View>
+                    <Text style={styles.offerMessageSubText}>
                       Valid for 24 hours
                     </Text>
-                    <View style={{height: width(2)}} />
-                    {offerObject?.status == 'ACCEPTED' ? (
-                      <View
-                        style={{
-                          marginBottom: width(2),
-                          borderWidth: 1,
-                          borderColor: COLORS.green,
-                          backgroundColor: '#EFFFF2', // light green background
-                          borderRadius: width(2),
-                          paddingVertical: width(2),
-                        }}>
-                        <Text
-                          style={{
-                            fontFamily: fontFamly.PlusJakartaSansBold,
-                            fontSize: 14,
-                            color: COLORS.green,
-                            textAlign: 'center',
-                          }}>
+                    <Text style={styles.offerMessageSubText}>
+                      Status: {offerStatus}
+                    </Text>
+
+                    {offerStatus === 'ACCEPTED' ? (
+                      <View style={styles.clientOfferAcceptedBtn}>
+                        <Text style={styles.clientOfferAcceptedBtnText}>
                           ACCEPTED
                         </Text>
                       </View>
                     ) : (
-                      <GradientButton
-                        text={'View & Accept Offer'}
-                        onPress={() => onViewOffer(item?.offerObject)}
-                      />
+                      <LinearGradient
+                        colors={['#FF295D', '#E31B95', '#7A3FF2']}
+                        start={{x: 0, y: 0}}
+                        end={{x: 1, y: 1}}
+                        style={styles.offerViewBtnGradient}>
+                        <TouchableOpacity
+                          activeOpacity={0.85}
+                          style={styles.offerViewBtn}
+                          onPress={() => onViewOffer(offerObjectData)}>
+                          <Text style={styles.offerViewBtnText}>
+                            View & Accept Offer
+                          </Text>
+                        </TouchableOpacity>
+                      </LinearGradient>
                     )}
                   </View>
                 )}
@@ -560,7 +729,7 @@ const ChatDetail = ({navigation, route}) => {
         </>
       );
     },
-    [user?.id, conversation?.participants?.vendor?.photo],
+    [user?.id, conversation?.participants?.vendor?.photo, currentLanguage],
   );
 
   const handleSend = async e => {
@@ -580,7 +749,7 @@ const ChatDetail = ({navigation, route}) => {
     const tempId = `temp-${Date.now()}-${Math.random()}`;
     const tempMessage = {
       _id: tempId,
-      conversationId: conversation?.conversationId,
+      conversationId: currentConversationId,
       senderId: user?.id,
       receiverId,
       senderRole: 'user',
@@ -831,7 +1000,7 @@ const ChatDetail = ({navigation, route}) => {
     try {
       setRefreshing(true);
       const response = await messageService.deleteMessage(
-        conversation?.conversationId,
+        currentConversationId,
         user?.id,
       );
 
@@ -893,7 +1062,7 @@ const ChatDetail = ({navigation, route}) => {
           onRightIconPress={() => {}}
           chatHeaderData={{
             Icon: conversation?.participants?.vendor?.photo,
-            name: conversation?.participants?.vendor?.name,
+            name: vendorDisplayName,
             lastSeen: 'Thanks for the quick res....',
           }}
         />
@@ -906,11 +1075,15 @@ const ChatDetail = ({navigation, route}) => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             padding: width(2),
+            // Keep last message above the absolute input composer (dynamic height).
+            paddingBottom: conversation?.isBlocked
+              ? width(4)
+              : composerHeight + width(2),
           }}
           onContentSizeChange={() => setTimeout(scrollToBottom, 20)}
         />
 
-        {isBlockedByMe ? (
+        {conversation?.isBlocked ? (
           <View
             style={{
               padding: width(3),
@@ -926,7 +1099,9 @@ const ChatDetail = ({navigation, route}) => {
                 fontFamily: fontFamly.PlusJakartaSansMedium,
                 fontSize: 13,
               }}>
-              You have blocked this vendor. You can’t send messages.
+              {isBlockedByMe
+                ? 'You have blocked this vendor. You can’t send messages.'
+                : 'This conversation has been blocked by vendor.'}
             </Text>
           </View>
         ) : (
@@ -969,13 +1144,33 @@ const ChatDetail = ({navigation, route}) => {
               </View>
             )}
 
-            <View style={[styles.inputWrapper, {flexDirection: 'column'}]}>
+            <View
+              style={[styles.inputWrapper, {flexDirection: 'column'}]}
+              onLayout={event => {
+                const nextHeight = event?.nativeEvent?.layout?.height || 0;
+                if (
+                  nextHeight > 0 &&
+                  Math.abs(nextHeight - composerHeight) > 2
+                ) {
+                  setComposerHeight(nextHeight);
+                }
+              }}>
               <View
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
                   paddingHorizontal: width(2),
                 }}>
+                <TouchableOpacity
+                  style={styles.emojiButton}
+                  onPress={handleSelectFile}>
+                  <Image
+                    resizeMode="contain"
+                    source={ICONS.plusIcon}
+                    style={{height: 22, width: 22}}
+                  />
+                </TouchableOpacity>
+
                 <TouchableOpacity
                   style={styles.emojiButton}
                   onPress={() => setShowEmojiPicker(true)}>
@@ -993,9 +1188,7 @@ const ChatDetail = ({navigation, route}) => {
 
                 <View style={styles.inputInner}>
                   <TextInput
-                    placeholder={t(
-                      `Reply to ${conversation?.participants?.vendor?.name} here...`,
-                    )}
+                    placeholder={'Message to vendor'}
                     placeholderTextColor={COLORS.textLight}
                     value={messageText}
                     onChangeText={setMessageText}
@@ -1028,6 +1221,7 @@ const ChatDetail = ({navigation, route}) => {
           </>
         )}
       </KeyboardAvoidingView>
+      <CommonAlert ref={modalRef} />
       <NewRequestModal
         isVisible={showRequestModal}
         onClose={() => setShowRequestModal(!showRequestModal)}
@@ -1036,15 +1230,18 @@ const ChatDetail = ({navigation, route}) => {
       <CustomOfferModal
         offerObject={offerObject}
         isVisible={showViewOfferModal}
-        onClose={() => setShowViewOfferModal(!showViewOfferModal)}
+        onClose={handleCloseOfferModal}
+        onAccept={(evenlyoProtectByItem, selectedItems) =>
+          handleAcceptOffer(offerObject, evenlyoProtectByItem, selectedItems)
+        }
+        isAccepting={isAcceptingOffer}
         navigation={navigation}
       />
-      <CommonAlert ref={modalRef} />
       <ReportUserModal
         visible={visible}
         onClose={() => setVisible(false)}
         onSubmit={handleReport}
-        userName={conversation?.participants?.vendor?.name}
+        userName={vendorDisplayName}
       />
       <EmojiPickerPopup
         visible={showEmojiPicker}
@@ -1063,11 +1260,15 @@ const styles = StyleSheet.create({
   messagesList: {flex: 1},
   messageContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginVertical: width(1),
+    alignItems: 'flex-end',
+    marginVertical: width(1.5),
+    paddingHorizontal: width(2),
   },
-  myMessageContainer: {justifyContent: 'flex-end'},
-  otherMessageContainer: {justifyContent: 'flex-start'},
+  myMessageContainer: {justifyContent: 'flex-end', alignSelf: 'flex-end'},
+  otherMessageContainer: {
+    justifyContent: 'flex-start',
+    alignSelf: 'flex-start',
+  },
   messageAvatar: {
     width: width(8),
     height: width(8),
@@ -1075,24 +1276,17 @@ const styles = StyleSheet.create({
     borderRadius: width(4),
   },
   myMessageBubble: {
-    width: width(70),
-    marginTop: width(3),
-    padding: width(3),
-    borderTopLeftRadius: width(6),
-    borderBottomLeftRadius: width(6),
-    borderBottomRightRadius: width(6),
+    backgroundColor: '#DCF8C6',
+    borderRadius: width(3),
+    padding: width(2.5),
   },
   otherMessageBubble: {
-    backgroundColor: COLORS.backgroundLight,
-    width: width(70),
-    padding: width(3),
-    marginTop: width(3),
-    borderTopRightRadius: width(6),
-    borderBottomLeftRadius: width(6),
-    borderBottomRightRadius: width(6),
+    backgroundColor: '#fff',
+    borderRadius: width(3),
+    padding: width(2.5),
   },
-  myMessageText: {color: COLORS.white, fontSize: 12},
-  otherMessageText: {color: COLORS.textDark, fontSize: 12},
+  myMessageText: {color: '#FFF', fontSize: 14},
+  otherMessageText: {color: '#333', fontSize: 14},
   messageTime: {
     fontSize: 10,
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
@@ -1105,33 +1299,37 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: width(2),
-    justifyContent: 'space-between',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
   },
   emojiButton: {
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: width(3),
-    height: width(11),
-    width: width(11),
+    height: width(12),
+    width: width(8),
     borderWidth: 1,
     borderColor: COLORS.textLight,
-    marginLeft: width(1),
+    marginRight: width(2),
   },
   emojiText: {
     fontSize: Math.max(20, screenWidth * 0.05),
   },
   textInput: {
-    width: width(52),
+    flex: 1,
     fontSize: 12,
     color: COLORS.textDark,
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-    minHeight: width(11),
-    paddingHorizontal: width(5),
+    paddingHorizontal: width(4),
   },
   inputInner: {
     flexDirection: 'row',
-    // alignItems: 'center',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORS.textLight,
     borderRadius: width(3),
@@ -1165,6 +1363,123 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  offerMessageCard: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F7B2DA',
+    borderRadius: 18,
+    padding: width(3),
+    width: width(70),
+  },
+  offerMessageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: width(2.5),
+  },
+  offerMessageIconWrap: {
+    height: width(9),
+    width: width(9),
+    borderRadius: width(4.5),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary,
+    marginRight: width(2),
+  },
+  offerMessageIcon: {
+    height: width(4.2),
+    width: width(4.2),
+    tintColor: COLORS.white,
+  },
+  offerMessageHeaderText: {
+    fontSize: 13,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerMessageItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  offerMessageItemImage: {
+    width: width(16),
+    height: width(16),
+    borderRadius: 10,
+    backgroundColor: COLORS.backgroundLight,
+  },
+  offerMessageItemTitle: {
+    fontSize: 13,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerMessageItemPrice: {
+    marginTop: 2,
+    fontSize: 11,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    textDecorationLine: 'line-through',
+  },
+  offerMessageItemStatus: {
+    marginTop: 1,
+    fontSize: 11,
+    color: COLORS.textLight,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  offerMessageDivider: {
+    marginVertical: width(2.6),
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  offerMessageTotalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  offerMessageTotalLabel: {
+    fontSize: 17,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerMessageTotalAmount: {
+    fontSize: 17,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  offerMessageSubText: {
+    marginTop: 4,
+    fontSize: 11,
+    color: COLORS.textLight,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  offerViewBtnGradient: {
+    borderRadius: 14,
+    marginTop: width(3),
+  },
+  offerViewBtn: {
+    minHeight: width(10.5),
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  offerViewBtnText: {
+    fontSize: 13,
+    color: COLORS.white,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  clientOfferAcceptedBtn: {
+    marginTop: width(3),
+    marginBottom: width(1),
+    borderWidth: 1,
+    borderColor: '#9BE7B1',
+    backgroundColor: '#E9F9EE',
+    borderRadius: width(2),
+    paddingVertical: width(2.6),
+  },
+  clientOfferAcceptedBtnText: {
+    textAlign: 'center',
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 14,
+    color: '#198754',
   },
 });
 
