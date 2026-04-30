@@ -29,8 +29,8 @@ const LoginScreen = ({navigation, route}) => {
   const {type} = route.params;
 
   const [fcm, setFcm] = useState('');
-  const [email, setEmail] = useState('johndoe@gmail.com');
-  const [password, setPassword] = useState('12345678');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(true);
   const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
