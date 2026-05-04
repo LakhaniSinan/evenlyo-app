@@ -33,20 +33,20 @@ const getTabsData = t => [
     inactiveIcon: ICONS.starIconInActive,
   },
 ];
-const getSaleItemsTabs = t => [
-  {
-    id: 'gallery',
-    title: t('Gallery'),
-    activeIcon: ICONS.galleryIconActive,
-    inactiveIcon: ICONS.galleryIconInActive,
-  },
-  {
-    id: 'reviews',
-    title: t('Reviews'),
-    activeIcon: ICONS.starIconActive,
-    inactiveIcon: ICONS.starIconInActive,
-  },
-];
+// const getSaleItemsTabs = t => [
+//   {
+//     id: 'gallery',
+//     title: t('Gallery'),
+//     activeIcon: ICONS.galleryIconActive,
+//     inactiveIcon: ICONS.galleryIconInActive,
+//   },
+//   {
+//     id: 'reviews',
+//     title: t('Reviews'),
+//     activeIcon: ICONS.starIconActive,
+//     inactiveIcon: ICONS.starIconInActive,
+//   },
+// ];
 
 const EventDetails = ({route, navigation}) => {
   const data = route?.params;
@@ -142,7 +142,9 @@ const EventDetails = ({route, navigation}) => {
         {selectedTab === 'gallery' && (
           <DetailsContent data={data} selectedTab={selectedTab} />
         )}
-        {selectedTab === 'reviews' && <AllReviews data={bookingDetails || data} />}
+        {selectedTab === 'reviews' && (
+          <AllReviews data={bookingDetails || data} />
+        )}
       </ScrollView>
       <Loader isLoading={isLoading} />
       <CommonAlert isLoading={modalRef} />

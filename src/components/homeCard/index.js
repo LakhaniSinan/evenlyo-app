@@ -12,6 +12,8 @@ import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
+  console.log(data, 'datadatadatadatadatadata');
+
   const {t, currentLanguage} = useTranslation();
   const [isActiveHeart, setIsActiveHeart] = useState(
     data?.isFavourite || false,
@@ -121,7 +123,7 @@ const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
                         : item?.description?.nl
                     }`,
                   )}{' '}
-                  <Text  numberOfLines={2} style={styles.text}>
+                  <Text numberOfLines={2} style={styles.text}>
                     {t(
                       `${
                         currentLanguage == 'en'

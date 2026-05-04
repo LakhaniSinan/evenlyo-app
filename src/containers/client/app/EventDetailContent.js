@@ -10,6 +10,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
 import LoginModal from '../../../components/authModal';
 import GradientButton from '../../../components/button';
+import CarouselComponent from '../../../components/carousel';
 import CommonAlert from '../../../components/commanAlert';
 import GradientText from '../../../components/gradiantText';
 import Loader from '../../../components/loder';
@@ -18,13 +19,22 @@ import RequestConfirmation from '../../../components/modals/RequestConfirmation'
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {setCartData} from '../../../redux/slice/cart';
+import {createConnection} from '../../../services/Chat';
 import {
   listingAddToCart,
   sendBookingRequest,
 } from '../../../services/ListingsItem';
-import {checkIsChatedBefore, createConnection} from '../../../services/Chat';
 import {getDistance} from '../../../utils';
-import CarouselComponent from '../../../components/carousel';
+
+const DEFAULT_MAP_COORDINATE = {
+  latitude: 24.8607,
+  longitude: 67.0011,
+};
+
+const parseFiniteNumber = value => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 
 const getInitialMarkedDates = availableDays => {
   let marked = {};
@@ -59,6 +69,8 @@ const getInitialMarkedDates = availableDays => {
 };
 
 const DetailsContent = ({data, selectedTab, navigation}) => {
+  console.log(data, 'datadatadatadatadatadata');
+
   const {cartData} = useSelector(state => state.CartSlice);
   const {user} = useSelector(state => state.LoginSlice);
   const dispatch = useDispatch(null);
@@ -68,30 +80,52 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
   const [responeData, setResponeData] = useState(null);
   const [isLoadding, setIsLoadding] = useState(false);
   const mapRef = useRef(null);
-  const locationCoordinates = data?.location?.coordinates;
-  let latitude = 24.9614333;
-  let longitude = 67.106703;
+  const mapCoordinates = useMemo(() => {
+    const locationCoordinates = data?.location?.coordinates;
+    const latitudeCandidates = [
+      data?.eventLatitude,
+      locationCoordinates?.latitude,
+      Array.isArray(locationCoordinates) ? locationCoordinates[1] : null,
+    ];
+    const longitudeCandidates = [
+      data?.eventLongitude,
+      locationCoordinates?.longitude,
+      Array.isArray(locationCoordinates) ? locationCoordinates[0] : null,
+    ];
 
-  if (Array.isArray(locationCoordinates)) {
-    longitude = Number(locationCoordinates[0]);
-    latitude = Number(locationCoordinates[1]);
-  } else if (locationCoordinates?.latitude && locationCoordinates?.longitude) {
-    latitude = Number(locationCoordinates.latitude);
-    longitude = Number(locationCoordinates.longitude);
-  }
+    const latitude =
+      latitudeCandidates.map(parseFiniteNumber).find(v => v !== null) ??
+      DEFAULT_MAP_COORDINATE.latitude;
+    const longitude =
+      longitudeCandidates.map(parseFiniteNumber).find(v => v !== null) ??
+      DEFAULT_MAP_COORDINATE.longitude;
 
-  const mapRegion = {
-    latitude,
-    longitude,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  };
+    return {latitude, longitude};
+  }, [data]);
 
+  const {latitude, longitude} = mapCoordinates;
+
+  const mapRegion = useMemo(() => {
+    return {
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+
+      // 👇 zoom control (smaller = more zoom)
+      latitudeDelta: 0.002,
+      longitudeDelta: 0.002,
+    };
+  }, [latitude, longitude]);
   useEffect(() => {
     if (mapRef.current && latitude && longitude) {
-      setTimeout(() => {
-        mapRef.current.animateToRegion(mapRegion, 1000);
-      }, 1000);
+      mapRef.current.animateToRegion(
+        {
+          latitude: Number(latitude),
+          longitude: Number(longitude),
+          latitudeDelta: 0.002,
+          longitudeDelta: 0.002,
+        },
+        500,
+      );
     }
   }, [latitude, longitude]);
 
@@ -404,64 +438,43 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     return participants;
   };
 
-  const handleCreateChatConnection = async () => {
-    try {
-      const response = await createConnection({
-        userId: user?.id,
-        vendorId: data?.vendor?._id,
-      });
-      if (response?.status === 200 || response?.status === 201) {
-        const conversation = response?.data?.data;
-        const finalChatData = {
-          ...conversation,
-          participants: formatParticipants(conversation?.participants),
-        };
-        setChatData(finalChatData);
-        navigation.navigate('ChatDetail', finalChatData);
-      } else {
-        modalRef.current.show({
-          status: 'error',
-          message: response?.data?.message || 'Unable to open chat',
-        });
-      }
-    } catch {
-      modalRef.current.show({
-        status: 'error',
-        message: 'Unable to open chat',
-      });
+  const handleConnect = () => {
+    if (chatData) {
+      navigation.navigate('ChatDetail', chatData);
+    } else {
+      handleCreateSocketConnenction();
     }
   };
 
-  const handleOpenChat = async () => {
-    if (chatData?.conversationId) {
-      navigation.navigate('ChatDetail', chatData);
-      return;
-    }
+  const handleCreateSocketConnenction = async () => {
     try {
-      const response = await checkIsChatedBefore(user?.id, data?.vendor?._id);
-      if (response?.status === 200 || response?.status === 201) {
-        const conversation = response?.data?.data;
-        if (!conversation) {
-          handleCreateChatConnection();
-          return;
-        }
-        const finalChatData = {
-          ...conversation,
-          participants: formatParticipants(conversation?.participants),
-        };
-        setChatData(finalChatData);
-        navigation.navigate('ChatDetail', finalChatData);
+      setIsLoadding(true);
+      let params = {
+        userId: user?.id,
+        vendorId: data?.vendor?.vendorModelId,
+      };
+      const responce = await createConnection(params);
+
+      if (responce?.status == 200 || responce.status == 201) {
+        let data = responce?.data?.data;
+        setChatData({
+          ...data,
+          participants: formatParticipants(data?.participants),
+        });
+        navigation.navigate('ChatDetail', {
+          ...data,
+          participants: formatParticipants(data?.participants),
+        });
       } else {
         modalRef.current.show({
           status: 'error',
-          message: response?.data?.message || 'Unable to open chat',
+          message: responce?.data?.message,
         });
       }
-    } catch {
-      modalRef.current.show({
-        status: 'error',
-        message: 'Unable to open chat',
-      });
+    } catch (error) {
+      console.log(error, 'asdasdasdasdasdasdasdasd');
+    } finally {
+      setIsLoadding(false);
     }
   };
 
@@ -644,7 +657,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
           </Text>
         </View>
         <TouchableOpacity
-          onPress={handleOpenChat}
+          onPress={handleConnect}
           style={{flex: 1, justifyContent: 'center', alignItems: 'flex-end'}}>
           <Image style={{width: 32, height: 32}} source={ICONS.chatIcon} />
         </TouchableOpacity>
@@ -695,15 +708,26 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
             <MapView
               ref={mapRef}
               style={{flex: 1}}
-              initialRegion={mapRegion}
+              initialRegion={{
+                latitude: Number(latitude),
+                longitude: Number(longitude),
+                latitudeDelta: 0.002,
+                longitudeDelta: 0.002,
+              }}
+              scrollEnabled={false}
+              zoomEnabled={false}
+              rotateEnabled={false}
+              pitchEnabled={false}
               showsUserLocation={false}
               showsMyLocationButton={false}
-              scrollEnabled={true}
-              zoomEnabled={true}>
+              showsCompass={false}
+              showsScale={false}>
               <Marker
-                coordinate={{latitude, longitude}}
-                title={data?.vendor?.businessName || 'Event Location'}
-                description={data?.location?.fullAddress || 'Location'}
+                coordinate={{
+                  latitude: Number(latitude),
+                  longitude: Number(longitude),
+                }}
+                title="Location"
               />
             </MapView>
           </View>

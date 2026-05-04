@@ -418,17 +418,14 @@ const BookingDetails = ({route, navigation}) => {
               bookingData?.bookingDateTime?.endTime || ''
             }`}
           />
-
-          <InfoRow
-            label="Total Price"
-            value={`€${bookingData?.totalPrice?.toFixed(2)}`}
-          />
           <InfoRow
             label="Security"
-            value={`€${bookingData?.pricingBreakdown?.securityFee?.toFixed(2)}`}
+            value={`€${bookingData?.pricingBreakdown?.securityFee}`}
           />
+
+          <InfoRow label="Total Price" value={`€${bookingData?.totalPrice}`} />
         </View>
-        {/* LOCATION */}
+        {/* LOCATION
         {hasLocation && (
           <View style={{paddingHorizontal: width(4)}}>
             <Text
@@ -454,8 +451,9 @@ const BookingDetails = ({route, navigation}) => {
               </TouchableOpacity>
             </View>
           </View>
-        )}
+        )} */}
       </ScrollView>
+
       {(bookingData?.status == 'pending' ||
         bookingData?.status == 'accepted') && (
         <View
@@ -477,6 +475,7 @@ const BookingDetails = ({route, navigation}) => {
           />
         </View>
       )}
+
       {bookingData?.status == 'on_the_way' && (
         <View
           style={{

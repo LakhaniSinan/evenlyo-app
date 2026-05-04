@@ -1,3 +1,4 @@
+import {pick, types} from '@react-native-documents/picker';
 import moment from 'moment';
 import React, {
   useCallback,
@@ -23,7 +24,6 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {pick, types} from '@react-native-documents/picker';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useSelector} from 'react-redux';
@@ -31,11 +31,9 @@ import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import CommonAlert from '../../../components/commanAlert';
 import EmojiPickerPopup from '../../../components/emojiModal';
-import ReportUserModal from '../../../components/reportClient';
-import GradientButton from '../../../components/button';
-import ChatCard from '../../../components/chatCard';
 import CustomOfferModal from '../../../components/modals/CustomOffers';
 import NewRequestModal from '../../../components/modals/RequestModal';
+import ReportUserModal from '../../../components/reportClient';
 import {COLORS, fontFamly} from '../../../constants';
 import {SocketContext} from '../../../context';
 import {helper} from '../../../helper';
@@ -59,8 +57,6 @@ const ChatDetail = ({navigation, route}) => {
   const {user} = useSelector(state => state.LoginSlice);
   const [attachedFile, setAttachedFile] = useState(null);
   const [conversation, setConversation] = useState(data);
-  console.log(user, 'conversationconversationconversationconversation');
-
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [isAcceptingOffer, setIsAcceptingOffer] = useState(false);
@@ -541,6 +537,8 @@ const ChatDetail = ({navigation, route}) => {
       const isPDF =
         item?.attachment?.type === 'file' ||
         item?.attachment?.url?.endsWith('.pdf');
+
+      console.log(item, 'itemitemitemitemitemitemitem');
 
       return (
         <>

@@ -7,6 +7,15 @@ import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import {COLORS, fontFamly} from '../../../constants';
 
+const parseFiniteNumber = value => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+const DEFAULT_MAP_COORDINATE = {
+  latitude: 24.8607,
+  longitude: 67.0011,
+};
+
 const TrackDirections = ({navigation, route}) => {
   const data = route.params;
   const mapRef = useRef(null);
@@ -20,10 +29,10 @@ const TrackDirections = ({navigation, route}) => {
     data?.details?.location?.coordinates?.longitude ??
     data?.listingDetails?.location?.coordinates?.longitude ??
     data?.location?.coordinates?.longitude;
-  const latitude = Number(rawLatitude);
-  const longitude = Number(rawLongitude);
-  const hasValidCoordinates =
-    Number.isFinite(latitude) && Number.isFinite(longitude);
+  const latitude = parseFiniteNumber(rawLatitude) ?? DEFAULT_MAP_COORDINATE.latitude;
+  const longitude =
+    parseFiniteNumber(rawLongitude) ?? DEFAULT_MAP_COORDINATE.longitude;
+  const hasValidCoordinates = true;
 
   const region = {
     latitude,
@@ -73,7 +82,6 @@ const TrackDirections = ({navigation, route}) => {
               coordinate={{latitude, longitude}}
               title="Event Location"
               description={data?.eventLocation}
-              image={ICONS.locationWithoutBg}
             />
           )}
         </MapView>

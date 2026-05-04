@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import React, {useEffect, useRef, useState} from 'react';
+import {statusCodes} from '@react-native-google-signin/google-signin';
 import {
   ScrollView,
   StyleSheet,
@@ -132,9 +133,13 @@ const LoginScreen = ({navigation, route}) => {
       setIsLoading(true);
       await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
       const userInfo = await GoogleSignin.signIn();
-      let user = userInfo?.data?.user;
+      let user = userInfo?.data?.user || userInfo?.user;
 
       if (!user) {
+        modalRef.current.show({
+          status: 'error',
+          message: 'Unable to get Google account details. Please try again.',
+        });
         return;
       }
 
@@ -167,6 +172,31 @@ const LoginScreen = ({navigation, route}) => {
       }
     } catch (error) {
       console.log('Google Sign-In error:', error);
+      if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
+        return;
+      }
+      if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        modalRef.current.show({
+          status: 'error',
+          message: 'Google Play Services are not available on this device.',
+        });
+        return;
+      }
+      if (error?.code === statusCodes.IN_PROGRESS) {
+        return;
+      }
+      if (error?.code === statusCodes.DEVELOPER_ERROR) {
+        modalRef.current.show({
+          status: 'error',
+          message:
+            'Google Sign-In is not configured for this APK signature. Please contact support.',
+        });
+        return;
+      }
+      modalRef.current.show({
+        status: 'error',
+        message: 'Google Sign-In failed. Please try again.',
+      });
     } finally {
       setIsLoading(false);
     }
