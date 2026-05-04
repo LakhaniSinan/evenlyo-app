@@ -52,7 +52,8 @@ const AuthStack = () => {
       initialRouteName="Onboarding"
       screenOptions={{
         headerShown: false,
-        cardStyle: {backgroundColor: '#FFFFFF'},
+        // Let each screen (e.g. Background + LinearGradient) own the color; white card hid iOS gradients.
+        cardStyle: {backgroundColor: 'transparent'},
         ...MyTransition,
       }}>
       <Stack.Screen name="Onboarding" component={Onboarding} />

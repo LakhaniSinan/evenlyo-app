@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -6,30 +6,29 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {width} from 'react-native-dimension';
+import { width } from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
-import {ICONS} from '../../assets';
+import { ICONS } from '../../assets';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
 import CommonAlert from '../../components/commanAlert';
-import GradientText from '../../components/gradiantText';
 import Header from '../../components/header';
 import Loader from '../../components/loder';
 import ContactNumberInput from '../../components/phoneInput';
 import TextField from '../../components/textInput';
-import {COLORS, fontFamly} from '../../constants';
-import {useTranslation} from '../../hooks';
-import {forgotUser} from '../../services/Auth';
-import {globalStyles} from '../../styles/globalStyle';
+import { COLORS, fontFamly } from '../../constants';
+import { useTranslation } from '../../hooks';
+import { forgotUser } from '../../services/Auth';
+import { globalStyles } from '../../styles/globalStyle';
 
-const ForgotPasswordScreen = ({route, navigation}) => {
-  const {type} = route.params;
+const ForgotPasswordScreen = ({ route, navigation }) => {
+  const { type } = route.params;
   const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef(null);
   const [activeTab, setActiveTab] = useState('phone'); // 'phone' or 'email'
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
-  const {t} = useTranslation();
+  const { t, currentLanguage } = useTranslation();
 
   const handleBack = () => {
     navigation.goBack();
@@ -62,16 +61,16 @@ const ForgotPasswordScreen = ({route, navigation}) => {
       if (response?.status == 200 || response?.status == 201) {
         modalRef.current.show({
           status: 'ok',
-          message: response.data.message,
+          message: response?.data?.message?.en ? currentLanguage == 'en' ? response?.data?.message?.en : response?.data?.message?.nl : response?.data?.message,
           handlePressOk: () => {
             modalRef.current.hide();
-            navigation.navigate('ForgotPasswordOtpScreen', {email: email});
+            navigation.navigate('ForgotPasswordOtpScreen', { email: email });
           },
         });
       } else {
         modalRef.current.show({
           status: 'error',
-          message: response.data.message,
+          message: response?.data?.message?.en ? currentLanguage == 'en' ? response?.data?.message?.en : response?.data?.message?.nl : response?.data?.message,
         });
       }
     } catch (error) {
@@ -82,21 +81,25 @@ const ForgotPasswordScreen = ({route, navigation}) => {
 
   return (
     <Background>
-      <ScrollView style={{flex: 1, width: width(90)}}>
-        <View style={{flex: 1, paddingVertical: width(20)}}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.column}>
           <Header languageModal={false} />
           <View
             style={{
-              width: width(90),
+              width: '100%',
               backgroundColor: COLORS.backgroundLight,
               borderRadius: width(5),
               padding: width(4),
-              marginTop: width(20),
+              marginTop: width(12),
               marginBottom: width(10),
-              height: width(90),
+              minHeight: width(90),
             }}>
             <Text
-              style={[globalStyles.title, {fontSize: 20, textAlign: 'center'}]}>
+              style={[globalStyles.title, { fontSize: 20, textAlign: 'center' }]}>
               {t('verification')}
             </Text>
             <View style={styles.tabContainer}>
@@ -107,8 +110,8 @@ const ForgotPasswordScreen = ({route, navigation}) => {
                     : ['#fff', '#fff', '#fff']
                 }
                 style={styles.tabGradient}
-                start={{x: 0, y: 0}}
-                end={{x: 0, y: 1}}>
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}>
                 <TouchableOpacity
                   style={styles.tab}
                   onPress={() => setActiveTab('phone')}>
@@ -129,8 +132,8 @@ const ForgotPasswordScreen = ({route, navigation}) => {
                     : ['#fff', '#fff', '#fff']
                 }
                 style={styles.tabGradient}
-                start={{x: 0, y: 0}}
-                end={{x: 0, y: 1}}>
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}>
                 <TouchableOpacity
                   style={styles.tab}
                   onPress={() => setActiveTab('email')}>
@@ -144,7 +147,7 @@ const ForgotPasswordScreen = ({route, navigation}) => {
                 </TouchableOpacity>
               </LinearGradient>
             </View>
-            <View style={{gap: 10, marginTop: width(1)}}>
+            <View style={{ gap: 10, marginTop: width(1) }}>
               {activeTab === 'phone' ? (
                 <ContactNumberInput
                   labelText={t('phoneNumber')}
@@ -172,24 +175,31 @@ const ForgotPasswordScreen = ({route, navigation}) => {
               )}
             </View>
             <View style={styles.buttonContainer}>
-              <GradientButton
-                text={<GradientText text={t('back')} />}
-                onPress={() => navigation.goBack()}
-                type="outline"
-                styleProps={{
-                  paddingVertical: 14,
-                }}
-                gradientColors={['#FF295D', '#E31B95', '#C817AE']}
-                icon={ICONS.backIcon}
-              />
 
-              <GradientButton
-                text={t('continue')}
-                onPress={handleContinue}
-                type="filled"
-                gradientColors={['#FF295D', '#E31B95', '#C817AE']}
-                styleProps={{flex: 1}}
-              />
+              <View style={{ width: width(30) }}>
+                <GradientButton
+                  text={t('back')}
+                  useGradient
+                  onPress={() => navigation.goBack()}
+                  type="outline"
+                  styleProps={{
+                    paddingVertical: 10,
+                  }}
+                  textStyle={{ fontSize: 13, fontFamily: fontFamly.PlusJakartaSansBold }}
+                  gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+                  icon={ICONS.backIcon}
+                />
+              </View>
+
+              <View style={{ width: width(40) }}>
+                <GradientButton
+                  text={t('continue')}
+                  onPress={handleContinue}
+                  type="filled"
+                  gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+                  styleProps={{ flex: 1 }}
+                />
+              </View>
             </View>
           </View>
         </View>
@@ -201,6 +211,20 @@ const ForgotPasswordScreen = ({route, navigation}) => {
 };
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingVertical: width(8),
+    paddingBottom: width(10),
+  },
+  column: {
+    width: width(90),
+    alignSelf: 'center',
+  },
   tabContainer: {
     flexDirection: 'row',
     borderRadius: width(5),

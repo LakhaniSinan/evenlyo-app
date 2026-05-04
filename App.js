@@ -1,12 +1,15 @@
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {StripeProvider} from '@stripe/stripe-react-native';
 import React, {useEffect} from 'react';
-import {Platform, SafeAreaView, StatusBar} from 'react-native';
+import {Platform, StatusBar} from 'react-native';
 import 'react-native-gesture-handler';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {Provider as PaperProvider} from 'react-native-paper';
 import NotificationPopup from 'react-native-push-notification-popup';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+} from 'react-native-safe-area-context';
 import {Provider, useDispatch} from 'react-redux';
 import LocationInitializer from './src/components/LocationInitializer';
 import {notifications} from './src/constants/Variable';
@@ -19,7 +22,6 @@ import './src/services/i18n';
 
 const AppContent = () => {
   const dispatch = useDispatch();
-  const insets = useSafeAreaInsets();
   const {fetchNotifications} = useNotifications();
 
   useEffect(() => {
@@ -39,11 +41,10 @@ const AppContent = () => {
   }, [dispatch, fetchNotifications]);
 
   return (
-    <SafeAreaView
-      style={{flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom}}>
+    <SafeAreaView style={{flex: 1}} edges={['top', 'right', 'left', 'bottom']}>
       <StatusBar
         barStyle={Platform.OS === 'ios' ? 'dark-content' : 'light-content'}
-        translucent
+        translucent={Platform.OS === 'android'}
         backgroundColor="transparent"
       />
       <LocationInitializer />
@@ -56,18 +57,20 @@ const AppContent = () => {
 const App = () => {
   return (
     <GestureHandlerRootView style={{flex: 1}}>
-      <Provider store={store}>
-        <SocketProvider>
-          <PaperProvider>
-            <StripeProvider
-              publishableKey={
-                'pk_test_51S5mMXIUXgoWiMw14oUpuKyQawd4L7FDZNzS7O99qwoERe5PBh9lTVlc38G3AMKDvHIdMmIQa6NHfs5IvG8zacPy00P8gvRAl9'
-              }>
-              <AppContent />
-            </StripeProvider>
-          </PaperProvider>
-        </SocketProvider>
-      </Provider>
+      <SafeAreaProvider>
+        <Provider store={store}>
+          <SocketProvider>
+            <PaperProvider>
+              <StripeProvider
+                publishableKey={
+                  'pk_test_51S5mMXIUXgoWiMw14oUpuKyQawd4L7FDZNzS7O99qwoERe5PBh9lTVlc38G3AMKDvHIdMmIQa6NHfs5IvG8zacPy00P8gvRAl9'
+                }>
+                <AppContent />
+              </StripeProvider>
+            </PaperProvider>
+          </SocketProvider>
+        </Provider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 };

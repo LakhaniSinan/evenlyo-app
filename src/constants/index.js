@@ -90,3 +90,10 @@ export const fontFamly = {
   PlusJakartaSansSemiRegular: 'PlusJakartaSans-Regular',
   PlusJakartaSansSemiMedium: 'PlusJakartaSans-Medium',
 };
+
+/** Onboarding / auth screen background (match Android) */
+export const SCREEN_BACKGROUND_GRADIENT_COLORS = ['#FDE3F0', '#FFFFFF'];
+
+/** Primary CTA + outline border (pink → magenta → purple, same on both platforms) */
+export const BRAND_BUTTON_GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
+export const BRAND_BUTTON_GRADIENT_LOCATIONS = [0, 0.48, 1];

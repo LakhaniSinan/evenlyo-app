@@ -1,19 +1,18 @@
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import PhoneInput from 'react-native-phone-number-input';
 import {fontFamly} from '../../constants';
 
-const ContactNumberInput = ({
+const ContactNumberInput = forwardRef(({
   labelColor,
   phoneNumber,
   value, // ✅ controlled value
-  ref,
   containerStyle,
   onChange,
   labelText,
   endIcon,
-}) => {
+}, inputRef) => {
   return (
     <View style={styles.container}>
       <Text
@@ -26,7 +25,7 @@ const ContactNumberInput = ({
       </Text>
 
       <PhoneInput
-        ref={ref}
+        ref={inputRef}
         defaultCode="US"
         layout="first"
         withShadow={false}
@@ -47,7 +46,7 @@ const ContactNumberInput = ({
       {endIcon && <View>{endIcon}</View>}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

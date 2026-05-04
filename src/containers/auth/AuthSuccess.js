@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {Image, ScrollView, Text, View} from 'react-native';
+import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
 import Background from '../../components/background';
@@ -27,21 +27,13 @@ const AuthSuccess = ({route, navigation}) => {
 
   return (
     <Background>
-      <ScrollView style={{flex: 1, width: width(90)}}>
-        <View style={{flex: 1, paddingVertical: width(20)}}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.container}>
           <Header languageModal={false} />
-          <View
-            style={{
-              width: width(90),
-              backgroundColor: COLORS.backgroundLight,
-              borderRadius: width(5),
-              padding: width(4),
-              marginTop: width(20),
-              marginBottom: width(10),
-              height: width(90),
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
+          <View style={styles.card}>
             <Text
               style={[
                 globalStyles.title,
@@ -60,5 +52,32 @@ const AuthSuccess = ({route, navigation}) => {
     </Background>
   );
 };
+
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  container: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: width(20),
+  },
+  card: {
+    width: width(90),
+    backgroundColor: COLORS.backgroundLight,
+    borderRadius: width(5),
+    padding: width(4),
+    marginTop: width(20),
+    marginBottom: width(10),
+    minHeight: width(90),
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+  },
+});
 
 export default AuthSuccess;
