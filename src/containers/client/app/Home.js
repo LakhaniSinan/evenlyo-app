@@ -1,7 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import messaging from '@react-native-firebase/messaging';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FlatList, Image, Text, TouchableOpacity, View} from 'react-native';
+import {
+  FlatList,
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {width} from 'react-native-dimension';
 import {useDispatch, useSelector} from 'react-redux';
 import {ICONS, IMAGES} from '../../../assets';
@@ -20,6 +27,7 @@ import SubCategories from '../../../components/subCategories';
 import {COLORS, fontFamly} from '../../../constants';
 import {helper} from '../../../helper';
 import useCategories from '../../../hooks/getCategories';
+import {getMessagingOrNull} from '../../../utils/firebaseMessagingSafe';
 import useTranslation from '../../../hooks/useTranslation';
 import {setCartData} from '../../../redux/slice/cart';
 import {
@@ -50,8 +58,13 @@ const Home = ({navigation, route}) => {
     useCategories();
 
   useEffect(() => {
+    const msg = getMessagingOrNull();
+    if (!msg) {
+      return undefined;
+    }
+
     // App launch se pehle ki notification handle
-    messaging()
+    msg
       .getInitialNotification()
       .then(remoteMessage => {
         if (remoteMessage) {
@@ -62,17 +75,15 @@ const Home = ({navigation, route}) => {
       .catch(console.error);
 
     // App background se open hone pe notification
-    const unsubscribeOpened = messaging().onNotificationOpenedApp(
-      remoteMessage => {
-        if (remoteMessage) {
-          const {title, body} = remoteMessage.notification || {};
-          console.log('Notification Opened:', title, body);
-        }
-      },
-    );
+    const unsubscribeOpened = msg.onNotificationOpenedApp(remoteMessage => {
+      if (remoteMessage) {
+        const {title, body} = remoteMessage.notification || {};
+        console.log('Notification Opened:', title, body);
+      }
+    });
 
     // App foreground me notification receive hone pe
-    const unsubscribeForeground = messaging().onMessage(remoteMessage => {
+    const unsubscribeForeground = msg.onMessage(remoteMessage => {
       const {title, body} = remoteMessage.notification || {};
       helper.notificationCall(title, body, () => {});
     });
@@ -533,9 +544,17 @@ const Home = ({navigation, route}) => {
         ...(item?.radius && {radius: Number(item?.radius)}),
       };
       setRefreshing(true);
-      const response = await getHomeData(params);
+      const [response, relevantVendorsRes] = await Promise.all([
+        getHomeData(params),
+        getVendorsBySubCategory(selected?._id),
+      ]);
       if (response.status === 200 || response.status === 201) {
-        setHomeData(response?.data?.data || []);
+        setHomeData({
+          bookingItems: response?.data?.data?.bookingItems || [],
+          saleItems: response?.data?.data?.saleItems || [],
+          otherSaleItemms: response?.data?.data?.otherSaleItemms || [],
+          releventVendors: relevantVendorsRes?.data?.data || [],
+        });
         setPlatformFeePercentage(
           response?.data?.data?.saleItems?.platformFeePercentage || 0,
         );
@@ -555,7 +574,7 @@ const Home = ({navigation, route}) => {
   };
 
   return (
-    <>
+    <SafeAreaView style={styles.container}>
       <FlatList
         data={[
           {type: 'header'},
@@ -570,6 +589,8 @@ const Home = ({navigation, route}) => {
           {type: 'relevant'},
           {type: 'eventCard'},
         ]}
+        style={styles.list}
+        contentContainerStyle={styles.listContent}
         renderItem={renderItem}
         keyExtractor={(_, index) => index.toString()}
         refreshing={refreshing}
@@ -599,8 +620,21 @@ const Home = ({navigation, route}) => {
         onClose={() => setShowRegisterModal(!showRegisterModal)}
         handlePressFun={handlePressFun}
       />
-    </>
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+  },
+  list: {
+    flex: 1,
+  },
+  listContent: {
+    paddingBottom: width(6),
+  },
+});
 
 export default Home;

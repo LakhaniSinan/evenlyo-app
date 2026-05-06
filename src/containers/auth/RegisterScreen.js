@@ -1,5 +1,7 @@
-import React, {useRef, useState} from 'react';
+import React, { useRef, useState } from 'react';
 import {
+  KeyboardAvoidingView,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -7,8 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {width} from 'react-native-dimension';
-import {ICONS} from '../../assets';
+import { width } from 'react-native-dimension';
+import { ICONS } from '../../assets';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
 import CommonAlert from '../../components/commanAlert';
@@ -17,19 +19,19 @@ import Header from '../../components/header';
 import Loader from '../../components/loder';
 import ContactNumberInput from '../../components/phoneInput';
 import TextField from '../../components/textInput';
-import {COLORS, SIZES} from '../../constants';
+import { COLORS, SIZES } from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
-import {registerUser} from '../../services/Auth';
-import {globalStyles} from '../../styles/globalStyle';
+import { registerUser } from '../../services/Auth';
+import { globalStyles } from '../../styles/globalStyle';
 // import {loginUser, registerUser} from '../../api/auth';
 // import {setUserData} from '../../redux/slices/authSlice';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 // import {useDispatch} from 'react-redux';
 
-const RegisterScreen = ({navigation}) => {
+const RegisterScreen = ({ navigation }) => {
   const phoneInput = useRef(null);
   const modalRef = useRef(null);
-  const {t, currentLanguage} = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   // const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +46,7 @@ const RegisterScreen = ({navigation}) => {
   });
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({...prev, [field]: value}));
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const validateFields = fields => {
@@ -86,7 +88,7 @@ const RegisterScreen = ({navigation}) => {
     ]);
 
     if (error) {
-      modalRef.current.show({status: 'error', message: error});
+      modalRef.current.show({ status: 'error', message: error });
       return;
     }
 
@@ -142,108 +144,115 @@ const RegisterScreen = ({navigation}) => {
   const navigateToLogin = () => navigation.goBack();
 
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <Background>
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}>
-          <Header languageModal={true} />
-          <Text style={globalStyles.title}>{t('registerToAccount')}</Text>
+        <KeyboardAvoidingView
+          style={styles.keyboardContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
+            <Header languageModal={true} />
+            <Text style={globalStyles.title}>{t('registerToAccount')}</Text>
 
-          <View style={styles.form}>
-            {/* First Name */}
-            <TextField
-              label={t('firstName')}
-              placeholder={t('firstNamePlaceholder')}
-              value={formData.firstName}
-              onChangeText={val => handleInputChange('firstName', val)}
-            />
+            <View style={styles.form}>
+              {/* First Name */}
+              <TextField
+                label={t('firstName')}
+                placeholder={t('firstNamePlaceholder')}
+                value={formData.firstName}
+                onChangeText={val => handleInputChange('firstName', val)}
+              />
 
-            <View style={{height: 10}} />
-            {/* Last Name */}
-            <TextField
-              label={t('lastName')}
-              placeholder={t('lastNamePlaceholder')}
-              value={formData.lastName}
-              onChangeText={val => handleInputChange('lastName', val)}
-            />
+              <View style={{ height: 10 }} />
+              {/* Last Name */}
+              <TextField
+                label={t('lastName')}
+                placeholder={t('lastNamePlaceholder')}
+                value={formData.lastName}
+                onChangeText={val => handleInputChange('lastName', val)}
+              />
 
-            <View style={{height: 10}} />
-            {/* Email */}
-            <TextField
-              label={t('emailAddress')}
-              placeholder={t('emailPlaceholder')}
-              value={formData.email}
-              onChangeText={val => handleInputChange('email', val)}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+              <View style={{ height: 10 }} />
+              {/* Email */}
+              <TextField
+                label={t('emailAddress')}
+                placeholder={t('emailPlaceholder')}
+                value={formData.email}
+                onChangeText={val => handleInputChange('email', val)}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
 
-            {/* Address */}
-            <TextField
-              label={t('Address')}
-              placeholder={t('Please enter your address')}
-              value={formData.address}
-              onChangeText={val => handleInputChange('address', val)}
-              keyboardType="address"
-              autoCapitalize="none"
-            />
+              {/* Address */}
+              <TextField
+                label={t('Address')}
+                placeholder={t('Please enter your address')}
+                value={formData.address}
+                onChangeText={val => handleInputChange('address', val)}
+                keyboardType="default"
+                autoCapitalize="none"
+              />
 
-            <View style={{height: 10}} />
-            {/* Contact Number */}
-            <ContactNumberInput
-              labelText={t('contactNumber')}
-              labelColor={'#000'}
-              phoneNumber={formData.contact}
-              onChange={val => handleInputChange('contact', val)}
-              ref={phoneInput}
-              containerStyle={{backgroundColor: COLORS.backgroundLight}}
-            />
+              <View style={{ height: 10 }} />
+              {/* Contact Number */}
+              <ContactNumberInput
+                labelText={t('contactNumber')}
+                labelColor={'#000'}
+                phoneNumber={formData.contact}
+                onChange={val => handleInputChange('contact', val)}
+                ref={phoneInput}
+                containerStyle={{ backgroundColor: COLORS.backgroundLight }}
+              />
 
-            <View style={{height: 10}} />
+              <View style={{ height: 10 }} />
 
-            <TextField
-              label={t('password')}
-              placeholder={t('passwordPlaceholder')}
-              value={formData.password}
-              onChangeText={val => handleInputChange('password', val)}
-              keyboardType="default"
-              autoCapitalize="none"
-              secure={showPassword}
-              endIcon={ICONS.eyeIcon}
-              onEndIconPress={() => setShowPassword(!showPassword)}
-            />
+              <TextField
+                label={t('password')}
+                placeholder={t('passwordPlaceholder')}
+                value={formData.password}
+                onChangeText={val => handleInputChange('password', val)}
+                keyboardType="default"
+                autoCapitalize="none"
+                secure={showPassword}
+                endIcon={ICONS.eyeIcon}
+                onEndIconPress={() => setShowPassword(!showPassword)}
+              />
 
-            <View style={{height: 10}} />
-            {/* Confirm Password */}
-            <TextField
-              label={t('password')}
-              placeholder={t('passwordPlaceholder')}
-              value={formData.confirmPassword}
-              onChangeText={val => handleInputChange('confirmPassword', val)}
-              keyboardType="default"
-              autoCapitalize="none"
-              secure={showPassword}
-              endIcon={ICONS.eyeIcon}
-              onEndIconPress={() => setShowPassword(!showPassword)}
-            />
-            <View style={{height: 25}} />
-            <GradientButton
-              text={t('register')}
-              onPress={handleRegister}
-              type="filled"
-              gradientColors={['#FF295D', '#E31B95', '#C817AE']}
-            />
-          </View>
+              <View style={{ height: 10 }} />
+              {/* Confirm Password */}
+              <TextField
+                label={t('confirmPassword')}
+                placeholder={t('passwordPlaceholder')}
+                value={formData.confirmPassword}
+                onChangeText={val => handleInputChange('confirmPassword', val)}
+                keyboardType="default"
+                autoCapitalize="none"
+                secure={showPassword}
+                endIcon={ICONS.eyeIcon}
+                onEndIconPress={() => setShowPassword(!showPassword)}
+              />
+              <View style={{ height: 25 }} />
+              <GradientButton
+                text={t('register')}
+                onPress={handleRegister}
+                type="filled"
+                gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+              />
+            </View>
 
-          <View style={{height: 10}} />
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>{t('alreadyHaveAccount')}</Text>
-            <TouchableOpacity onPress={navigateToLogin}>
-              <GradientText text={t('login')} />
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+            <View style={{ height: 10 }} />
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>{t('alreadyHaveAccount')}</Text>
+              <TouchableOpacity onPress={navigateToLogin}>
+                <GradientText text={t('login')} />
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Background>
       <Loader isLoading={isLoading} />
       <CommonAlert ref={modalRef} />
@@ -252,15 +261,17 @@ const RegisterScreen = ({navigation}) => {
 };
 
 const styles = StyleSheet.create({
-  scrollView: {flex: 1},
-  form: {marginBottom: SIZES.lg, marginTop: 20},
+  scrollView: { flex: 1, paddingHorizontal: width(4) },
+  keyboardContainer: { flex: 1 },
+  scrollContent: { paddingBottom: 24 },
+  form: { marginBottom: SIZES.lg, marginTop: 20 },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: width(2),
   },
-  footerText: {color: COLORS.textLight, fontSize: 14},
+  footerText: { color: COLORS.textLight, fontSize: 14 },
 });
 
 export default RegisterScreen;

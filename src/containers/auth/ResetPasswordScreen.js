@@ -1,24 +1,29 @@
-import React, {useRef, useState} from 'react';
-import {ScrollView, Text, View} from 'react-native';
-import {width} from 'react-native-dimension';
+import React, { useRef, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { width } from 'react-native-dimension';
+import { ICONS } from '../../assets';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
 import CommonAlert from '../../components/commanAlert';
 import Header from '../../components/header';
 import Loader from '../../components/loder';
 import TextField from '../../components/textInput';
-import {COLORS, fontFamly} from '../../constants';
-import {useTranslation} from '../../hooks';
-import {resetPassword} from '../../services/Auth';
-import {globalStyles} from '../../styles/globalStyle';
+import { COLORS, fontFamly } from '../../constants';
+import { useTranslation } from '../../hooks';
+import { resetPassword } from '../../services/Auth';
+import { globalStyles } from '../../styles/globalStyle';
 
-const ResetPasswordScreen = ({route, navigation}) => {
-  const {type} = route.params;
-  const {t} = useTranslation();
+const ResetPasswordScreen = ({ route, navigation }) => {
+  console.log(route.params,'route.paramsroute.paramsroute.params');
+  
+  const { type, resetToken, email } = route.params;
+  const { t, currentLanguage } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef(null);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [hidePassword, setHidePassword] = useState(true);
+  const [hideConfirmPassword, setHideConfirmPassword] = useState(true);
 
   const handleContinue = async () => {
     if (password == '' || confirmPassword == '') {
@@ -39,17 +44,30 @@ const ResetPasswordScreen = ({route, navigation}) => {
     } else {
       try {
         setIsLoading(true);
-        const response = await resetPassword({password: password});
+        let params = {
+          password: password,
+          resetToken: resetToken,
+          email: email,
+        };
+        const response = await resetPassword(params);
         setIsLoading(false);
         if (response?.status == 200 || response?.status == 201) {
           navigation.navigate('AuthSuccess', {
             type: type,
-            message: response?.data?.message,
+            message: response?.data?.message?.en
+              ? currentLanguage == 'en'
+                ? response?.data?.message?.en
+                : response?.data?.message?.nl
+              : response?.data?.message,
           });
         } else {
           modalRef.current.show({
             status: 'error',
-            message: response?.data?.message,
+            message: response?.data?.message?.en
+              ? currentLanguage == 'en'
+                ? response?.data?.message?.en
+                : response?.data?.message?.nl
+              : response?.data?.message,
           });
         }
       } catch (error) {
@@ -61,25 +79,29 @@ const ResetPasswordScreen = ({route, navigation}) => {
 
   return (
     <Background>
-      <ScrollView style={{flex: 1, width: width(90)}}>
-        <View style={{flex: 1, paddingVertical: width(20)}}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.column}>
           <Header languageModal={false} />
 
           <View
             style={{
-              width: width(90),
+              width: '100%',
               backgroundColor: COLORS.backgroundLight,
               borderRadius: width(5),
               padding: width(4),
-              marginTop: width(20),
+              marginTop: width(12),
               marginBottom: width(10),
             }}>
             <Text
-              style={[globalStyles.title, {fontSize: 20, textAlign: 'center'}]}>
+              style={[globalStyles.title, { fontSize: 20, textAlign: 'center' }]}>
               {t('resetPass')}
             </Text>
 
-            <View style={{marginTop: 10}}>
+            <View style={{ marginTop: 10 }}>
               <TextField
                 label={t('enterPasswrod')}
                 placeholder={t('passwordPlaceholder')}
@@ -88,8 +110,12 @@ const ResetPasswordScreen = ({route, navigation}) => {
                 bgColor={COLORS.white}
                 value={password}
                 onChangeText={setPassword}
+                secure={hidePassword}
+                endIcon={ICONS.eyeIcon}
+                onEndIconPress={() => setHidePassword(!hidePassword)}
               />
 
+              <View style={{ height: 10 }} />
               <TextField
                 label={t('reEnterPassword')}
                 placeholder={t('passwordPlaceholder')}
@@ -98,10 +124,15 @@ const ResetPasswordScreen = ({route, navigation}) => {
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 bgColor={COLORS.white}
+                secure={hideConfirmPassword}
+                endIcon={ICONS.eyeIcon}
+                onEndIconPress={() =>
+                  setHideConfirmPassword(!hideConfirmPassword)
+                }
               />
             </View>
 
-            <View style={{marginTop: width(4)}}>
+            <View style={{ marginTop: width(4) }}>
               <GradientButton
                 text={t('continue')}
                 onPress={handleContinue}
@@ -120,5 +151,22 @@ const ResetPasswordScreen = ({route, navigation}) => {
     </Background>
   );
 };
+
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingVertical: width(8),
+    paddingBottom: width(10),
+  },
+  column: {
+    width: width(90),
+    alignSelf: 'center',
+  },
+});
 
 export default ResetPasswordScreen;

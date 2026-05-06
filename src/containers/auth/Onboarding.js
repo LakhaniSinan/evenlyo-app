@@ -4,7 +4,11 @@ import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
-import {COLORS, fontFamly} from '../../constants';
+import {
+  BRAND_BUTTON_GRADIENT_COLORS,
+  COLORS,
+  fontFamly,
+} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
 const Onboarding = ({navigation}) => {
@@ -12,7 +16,7 @@ const Onboarding = ({navigation}) => {
 
   return (
     <Background>
-      <View style={{flex: 1, justifyContent: 'space-around'}}>
+      <View style={styles.screen}>
         <View style={styles.logoContainer}>
           <Image
             source={ICONS.logoIcon}
@@ -28,14 +32,14 @@ const Onboarding = ({navigation}) => {
             text={t('continueAsClient')}
             onPress={() => navigation.navigate('Login', {type: 'client'})}
             type="filled"
-            gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+            gradientColors={BRAND_BUTTON_GRADIENT_COLORS}
           />
 
           <GradientButton
             text={t('continueAsVendor')}
             onPress={() => navigation.navigate('Login', {type: 'vendor'})}
             type="outline"
-            gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+            gradientColors={BRAND_BUTTON_GRADIENT_COLORS}
           />
         </View>
       </View>
@@ -44,9 +48,17 @@ const Onboarding = ({navigation}) => {
 };
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'space-between',
+    paddingTop: width(6),
+    paddingBottom: width(6),
+  },
   logoContainer: {
-    marginTop: 100,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexGrow: 1,
   },
   title: {
     fontSize: 24,

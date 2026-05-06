@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -6,14 +6,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {width} from 'react-native-dimension';
+import { width } from 'react-native-dimension';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {ICONS} from '../../assets';
-import {COLORS, fontFamly} from '../../constants';
-import {useTranslation} from '../../hooks';
-import {register, registerUser} from '../../services/Auth';
-import {globalStyles} from '../../styles/globalStyle';
+import { ICONS } from '../../assets';
+import { COLORS, fontFamly } from '../../constants';
+import { useTranslation } from '../../hooks';
+import { register, registerUser } from '../../services/Auth';
+import { globalStyles } from '../../styles/globalStyle';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
 import GradientText from '../gradiantText';
@@ -22,8 +22,8 @@ import OTPInputScreen from '../otpScreen';
 import ContactNumberInput from '../phoneInput';
 import TextField from '../textInput';
 
-const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
-  const {t, currentLanguage} = useTranslation();
+const RegistrationModal = ({ onClose, isVisible, handlePressFun }) => {
+  const { t, currentLanguage } = useTranslation();
   const modalRef = useRef(null);
   const [showOtp, setShowOtp] = useState(false);
   const phoneInput = useRef(null);
@@ -41,7 +41,7 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
   });
 
   const handleInputChange = (field, value) =>
-    setFormData(prev => ({...prev, [field]: value}));
+    setFormData(prev => ({ ...prev, [field]: value }));
 
   const validateFields = () => {
     const {
@@ -82,7 +82,7 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
   const handleRegister = async () => {
     const error = validateFields();
     if (error) {
-      return modalRef.current.show({status: 'error', message: error});
+      return modalRef.current.show({ status: 'error', message: error });
     }
 
     try {
@@ -98,7 +98,7 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
       };
 
       const response = await registerUser(payload);
-      const {status, data} = response || {};
+      const { status, data } = response || {};
 
       if (status === 200 || status === 201) {
         modalRef.current.show({
@@ -135,9 +135,10 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
   };
   const handleResendCode = async () => {
     try {
-      setIsLoading(true);
-      const response = await registerUser({email: formData.email});
-
+      // setIsLoading(true);
+      const response = await registerUser({ email: formData.email });
+      console.log(response, 'responseresponseresponse');
+      return
       setIsLoading(false);
       if (response?.status == 200 || response?.status == 201) {
         modalRef.current.show({
@@ -233,7 +234,7 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{paddingBottom: 40}}>
+          contentContainerStyle={{ paddingBottom: 40 }}>
           {!showOtp ? (
             <View style={styles.form}>
               {[
@@ -258,7 +259,7 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
                   label: t('Address'),
                   placeholder: t('Please enter your address'),
                 },
-              ].map(({key, ...props}) => (
+              ].map(({ key, ...props }) => (
                 <View key={key} style={styles.inputGap}>
                   <TextField
                     {...props}
@@ -276,7 +277,7 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
                   phoneNumber={formData.contact}
                   onChange={val => handleInputChange('contact', val)}
                   ref={phoneInput}
-                  containerStyle={{backgroundColor: COLORS.backgroundLight}}
+                  containerStyle={{ backgroundColor: COLORS.backgroundLight }}
                 />
               </View>
 
@@ -316,7 +317,7 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
               />
             </View>
           ) : (
-            <View style={{flex: 1, paddingVertical: width(20)}}>
+            <View style={{ flex: 1, paddingVertical: width(20) }}>
               <View
                 style={{
                   width: width(90),
@@ -330,7 +331,7 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
                 <Text
                   style={[
                     globalStyles.title,
-                    {fontSize: 20, textAlign: 'center'},
+                    { fontSize: 20, textAlign: 'center' },
                   ]}>
                   {t('enterCode')}
                 </Text>
@@ -338,7 +339,7 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
                   onResendPress={handleResendCode}
                   setOtp={setOtp}
                 />
-                <View style={{marginTop: width(4)}}>
+                <View style={{ marginTop: width(4) }}>
                   <GradientButton
                     onPress={handleVerifyOtp}
                     text={t('Verify OTP')}
@@ -371,7 +372,7 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
 export default RegistrationModal;
 
 const styles = StyleSheet.create({
-  modal: {margin: 0, justifyContent: 'flex-end'},
+  modal: { margin: 0, justifyContent: 'flex-end' },
   container: {
     height: '90%',
     backgroundColor: COLORS.white,
@@ -387,8 +388,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  form: {marginTop: 20},
-  inputGap: {marginBottom: 12},
+  form: { marginTop: 20 },
+  inputGap: { marginBottom: 12 },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',

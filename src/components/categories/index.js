@@ -18,6 +18,9 @@ const Categories = ({data, selected, setSelected}) => {
       showsHorizontalScrollIndicator={false}
       renderItem={({item, index}) => {
         const isSelected = selected?._id === item?._id;
+        const cardHeight = 97;
+        const cardWidth = 120;
+
         const CardContent = () => (
           <View
             style={[
@@ -26,27 +29,23 @@ const Categories = ({data, selected, setSelected}) => {
                 backgroundColor: isSelected
                   ? 'transparent'
                   : COLORS.backgroundLight,
-                height: isSelected ? 84 : 97,
-                width: isSelected ? 99 : 120,
+                height: cardHeight,
+                width: cardWidth,
               },
             ]}>
             {isSelected ? (
               <LinearGradient
                 colors={['#FF295D', '#E31B95', '#C817AE']}
                 style={styles.activeIconWrapper}>
-                <SvgUri
-                  width={20}
-                  height={20}
-                  uri={item?.icon}
-                />
+                <View style={styles.iconCenter}>
+                  <SvgUri width={20} height={20} uri={item?.icon} />
+                </View>
               </LinearGradient>
             ) : (
               <View style={styles.iconWrapper}>
-                <SvgUri
-                  width={20}
-                  height={20}
-                  uri={item?.icon}
-                />
+                <View style={styles.iconCenter}>
+                  <SvgUri width={20} height={20} uri={item?.icon} />
+                </View>
               </View>
             )}
             <Text style={styles.cardText}>
@@ -70,7 +69,7 @@ const Categories = ({data, selected, setSelected}) => {
                 ]}
                 start={{x: 0, y: 0}}
                 end={{x: 1, y: 1}}
-                style={styles.gradientBorder}>
+                style={[styles.gradientBorder, {height: cardHeight + 6, width: cardWidth + 6}]}>
                 <View style={styles.innerCard}>
                   <CardContent />
                 </View>
@@ -89,13 +88,17 @@ const styles = StyleSheet.create({
   gradientBorder: {
     padding: 1.5,
     borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   innerCard: {
     backgroundColor: COLORS.backgroundLight,
     borderRadius: 10.5,
-    margin: 0.8,
+    margin: 0.5,
     borderWidth: 4,
     borderColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   card: {
     marginHorizontal: 5,
@@ -119,6 +122,12 @@ const styles = StyleSheet.create({
     height: 32,
     width: 32,
     borderRadius: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconCenter: {
+    height: 20,
+    width: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },

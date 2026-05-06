@@ -7,6 +7,7 @@ import Geolocation from 'react-native-geolocation-service';
 import {check, PERMISSIONS} from 'react-native-permissions';
 import {ICONS} from '../assets';
 import {notifications} from '../constants/Variable';
+import {getMessagingOrNull} from '../utils/firebaseMessagingSafe';
 
 // ✅ Your Cloudinary Config
 const CLOUD_NAME = 'dv0imczul';
@@ -47,7 +48,11 @@ export const helper = {
     try {
       // 🍎 iOS
       if (Platform.OS === 'ios') {
-        const authStatus = await messaging().requestPermission();
+        const msg = getMessagingOrNull();
+        if (!msg) {
+          return 'denied';
+        }
+        const authStatus = await msg.requestPermission();
         const enabled =
           authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
           authStatus === messaging.AuthorizationStatus.PROVISIONAL;
@@ -78,10 +83,14 @@ export const helper = {
 
   async getFCMToken() {
     try {
+      const msg = getMessagingOrNull();
+      if (!msg) {
+        return null;
+      }
       // iOS ke liye required
-      await messaging().registerDeviceForRemoteMessages();
+      await msg.registerDeviceForRemoteMessages();
 
-      const fcmToken = await messaging().getToken();
+      const fcmToken = await msg.getToken();
 
       console.log('🔥 FCM TOKEN:', fcmToken);
       return fcmToken;

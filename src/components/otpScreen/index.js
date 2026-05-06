@@ -35,11 +35,6 @@ export default function OTPInputScreen({onResendPress ,setOtp}) {
           <Text style={styles.timerText2}>Resend Code</Text>
         </TouchableOpacity>
       )}
-      {timer == 0 && (
-        <TouchableOpacity>
-          <Text style={styles.timerText2}>Call Request</Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 }

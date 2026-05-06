@@ -1,12 +1,13 @@
 import React from 'react';
-import {Text, View, StyleSheet} from 'react-native';
+import {StyleSheet, Text} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
-import {fontFamly} from '../../constants';
+import {BRAND_BUTTON_GRADIENT_COLORS, fontFamly} from '../../constants';
 
 const GradientText = ({text, customStyles}) => {
   return (
     <MaskedView
+      style={styles.maskWrapper}
       maskElement={
         <Text
           style={[styles.text, customStyles, {backgroundColor: 'transparent'}]}>
@@ -14,18 +15,23 @@ const GradientText = ({text, customStyles}) => {
         </Text>
       }>
       <LinearGradient
-        colors={['#FF295D', '#E31B95', '#C817AE']}
+        colors={BRAND_BUTTON_GRADIENT_COLORS}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}>
-        <Text style={[styles.text, {opacity: 0}]}>{text}</Text>
+        <Text style={[styles.text, customStyles, {opacity: 0}]}>{text}</Text>
       </LinearGradient>
     </MaskedView>
   );
 };
 
 const styles = StyleSheet.create({
+  maskWrapper: {
+    flexShrink: 0,
+    alignSelf: 'center',
+  },
   text: {
     textAlign: 'center',
+    fontSize: 13,
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
 });
