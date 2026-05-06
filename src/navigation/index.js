@@ -10,6 +10,11 @@ import VendorDetailStack from './vendorStack/VendorDetailStack';
 const AppNavigator = () => {
   const {user} = useSelector(state => state.LoginSlice);
   const {fetchProfile} = useProfile();
+  const normalizedUserType = user?.userType?.toLowerCase();
+  const isClient = normalizedUserType === 'client';
+  const isVendor = normalizedUserType === 'vendor';
+  const isVendorRoleUser = Array.isArray(user?.pages);
+  const shouldOpenVendorDetails = isVendor && user?.vendorDetails == null && !isVendorRoleUser;
 
   useEffect(() => {
     user && fetchProfile();
@@ -19,11 +24,11 @@ const AppNavigator = () => {
     <NavigationContainer>
       {!user ? (
         <AuthStack />
-      ) : user?.userType == 'client' ? (
+      ) : isClient ? (
         <ClientAppStack />
-      ) : user?.userType == 'vendor' && user?.vendorDetails == null ? (
+      ) : shouldOpenVendorDetails ? (
         <VendorDetailStack />
-      ) : user?.userType == 'vendor' ? (
+      ) : isVendor || isVendorRoleUser ? (
         <VendorAppStack />
       ) : (
         <AuthStack />

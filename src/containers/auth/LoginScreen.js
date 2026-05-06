@@ -64,7 +64,6 @@ const LoginScreen = ({ navigation, route }) => {
   };
 
   const handleLogin = async () => {
-    console.log(email, password, 'isVisibleisVisible');
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (email.trim() === '') {
       modalRef.current.show({

@@ -7,14 +7,26 @@ import {IMAGES} from '../../../assets';
 import {COLORS, fontFamly} from '../../../constants';
 
 const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
+const VENDOR_PAGE_KEYS = {
+  DASHBOARD: 'dashboard',
+  ANALYTICS_REPORTS: 'analytics_reports',
+  CHAT: 'chat',
+  PAYMENT_MANAGEMENT: 'payment_management',
+};
 
 const CustomDrawer = ({navigation}) => {
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const {user} = useSelector(state => state.LoginSlice);
+  const allowedPages = (user?.pages || []).map(page => page?.toLowerCase());
+  const hasRoleBasedPages = Array.isArray(user?.pages);
+  const hasPageAccess = pageKey =>
+    hasRoleBasedPages ? allowedPages.includes(pageKey) : true;
+
   const iconsToRender = [
-    {
+    hasPageAccess(VENDOR_PAGE_KEYS.DASHBOARD) && {
       label: 'Dashboard',
       onPress: () => {
-        setActiveIndex(0);
         navigation.reset({
           index: 0,
           routes: [
@@ -29,21 +41,18 @@ const CustomDrawer = ({navigation}) => {
         });
       },
     },
-    {
+    hasPageAccess(VENDOR_PAGE_KEYS.ANALYTICS_REPORTS) && {
       label: 'Analytics',
       onPress: () => {
-        setActiveIndex(1);
         navigation.navigate('Dashboard', {
           screen: 'Home',
           params: {screen: 'AnalyticsReport'},
         });
       },
     },
-
-    {
+    hasPageAccess(VENDOR_PAGE_KEYS.CHAT) && {
       label: 'Messages',
       onPress: () => {
-        setActiveIndex(2);
         navigation.navigate('Dashboard', {
           screen: 'Home',
           params: {screen: 'Messages'},
@@ -51,17 +60,13 @@ const CustomDrawer = ({navigation}) => {
       },
       // badge: 6, // example notification
     },
-    {
+    hasPageAccess(VENDOR_PAGE_KEYS.PAYMENT_MANAGEMENT) && {
       label: 'Payment Management',
       onPress: () => {
-        setActiveIndex(3);
         navigation.navigate('VendorPaymentManagement');
       },
     },
-  ];
-
-  const {user} = useSelector(state => state.LoginSlice);
-  console.log(user, 'userDatauserDatauserDatauserData');
+  ].filter(Boolean);
 
   return (
     <View style={styles.drawerContent}>
@@ -86,7 +91,10 @@ const CustomDrawer = ({navigation}) => {
             <TouchableOpacity
               key={index}
               style={styles.menuWrapper}
-              onPress={item.onPress}>
+              onPress={() => {
+                setActiveIndex(index);
+                item.onPress();
+              }}>
               {isActive ? (
                 <LinearGradient
                   colors={GRADIENT_COLORS}
