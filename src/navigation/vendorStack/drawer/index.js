@@ -13,6 +13,9 @@ import BookingItems from '../../../containers/vendor/app/BookingItems';
 import OfferPreviewScreen from '../../../containers/vendor/app/OfferPreviewScreen';
 import VendorStripeConnectScreen from '../../../containers/vendor/app/VendorStripeConnectScreen';
 import VendorPaymentManagementScreen from '../../../containers/vendor/app/VendorPaymentManagementScreen';
+import VendorRoleManagementScreen from '../../../containers/vendor/app/VendorRoleManagementScreen';
+import CreateVendorDesignationScreen from '../../../containers/vendor/app/CreateVendorDesignationScreen';
+import CreateVendorRoleScreen from '../../../containers/vendor/app/CreateVendorRoleScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -125,6 +128,18 @@ function CustomerDrawer() {
       <Drawer.Screen
         name="VendorPaymentManagement"
         component={VendorPaymentManagementScreen}
+      />
+      <Drawer.Screen
+        name="VendorRoleManagement"
+        component={VendorRoleManagementScreen}
+      />
+      <Drawer.Screen
+        name="CreateVendorDesignation"
+        component={CreateVendorDesignationScreen}
+      />
+      <Drawer.Screen
+        name="CreateVendorRole"
+        component={CreateVendorRoleScreen}
       />
     </Drawer.Navigator>
   );

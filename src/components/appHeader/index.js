@@ -18,6 +18,8 @@ const AppHeader = ({
   setCommentType,
   commentType,
   handleSelectOption,
+  /** When set, overrides default header bar color (e.g. white for Role Management). */
+  backgroundColor,
 }) => {
   const {t} = useTranslation();
   const [openMenu, setOpenMenu] = useState(false);
@@ -82,7 +84,7 @@ const AppHeader = ({
   return (
     <View
       style={{
-        backgroundColor: COLORS.backgroundLight,
+        backgroundColor: backgroundColor ?? COLORS.backgroundLight,
         height: 73,
         borderBottomLeftRadius: 20,
         borderBottomRightRadius: 20,

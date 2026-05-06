@@ -119,6 +119,14 @@ export const endPoints = {
   payoutOrders: vendorId => `/admin/payments/${vendorId}/payout-orders`,
   disbursePayments: vendorId => `/admin/payments/${vendorId}/disburse-payments`,
 
+  vendorCreateDesignation: '/vendor/create-designation',
+  vendorFetchDesignations: vendorId =>
+    `/vendor/fetch-designations/${vendorId}`,
+  vendorUpdateDesignation: designationId =>
+    `/vendor/update-designation/${designationId}`,
+  vendorDeleteDesignation: designationId =>
+    `/vendor/delete-designation/${designationId}`,
+
   messages: {
     all: (id, userId) => `/messages/${id}/${userId}`,
     delete: (conversationId, userId) => `/messages/${conversationId}/${userId}`,
