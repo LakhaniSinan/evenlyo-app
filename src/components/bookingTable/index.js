@@ -78,6 +78,12 @@ const BookingTable = ({data, canDownload, onSelectionChange}) => {
     return `Showing ${start} to ${end} of ${bookingRows.length} bookings`;
   };
 
+  const formatCost = value => {
+    const numericValue = Number(value);
+    if (Number.isNaN(numericValue)) return '0.00';
+    return numericValue.toFixed(2);
+  };
+
   const renderItem = ({item}) => {
     const rowId = item?._id || item?.trackingId;
     const checked = selectedIds.includes(rowId);
@@ -102,7 +108,7 @@ const BookingTable = ({data, canDownload, onSelectionChange}) => {
             : item?.listingDetails?.title?.nl}
         </Text>
         <Text style={[styles.cell, styles.costCell]}>
-          € {item.pricingBreakdown?.total ?? 0}
+          € {formatCost(item?.pricingBreakdown?.total)}
         </Text>
         {canDownload && (
           <TouchableOpacity

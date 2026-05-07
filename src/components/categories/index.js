@@ -4,6 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {SvgUri} from 'react-native-svg';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {width} from 'react-native-dimension';
 
 const isSafeSvgUri = uri =>
   typeof uri === 'string' &&
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
   },
   selectedCardBorder: {
     width: 118,
-    minHeight: 104,
+    height: width(28),
     borderWidth: 1.5,
     borderColor: COLORS.primary,
     borderRadius: 10,
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: 118,
-    minHeight: 104,
+    height: width(28),
     paddingHorizontal: 10,
     paddingVertical: 10,
     justifyContent: 'center',
