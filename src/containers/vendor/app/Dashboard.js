@@ -108,7 +108,6 @@ const Dashboard = () => {
   const handleGetDashboard = useCallback(async () => {
     try {
       const response = await getDashboard();
-      console.log(response, 'responseresponseresponseresponseresponseresponse');
 
       if (response?.status === 200 || response?.status === 201) {
         setDashboardData(response?.data || null);

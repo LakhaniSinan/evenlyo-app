@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   Image,
@@ -8,19 +8,19 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
-import {width} from 'react-native-dimension';
-import {ICONS, IMAGES} from '../../../assets';
+import { width } from 'react-native-dimension';
+import { ICONS, IMAGES } from '../../../assets';
 import FilterModal from '../../../components/modals/FilterModal';
 import TextField from '../../../components/textInput';
-import {COLORS, fontFamly} from '../../../constants';
-import {useTranslation} from '../../../hooks';
+import { COLORS, fontFamly } from '../../../constants';
+import { useTranslation } from '../../../hooks';
 import useNotifications from '../../../hooks/notifications';
-import {formatRelativeTime} from '../../../utils';
+import { formatRelativeTime } from '../../../utils';
 
-const Notification = ({navigation}) => {
+const Notification = ({ navigation }) => {
   const [isModalVisible, setModalVisible] = useState(false);
-  const {t, currentLanguage} = useTranslation();
-  const {fetchNotifications, loading, notification} = useNotifications();
+  const { t, currentLanguage } = useTranslation();
+  const { fetchNotifications, loading, notification } = useNotifications();
 
   // Skeleton items for loading
   const skeletonData = useMemo(() => Array(6).fill({}), []);
@@ -35,11 +35,11 @@ const Notification = ({navigation}) => {
   );
 
   const renderItem = useCallback(
-    ({item, index}) => {
+    ({ item, index }) => {
       if (loading) {
         return (
           <View style={styles.itemContainer}>
-            <View style={[styles.imageWrapper, {backgroundColor: '#eee'}]} />
+            <View style={[styles.imageWrapper, { backgroundColor: '#eee' }]} />
             <View style={styles.messageContainer}>
               <View
                 style={{
@@ -122,7 +122,7 @@ const Notification = ({navigation}) => {
               <View style={styles.headerSpacer} />
             </View>
 
-            <View style={styles.searchContainer}>
+            {/* <View style={styles.searchContainer}>
               <TextField
                 placeholder={t('searchEvent')}
                 placeholderTextColor="#aaa"
@@ -131,7 +131,7 @@ const Notification = ({navigation}) => {
                 inputContainer={styles.inputContainer}
                 styleProps={styles.inputText}
               />
-            </View>
+            </View> */}
           </View>
         }
         data={loading ? skeletonData : notification}
@@ -161,6 +161,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.backgroundLight,
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
+    paddingVertical: width(2),
   },
   headerTop: {
     paddingVertical: width(2),
@@ -170,13 +171,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  backIcon: {width: 40, height: 40},
+  backIcon: { width: 40, height: 40 },
   headerTitle: {
     fontFamily: fontFamly.PlusJakartaSansBold,
     fontSize: 16,
     color: COLORS.black,
   },
-  headerSpacer: {width: 40},
+  headerSpacer: { width: 40 },
   searchContainer: {
     flex: 1,
     width: '100%',
@@ -193,8 +194,8 @@ const styles = StyleSheet.create({
     width: '95%',
     marginTop: 0,
   },
-  inputText: {fontSize: 14, color: '#000'},
-  listContent: {paddingBottom: 10},
+  inputText: { fontSize: 14, color: '#000' },
+  listContent: { paddingBottom: 10 },
   emptyContainer: {
     padding: 30,
     alignItems: 'center',
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
     alignItems: 'center',
   },
-  leftContainer: {flexDirection: 'row'},
+  leftContainer: { flexDirection: 'row' },
   imageWrapper: {
     height: width(13),
     width: width(13),
@@ -219,7 +220,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  image: {height: '100%', width: '100%', borderRadius: 100},
+  image: { height: '100%', width: '100%', borderRadius: 100 },
   statusDot: {
     position: 'absolute',
     bottom: 0,
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginHorizontal: width(1),
   },
-  bellIcon: {height: width(3), width: width(3), marginTop: width(1)},
+  bellIcon: { height: width(3), width: width(3), marginTop: width(1) },
 });
 
 export default Notification;

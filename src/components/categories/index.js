@@ -1,12 +1,30 @@
 import React from 'react';
-import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {SvgUri} from 'react-native-svg';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 
+const isSafeSvgUri = uri =>
+  typeof uri === 'string' &&
+  /^https?:\/\//i.test(uri.trim()) &&
+  uri.toLowerCase().includes('.svg');
+
 const Categories = ({data, selected, setSelected}) => {
   const {currentLanguage} = useTranslation();
+  const renderCategoryIcon = icon => {
+    if (!isSafeSvgUri(icon)) {
+      return <View style={styles.iconFallback} />;
+    }
+
+    return <SvgUri width={16} height={16} uri={encodeURI(icon.trim())} />;
+  };
 
   return (
     <FlatList
@@ -24,33 +42,26 @@ const Categories = ({data, selected, setSelected}) => {
             style={styles.cardTouchable}
             onPress={() => setSelected(item)}>
             {isSelected ? (
-              <LinearGradient
-                colors={['#FFFFFF', '#FFE6F1', '#FF4D88', '#C817AE']}
-                locations={[0, 0.22, 0.62, 1]}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 1}}
-                style={styles.gradientBorder}>
-                <View style={styles.innerCard}>
-                  <View style={styles.card}>
-                    <LinearGradient
-                      colors={['#FF295D', '#E31B95', '#C817AE']}
-                      style={styles.activeIconWrapper}>
-                      <View style={styles.iconCenter}>
-                        <SvgUri width={16} height={16} uri={item?.icon} />
-                      </View>
-                    </LinearGradient>
-                    <Text style={styles.cardText}>
-                      {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
-                    </Text>
-                  </View>
+              <View style={styles.selectedCardBorder}>
+                <View style={[styles.card, styles.selectedCard]}>
+                  <LinearGradient
+                    colors={['#FF295D', '#E31B95', '#C817AE']}
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 1}}
+                    style={[styles.iconWrapper, styles.activeIconWrapper]}>
+                    <View style={styles.iconCenter}>
+                      {renderCategoryIcon(item?.icon)}
+                    </View>
+                  </LinearGradient>
+                  <Text style={styles.cardText}>
+                    {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
+                  </Text>
                 </View>
-              </LinearGradient>
+              </View>
             ) : (
               <View style={styles.card}>
                 <View style={styles.iconWrapper}>
-                  <View style={styles.iconCenter}>
-                    <SvgUri width={16} height={16} uri={item?.icon} />
-                  </View>
+                  <View style={styles.iconCenter}>{renderCategoryIcon(item?.icon)}</View>
                 </View>
                 <Text style={styles.cardText}>
                   {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
@@ -72,26 +83,27 @@ const styles = StyleSheet.create({
   cardTouchable: {
     marginRight: 10,
   },
-  gradientBorder: {
-    padding: 1.5,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  innerCard: {
+  selectedCardBorder: {
+    width: 118,
+    minHeight: 104,
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+    borderRadius: 10,
+    padding: 1,
     backgroundColor: COLORS.backgroundLight,
-    borderRadius: 12,
-    borderWidth: 2.2,
-    borderColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  selectedCard: {
+    borderWidth: 0,
+    borderRadius: 9,
+    overflow: 'hidden',
   },
   card: {
     width: 118,
     minHeight: 104,
     paddingHorizontal: 10,
-    paddingVertical: 10,
-    justifyContent: 'center',
+    paddingVertical: 12,
+    justifyContent: 'flex-start',
     alignItems: 'center',
     borderRadius: 10,
     backgroundColor: COLORS.backgroundLight,
@@ -105,11 +117,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   activeIconWrapper: {
-    height: 48,
-    width: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   iconCenter: {
     height: 20,
@@ -117,12 +125,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  iconFallback: {
+    height: 14,
+    width: 14,
+    borderRadius: 7,
+    backgroundColor: '#DADADA',
+  },
   cardText: {
     textAlign: 'center',
     fontSize: 11,
     lineHeight: 14,
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
-    marginTop: 8,
+    marginTop: 10,
     color: COLORS.textDark,
   },
 });

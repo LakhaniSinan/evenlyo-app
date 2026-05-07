@@ -10,6 +10,12 @@ import {
   SafeAreaProvider,
   SafeAreaView,
 } from 'react-native-safe-area-context';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import {Provider, useDispatch} from 'react-redux';
 import LocationInitializer from './src/components/LocationInitializer';
 import {notifications} from './src/constants/Variable';
@@ -39,6 +45,20 @@ const AppContent = () => {
       console.log('GoogleSignin init error', e);
     }
   }, [dispatch, fetchNotifications]);
+
+  useEffect(() => {
+    // Ensure icon fonts are loaded before first render (especially on iOS).
+    Promise.all([
+      Ionicons.loadFont(),
+      MaterialIcons.loadFont(),
+      MaterialCommunityIcons.loadFont(),
+      AntDesign.loadFont(),
+      EvilIcons.loadFont(),
+      SimpleLineIcons.loadFont(),
+    ]).catch(error => {
+      console.log('Vector icon font loading error:', error);
+    });
+  }, []);
 
   return (
     <SafeAreaView style={{flex: 1}} edges={['top', 'right', 'left', 'bottom']}>

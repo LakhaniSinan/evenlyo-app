@@ -57,6 +57,8 @@ const Home = ({navigation, route}) => {
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const {categories, subCategories, fetchCategories, fetchSubCategories} =
     useCategories();
+  const hasSubCategories =
+    Array.isArray(subCategories) && subCategories.length > 0;
 
   useEffect(() => {
     const msg = getMessagingOrNull();
@@ -120,10 +122,22 @@ const Home = ({navigation, route}) => {
           setSubCategoriesSelected(subRes.data[0]);
         } else {
           setSubCategoriesSelected(null);
+          setHomeData({
+            bookingItems: [],
+            saleItems: [],
+            otherSaleItemms: [],
+            releventVendors: [],
+          });
         }
       } catch (error) {
         if (isMounted) {
           setSubCategoriesSelected(null);
+          setHomeData({
+            bookingItems: [],
+            saleItems: [],
+            otherSaleItemms: [],
+            releventVendors: [],
+          });
         }
       } finally {
         if (isMounted) {
@@ -469,6 +483,9 @@ const Home = ({navigation, route}) => {
         );
 
       case 'subcategories':
+        if (!hasSubCategories) {
+          return null;
+        }
         return (
           <SubCategories
             data={subCategories}
@@ -631,7 +648,7 @@ const Home = ({navigation, route}) => {
         data={[
           {type: 'header'},
           {type: 'categories'},
-          {type: 'subcategories'},
+          ...(hasSubCategories ? [{type: 'subcategories'}] : []),
           // {type: 'popular'},
           // {type: 'popularCard'},
           {type: 'bookingItem'},

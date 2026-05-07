@@ -77,27 +77,54 @@ function CartScreen({navigation}) {
 
   const handlePayAmount = async () => {
     if (!selectedData) {
+      modalRef.current?.show({
+        status: 'error',
+        message: 'Please select a booking first.',
+      });
       return;
     }
     try {
+      setIsLoadding(true);
       const response = await getAmountToPay(selectedData?._id);
       console.log(response, 'responseresponseresponseresponseresponse');
 
-      if (response.status == 200 || response?.status === 201) {
-        setIsLoadding(true);
-        setAmountToPay(response?.data?.amountToPay?.toFixed(2));
+      if (response?.status === 200 || response?.status === 201) {
+        const payableAmount = Number(response?.data?.amountToPay || 0);
+        if (!payableAmount) {
+          modalRef.current?.show({
+            status: 'error',
+            message: response?.data?.message || t('somethingWentWrong'),
+          });
+          return;
+        }
+
+        setAmountToPay(payableAmount.toFixed(2));
         const res = await createPaymentIntent({
-          amount: response?.data?.amountToPay?.toFixed(2),
+          amount: payableAmount.toFixed(2),
           bookingId: selectedData?._id,
         });
         if (res?.data?.clientSecret) {
           setPayModalVisible(true);
           const clientSecretValue = res.data.clientSecret;
           setClientSecret(clientSecretValue);
+        } else {
+          modalRef.current?.show({
+            status: 'error',
+            message: res?.data?.message || t('somethingWentWrong'),
+          });
         }
+      } else {
+        modalRef.current?.show({
+          status: 'error',
+          message: response?.data?.message || t('somethingWentWrong'),
+        });
       }
     } catch (err) {
       console.log('PAYMENT INTENT ERROR', err);
+      modalRef.current?.show({
+        status: 'error',
+        message: t('somethingWentWrong'),
+      });
     } finally {
       setIsLoadding(false);
     }

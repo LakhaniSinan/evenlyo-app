@@ -103,7 +103,6 @@ const LoginScreen = ({navigation, route}) => {
           type == 'client'
             ? await loginClient(payload)
             : await loginVendor(payload);
-        console.log(response, 'responseresponseresponseresponseresponse');
 
         let data = response?.data?.user;
         setIsLoading(false);

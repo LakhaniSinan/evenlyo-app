@@ -102,7 +102,7 @@ const EventListingScreen = ({navigation}) => {
             All Booking Items
           </Text>
 
-          <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
+          <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
             <Image
               style={{width: 40, height: 40}}
               source={ICONS.notificationIcon}

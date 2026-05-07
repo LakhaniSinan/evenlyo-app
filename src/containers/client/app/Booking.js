@@ -58,28 +58,30 @@ const capitalizeFirstLetter = text => {
 
 const TabItem = React.memo(({label, active, onPress}) => {
   const displayLabel = capitalizeFirstLetter(label);
+  const tabLabel = (
+    <Text
+      style={active ? styles.activeText : styles.inactiveText}
+      numberOfLines={1}
+      ellipsizeMode="tail">
+      {displayLabel}
+    </Text>
+  );
 
   return (
     <TouchableOpacity activeOpacity={0.8} onPress={onPress}>
       {active ? (
-        <LinearGradient
-          colors={['#FF295D', '#E31B95', '#C817AE']}
-          style={styles.activeTab}>
-          <Text
-            style={styles.activeText}
-            numberOfLines={1}
-            ellipsizeMode="tail">
-            {displayLabel}
-          </Text>
-        </LinearGradient>
+        <View style={styles.activeTab}>
+          <LinearGradient
+            colors={['#FF295D', '#E31B95', '#C817AE']}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 0}}
+            style={styles.activeTabGradient}
+          />
+          {tabLabel}
+        </View>
       ) : (
         <View style={styles.inactiveTab}>
-          <Text
-            style={styles.inactiveText}
-            numberOfLines={1}
-            ellipsizeMode="tail">
-            {displayLabel}
-          </Text>
+          {tabLabel}
         </View>
       )}
     </TouchableOpacity>
@@ -469,10 +471,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 12,
+    overflow: 'hidden',
     marginRight: 10,
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: width(30),
+  },
+  activeTabGradient: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 12,
   },
 
   buttonContainer: {
