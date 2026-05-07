@@ -27,13 +27,53 @@ import {
 import {getDistance} from '../../../utils';
 
 const DEFAULT_MAP_COORDINATE = {
-  latitude: 24.8607,
-  longitude: 67.0011,
+  latitude: 24.860966,
+  longitude: 67.001137,
 };
 
 const parseFiniteNumber = value => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+};
+
+const getResolvedMapCoordinates = listingData => {
+  const locationCoordinates = listingData?.location?.coordinates;
+  const nestedCoordinates = locationCoordinates?.coordinates;
+
+  const latitudeCandidates = [
+    listingData?.eventLatitude,
+    listingData?.latitude,
+    locationCoordinates?.latitude,
+    locationCoordinates?.lat,
+    Array.isArray(locationCoordinates) ? locationCoordinates[1] : null,
+    Array.isArray(nestedCoordinates) ? nestedCoordinates[1] : null,
+  ];
+
+  const longitudeCandidates = [
+    listingData?.eventLongitude,
+    listingData?.longitude,
+    locationCoordinates?.longitude,
+    locationCoordinates?.lng,
+    locationCoordinates?.lon,
+    Array.isArray(locationCoordinates) ? locationCoordinates[0] : null,
+    Array.isArray(nestedCoordinates) ? nestedCoordinates[0] : null,
+  ];
+
+  const latitude =
+    latitudeCandidates.map(parseFiniteNumber).find(v => v !== null) ??
+    DEFAULT_MAP_COORDINATE.latitude;
+  const longitude =
+    longitudeCandidates.map(parseFiniteNumber).find(v => v !== null) ??
+    DEFAULT_MAP_COORDINATE.longitude;
+
+  const hasValidLatitude = latitude >= -90 && latitude <= 90;
+  const hasValidLongitude = longitude >= -180 && longitude <= 180;
+
+  if (!hasValidLatitude || !hasValidLongitude) {
+    return DEFAULT_MAP_COORDINATE;
+  }
+
+  return {latitude, longitude};
 };
 
 const getInitialMarkedDates = availableDays => {
@@ -79,55 +119,25 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
   const modalRef = useRef(null);
   const [responeData, setResponeData] = useState(null);
   const [isLoadding, setIsLoadding] = useState(false);
-  const mapRef = useRef(null);
-  const mapCoordinates = useMemo(() => {
-    const locationCoordinates = data?.location?.coordinates;
-    const latitudeCandidates = [
-      data?.eventLatitude,
-      locationCoordinates?.latitude,
-      Array.isArray(locationCoordinates) ? locationCoordinates[1] : null,
-    ];
-    const longitudeCandidates = [
-      data?.eventLongitude,
-      locationCoordinates?.longitude,
-      Array.isArray(locationCoordinates) ? locationCoordinates[0] : null,
-    ];
-
-    const latitude =
-      latitudeCandidates.map(parseFiniteNumber).find(v => v !== null) ??
-      DEFAULT_MAP_COORDINATE.latitude;
-    const longitude =
-      longitudeCandidates.map(parseFiniteNumber).find(v => v !== null) ??
-      DEFAULT_MAP_COORDINATE.longitude;
-
-    return {latitude, longitude};
-  }, [data]);
+  const mapCoordinates = useMemo(() => getResolvedMapCoordinates(data), [data]);
 
   const {latitude, longitude} = mapCoordinates;
-
-  const mapRegion = useMemo(() => {
-    return {
-      latitude: Number(latitude),
-      longitude: Number(longitude),
-
-      // 👇 zoom control (smaller = more zoom)
+  const markerCoordinate = useMemo(
+    () => ({
+      latitude: parseFiniteNumber(latitude) ?? DEFAULT_MAP_COORDINATE.latitude,
+      longitude: parseFiniteNumber(longitude) ?? DEFAULT_MAP_COORDINATE.longitude,
+    }),
+    [latitude, longitude],
+  );
+  const mapRegion = useMemo(
+    () => ({
+      latitude: markerCoordinate.latitude,
+      longitude: markerCoordinate.longitude,
       latitudeDelta: 0.002,
       longitudeDelta: 0.002,
-    };
-  }, [latitude, longitude]);
-  useEffect(() => {
-    if (mapRef.current && latitude && longitude) {
-      mapRef.current.animateToRegion(
-        {
-          latitude: Number(latitude),
-          longitude: Number(longitude),
-          latitudeDelta: 0.002,
-          longitudeDelta: 0.002,
-        },
-        500,
-      );
-    }
-  }, [latitude, longitude]);
+    }),
+    [markerCoordinate],
+  );
 
   const availableDays = useMemo(() => {
     const days = data?.availability?.availableDays || data?.availableDays || [];
@@ -706,14 +716,9 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
               marginTop: 10,
             }}>
             <MapView
-              ref={mapRef}
               style={{flex: 1}}
-              initialRegion={{
-                latitude: Number(latitude),
-                longitude: Number(longitude),
-                latitudeDelta: 0.002,
-                longitudeDelta: 0.002,
-              }}
+              initialRegion={mapRegion}
+              region={mapRegion}
               scrollEnabled={false}
               zoomEnabled={false}
               rotateEnabled={false}
@@ -723,12 +728,22 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
               showsCompass={false}
               showsScale={false}>
               <Marker
-                coordinate={{
-                  latitude: Number(latitude),
-                  longitude: Number(longitude),
-                }}
+                key={`${markerCoordinate.latitude}-${markerCoordinate.longitude}`}
+                coordinate={markerCoordinate}
                 title="Location"
-              />
+                pinColor="#FF295D"
+              >
+                <View
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: 9,
+                    backgroundColor: '#FF295D',
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                  }}
+                />
+              </Marker>
             </MapView>
           </View>
           {selectedTab == 'details' && (

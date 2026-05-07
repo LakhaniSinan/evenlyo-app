@@ -133,7 +133,7 @@ const GooglePlacesInput = ({
         setSelectedLocation({
           ...selectedLocation,
           userAddress: address,
-          latLng: {lat: latitude, lng: longitude},
+          latLng: {latitude, longitude},
         });
         callApi && callApi({lat: latitude, lng: longitude});
         setQuery(address);
@@ -210,9 +210,9 @@ const GooglePlacesInput = ({
               <AntDesign size={20} name="closecircleo" color={COLORS.black} />
             </TouchableOpacity>
           ) : (
-            <View>
+            <TouchableOpacity onPress={getUserLocationAcces}>
               <EvilIcons size={25} name="location" color={COLORS.black} />
-            </View>
+            </TouchableOpacity>
           )
         ) : null}
       </View>

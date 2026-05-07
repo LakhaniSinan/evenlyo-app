@@ -38,8 +38,13 @@ const UserLoginPlaceholder = ({onLoginPress}) => {
       <Text style={styles.placeholderSubtitle}>
         {t('Please login to access your profile details')}
       </Text>
-      <View style={{marginTop: 30, width: width(70)}}>
-        <GradientButton text={t('Login Now')} onPress={onLoginPress} />
+      <View style={{marginTop: 30, width: width(75)}}>
+        <GradientButton
+          text={t('Login Now')}
+          onPress={onLoginPress}
+          textStyle={styles.loginButtonText}
+          styleProps={styles.loginButtonInner}
+        />
       </View>
     </View>
   );
@@ -105,11 +110,24 @@ const Profile = () => {
     {name: t('Logout'), navigate: 'Logout', icon: ICONS.logout},
   ];
 
+  const getParsedToken = async () => {
+    const rawToken = await AsyncStorage.getItem('token');
+    if (!rawToken) {
+      return null;
+    }
+
+    try {
+      const parsedToken = JSON.parse(rawToken);
+      return parsedToken || null;
+    } catch (error) {
+      return rawToken;
+    }
+  };
+
   const checkUserLoggedIn = async () => {
     try {
       setCheckingAuth(true);
-
-      const token = await AsyncStorage.getItem('token');
+      const token = await getParsedToken();
       setIsLoggedIn(!!token);
     } catch (error) {
       console.log('Auth check error:', error);
@@ -129,6 +147,13 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      setIsLoggedIn(true);
+      setCheckingAuth(false);
+    }
+  }, [user]);
+
   const handlePressFun = type => {
     setShowLogin(false);
     setShowForgot(false);
@@ -142,7 +167,10 @@ const Profile = () => {
       setIsLoggedIn(true);
     }
 
-    checkUserLoggedIn();
+    // Token write can complete slightly after modal callbacks.
+    setTimeout(() => {
+      checkUserLoggedIn();
+    }, 300);
   };
 
   const handleNavigate = async navigate => {
@@ -179,9 +207,17 @@ const Profile = () => {
             key={item.name}
             onPress={() => navigation.navigate(item.navigate)}
             style={styles.optionContainer}>
-            <Image style={styles.optionIcon} source={item.icon} />
+            <Image
+              style={styles.optionIcon}
+              source={item.icon}
+              resizeMode="contain"
+            />
             <Text style={styles.optionText}>{item.name}</Text>
-            <Image style={styles.arrowIcon} source={ICONS.arrowRight} />
+            <Image
+              style={styles.arrowIcon}
+              source={ICONS.arrowRight}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
         ))}
       </View>
@@ -198,9 +234,17 @@ const Profile = () => {
             key={item.name}
             onPress={() => handleNavigate(item.navigate)}
             style={styles.optionContainer}>
-            <Image style={styles.optionIcon} source={item.icon} />
+            <Image
+              style={styles.optionIcon}
+              source={item.icon}
+              resizeMode="contain"
+            />
             <Text style={styles.optionText}>{item.name}</Text>
-            <Image style={styles.arrowIcon} source={ICONS.arrowRight} />
+            <Image
+              style={styles.arrowIcon}
+              source={ICONS.arrowRight}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
         ))}
       </View>
@@ -257,6 +301,19 @@ const styles = StyleSheet.create({
     color: '#777',
     marginTop: 8,
     fontFamily: fontFamly.PlusJakartaSansMedium,
+  },
+  loginButtonInner: {
+    paddingHorizontal: 10,
+    paddingVertical: width(2.6),
+  },
+
+  loginButtonText: {
+    fontSize: 14,
+    lineHeight: 18,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.white,
+    textAlign: 'center',
+    includeFontPadding: false,
   },
 
   userName: {

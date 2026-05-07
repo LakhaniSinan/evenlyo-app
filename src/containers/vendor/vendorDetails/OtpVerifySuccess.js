@@ -4,13 +4,14 @@ import {width} from 'react-native-dimension';
 import {useDispatch} from 'react-redux';
 import {ICONS} from '../../../assets';
 import Background from '../../../components/background';
+import GradientButton from '../../../components/button';
 import Header from '../../../components/header';
 import {COLORS} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {setUserData} from '../../../redux/slice/auth';
 import {globalStyles} from '../../../styles/globalStyle';
 
-const OtpVerifySuccess = ({}) => {
+const OtpVerifySuccess = ({navigation}) => {
   const dispatch = useDispatch();
 
   const {t} = useTranslation();
@@ -62,6 +63,15 @@ const OtpVerifySuccess = ({}) => {
               source={ICONS.checkIcon}
               resizeMode="contain"
               style={{height: 61, width: 61}}
+            />
+            <GradientButton
+              text={t('back')}
+              useGradient
+              onPress={() => navigation.goBack()}
+              type="outline"
+              gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+              icon={ICONS.backIcon}
+              styleProps={{paddingVertical: 14, marginTop: width(8)}}
             />
           </View>
         </View>

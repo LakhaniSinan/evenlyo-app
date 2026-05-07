@@ -5,7 +5,7 @@ import {Rating} from 'react-native-ratings';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
-const EventCard = ({item, navigation, platformFeePercentage}) => {
+const EventCard = ({item, navigation, platformFeePercentage, onPress}) => {
   const {currentLanguage, t} = useTranslation();
   const averageRating = Number(item?.rating?.average || 0);
   const totalReviews = Number(item?.rating?.totalReviews || 0);
@@ -13,8 +13,9 @@ const EventCard = ({item, navigation, platformFeePercentage}) => {
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() =>
-        navigation.navigate('VendorDetails', {...item, platformFeePercentage})
+      onPress={
+        onPress ||
+        (() => navigation.navigate('VendorDetails', {...item, platformFeePercentage}))
       }>
       <View
         style={{
@@ -48,26 +49,9 @@ const EventCard = ({item, navigation, platformFeePercentage}) => {
               fontFamily: fontFamly.PlusJakartaSansBold,
               color: COLORS.textDark,
               fontSize: 14,
-              // width: '60%',
             }}>
             {item?.businessName}
           </Text>
-          {/* <View
-            style={{
-              borderRadius: 100,
-              backgroundColor: 'rgba(4, 195, 115, 0.1)',
-            }}>
-            <Text
-              style={{
-                fontFamily: fontFamly.PlusJakartaSansBold,
-                color: COLORS.green,
-                fontSize: 10,
-                paddingHorizontal: width(5),
-                paddingVertical: width(2),
-              }}>
-              20%{t('Off')}
-            </Text>
-          </View> */}
         </View>
         <Text
           numberOfLines={2}

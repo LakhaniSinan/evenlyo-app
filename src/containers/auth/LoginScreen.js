@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import React, { useEffect, useRef, useState } from 'react';
-import { statusCodes } from '@react-native-google-signin/google-signin';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import React, {useEffect, useRef, useState} from 'react';
+import {statusCodes} from '@react-native-google-signin/google-signin';
 import {
   ScrollView,
   StyleSheet,
@@ -9,9 +9,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { width } from 'react-native-dimension';
-import { useDispatch } from 'react-redux';
-import { ICONS } from '../../assets';
+import {width} from 'react-native-dimension';
+import {useDispatch} from 'react-redux';
+import {ICONS} from '../../assets';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
 import CommonAlert from '../../components/commanAlert';
@@ -19,15 +19,20 @@ import GradientText from '../../components/gradiantText';
 import Header from '../../components/header';
 import Loader from '../../components/loder';
 import TextField from '../../components/textInput';
-import { BRAND_BUTTON_GRADIENT_COLORS, COLORS, fontFamly, SIZES } from '../../constants';
-import { helper } from '../../helper';
+import {
+  BRAND_BUTTON_GRADIENT_COLORS,
+  COLORS,
+  fontFamly,
+  SIZES,
+} from '../../constants';
+import {helper} from '../../helper';
 import useTranslation from '../../hooks/useTranslation';
-import { setUserData } from '../../redux/slice/auth';
-import { loginClient, loginVendor, socialLogin } from '../../services/Auth';
-import { globalStyles } from '../../styles/globalStyle';
+import {setUserData} from '../../redux/slice/auth';
+import {loginClient, loginVendor, socialLogin} from '../../services/Auth';
+import {globalStyles} from '../../styles/globalStyle';
 
-const LoginScreen = ({ navigation, route }) => {
-  const { type } = route.params;
+const LoginScreen = ({navigation, route}) => {
+  const {type} = route.params;
 
   const [fcm, setFcm] = useState('');
   const [email, setEmail] = useState('');
@@ -36,7 +41,7 @@ const LoginScreen = ({ navigation, route }) => {
   const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
-  const { t, currentLanguage } = useTranslation();
+  const {t, currentLanguage} = useTranslation();
 
   useEffect(() => {
     handleGetFCM();
@@ -130,7 +135,7 @@ const LoginScreen = ({ navigation, route }) => {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
       const userInfo = await GoogleSignin.signIn();
       let user = userInfo?.data?.user || userInfo?.user;
 
@@ -150,9 +155,11 @@ const LoginScreen = ({ navigation, route }) => {
         userType: type,
         picture: user?.photo,
       };
-      const response = await socialLogin({ userData: params, type: 'App' });
+      const response = await socialLogin({userData: params, type: 'App'});
       if (response?.status === 200 || response?.status === 201) {
         const data = response?.data?.user;
+        console.log(data, 'datadatadatadatadatadata');
+
         console.log('User data:', data);
         await AsyncStorage.setItem(
           'token',
@@ -230,7 +237,7 @@ const LoginScreen = ({ navigation, route }) => {
               keyboardType="email-address"
               autoCapitalize="none"
             />
-            <View style={{ height: 10 }} />
+            <View style={{height: 10}} />
             <TextField
               label={t('password')}
               placeholder={t('passwordPlaceholder')}
@@ -242,10 +249,10 @@ const LoginScreen = ({ navigation, route }) => {
               endIcon={ICONS.eyeIcon}
               onEndIconPress={() => setShowPassword(!showPassword)}
             />
-            <View style={{ height: 10 }} />
+            <View style={{height: 10}} />
             <TouchableOpacity
               onPress={() =>
-                navigation.navigate('ForgotPassword', { type: type })
+                navigation.navigate('ForgotPassword', {type: type})
               }>
               <GradientText
                 customStyles={{
@@ -255,22 +262,25 @@ const LoginScreen = ({ navigation, route }) => {
                 text={t('forgotPassword') + ' ?'}
               />
             </TouchableOpacity>
-            <View style={{ height: 25 }} />
+            <View style={{height: 25}} />
             <GradientButton
               text={t('login')}
               onPress={handleLogin}
               type="filled"
               gradientColors={BRAND_BUTTON_GRADIENT_COLORS}
+              styleContainer={styles.equalButtonContainer}
+              styleProps={styles.equalFilledButton}
             />
             {type === 'client' && (
               <>
-                <View style={{ height: 10 }} />
+                <View style={{height: 10}} />
                 <GradientButton
                   text={t('Skip')}
                   onPress={handleSkip}
                   type="outline"
-                  styleProps={{ backgroundColor: COLORS.backgroundLight }}
-                  iconPosition="left"
+                  styleContainer={styles.equalButtonContainer}
+                  styleProps={{flex: 1}}
+                  outlineButtonStyle={styles.equalOutlineButton}
                 />
               </>
             )}
@@ -289,7 +299,7 @@ const LoginScreen = ({ navigation, route }) => {
                 backgroundColor: COLORS.border,
               }}
             />
-            <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.text }}>
+            <Text style={{fontSize: 12, fontWeight: '600', color: COLORS.text}}>
               {t('or')}
             </Text>
             <View
@@ -300,15 +310,16 @@ const LoginScreen = ({ navigation, route }) => {
               }}
             />
           </View>
-          <View style={{ height: 25 }} />
+          <View style={{height: 25}} />
           {type == 'client' && (
             <GradientButton
               text={t('continueWithGoogle')}
               onPress={handleGoogleSignIn}
               type="outline"
-              styleProps={{ backgroundColor: COLORS.backgroundLight }}
+              styleContainer={styles.equalButtonContainer}
+              styleProps={{flex: 1}}
+              outlineButtonStyle={styles.equalOutlineButton}
               icon={ICONS.googleIcon}
-              iconPosition="left"
             />
           )}
           {/* <GradientButton
@@ -367,6 +378,18 @@ const styles = StyleSheet.create({
   form: {
     marginTop: SIZES.xxl,
     width: '100%',
+  },
+  equalButtonContainer: {
+    height: width(11),
+  },
+  equalOutlineButton: {
+    flex: 1,
+    paddingVertical: 0,
+    backgroundColor: COLORS.backgroundLight,
+  },
+  equalFilledButton: {
+    flex: 1,
+    paddingVertical: 0,
   },
   input: {
     backgroundColor: COLORS.backgroundLight,

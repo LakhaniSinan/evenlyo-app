@@ -91,14 +91,14 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
   );
 
   const handleContinue = () => {
-    if (!businessLogo) {
-      Alert.alert('Error', 'Please upload your business logo.');
-      return;
-    }
-    if (!bannerImage) {
-      Alert.alert('Error', 'Please upload your banner image.');
-      return;
-    }
+    // if (!businessLogo) {
+    //   Alert.alert('Error', 'Please upload your business logo.');
+    //   return;
+    // }
+    // if (!bannerImage) {
+    //   Alert.alert('Error', 'Please upload your banner image.');
+    //   return;
+    // }
 
     handleNextStep({
       businessLogo,
@@ -178,6 +178,9 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
           type="outline"
           gradientColors={['#FF295D', '#E31B95', '#C817AE']}
           icon={ICONS.backIcon}
+          styleProps={{flex: 1}}
+          outlineButtonStyle={{flex: 1, paddingVertical: 0}}
+          styleContainer={styles.backButton}
         />
         <GradientButton
           text={t('continue')}
@@ -186,6 +189,7 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
           gradientColors={['#FF295D', '#E31B95', '#C817AE']}
           styleProps={{flex: 1}}
           loading={isLoading}
+          styleContainer={styles.continueButton}
         />
       </View>
       <Loader isLoading={isLoading} />
@@ -263,6 +267,16 @@ const styles = StyleSheet.create({
     marginTop: width(8),
     gap: 10,
     justifyContent: 'flex-end',
+  },
+  backButton: {
+    flex: 1,
+    width: undefined,
+    height: width(11),
+  },
+  continueButton: {
+    flex: 1,
+    width: undefined,
+    height: width(11),
   },
 });
 

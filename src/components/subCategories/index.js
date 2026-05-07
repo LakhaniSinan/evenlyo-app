@@ -12,46 +12,38 @@ const SubCategories = ({data, subSelected, setsubSelected}) => {
       data={data}
       horizontal
       keyExtractor={(item, index) => index.toString()}
-      contentContainerStyle={{paddingHorizontal: 10}}
+      contentContainerStyle={styles.listContent}
       showsHorizontalScrollIndicator={false}
-      renderItem={({item, index}) => {
+      renderItem={({item}) => {
         const isSelected = subSelected?._id === item?._id;
 
-        const CardContent = () => (
-          <View
-            style={[
-              styles.card,
-              {
-                backgroundColor: isSelected
-                  ? 'transparent'
-                  : COLORS.backgroundLight,
-              },
-            ]}>
-            <View style={styles.iconWrapper}>
-              <Text style={{color: isSelected ? COLORS.white : COLORS.black}}>
-                <SvgUri width={20} height={20} uri={item?.icon} />
-              </Text>
-            </View>
-            <Text
-              style={[
-                styles.cardText,
-                {color: isSelected ? '#fff' : COLORS.textDark},
-              ]}>
-              {currentLanguage == 'en' ? item?.name?.en : item?.name?.nl}
-            </Text>
-          </View>
-        );
-
         return (
-          <TouchableOpacity onPress={() => setsubSelected(item)}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.pillTouchable}
+            onPress={() => setsubSelected(item)}>
             {isSelected ? (
               <LinearGradient
                 colors={['#FF295D', '#E31B95', '#C817AE']}
                 style={styles.gradientBorder}>
-                <CardContent />
+                <View style={[styles.card, styles.selectedCard]}>
+                  <View style={styles.selectedIconWrapper}>
+                    <SvgUri width={13} height={13} uri={item?.icon} />
+                  </View>
+                  <Text style={[styles.cardText, styles.selectedText]}>
+                    {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
+                  </Text>
+                </View>
               </LinearGradient>
             ) : (
-              <CardContent />
+              <View style={styles.card}>
+                <View style={styles.iconWrapper}>
+                  <SvgUri width={13} height={13} uri={item?.icon} />
+                </View>
+                <Text style={styles.cardText}>
+                  {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
+                </Text>
+              </View>
             )}
           </TouchableOpacity>
         );
@@ -61,35 +53,55 @@ const SubCategories = ({data, subSelected, setsubSelected}) => {
 };
 
 const styles = StyleSheet.create({
+  listContent: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  pillTouchable: {
+    marginRight: 10,
+  },
   gradientBorder: {
-    padding: 0.8,
-    borderRadius: 12,
+    padding: 1,
+    borderRadius: 10,
   },
   card: {
-    marginHorizontal: 5,
+    minWidth: 108,
+    height: 44,
     paddingHorizontal: 10,
-    height: 38,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: 9,
     flexDirection: 'row',
+    backgroundColor: COLORS.backgroundLight,
+  },
+  selectedCard: {
+    backgroundColor: 'transparent',
   },
   iconWrapper: {
-    height: 25,
-    width: 25,
+    height: 22,
+    width: 22,
+    borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 5,
+    marginRight: 6,
+    backgroundColor: COLORS.white,
   },
-  icon: {
-    height: 12,
-    width: 12,
-    resizeMode: 'contain',
+  selectedIconWrapper: {
+    height: 22,
+    width: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
+    backgroundColor: COLORS.white,
   },
   cardText: {
-    textAlign: 'center',
     fontSize: 10,
-    fontFamily: fontFamly.PlusJakartaSansSemiMedium,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
+    color: COLORS.textDark,
+  },
+  selectedText: {
+    color: COLORS.white,
   },
 });
 

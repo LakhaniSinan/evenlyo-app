@@ -32,7 +32,7 @@ const HeadingComponent = ({rightArrow, heading, gradientText, onPress}) => {
         {gradientText && <GradientText text={gradientText} />}
       </View>
       {rightArrow && (
-        <TouchableOpacity onPress={onPress}>
+        <TouchableOpacity onPress={onPress} style={{height: 15, width: 15}}>
           <Image
             source={ICONS.rightIcon}
             resizeMode="contain"

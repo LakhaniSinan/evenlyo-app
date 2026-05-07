@@ -2,9 +2,10 @@ import React from 'react';
 import {Image, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../../assets';
+import GradientButton from '../../../components/button';
 import {COLORS, fontFamly} from '../../../constants';
 
-const VendorTypeScreen = ({onSelectType}) => {
+const VendorTypeScreen = ({onSelectType, onPressBack = () => {}}) => {
   return (
     <View style={{justifyContent: 'space-between'}}>
       <View style={{flex: 1}}>
@@ -94,6 +95,17 @@ const VendorTypeScreen = ({onSelectType}) => {
           <Text style={styles.cardText}>Business Account</Text>
         </TouchableOpacity>
       </View>
+
+      <GradientButton
+        text="Back"
+        useGradient
+        onPress={onPressBack}
+        type="outline"
+        gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+        icon={ICONS.backIcon}
+        styleProps={{paddingVertical: 14}}
+        styleContainer={{marginTop: width(8)}}
+      />
     </View>
   );
 };
