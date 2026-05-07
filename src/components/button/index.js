@@ -23,6 +23,7 @@ const GradientButton = ({
   styleProps,
   outlineButtonStyle,
   iconTintColor,
+  iconStyle,
   useGradient,
   textStyle,
   styleContainer,
@@ -46,7 +47,7 @@ const GradientButton = ({
             <Image
               tintColor={iconTintColor ? iconTintColor : null}
               source={icon}
-              style={{ width: 19, height: 19, marginRight: width(2) }}
+              style={[{ width: 19, height: 19, marginRight: width(2) }, iconStyle]}
             />
           )}
           {React.isValidElement(text) ? (
@@ -87,7 +88,7 @@ const GradientButton = ({
         {icon && (
           <Image
             source={icon}
-            style={{ width: 19, height: 19 }}
+            style={[{ width: 19, height: 19 }, iconStyle]}
             resizeMode="contain"
           />
         )}

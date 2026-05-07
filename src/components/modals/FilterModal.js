@@ -265,7 +265,6 @@ const FilterModal = ({
             lable="Search Location"
             onEndIconPress={() => {
               setAddress({fullAddress: '', lat: 0, lng: 0});
-              setSubCatQuery('');
             }}
           />
 

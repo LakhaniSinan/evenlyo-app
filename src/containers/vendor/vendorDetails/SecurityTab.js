@@ -64,11 +64,11 @@ const SecurityTab = ({enteredPass, onPressBack, handleNextStep}) => {
               useGradient={true}
               onPress={() => onPressBack()}
               type="outline"
-              styleProps={{
-                paddingVertical: 14,
-              }}
+              styleProps={{flex: 1}}
+              outlineButtonStyle={{flex: 1, paddingVertical: 0}}
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
               icon={ICONS.backIcon}
+              styleContainer={styles.backButton}
             />
 
             <GradientButton
@@ -77,6 +77,7 @@ const SecurityTab = ({enteredPass, onPressBack, handleNextStep}) => {
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
               styleProps={{flex: 1}}
+              styleContainer={styles.continueButton}
             />
           </View>
         </KeyboardAvoidingView>
@@ -199,6 +200,16 @@ const styles = StyleSheet.create({
     marginTop: width(10),
     gap: 10,
     justifyContent: 'flex-end',
+  },
+  backButton: {
+    flex: 1,
+    width: undefined,
+    height: width(11),
+  },
+  continueButton: {
+    flex: 1,
+    width: undefined,
+    height: width(11),
   },
 });
 

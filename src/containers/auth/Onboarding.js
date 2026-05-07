@@ -33,6 +33,7 @@ const Onboarding = ({navigation}) => {
             onPress={() => navigation.navigate('Login', {type: 'client'})}
             type="filled"
             gradientColors={BRAND_BUTTON_GRADIENT_COLORS}
+            styleContainer={styles.equalButtonContainer}
           />
 
           <GradientButton
@@ -40,6 +41,8 @@ const Onboarding = ({navigation}) => {
             onPress={() => navigation.navigate('Login', {type: 'vendor'})}
             type="outline"
             gradientColors={BRAND_BUTTON_GRADIENT_COLORS}
+            styleContainer={styles.equalButtonContainer}
+            outlineButtonStyle={styles.equalOutlineButton}
           />
         </View>
       </View>
@@ -67,6 +70,13 @@ const styles = StyleSheet.create({
     color: COLORS.black,
   },
   buttonContainer: {width: width(90), alignSelf: 'center', gap: 10},
+  equalButtonContainer: {
+    height: width(11),
+  },
+  equalOutlineButton: {
+    flex: 1,
+    paddingVertical: 0,
+  },
   gradientWrapper: {
     borderRadius: 12,
     overflow: 'hidden',

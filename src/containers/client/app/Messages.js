@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {
   Dimensions,
@@ -13,6 +15,11 @@ import {height, width} from 'react-native-dimension';
 import {useSelector} from 'react-redux';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
+import LoginModal from '../../../components/authModal';
+import ForgotModal from '../../../components/authModal/ForgotModal';
+import RegistrationModal from '../../../components/authModal/RegistrationModal';
+import GradientButton from '../../../components/button';
+import Loader from '../../../components/loder';
 import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
@@ -23,20 +30,64 @@ const Messages = ({navigation}) => {
   const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const {user} = useSelector(state => state.LoginSlice);
-  console.log(user, 'useruseruseruseruseruseruser');
 
   const [isError, setIsError] = useState(false);
   const [allConversations, setAllConversations] = useState([]);
-  console.log(
-    allConversations,
-    'allConversationsallConversationsallConversationsallConversations',
-  );
 
   const [refreshing, setRefreshing] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+
+  const getParsedToken = async () => {
+    const rawToken = await AsyncStorage.getItem('token');
+    if (!rawToken) {
+      return null;
+    }
+
+    try {
+      const parsedToken = JSON.parse(rawToken);
+      return parsedToken || null;
+    } catch (error) {
+      return rawToken;
+    }
+  };
+
+  const checkUserLoggedIn = useCallback(async () => {
+    try {
+      setCheckingAuth(true);
+      const token = await getParsedToken();
+      setIsLoggedIn(!!token);
+    } catch (error) {
+      setIsLoggedIn(false);
+    } finally {
+      setCheckingAuth(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      checkUserLoggedIn();
+    }, [checkUserLoggedIn]),
+  );
 
   useEffect(() => {
-    fetchAllConversations();
-  }, [refreshing]);
+    if (user) {
+      setIsLoggedIn(true);
+      setCheckingAuth(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchAllConversations();
+    } else {
+      setAllConversations([]);
+      setIsLoading(false);
+    }
+  }, [refreshing, isLoggedIn]);
 
   const formatedParticipants = useCallback(participantsData => {
     const participants = {};
@@ -101,8 +152,26 @@ const Messages = ({navigation}) => {
         }
       }
     },
-    [user?.vendorId, formatedParticipants],
+    [user?.id, formatedParticipants],
   );
+
+  const handlePressFun = type => {
+    setShowLoginModal(false);
+    setShowForgotModal(false);
+    setShowRegisterModal(false);
+
+    if (type === 'forgot') {
+      setShowForgotModal(true);
+    } else if (type === 'reset' || type === 'goBackToLogin') {
+      setShowLoginModal(true);
+    } else if (type === 'register') {
+      setShowRegisterModal(true);
+    }
+
+    setTimeout(() => {
+      checkUserLoggedIn();
+    }, 300);
+  };
 
   const renderChatItem = ({item}) => {
     return (
@@ -180,6 +249,44 @@ const Messages = ({navigation}) => {
         style={styles.chatList}
         showsVerticalScrollIndicator={false}
       />
+      {checkingAuth ? (
+        <Loader isLoading />
+      ) : !isLoggedIn ? (
+        <View style={styles.loginPlaceholder}>
+          <Image
+            source={IMAGES.avatarIcon}
+            style={styles.loginPlaceholderImage}
+            resizeMode="contain"
+          />
+          <Text style={styles.loginTitle}>{t('You are not logged in')}</Text>
+          <Text style={styles.loginSubtitle}>
+            {t('Please login to view your messages')}
+          </Text>
+          <View style={styles.loginButtonWrapper}>
+            <GradientButton
+              text={t('Login Now')}
+              onPress={() => setShowLoginModal(true)}
+              textStyle={styles.loginButtonText}
+              styleProps={styles.loginButtonInner}
+            />
+          </View>
+        </View>
+      ) : null}
+      <LoginModal
+        isVisible={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        handlePressFun={handlePressFun}
+      />
+      <ForgotModal
+        isVisible={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+        handlePressFun={handlePressFun}
+      />
+      <RegistrationModal
+        isVisible={showRegisterModal}
+        onClose={() => setShowRegisterModal(false)}
+        handlePressFun={handlePressFun}
+      />
     </SafeAreaView>
   );
 };
@@ -219,6 +326,45 @@ const styles = StyleSheet.create({
   },
   chatList: {
     flex: 1,
+  },
+  loginPlaceholder: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: width(8),
+  },
+  loginPlaceholderImage: {
+    width: width(35),
+    height: width(35),
+    marginBottom: height(2),
+  },
+  loginTitle: {
+    fontSize: 18,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.black,
+  },
+  loginSubtitle: {
+    marginTop: height(1),
+    color: COLORS.textLight,
+    textAlign: 'center',
+    fontSize: 13,
+    fontFamily: fontFamly.PlusJakartaSansSemiMedium,
+  },
+  loginButtonWrapper: {
+    width: width(70),
+    marginTop: height(3),
+  },
+  loginButtonInner: {
+    paddingVertical: width(2.7),
+    paddingHorizontal: 10,
+  },
+  loginButtonText: {
+    fontSize: 14,
+    lineHeight: 18,
+    color: COLORS.white,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    includeFontPadding: false,
   },
   chatItem: {
     flexDirection: 'row',

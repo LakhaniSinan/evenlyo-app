@@ -218,6 +218,7 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
               onPress={handleLogin}
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+              styleContainer={styles.loginButtonContainer}
             />
           </View>
 
@@ -231,9 +232,9 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
             text={t('continueWithGoogle')}
             onPress={handleGoogleSignIn}
             type="outline"
-            styleProps={styles.socialButton}
+            styleContainer={styles.socialButtonContainer}
+            outlineButtonStyle={styles.socialButton}
             icon={ICONS.googleIcon}
-            iconPosition="left"
           />
           <View style={{height: width(2)}} />
           {/* <GradientButton
@@ -305,7 +306,13 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginHorizontal: 10,
   },
-  socialButton: {backgroundColor: COLORS.backgroundLight, marginVertical: 10},
+  socialButtonContainer: {
+    marginVertical: 10,
+  },
+  socialButton: {
+    backgroundColor: COLORS.white,
+    paddingVertical: 14,
+  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -316,6 +323,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fontFamly.PlusJakartaSansMedium,
     marginRight: 5,
+  },
+  loginButtonContainer: {
+    height: width(14),
   },
 });
 

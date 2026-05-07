@@ -28,7 +28,7 @@ const CartCard = ({
   );
 
   const vendorName = useMemo(
-    () => item?.listingId?.vendor?.fullName || item?.vendorId?.fullName,
+    () => item?.listingId?.vendor?.firstName || item?.vendorId?.firstName,
     [item],
   );
 

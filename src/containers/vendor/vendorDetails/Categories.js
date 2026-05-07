@@ -156,7 +156,9 @@ const Categories = ({selectedCat, onPressBack, handleNextStep}) => {
           type="outline"
           gradientColors={GRADIENT_COLORS}
           icon={ICONS.backIcon}
-          styleProps={{paddingVertical: 14}}
+          styleProps={{flex: 1}}
+          outlineButtonStyle={{flex: 1, paddingVertical: 0}}
+          styleContainer={styles.backButton}
         />
 
         <GradientButton
@@ -165,6 +167,7 @@ const Categories = ({selectedCat, onPressBack, handleNextStep}) => {
           type="filled"
           gradientColors={GRADIENT_COLORS}
           styleProps={{flex: 1}}
+          styleContainer={styles.continueButton}
         />
       </View>
     </View>
@@ -230,6 +233,16 @@ const styles = StyleSheet.create({
     marginTop: width(10),
     gap: width(2),
     justifyContent: 'flex-end',
+  },
+  backButton: {
+    flex: 1,
+    width: undefined,
+    height: width(11),
+  },
+  continueButton: {
+    flex: 1,
+    width: undefined,
+    height: width(11),
   },
   emptyContainer: {
     alignItems: 'center',

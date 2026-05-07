@@ -190,9 +190,11 @@ const SubCategories = ({
           useGradient
           onPress={onPressBack}
           type="outline"
-          styleProps={{paddingVertical: 14}}
+          styleProps={{flex: 1}}
+          outlineButtonStyle={{flex: 1, paddingVertical: 0}}
           gradientColors={GRADIENT_COLORS}
           icon={ICONS.backIcon}
+          styleContainer={styles.backButton}
         />
 
         <GradientButton
@@ -201,6 +203,7 @@ const SubCategories = ({
           type="filled"
           gradientColors={GRADIENT_COLORS}
           styleProps={{flex: 1}}
+          styleContainer={styles.continueButton}
         />
       </View>
 
@@ -291,5 +294,15 @@ const styles = StyleSheet.create({
     marginTop: width(10),
     gap: width(2),
     justifyContent: 'flex-end',
+  },
+  backButton: {
+    flex: 1,
+    width: undefined,
+    height: width(11),
+  },
+  continueButton: {
+    flex: 1,
+    width: undefined,
+    height: width(11),
   },
 });

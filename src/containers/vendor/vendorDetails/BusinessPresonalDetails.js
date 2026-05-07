@@ -349,7 +349,10 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
               type="outline"
               gradientColors={GRADIENT_COLORS}
               icon={ICONS.backIcon}
-              styleProps={{paddingVertical: 14}}
+              iconStyle={styles.backIcon}
+              styleProps={{flex: 1}}
+              outlineButtonStyle={{flex: 1, paddingVertical: 0}}
+              styleContainer={styles.backButton}
             />
             <GradientButton
               text={t('Continue')}
@@ -357,6 +360,7 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
               styleProps={{flex: 1}}
+              styleContainer={styles.continueButton}
             />
           </View>
         </KeyboardAvoidingView>
@@ -384,6 +388,20 @@ const styles = StyleSheet.create({
     marginTop: width(10),
     gap: 10,
     justifyContent: 'flex-end',
+  },
+  backButton: {
+    flex: 1,
+    width: undefined,
+    height: width(11),
+  },
+  continueButton: {
+    flex: 1,
+    width: undefined,
+    height: width(11),
+  },
+  backIcon: {
+    width: 15,
+    height: 15,
   },
 });
 

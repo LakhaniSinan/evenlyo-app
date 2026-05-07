@@ -30,12 +30,12 @@ import {setCartData} from '../../../redux/slice/cart';
 
 function VendorDetails({navigation, route}) {
   const item = route.params;
-  console.log(item, 'itemitemitemitemitemitemitemitemasdadwq');
-
   const modalRef = useRef();
   const dispatch = useDispatch();
   const {t, currentLanguage} = useTranslation();
   const {user} = useSelector(state => state.LoginSlice);
+  console.log(user, 'useruseruseruseruseruseruseruseraa');
+
   const [isLoading, setIsLoading] = useState(false);
   const [vendorDetail, setVendorDetails] = useState(null);
   const [showAll, setShowAll] = useState(false);
@@ -43,7 +43,6 @@ function VendorDetails({navigation, route}) {
   const displayedReviews = showAll ? reviews : reviews.slice(0, 4);
   const {cartData} = useSelector(state => state.CartSlice);
   const [chatData, setChatData] = useState(null);
-  console.log(chatData, 'chatDatachatDatachatDatachatDatachatData');
 
   useEffect(() => {
     getVendorDetailsByID();
@@ -361,7 +360,7 @@ function VendorDetails({navigation, route}) {
                 marginBottom: width(5),
               }}>
               <Image
-                source={{uri: vendorDetail?.businessDetails?.buisnessLogo}}
+                source={{uri: vendorDetail?.businessDetails?.businessLogo}}
                 resizeMode="cover"
                 style={{height: width(25), width: width(25)}}
               />
@@ -414,12 +413,12 @@ function VendorDetails({navigation, route}) {
             marginTop: width(25),
             marginHorizontal: width(5),
           }}>
-            <GradientButton
-              text={chatData === null ? t('contactMe') : t('Chat with Vendor')}
-              onPress={handleConnect}
-              type="filled"
-              gradientColors={['#FF295D', '#E31B95', '#C817AE']}
-            />
+          <GradientButton
+            text={chatData === null ? t('contactMe') : t('Chat with Vendor')}
+            onPress={handleConnect}
+            type="filled"
+            gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+          />
           {/* <TouchableOpacity
             style={{
               height: width(13),
@@ -507,7 +506,6 @@ function VendorDetails({navigation, route}) {
           <HeadingComponent
             heading={t('Vendor Listing')}
             gradientText={`(${vendorDetail?.listingItems?.length || 0})`}
-            rightArrow={true}
             onPress={() => {}}
           />
         </View>

@@ -1,6 +1,7 @@
 import React from 'react';
 import {ScrollView, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
+import {ICONS} from '../../../assets';
 import Background from '../../../components/background';
 import GradientButton from '../../../components/button';
 import Header from '../../../components/header';
@@ -32,6 +33,16 @@ const VendorOtpVerifications = ({navigation}) => {
             </Text>
             <OTPInputScreen />
             <View style={{marginTop: width(4)}}>
+              <GradientButton
+                onPress={() => navigation.goBack()}
+                text={t('back')}
+                useGradient
+                type="outline"
+                gradientColors={['#FF295D', '#E31B95', '#C817AE']}
+                icon={ICONS.backIcon}
+                styleProps={{paddingVertical: 14}}
+                styleContainer={{marginBottom: width(3)}}
+              />
               <GradientButton
                 onPress={() => navigation.navigate('OtpVerifySuccess')}
                 text={t('Verify OTP')}

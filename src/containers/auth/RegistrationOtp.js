@@ -1,29 +1,29 @@
-import React, { useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { width } from 'react-native-dimension';
+import React, {useRef, useState} from 'react';
+import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import {width} from 'react-native-dimension';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
 import CommonAlert from '../../components/commanAlert';
 import Header from '../../components/header';
 import Loader from '../../components/loder';
 import OTPInputScreen from '../../components/otpScreen';
-import { COLORS, fontFamly } from '../../constants';
-import { useTranslation } from '../../hooks';
-import { register, registerUser, vendorRegister } from '../../services/Auth';
-import { globalStyles } from '../../styles/globalStyle';
+import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
+import {register, registerUser, vendorRegister} from '../../services/Auth';
+import {globalStyles} from '../../styles/globalStyle';
 
-const RegistrationOtp = ({ route, navigation }) => {
+const RegistrationOtp = ({route, navigation}) => {
   const data = route.params;
   console.log(data, 'datadatadatadatadatadata');
 
   const modalRef = useRef(null);
-  const { t, currentLanguage } = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const normalizeLocalizedValue = value => {
     if (typeof value === 'string') {
-      return { en: value, nl: '' };
+      return {en: value, nl: ''};
     }
     return {
       en: value?.en || '',
@@ -134,24 +134,31 @@ const RegistrationOtp = ({ route, navigation }) => {
       setIsLoading(false);
     }
   };
-  console.log(data, 'datadatadatadatadatadata');
+  console.log(data, 'datadatadatadatadatadataasda');
 
   const handleResendCode = async () => {
     try {
-      setIsLoading(true);
-      const email =
-        data?.type == 'vendor'
-          ? data?.personalInfo?.email
-          : data?.businessInfo?.companyEmail || data?.email;
+      // setIsLoading(true);
+      // const email =
+      // data?.type == 'vendor'
+      //   ? data?.personalInfo?.email
+      //   : data?.businessInfo?.companyEmail ||
+      //     data?.email ||
+      //     data?.verification?.email;
 
-      const response = await registerUser({ email });
+      const email = data?.verification?.email || data?.email;
+
+      const response = await registerUser({email});
       setIsLoading(false);
-      console.log(response, 'responseresponseresponse');
 
       modalRef.current?.show({
         status:
           response?.status === 200 || response?.status === 201 ? 'ok' : 'error',
-        message:response.data?.message.en ? currentLanguage == 'en' ? response.data?.message.en : response.data?.message.nl : response.data?.message,
+        message: response.data?.message.en
+          ? currentLanguage == 'en'
+            ? response.data?.message.en
+            : response.data?.message.nl
+          : response.data?.message,
       });
     } catch (error) {
       console.log('Resend code error:', error);
@@ -170,13 +177,13 @@ const RegistrationOtp = ({ route, navigation }) => {
           <Header languageModal={false} />
           <View style={styles.card}>
             <Text
-              style={[globalStyles.title, { fontSize: 20, textAlign: 'center' }]}>
+              style={[globalStyles.title, {fontSize: 20, textAlign: 'center'}]}>
               {t('enterCode')}
             </Text>
 
             <OTPInputScreen onResendPress={handleResendCode} setOtp={setOtp} />
 
-            <View style={{ marginTop: width(4) }}>
+            <View style={{marginTop: width(4)}}>
               <GradientButton
                 onPress={handleVerifyOtp}
                 text={t('Verify OTP')}

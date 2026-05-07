@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {Alert, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
@@ -18,14 +18,16 @@ const VerifyTab = ({onPressBack, handleNextStep, setVerification}) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const {t} = useTranslation();
-
+  const modalRef = useRef(null);
   const handleContinue = () => {
-    if (!phoneNumber && !email) {
-      Alert.alert('Error', 'At least one of phone or email is required.');
+    if (email) {
+      modalRef.current.show({
+        status: 'error',
+        message: 'Please enter your email address.',
+      });
       return;
     }
     setVerification({
-      phoneNumber,
       email,
     });
 
@@ -42,7 +44,7 @@ const VerifyTab = ({onPressBack, handleNextStep, setVerification}) => {
         <Text style={[globalStyles.title, {fontSize: 20, textAlign: 'center'}]}>
           {t('verification')}
         </Text>
-        <View style={styles.tabContainer}>
+        {/* <View style={styles.tabContainer}>
           <LinearGradient
             colors={
               activeTab == 'phone'
@@ -86,9 +88,9 @@ const VerifyTab = ({onPressBack, handleNextStep, setVerification}) => {
               </Text>
             </TouchableOpacity>
           </LinearGradient>
-        </View>
+        </View> */}
         <View style={{gap: 10, marginTop: width(1)}}>
-          {activeTab === 'phone' ? (
+          {/* {activeTab === 'phone' ? (
             <ContactNumberInput
               labelText={t('phoneNumber')}
               phoneNumber={phoneNumber}
@@ -98,32 +100,32 @@ const VerifyTab = ({onPressBack, handleNextStep, setVerification}) => {
                 backgroundColor: COLORS.white,
               }}
             />
-          ) : (
-            <TextField
-              label={t('emailAddress')}
-              placeholder={t('enterYourEmail')}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              labelColor={COLORS.text}
-              bgColor={COLORS.white}
-              styleProps={{
-                paddingVertical: width(3),
-              }}
-            />
-          )}
+          ) : ( */}
+          <TextField
+            label={t('emailAddress')}
+            placeholder={t('enterYourEmail')}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            labelColor={COLORS.text}
+            bgColor={COLORS.white}
+            styleProps={{
+              paddingVertical: width(3),
+            }}
+          />
+          {/* )} */}
         </View>
         <View style={styles.buttonContainer}>
           <GradientButton
             text={<GradientText text={t('back')} />}
             onPress={onPressBack}
             type="outline"
-            styleProps={{
-              paddingVertical: 14,
-            }}
+            styleProps={{flex: 1}}
+            outlineButtonStyle={{flex: 1, paddingVertical: 0}}
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}
             icon={ICONS.backIcon}
+            styleContainer={styles.backButton}
           />
 
           <GradientButton
@@ -132,6 +134,7 @@ const VerifyTab = ({onPressBack, handleNextStep, setVerification}) => {
             type="filled"
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}
             styleProps={{flex: 1}}
+            styleContainer={styles.continueButton}
           />
         </View>
       </View>
@@ -176,6 +179,16 @@ const styles = StyleSheet.create({
     marginTop: width(10),
     gap: 10,
     justifyContent: 'flex-end',
+  },
+  backButton: {
+    flex: 1,
+    width: undefined,
+    height: width(11),
+  },
+  continueButton: {
+    flex: 1,
+    width: undefined,
+    height: width(11),
   },
 });
 

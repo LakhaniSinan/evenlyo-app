@@ -71,6 +71,10 @@ const VendorPersonalDetails = ({navigation}) => {
     setActiveStep(pre => pre + 1);
   };
 
+  const handleBackStep = () => {
+    setActiveStep(prev => Math.max(prev - 1, 0));
+  };
+
   const handleMediaNext = data => {
     setMedia({
       banner: data?.bannerImage,
@@ -97,6 +101,8 @@ const VendorPersonalDetails = ({navigation}) => {
   const validateAll = () => {};
 
   const handleVerifyNext = data => {
+    console.log(data, 'datadatadatadatadatadatadata');
+
     setVerification({
       phoneNumber: data?.phoneNumber || '',
       email: data?.email || '',
@@ -205,14 +211,14 @@ const VendorPersonalDetails = ({navigation}) => {
               <ProgressStep removeBtnRow>
                 <BusinessPersonalInfo
                   businessInfo={businessInfo}
-                  onPressBack={() => setActiveStep(pre => pre - 1)}
+                  onPressBack={handleBackStep}
                   handleNextStep={handleBusinessNext}
                 />
               </ProgressStep>
               <ProgressStep removeBtnRow>
                 <Categories
                   selectedCat={categoriesSelected}
-                  onPressBack={() => setActiveStep(pre => pre - 1)}
+                  onPressBack={handleBackStep}
                   handleNextStep={handleCategoriesNext}
                 />
               </ProgressStep>
@@ -221,7 +227,7 @@ const VendorPersonalDetails = ({navigation}) => {
                 <SubCategories
                   selectedSubCat={subCategoriesSelected}
                   categoriesSelected={categoriesSelected}
-                  onPressBack={() => setActiveStep(pre => pre - 1)}
+                  onPressBack={handleBackStep}
                   handleNextStep={handleSubCategoriesNext}
                 />
               </ProgressStep>
@@ -229,7 +235,7 @@ const VendorPersonalDetails = ({navigation}) => {
               <ProgressStep removeBtnRow>
                 <MultipleMediaUpload
                   media={media}
-                  onPressBack={() => setActiveStep(pre => pre - 1)}
+                  onPressBack={handleBackStep}
                   handleNextStep={handleMediaNext}
                 />
               </ProgressStep>
@@ -237,7 +243,7 @@ const VendorPersonalDetails = ({navigation}) => {
               <ProgressStep removeBtnRow>
                 <SecurityTab
                   enteredPass={security}
-                  onPressBack={() => setActiveStep(pre => pre - 1)}
+                  onPressBack={handleBackStep}
                   handleNextStep={handleSecurityNext}
                 />
               </ProgressStep>
@@ -245,7 +251,7 @@ const VendorPersonalDetails = ({navigation}) => {
               <ProgressStep removeBtnRow>
                 <VerifyTab
                   setVerification={setVerification}
-                  onPressBack={() => setActiveStep(pre => pre - 1)}
+                  onPressBack={handleBackStep}
                   handleNextStep={handleVerifyNext}
                 />
               </ProgressStep>

@@ -13,7 +13,6 @@ import {
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import {width} from 'react-native-dimension';
-import LinearGradient from 'react-native-linear-gradient';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {COLORS, fontFamly} from '../../constants';
@@ -23,15 +22,12 @@ import {globalStyles} from '../../styles/globalStyle';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
 import Loader from '../loder';
-import ContactNumberInput from '../phoneInput';
 import TextField from '../textInput';
 
 const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
   const {t, currentLanguage} = useTranslation();
   const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('phone');
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState('verify');
@@ -48,22 +44,16 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
   });
 
   const handleSendOtp = async () => {
-    const isPhone = activeTab === 'phone';
-    const identifier = isPhone ? phoneNumber : email;
-
-    if (!identifier) {
+    if (!email) {
       return modalRef.current.show({
         status: 'error',
-        message: isPhone
-          ? 'Please enter your phone number.'
-          : 'Please enter your email address.',
+        message: 'Please enter your email address.',
       });
     }
 
     try {
       setIsLoading(true);
-      const payload = isPhone ? {phone: phoneNumber} : {email};
-      const response = await forgotUser(payload);
+      const response = await forgotUser({email});
       setIsLoading(false);
 
       if (response?.status === 200 || response?.status === 201) {
@@ -98,11 +88,9 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
   };
 
   const sendOtpRequest = async () => {
-    const isPhone = activeTab === 'phone';
-    const payload = isPhone ? {phone: phoneNumber} : {email};
     try {
       setIsLoading(true);
-      const response = await forgotUser(payload);
+      const response = await forgotUser({email});
       setIsLoading(false);
       return response;
     } catch (err) {
@@ -268,8 +256,6 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
 
   const resetModalState = () => {
     setIsLoading(false);
-    setActiveTab('phone');
-    setPhoneNumber('');
     setEmail('');
     setOtp('');
     setStep('verify');
@@ -323,56 +309,17 @@ const ForgotModal = ({isVisible, onClose, handlePressFun}) => {
         <ScrollView contentContainerStyle={{paddingVertical: width(5)}}>
           {step === 'verify' ? (
             <>
-              <View style={styles.tabContainer}>
-                {['phone', 'email'].map(tab => (
-                  <LinearGradient
-                    key={tab}
-                    colors={
-                      activeTab === tab
-                        ? ['#FF295D', '#E31B95', '#C817AE']
-                        : ['#fff', '#fff', '#fff']
-                    }
-                    style={styles.tabGradient}>
-                    <TouchableOpacity
-                      style={styles.tab}
-                      onPress={() => setActiveTab(tab)}>
-                      <Text
-                        style={[
-                          styles.tabText,
-                          activeTab === tab && styles.activeTabText,
-                        ]}>
-                        {t(tab === 'phone' ? 'phoneNumber' : 'emailAddress')}
-                      </Text>
-                    </TouchableOpacity>
-                  </LinearGradient>
-                ))}
-              </View>
-
               <View style={{marginVertical: width(3)}}>
-                {activeTab === 'phone' ? (
-                  <ContactNumberInput
-                    labelText={t('phoneNumber')}
-                    phoneNumber={phoneNumber}
-                    onChange={setPhoneNumber}
-                    labelColor={COLORS.text}
-                    containerStyle={{
-                      backgroundColor: COLORS.white,
-                      borderWidth: 1,
-                      borderColor: COLORS.border,
-                    }}
-                  />
-                ) : (
-                  <TextField
-                    label={t('emailAddress')}
-                    placeholder={t('enterYourEmail')}
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    labelColor={COLORS.text}
-                    bgColor={COLORS.white}
-                  />
-                )}
+                <TextField
+                  label={t('emailAddress')}
+                  placeholder={t('enterYourEmail')}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  labelColor={COLORS.text}
+                  bgColor={COLORS.white}
+                />
               </View>
 
               <View style={styles.buttonContainer}>
@@ -502,28 +449,6 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    borderRadius: width(5),
-    backgroundColor: COLORS.backgroundLight,
-    marginVertical: width(4),
-    gap: width(1),
-  },
-  tabGradient: {flex: 1, borderRadius: width(3)},
-  tab: {
-    paddingVertical: width(3),
-    borderRadius: width(3),
-    alignItems: 'center',
-  },
-  tabText: {
-    fontSize: 12,
-    color: COLORS.textLight,
-    fontFamily: fontFamly.PlusJakartaSansMedium,
-  },
-  activeTabText: {
-    color: COLORS.white,
-    fontFamily: fontFamly.PlusJakartaSansBold,
   },
   buttonContainer: {
     marginTop: width(8),

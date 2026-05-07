@@ -52,6 +52,7 @@ const Home = ({navigation, route}) => {
   const [refreshing, setRefreshing] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubCategoriesLoading, setIsSubCategoriesLoading] = useState(false);
   const [showFrogotModal, setShowFrogotModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const {categories, subCategories, fetchCategories, fetchSubCategories} =
@@ -99,19 +100,49 @@ const Home = ({navigation, route}) => {
   }, []);
 
   useEffect(() => {
-    if (selected?._id) {
-      fetchSubCategories(selected._id);
-    }
+    let isMounted = true;
+
+    const loadSubCategoriesByCategory = async () => {
+      if (!selected?._id) {
+        return;
+      }
+
+      try {
+        setIsSubCategoriesLoading(true);
+        const subRes = await fetchSubCategories(selected._id);
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (subRes?.success && subRes?.data?.length > 0) {
+          // Always keep first subcategory selected after category change.
+          setSubCategoriesSelected(subRes.data[0]);
+        } else {
+          setSubCategoriesSelected(null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setSubCategoriesSelected(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsSubCategoriesLoading(false);
+        }
+      }
+    };
+
+    loadSubCategoriesByCategory();
+
+    return () => {
+      isMounted = false;
+    };
   }, [selected]);
 
   const loadInitialData = async () => {
     const res = await fetchCategories();
     if (res.success && res.data?.length > 0) {
       setSelected(res.data[0]);
-      const subRes = await fetchSubCategories(res.data[0]._id);
-      if (subRes.success && subRes.data?.length > 0) {
-        setSubCategoriesSelected(subRes.data[0]);
-      }
     } else {
       modalRef.current?.show({status: 'error', message: res.message});
     }
@@ -158,6 +189,23 @@ const Home = ({navigation, route}) => {
 
   const onBookingCardPress = item => {
     navigation.navigate('EventDetails', item);
+  };
+  const onVendorCardPress = async item => {
+    const userToken = await AsyncStorage.getItem('token');
+    let token = null;
+
+    try {
+      token = JSON.parse(userToken);
+    } catch (error) {
+      token = userToken;
+    }
+
+    if (token) {
+      navigation.navigate('VendorDetails', {...item, platformFeePercentage});
+      return;
+    }
+
+    setShowLoginModal(true);
   };
   const {cartData} = useSelector(state => state.CartSlice);
 
@@ -412,7 +460,10 @@ const Home = ({navigation, route}) => {
             <Categories
               data={categories}
               selected={selected}
-              setSelected={setSelected}
+              setSelected={item => {
+                setSelected(item);
+                setSubCategoriesSelected(null);
+              }}
             />
           </>
         );
@@ -500,6 +551,7 @@ const Home = ({navigation, route}) => {
                   item={item}
                   navigation={navigation}
                   platformFeePercentage={platformFeePercentage}
+                  onPress={() => onVendorCardPress(item)}
                 />
               );
             }}
@@ -604,7 +656,7 @@ const Home = ({navigation, route}) => {
         onClose={() => setModalVisible(false)}
       />
       <CommonAlert ref={modalRef} />
-      <Loader isLoading={isLoading} />
+      <Loader isLoading={isLoading || isSubCategoriesLoading} />
       <LoginModal
         isVisible={showLoginModal}
         onClose={() => setShowLoginModal(!showLoginModal)}

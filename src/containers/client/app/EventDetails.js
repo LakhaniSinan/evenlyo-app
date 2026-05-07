@@ -50,6 +50,7 @@ const getTabsData = t => [
 
 const EventDetails = ({route, navigation}) => {
   const data = route?.params;
+  console.log(data, 'datadatadatadatadatadatadataas');
 
   const {cartData} = useSelector(state => state.CartSlice);
   const {t} = useTranslation();
@@ -140,7 +141,10 @@ const EventDetails = ({route, navigation}) => {
           />
         )}
         {selectedTab === 'gallery' && (
-          <DetailsContent data={data} selectedTab={selectedTab} />
+          <DetailsContent
+            data={{...bookingDetails, location: data?.location}}
+            selectedTab={selectedTab}
+          />
         )}
         {selectedTab === 'reviews' && (
           <AllReviews data={bookingDetails || data} />
