@@ -27,11 +27,11 @@ const getSettingsData = t => [
     navigate: 'Language',
     icon: ICONS.globeIcon,
   },
-  {
-    name: t('Sale Delivery Fee Details') || 'Sale Delivery Fee Details',
-    navigate: 'saleDelivery',
-    icon: ICONS.globeIcon,
-  },
+  // {
+  //   name: t('Sale Delivery Fee Details') || 'Sale Delivery Fee Details',
+  //   navigate: 'saleDelivery',
+  //   icon: ICONS.globeIcon,
+  // },
 ];
 
 const Settings = ({navigation}) => {

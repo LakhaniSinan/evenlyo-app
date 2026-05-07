@@ -11,7 +11,13 @@ import GradientButton from '../button';
 import CustomCalendar from '../customCalendar';
 import GradientText from '../gradiantText';
 
-const AnalyticsFilter = ({isVisible, onClose, onApplyFilters, onResetFilters, filters}) => {
+const AnalyticsFilter = ({
+  isVisible,
+  onClose,
+  onApplyFilters,
+  onResetFilters,
+  filters,
+}) => {
   const {t} = useTranslation();
   const [showCalendar, setShowCalendar] = useState(false);
   const [activeField, setActiveField] = useState(null);
@@ -159,9 +165,9 @@ const AnalyticsFilter = ({isVisible, onClose, onApplyFilters, onResetFilters, fi
               onPress={handleResetFilters}
               style={{
                 backgroundColor: COLORS.backgroundLight,
-                paddingVertical: 16,
+                paddingVertical: 12,
                 paddingHorizontal: 24,
-                borderRadius: 20,
+                borderRadius: 15,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}

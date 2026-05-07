@@ -1,12 +1,10 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FlatList, Image, Text, TouchableOpacity, View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 
 import {ICONS} from '../../../assets';
 import CommonAlert from '../../../components/commanAlert';
-import Loader from '../../../components/loder';
 import FilterModal from '../../../components/modals/FilterModal';
-import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {getVendorNotifications} from '../../../services/Notifications';
@@ -21,6 +19,7 @@ const Notification = ({navigation}) => {
   const [vendorNotifications, setVendorNotifications] = useState([]);
 
   const {t, currentLanguage} = useTranslation();
+  const skeletonData = useMemo(() => Array(6).fill({}), []);
 
   useEffect(() => {
     handlGetVendorNotifications();
@@ -47,139 +46,88 @@ const Notification = ({navigation}) => {
   };
 
   const onRefresh = useCallback(async () => {
+    setRefreshing(true);
     handlGetVendorNotifications();
+    setRefreshing(false);
   }, []);
 
-  const renderItem = ({item}) => {
+  const renderItem = useCallback(({item}) => {
+    if (isLoading) {
+      return (
+        <View style={styles.itemContainer}>
+          <View style={[styles.imageWrapper, styles.skeletonCircle]} />
+          <View style={styles.messageContainer}>
+            <View style={styles.skeletonTitle} />
+            <View style={styles.skeletonMessage} />
+          </View>
+        </View>
+      );
+    }
+
     return (
-      <View
-        style={{
-          flexDirection: 'column',
-          borderLeftWidth: item?.isRead ? 5 : 0,
-          borderLeftColor: COLORS.primary,
-          paddingHorizontal: width(2),
-          marginTop: width(3),
-          width: width(95),
-        }}>
-        <Text
-          style={{
-            color: COLORS.black,
-            fontSize: 15,
-            fontFamily: fontFamly.PlusJakartaSansSemiBold,
-          }}>
-          New Booking Request
-        </Text>
+      <View style={styles.itemContainer}>
+        <View style={styles.leftContainer}>
+          <View style={styles.imageWrapper}>
+            <Image
+              style={styles.image}
+              source={ICONS.notificationIcon}
+              resizeMode="contain"
+            />
+            {!item?.isRead && <View style={styles.statusDot} />}
+          </View>
 
-        <Text
-          style={{
-            color: '#6D6D6D',
-            fontSize: 12,
-            fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-            marginVertical: 4,
-          }}>
-          {currentLanguage === 'en' ? item?.message?.en : item?.message?.nl}
-        </Text>
-
-        <Text
-          style={{
-            color: COLORS.textLight,
-            fontSize: 12,
-            fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-          }}>
-          {getTimeAgoStatus(item?.createdAt)}
-        </Text>
+          <View style={styles.messageContainer}>
+            <View style={styles.titleRow}>
+              <Text style={styles.titleText}>
+                {currentLanguage === 'en' ? item?.title?.en : item?.title?.nl}
+              </Text>
+              <View style={styles.rightContainer}>
+                <Text style={styles.timeText}>{getTimeAgoStatus(item?.createdAt)}</Text>
+                <Image
+                  source={ICONS.bellIcon}
+                  style={styles.bellIcon}
+                  tintColor={COLORS.black}
+                />
+              </View>
+            </View>
+            <Text style={styles.subHeading}>
+              {currentLanguage === 'en' ? item?.message?.en : item?.message?.nl}
+            </Text>
+          </View>
+        </View>
       </View>
     );
-  };
+  }, [currentLanguage, isLoading]);
 
   return (
     <>
-      <View
-        style={{
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: COLORS.backgroundLight,
-          borderBottomRightRadius: 20,
-          borderBottomLeftRadius: 20,
-        }}>
-        {/* Header */}
-        <View
-          style={{
-            paddingVertical: width(2),
-            paddingHorizontal: width(2),
-            width: '100%',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Image
-              resizeMode="contain"
-              style={{width: 40, height: 40}}
-              source={ICONS.leftArrowIcon}
-            />
-          </TouchableOpacity>
-
-          <Text
-            style={{
-              fontFamily: fontFamly.PlusJakartaSansBold,
-              color: COLORS.black,
-              fontSize: 16,
-            }}>
-            {t('Notifications')}
-          </Text>
-
-          <View style={{width: 40}} />
-        </View>
-
-        {/* Search */}
-        {/* <View
-          style={{
-            width: '100%',
-            paddingLeft: width(4),
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginVertical: width(3),
-          }}>
-          <TextField
-            placeholder={t('searchEvent')}
-            placeholderTextColor="#aaa"
-            bgColor={COLORS.white}
-            startIcon={ICONS.search}
-            inputContainer={{
-              paddingVertical: 0,
-              paddingHorizontal: 10,
-              height: 45,
-              width: '95%',
-            }}
-            styleProps={{
-              fontSize: 14,
-              color: '#000',
-            }}
-          />
-        </View> */}
-      </View>
       <FlatList
-        data={vendorNotifications}
+        keyExtractor={(item, index) => item?._id || index.toString()}
+        ListHeaderComponent={
+          <View style={styles.headerContainer}>
+            <View style={styles.headerTop}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Image
+                  resizeMode="contain"
+                  style={styles.backIcon}
+                  source={ICONS.leftArrowIcon}
+                />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>{t('Notifications')}</Text>
+              <View style={styles.headerSpacer} />
+            </View>
+          </View>
+        }
+        data={isLoading ? skeletonData : vendorNotifications}
         renderItem={renderItem}
-        keyExtractor={item => item?._id}
-        contentContainerStyle={{
-          flexGrow: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+        contentContainerStyle={styles.listContent}
         refreshing={refreshing}
         onRefresh={onRefresh}
         ListEmptyComponent={
           !isLoading && (
-            <Text
-              style={{
-                textAlign: 'center',
-                color: COLORS.textLight,
-                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-              }}>
-              No notifications found
-            </Text>
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>{t('No Notifications')}</Text>
+            </View>
           )
         }
       />
@@ -190,10 +138,117 @@ const Notification = ({navigation}) => {
       />
 
       <CommonAlert ref={modalRef} />
-
-      <Loader isLoading={isLoading && !refreshing} />
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  headerContainer: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.backgroundLight,
+    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    paddingVertical: width(2),
+  },
+  headerTop: {
+    paddingVertical: width(2),
+    paddingHorizontal: width(2),
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  backIcon: {width: 40, height: 40},
+  headerTitle: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 16,
+    color: COLORS.black,
+  },
+  headerSpacer: {width: 40},
+  listContent: {paddingBottom: 10},
+  emptyContainer: {
+    padding: 30,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: COLORS.textLight,
+  },
+  itemContainer: {
+    flexDirection: 'row',
+    marginTop: 20,
+    marginHorizontal: 14,
+    alignItems: 'center',
+  },
+  leftContainer: {flexDirection: 'row'},
+  imageWrapper: {
+    height: width(13),
+    width: width(13),
+    borderRadius: 100,
+    position: 'relative',
+    backgroundColor: COLORS.backgroundLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  image: {height: '100%', width: '100%', borderRadius: 100},
+  statusDot: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    borderRadius: 100,
+    padding: width(1),
+    borderWidth: 2,
+    borderColor: COLORS.white,
+    backgroundColor: COLORS.primary,
+  },
+  messageContainer: {
+    paddingHorizontal: width(2),
+    flex: 1,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  titleText: {
+    width: width(55),
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.black,
+  },
+  subHeading: {
+    color: '#6D6D6D',
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    marginTop: 3,
+  },
+  rightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: width(22),
+  },
+  timeText: {
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: COLORS.textLight,
+    fontSize: 10,
+    marginHorizontal: width(1),
+  },
+  bellIcon: {height: width(3), width: width(3), marginTop: width(1)},
+  skeletonCircle: {backgroundColor: '#eee'},
+  skeletonTitle: {
+    height: 15,
+    backgroundColor: '#eee',
+    width: '70%',
+    borderRadius: 4,
+  },
+  skeletonMessage: {
+    height: 12,
+    backgroundColor: '#ddd',
+    width: '90%',
+    marginTop: 6,
+    borderRadius: 4,
+  },
+});
 
 export default Notification;
