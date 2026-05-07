@@ -3,6 +3,7 @@ import React from 'react';
 import {
   Image,
   Modal,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -33,10 +34,8 @@ const RequestConfirmation = ({responeData, visible, onClose}) => {
       transparent
       animationType="fade"
       onRequestClose={onClose}>
-      <TouchableOpacity
-        style={styles.overlay}
-        activeOpacity={1}
-        onPress={onClose}>
+      <View style={styles.overlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={styles.modalContainer}>
           {/* Header */}
           <View style={styles.header}>
@@ -82,19 +81,21 @@ const RequestConfirmation = ({responeData, visible, onClose}) => {
               <GradientText text="Back To Listing" />
             </TouchableOpacity>
 
-            <GradientButton
-              text="Track Booking"
-              onPress={handleTrackBooking}
-              type="filled"
-              textStyle={{
-                fontSize: 13,
-                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                color: 'white',
-              }}
-            />
+            {/* <View style={styles.trackBookingButton}>
+              <GradientButton
+                text="Track Booking"
+                onPress={handleTrackBooking}
+                type="filled"
+                textStyle={{
+                  fontSize: 13,
+                  fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                  color: 'white',
+                }}
+              />
+            </View> */}
           </View>
         </View>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 };
@@ -121,6 +122,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    zIndex: 2,
   },
   header: {
     flexDirection: 'row',
@@ -195,15 +197,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 16,
+    columnGap: 12,
   },
   backToListingButton: {
     flex: 1,
     backgroundColor: '#F8F8F8',
     borderRadius: 12,
-    paddingVertical: 16,
+    minHeight: width(11),
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  trackBookingButton: {
+    flex: 1,
   },
 });
 

@@ -1,5 +1,5 @@
 import moment from 'moment';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Image,
   Keyboard,
@@ -9,15 +9,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {Calendar} from 'react-native-calendars';
+import { Calendar } from 'react-native-calendars';
 import DatePicker from 'react-native-date-picker';
-import {width} from 'react-native-dimension';
+import { width } from 'react-native-dimension';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {ICONS} from '../../assets';
-import {COLORS, fontFamly} from '../../constants';
-import {useTranslation} from '../../hooks';
-import {onUpdateCart} from '../../services/ListingsItem';
+import { ICONS } from '../../assets';
+import { COLORS, fontFamly } from '../../constants';
+import { useTranslation } from '../../hooks';
+import { onUpdateCart } from '../../services/ListingsItem';
 import {
   calculateAvailableDaysWithHours,
   getDistance,
@@ -30,6 +30,36 @@ import GooglePlacesInput from '../locationField';
 import Loader from '../loder';
 import TextField from '../textInput';
 
+const TERMS_AND_CONDITIONS_TEXT = `I accept the terms and conditions
+
+Welcome to Evenlyo
+By accessing and using our platform, you agree to the following terms and conditions.
+
+These terms are designed to protect both clients and vendors, ensuring a safe, fair, and transparent experience for everyone.
+
+1. General Terms
+Evenlyo acts as a platform to connect clients and vendors for event services.
+Users must provide accurate information when creating bookings and profiles.
+All communications and transactions are the user's responsibility and not Evenlyo's.
+
+2. Platform Usage Rules
+Clients may book services directly through Evenlyo.
+Vendors are responsible for keeping their service details, pricing, and availability up-to-date.
+Both clients and vendors must communicate respectfully and in good faith.
+
+3. Payments Fees
+Payments are processed securely through our integrated system.
+Fees for vendors (if applicable) will be disclosed clearly before sign-up.
+Refund policies are subject to vendor policies and platform rules.
+
+4. Liability Cancellations
+Evenlyo is not a party to contracts between clients and vendors.
+Cancellation policies are determined by individual vendors.
+Vendors are responsible for service delivery.
+Clients are responsible for timely payments and providing accurate event details.
+Neither party may hold Evenlyo liable for any performance or service issues.
+If full payment is not completed before the event, Evenlyo or the supplier reserves the right to cancel the booking without refunding the deposit.`;
+
 const OrderBooking = ({
   data,
   type,
@@ -39,13 +69,14 @@ const OrderBooking = ({
   handleAddToWishList,
   handleSendBookingRequest,
 }) => {
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const modalRef = useRef(null);
   const [isLoadding, setIsLoadding] = useState(false);
   const [selectedCoords, setSelectedCoords] = useState(null);
   const [instructions, setInstructions] = useState('');
   const [isChecked, setIsChecked] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
@@ -62,6 +93,7 @@ const OrderBooking = ({
   const [markedDates, setMarkedDates] = useState(() =>
     getInitialMarkedDates(availableDays, moment()),
   );
+  const openTermsModal = () => setShowTermsModal(true);
 
   const {
     hoursPerDay,
@@ -150,7 +182,7 @@ const OrderBooking = ({
                       backgroundColor: '#FF295D',
                       borderRadius: d === s || d === e ? 5 : 0,
                     },
-                    text: {color: '#fff', fontWeight: 'bold'},
+                    text: { color: '#fff', fontWeight: 'bold' },
                   },
                 };
               }
@@ -161,8 +193,8 @@ const OrderBooking = ({
             updated[s] = {
               ...(updated[s] || {}),
               customStyles: {
-                container: {backgroundColor: '#FF295D', borderRadius: 5},
-                text: {color: '#fff', fontWeight: 'bold'},
+                container: { backgroundColor: '#FF295D', borderRadius: 5 },
+                text: { color: '#fff', fontWeight: 'bold' },
               },
             };
           }
@@ -197,7 +229,7 @@ const OrderBooking = ({
                       backgroundColor: '#FF295D',
                       borderRadius: d === s || d === e ? 5 : 0,
                     },
-                    text: {color: '#fff', fontWeight: 'bold'},
+                    text: { color: '#fff', fontWeight: 'bold' },
                   },
                 };
               }
@@ -208,8 +240,8 @@ const OrderBooking = ({
             updated[s] = {
               ...(updated[s] || {}),
               customStyles: {
-                container: {backgroundColor: '#FF295D', borderRadius: 5},
-                text: {color: '#fff', fontWeight: 'bold'},
+                container: { backgroundColor: '#FF295D', borderRadius: 5 },
+                text: { color: '#fff', fontWeight: 'bold' },
               },
             };
           }
@@ -309,9 +341,9 @@ const OrderBooking = ({
     );
     const vatPercent = Number(
       data?.settings?.vat ??
-        data?.vatFeePercent ??
-        data?.pricingBreakdown?.vatFeePercent ??
-        0,
+      data?.vatFeePercent ??
+      data?.pricingBreakdown?.vatFeePercent ??
+      0,
     );
 
     const protectPercent = Number(
@@ -411,22 +443,22 @@ const OrderBooking = ({
 
       const start = slot?.startTime
         ? moment(slot.startTime, ['hh:mm A'])
-            .set({
-              year: selDate.year(),
-              month: selDate.month(),
-              date: selDate.date(),
-            })
-            .toDate()
+          .set({
+            year: selDate.year(),
+            month: selDate.month(),
+            date: selDate.date(),
+          })
+          .toDate()
         : null;
 
       const end = slot?.endTime
         ? moment(slot.endTime, ['hh:mm A'])
-            .set({
-              year: selDate.year(),
-              month: selDate.month(),
-              date: selDate.date(),
-            })
-            .toDate()
+          .set({
+            year: selDate.year(),
+            month: selDate.month(),
+            date: selDate.date(),
+          })
+          .toDate()
         : null;
 
       setStartTime(start);
@@ -555,9 +587,8 @@ const OrderBooking = ({
               explanation: '',
             },
             {
-              label: `Platform Service Fee (${
-                data?.paymentPolicy?.platformFeePercent || 5
-              }%)`,
+              label: `Platform Service Fee (${data?.paymentPolicy?.platformFeePercent || 5
+                }%)`,
               amount: calculatedPricing.platformFee,
               explanation: '',
             },
@@ -609,8 +640,8 @@ const OrderBooking = ({
       updatedMarks[date] = {
         ...updatedMarks[date],
         customStyles: {
-          container: {backgroundColor: '#FF295D', borderRadius: 5},
-          text: {color: '#fff', fontWeight: 'bold'},
+          container: { backgroundColor: '#FF295D', borderRadius: 5 },
+          text: { color: '#fff', fontWeight: 'bold' },
         },
       };
       setMarkedDates(updatedMarks);
@@ -627,8 +658,8 @@ const OrderBooking = ({
         updatedMarks[date] = {
           ...updatedMarks[date],
           customStyles: {
-            container: {backgroundColor: '#FF295D', borderRadius: 5},
-            text: {color: '#fff', fontWeight: 'bold'},
+            container: { backgroundColor: '#FF295D', borderRadius: 5 },
+            text: { color: '#fff', fontWeight: 'bold' },
           },
         };
         setMarkedDates(updatedMarks);
@@ -645,7 +676,7 @@ const OrderBooking = ({
               backgroundColor: '#FF295D',
               borderRadius: d === localStartDate || d === date ? 5 : 0,
             },
-            text: {color: '#fff', fontWeight: 'bold'},
+            text: { color: '#fff', fontWeight: 'bold' },
           },
         };
         curr.add(1, 'day');
@@ -663,8 +694,8 @@ const OrderBooking = ({
       updatedMarks[date] = {
         ...updatedMarks[date],
         customStyles: {
-          container: {backgroundColor: '#FF295D', borderRadius: 5},
-          text: {color: '#fff', fontWeight: 'bold'},
+          container: { backgroundColor: '#FF295D', borderRadius: 5 },
+          text: { color: '#fff', fontWeight: 'bold' },
         },
       };
       setMarkedDates(updatedMarks);
@@ -811,9 +842,8 @@ const OrderBooking = ({
               explanation: '',
             },
             {
-              label: `Evenlyo Protect (${
-                data?.paymentPolicy?.evenlyoProtectFeePercent || 0
-              }%)`,
+              label: `Evenlyo Protect (${data?.paymentPolicy?.evenlyoProtectFeePercent || 0
+                }%)`,
               amount: evenyloProtectFee,
               explanation: '',
             },
@@ -829,7 +859,6 @@ const OrderBooking = ({
       };
       setIsLoadding(true);
       const response = await onUpdateCart(data?._id, params);
-      console.log(response, 'responseresponseresponseresponseresponsesda');
       if (response.status == 200 || response.status == 201) {
         modalRef.current.show({
           status: 'ok',
@@ -871,392 +900,411 @@ const OrderBooking = ({
   };
 
   return (
-    <Modal
-      isVisible={isVisible}
-      onBackdropPress={onClose}
-      style={styles.modal}
-      backdropOpacity={0.5}
-      avoidKeyboard
-      propagateSwipe>
-      <Loader isLoading={isLoadding} />
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{t('orderBooking')}</Text>
-          <TouchableOpacity
-            onPress={() => {
-              onClose?.();
-            }}>
-            <Icon name="close" size={18} color={COLORS.textDark} />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled">
-          <Calendar
-            onDayPress={handleDayPress}
-            markedDates={markedDates}
-            markingType="custom"
-            minDate={referenceDate.format('YYYY-MM-DD')}
-            maxDate={referenceDate
-              .clone()
-              .add(6, 'months')
-              .format('YYYY-MM-DD')}
-            theme={{
-              todayTextColor: 'red',
-              arrowColor: 'blue',
-            }}
-            disableAllTouchEventsForDisabledDays
-          />
-
-          <View style={styles.section}>
-            <View style={styles.dateTimeHeader}>
-              <Text style={styles.label}>{t('selectedDateAndTime')}</Text>
-              <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
-                {localStartDate && (
-                  <Text style={styles.dateValue}>
-                    {moment(localStartDate).format('dddd, MMMM D')}
-                  </Text>
-                )}
-                {localEndDate && (
-                  <Text style={styles.dateValue}>
-                    , {moment(localEndDate).format('dddd, MMMM D')}
-                  </Text>
-                )}
-              </View>
-            </View>
+    <>
+      <Modal
+        isVisible={isVisible}
+        onBackdropPress={onClose}
+        style={styles.modal}
+        backdropOpacity={0.5}
+        avoidKeyboard
+        propagateSwipe>
+        <Loader isLoading={isLoadding} />
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.title}>{t('orderBooking')}</Text>
+            <TouchableOpacity
+              onPress={() => {
+                onClose?.();
+              }}>
+              <Icon name="close" size={18} color={COLORS.textDark} />
+            </TouchableOpacity>
           </View>
 
-          {isSingleDateSelected && (
-            <View style={styles.section}>
-              <Text style={styles.label}>{t('timeRangeRequired')}</Text>
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled">
+            <Calendar
+              onDayPress={handleDayPress}
+              markedDates={markedDates}
+              markingType="custom"
+              minDate={referenceDate.format('YYYY-MM-DD')}
+              maxDate={referenceDate
+                .clone()
+                .add(6, 'months')
+                .format('YYYY-MM-DD')}
+              theme={{
+                todayTextColor: 'red',
+                arrowColor: 'blue',
+              }}
+              disableAllTouchEventsForDisabledDays
+            />
 
-              <View style={styles.dateRangeContainer}>
-                {[
-                  {
-                    label: t('startTime'),
-                    value: startTime,
-                    setter: setShowStartPicker,
-                  },
-                  {
-                    label: t('endTime'),
-                    value: endTime,
-                    setter: setShowEndPicker,
-                  },
-                ].map(({label, value, setter}, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    style={[styles.dateInput, idx === 0 && {marginRight: 10}]}
-                    onPress={() => setter(true)}>
-                    <Text style={styles.dateInputText}>
-                      {value ? moment(value).format('hh:mm A') : label}
+            <View style={styles.section}>
+              <View style={styles.dateTimeHeader}>
+                <Text style={styles.label}>{t('selectedDateAndTime')}</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                  {localStartDate && (
+                    <Text style={styles.dateValue}>
+                      {moment(localStartDate).format('dddd, MMMM D')}
                     </Text>
+                  )}
+                  {localEndDate && (
+                    <Text style={styles.dateValue}>
+                      , {moment(localEndDate).format('dddd, MMMM D')}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            </View>
+
+            {isSingleDateSelected && (
+              <View style={styles.section}>
+                <Text style={styles.label}>{t('timeRangeRequired')}</Text>
+
+                <View style={styles.dateRangeContainer}>
+                  {[
+                    {
+                      label: t('startTime'),
+                      value: startTime,
+                      setter: setShowStartPicker,
+                    },
+                    {
+                      label: t('endTime'),
+                      value: endTime,
+                      setter: setShowEndPicker,
+                    },
+                  ].map(({ label, value, setter }, idx) => (
+                    <TouchableOpacity
+                      key={idx}
+                      style={[styles.dateInput, idx === 0 && { marginRight: 10 }]}
+                      onPress={() => setter(true)}>
+                      <Text style={styles.dateInputText}>
+                        {value ? moment(value).format('hh:mm A') : label}
+                      </Text>
+                      <Image
+                        source={ICONS.clockIcon}
+                        style={styles.iconSmall}
+                        resizeMode="contain"
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <DatePicker
+                  modal
+                  open={showStartPicker}
+                  date={startTime || new Date()}
+                  mode="time"
+                  onConfirm={date => {
+                    setShowStartPicker(false);
+                    setStartTime(date);
+                  }}
+                  onCancel={() => setShowStartPicker(false)}
+                />
+
+                <DatePicker
+                  modal
+                  open={showEndPicker}
+                  date={endTime || new Date()}
+                  mode="time"
+                  onConfirm={date => {
+                    setShowEndPicker(false);
+                    setEndTime(date);
+                  }}
+                  onCancel={() => setShowEndPicker(false)}
+                />
+              </View>
+            )}
+
+            <GooglePlacesInput
+              selectedLocation={selectedCoords}
+              setSelectedLocation={setSelectedCoords}
+              placeholder={t('enterLocation')}
+              showRightIcon={ICONS.locationIcon}
+              lable={t('addLocationRequired')}
+            />
+
+            <View style={styles.section}>
+              <TextField
+                label={t('kilometerRequired')}
+                placeholder={t('kilometer')}
+                editable={false}
+                value={distance}
+                keyboardType="numeric"
+                endIcon={ICONS.currentLoactionIcon}
+              />
+            </View>
+
+            <View style={styles.section}>
+              <TextField
+                label={t('addInstructionsRequired')}
+                placeholder={t('specialRequirementsPlaceholder')}
+                value={instructions}
+                onChangeText={setInstructions}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
+
+            {data?.paymentPolicy?.isEvenlyoProtectEnabled && (
+              <View style={styles.checkboxRow}>
+                <TouchableOpacity
+                  onPress={() => toggleState(setIsChecked)}
+                  style={[styles.checkboxBox, isChecked && { borderWidth: 0 }]}>
+                  {isChecked && (
                     <Image
-                      source={ICONS.clockIcon}
-                      style={styles.iconSmall}
+                      source={ICONS.cheackIcon}
+                      style={styles.checkboxIcon}
                       resizeMode="contain"
                     />
-                  </TouchableOpacity>
-                ))}
+                  )}
+                </TouchableOpacity>
+                <Text style={styles.protectText}>
+                  {t(
+                    `Enable Evenlyo Protect (+${data?.paymentPolicy?.evenlyoProtectFeePercent}%)`,
+                  )}
+                </Text>
+
+                <Text
+                  style={[
+                    styles.protectText,
+                    { fontSize: 8, color: COLORS.textLight },
+                  ]}>
+                  {t('(Non Refundable)')}
+                </Text>
               </View>
+            )}
 
-              <DatePicker
-                modal
-                open={showStartPicker}
-                date={startTime || new Date()}
-                mode="time"
-                onConfirm={date => {
-                  setShowStartPicker(false);
-                  setStartTime(date);
-                }}
-                onCancel={() => setShowStartPicker(false)}
-              />
+            <View style={styles.pricingSection}>
+              <Text style={styles.pricingTitle}>{t('pricingSummary')}</Text>
 
-              <DatePicker
-                modal
-                open={showEndPicker}
-                date={endTime || new Date()}
-                mode="time"
-                onConfirm={date => {
-                  setShowEndPicker(false);
-                  setEndTime(date);
-                }}
-                onCancel={() => setShowEndPicker(false)}
-              />
-            </View>
-          )}
-
-          <GooglePlacesInput
-            selectedLocation={selectedCoords}
-            setSelectedLocation={setSelectedCoords}
-            placeholder={t('enterLocation')}
-            showRightIcon={ICONS.locationIcon}
-            lable={t('addLocationRequired')}
-          />
-
-          <View style={styles.section}>
-            <TextField
-              label={t('kilometerRequired')}
-              placeholder={t('kilometer')}
-              editable={false}
-              value={distance}
-              keyboardType="numeric"
-              endIcon={ICONS.currentLoactionIcon}
-            />
-          </View>
-
-          <View style={styles.section}>
-            <TextField
-              label={t('addInstructionsRequired')}
-              placeholder={t('specialRequirementsPlaceholder')}
-              value={instructions}
-              onChangeText={setInstructions}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          </View>
-
-          {data?.paymentPolicy?.isEvenlyoProtectEnabled && (
-            <View style={styles.checkboxRow}>
-              <TouchableOpacity
-                onPress={() => toggleState(setIsChecked)}
-                style={[styles.checkboxBox, isChecked && {borderWidth: 0}]}>
-                {isChecked && (
-                  <Image
-                    source={ICONS.cheackIcon}
-                    style={styles.checkboxIcon}
-                    resizeMode="contain"
-                  />
-                )}
-              </TouchableOpacity>
-              <Text style={styles.protectText}>
-                {t(
-                  `Enable Evenlyo Protect (+${data?.paymentPolicy?.evenlyoProtectFeePercent}%)`,
-                )}
-              </Text>
-
-              <Text
-                style={[
-                  styles.protectText,
-                  {fontSize: 8, color: COLORS.textLight},
-                ]}>
-                {t('(Non Refundable)')}
-              </Text>
-            </View>
-          )}
-
-          <View style={styles.pricingSection}>
-            <Text style={styles.pricingTitle}>{t('pricingSummary')}</Text>
-
-            <View style={styles.pricingRow}>
-              <View>
-                {isSingleDateSelected ? (
+              <View style={styles.pricingRow}>
+                <View>
+                  {isSingleDateSelected ? (
+                    <Text style={styles.pricingLabel}>
+                      {t('standardServiceHours', {
+                        hours: calculatedPricing.totalHours,
+                      })}
+                    </Text>
+                  ) : (
+                    <Text style={styles.pricingLabel}>
+                      {t('multiDayService', {
+                        days: availableSelectedDays,
+                        hours: hoursPerDay,
+                      })}
+                    </Text>
+                  )}
                   <Text style={styles.pricingLabel}>
-                    {t('standardServiceHours', {
+                    {t('standardServiceRate', {
                       hours: calculatedPricing.totalHours,
+                      rate: calculatedPricing.pricePerHour,
                     })}
                   </Text>
-                ) : (
+                </View>
+                <Text style={styles.pricingValue}>
+                  € {calculatedPricing.serviceCost.toFixed(2)}
+                </Text>
+              </View>
+
+              <View style={styles.pricingRow}>
+                <Text style={styles.pricingLabel}>
+                  {t('travelCostWithDistance', { distance })}
+                </Text>
+                <Text style={styles.pricingValue}>
+                  € {calculatedPricing.travelCost.toFixed(2)}
+                </Text>
+              </View>
+
+              <View style={styles.pricingRow}>
+                <Text style={styles.pricingLabel}>
+                  {t('securityDepositRefundable')}
+                </Text>
+                <Text style={styles.pricingValue}>
+                  € {calculatedPricing.securityDeposit.toFixed(2)}
+                </Text>
+              </View>
+
+              <View style={styles.pricingRow}>
+                <Text style={styles.pricingLabel}>
+                  {t('platformServiceFeeWithPercent', {
+                    percent: data?.paymentPolicy?.platformFeePercent || 5,
+                  })}
+                </Text>
+                <Text style={styles.pricingValue}>
+                  € {calculatedPricing.platformFee.toFixed(2)}
+                </Text>
+              </View>
+
+              <View style={styles.pricingRow}>
+                <Text style={styles.pricingLabel}>
+                  VAT ({calculatedPricing.vatPercent}%)
+                </Text>
+                <Text style={styles.pricingValue}>
+                  € {calculatedPricing.vatFee.toFixed(2)}
+                </Text>
+              </View>
+
+              {isChecked && (
+                <View style={styles.pricingRow}>
                   <Text style={styles.pricingLabel}>
-                    {t('multiDayService', {
-                      days: availableSelectedDays,
-                      hours: hoursPerDay,
+                    {t('evenlyoProtectWithPercent', {
+                      percent: data?.paymentPolicy?.evenlyoProtectFeePercent,
                     })}
                   </Text>
-                )}
-                <Text style={styles.pricingLabel}>
-                  {t('standardServiceRate', {
-                    hours: calculatedPricing.totalHours,
-                    rate: calculatedPricing.pricePerHour,
-                  })}
-                </Text>
-              </View>
-              <Text style={styles.pricingValue}>
-                € {calculatedPricing.serviceCost.toFixed(2)}
-              </Text>
-            </View>
+                  <Text style={styles.pricingValue}>
+                    € {calculatedPricing.evenlyoProtect.toFixed(2)}
+                  </Text>
+                </View>
+              )}
 
-            <View style={styles.pricingRow}>
-              <Text style={styles.pricingLabel}>
-                {t('travelCostWithDistance', {distance})}
-              </Text>
-              <Text style={styles.pricingValue}>
-                € {calculatedPricing.travelCost.toFixed(2)}
-              </Text>
-            </View>
+              {calculatedPricing.extraHours > 0 && (
+                <View style={styles.pricingRow}>
+                  <Text style={styles.pricingLabel}>
+                    {t('extraTimeWithRate', {
+                      hours: calculatedPricing.extraHours,
+                      rate:
+                        calculatedPricing.extratimeCost ||
+                        calculatedPricing.pricePerHour,
+                    })}
+                  </Text>
+                  <Text style={styles.pricingValue}>
+                    € {calculatedPricing.extraTimeAmount.toFixed(2)}
+                  </Text>
+                </View>
+              )}
 
-            <View style={styles.pricingRow}>
-              <Text style={styles.pricingLabel}>
-                {t('securityDepositRefundable')}
-              </Text>
-              <Text style={styles.pricingValue}>
-                € {calculatedPricing.securityDeposit.toFixed(2)}
-              </Text>
-            </View>
+              <View style={styles.divider} />
 
-            <View style={styles.pricingRow}>
-              <Text style={styles.pricingLabel}>
-                {t('platformServiceFeeWithPercent', {
-                  percent: data?.paymentPolicy?.platformFeePercent || 5,
-                })}
-              </Text>
-              <Text style={styles.pricingValue}>
-                € {calculatedPricing.platformFee.toFixed(2)}
-              </Text>
-            </View>
+              {paymentRequirement && (
+                <View
+                  style={[
+                    styles.paymentAlert,
+                    paymentRequirement?.type === 'FULL'
+                      ? styles.fullPaymentBg
+                      : styles.halfPaymentBg,
+                  ]}>
+                  <View style={styles.alertHeader}>
+                    <Icon
+                      name="alert-circle"
+                      size={18}
+                      color={
+                        paymentRequirement?.type === 'FULL'
+                          ? '#D32F2F'
+                          : '#92400E'
+                      }
+                      style={{ marginRight: 6 }}
+                    />
+                    <Text
+                      style={[
+                        styles.alertTitle,
+                        {
+                          color:
+                            paymentRequirement?.type === 'FULL'
+                              ? '#D32F2F'
+                              : '#92400E',
+                        },
+                      ]}>
+                      {paymentRequirement?.title}
+                    </Text>
+                  </View>
 
-            <View style={styles.pricingRow}>
-              <Text style={styles.pricingLabel}>
-                VAT ({calculatedPricing.vatPercent}%)
-              </Text>
-              <Text style={styles.pricingValue}>
-                € {calculatedPricing.vatFee.toFixed(2)}
-              </Text>
-            </View>
-
-            {isChecked && (
-              <View style={styles.pricingRow}>
-                <Text style={styles.pricingLabel}>
-                  {t('evenlyoProtectWithPercent', {
-                    percent: data?.paymentPolicy?.evenlyoProtectFeePercent,
-                  })}
-                </Text>
-                <Text style={styles.pricingValue}>
-                  € {calculatedPricing.evenlyoProtect.toFixed(2)}
-                </Text>
-              </View>
-            )}
-
-            {calculatedPricing.extraHours > 0 && (
-              <View style={styles.pricingRow}>
-                <Text style={styles.pricingLabel}>
-                  {t('extraTimeWithRate', {
-                    hours: calculatedPricing.extraHours,
-                    rate:
-                      calculatedPricing.extratimeCost ||
-                      calculatedPricing.pricePerHour,
-                  })}
-                </Text>
-                <Text style={styles.pricingValue}>
-                  € {calculatedPricing.extraTimeAmount.toFixed(2)}
-                </Text>
-              </View>
-            )}
-
-            <View style={styles.divider} />
-
-            {paymentRequirement && (
-              <View
-                style={[
-                  styles.paymentAlert,
-                  paymentRequirement?.type === 'FULL'
-                    ? styles.fullPaymentBg
-                    : styles.halfPaymentBg,
-                ]}>
-                <View style={styles.alertHeader}>
-                  <Icon
-                    name="alert-circle"
-                    size={18}
-                    color={
-                      paymentRequirement?.type === 'FULL'
-                        ? '#D32F2F'
-                        : '#92400E'
-                    }
-                    style={{marginRight: 6}}
-                  />
                   <Text
                     style={[
-                      styles.alertTitle,
+                      styles.alertDesc,
                       {
                         color:
                           paymentRequirement?.type === 'FULL'
                             ? '#D32F2F'
-                            : '#92400E',
+                            : '#b45309',
                       },
                     ]}>
-                    {paymentRequirement?.title}
+                    {paymentRequirement?.description}
                   </Text>
                 </View>
+              )}
 
-                <Text
-                  style={[
-                    styles.alertDesc,
-                    {
-                      color:
-                        paymentRequirement?.type === 'FULL'
-                          ? '#D32F2F'
-                          : '#b45309',
-                    },
-                  ]}>
-                  {paymentRequirement?.description}
+              <View style={styles.pricingRow}>
+                <Text style={styles.totalLabel}>{t('totalLabel')}</Text>
+                <Text style={styles.totalValue}>
+                  € {calculatedPricing.total.toFixed(2)}
                 </Text>
               </View>
-            )}
-
-            <View style={styles.pricingRow}>
-              <Text style={styles.totalLabel}>{t('totalLabel')}</Text>
-              <Text style={styles.totalValue}>
-                € {calculatedPricing.total.toFixed(2)}
-              </Text>
             </View>
-          </View>
 
-          <View style={styles.termsSection}>
-            <TouchableOpacity
-              onPress={() => toggleState(setAcceptTerms)}
-              style={styles.termsContainer}>
-              <View
-                style={[
-                  styles.checkbox,
-                  acceptTerms && styles.checkboxChecked,
-                ]}>
-                {acceptTerms && (
-                  <Icon name="checkmark" size={16} color="white" />
-                )}
+            <View style={styles.termsSection}>
+              <View style={styles.termsContainer}>
+                <TouchableOpacity onPress={() => toggleState(setAcceptTerms)}>
+                  <View
+                    style={[
+                      styles.checkbox,
+                      acceptTerms && styles.checkboxChecked,
+                    ]}>
+                    {acceptTerms && (
+                      <Icon name="checkmark" size={16} color="white" />
+                    )}
+                  </View>
+                </TouchableOpacity>
+                <View style={styles.termsTextContainer}>
+                  <Text style={styles.termsText}>{t('acceptCompanyPrefix')}</Text>
+                  <TouchableOpacity style={styles.termsLink} onPress={openTermsModal}>
+                    <GradientText text={t('termsAndConditions')} />
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.termsTextContainer}>
-                <Text style={styles.termsText}>{t('acceptCompanyPrefix')}</Text>
-                <TouchableOpacity>
-                  <GradientText
-                    text={t('termsAndConditions')}
-                    customStyles={styles.termsLink}
-                  />
+            </View>
+          </ScrollView>
+
+          {!isKeyboardVisible && (
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                onPress={type == 'add' ? handleAddToCart : handleUpdateCart}
+                style={styles.wishlistBtn}>
+                <GradientText
+                  text={
+                    type === 'edit'
+                      ? t('updateWishlist')
+                      : t('addToWishlistButton')
+                  }
+                />
+              </TouchableOpacity>
+
+              <View style={{ width: width(50) }}>
+                <GradientButton
+                  text={t('sendBookingRequest')}
+                  onPress={handleBooking}
+                  type="filled"
+                  textStyle={styles.buttonText}
+                />
+              </View>
+            </View>
+          )}
+        </View>
+
+        <CommonAlert ref={modalRef} />
+        {showTermsModal && (
+          <View style={styles.termsModalOverlay}>
+            <View style={styles.termsModalContainer}>
+              <View style={styles.termsModalHeader}>
+                <Text style={styles.termsModalTitle}>Terms & Conditions</Text>
+                <TouchableOpacity onPress={() => setShowTermsModal(false)}>
+                  <Icon name="close" size={20} color={COLORS.textDark} />
                 </TouchableOpacity>
               </View>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
 
-        {!isKeyboardVisible && (
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              onPress={type == 'add' ? handleAddToCart : handleUpdateCart}
-              style={styles.wishlistBtn}>
-              <GradientText
-                text={
-                  type === 'edit'
-                    ? t('updateWishlist')
-                    : t('addToWishlistButton')
-                }
-              />
-            </TouchableOpacity>
-
-            <View style={{width: width(50)}}>
-              <GradientButton
-                text={t('sendBookingRequest')}
-                onPress={handleBooking}
-                type="filled"
-                textStyle={styles.buttonText}
-              />
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.termsModalContent}>
+                <Text style={styles.termsBodyText}>
+                  {TERMS_AND_CONDITIONS_TEXT}
+                </Text>
+              </ScrollView>
             </View>
           </View>
         )}
-      </View>
-
-      <CommonAlert ref={modalRef} />
-    </Modal>
+      </Modal>
+    </>
   );
 };
 
@@ -1293,9 +1341,9 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
   },
 
-  scrollView: {flex: 1},
+  scrollView: { flex: 1 },
 
-  section: {marginBottom: width(4)},
+  section: { marginBottom: width(4) },
 
   label: {
     fontSize: 12,
@@ -1421,7 +1469,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
 
-  termsSection: {marginBottom: 25},
+  termsSection: { marginBottom: 25 },
 
   termsContainer: {
     flexDirection: 'row',
@@ -1460,6 +1508,54 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
+  termsModalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    zIndex: 999,
+  },
+  termsModalContainer: {
+    maxHeight: '78%',
+    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    padding: 16,
+  },
+  termsModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.backgroundLight,
+  },
+  termsModalTitle: {
+    fontSize: 16,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  termsModalContent: {
+    paddingTop: 14,
+    paddingBottom: 8,
+  },
+  termsBodyTitle: {
+    fontSize: 13,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    marginTop: 10,
+    marginBottom: 6,
+  },
+  termsBodyText: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: COLORS.textLight,
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+    marginBottom: 6,
+  },
 
   buttonContainer: {
     paddingTop: width(4),
@@ -1472,7 +1568,7 @@ const styles = StyleSheet.create({
   wishlistBtn: {
     width: width(35),
     backgroundColor: COLORS.backgroundLight,
-    height: width(13),
+    height: width(11),
     borderRadius: width(5),
     alignItems: 'center',
     justifyContent: 'center',

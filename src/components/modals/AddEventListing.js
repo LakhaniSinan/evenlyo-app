@@ -358,7 +358,6 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         ? await updateVendorListing(toEditData?._id, payload)
         : await createVendorLosting(payload);
 
-      console.log(response, 'responseresponseresponseresponseresponse');
 
       const isSuccess = response?.status === 200 || response?.status === 201;
 

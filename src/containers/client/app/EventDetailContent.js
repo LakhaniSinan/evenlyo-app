@@ -1,13 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Image, Text, TouchableOpacity, View} from 'react-native';
-import {Calendar} from 'react-native-calendars';
-import {width} from 'react-native-dimension';
-import MapView, {Marker} from 'react-native-maps';
-import {Rating} from 'react-native-ratings';
-import {useDispatch, useSelector} from 'react-redux';
-import {ICONS} from '../../../assets';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Calendar } from 'react-native-calendars';
+import { width } from 'react-native-dimension';
+import MapView, { Marker } from 'react-native-maps';
+import { Rating } from 'react-native-ratings';
+import { useDispatch, useSelector } from 'react-redux';
+import { ICONS } from '../../../assets';
 import LoginModal from '../../../components/authModal';
 import GradientButton from '../../../components/button';
 import CarouselComponent from '../../../components/carousel';
@@ -16,15 +16,15 @@ import GradientText from '../../../components/gradiantText';
 import Loader from '../../../components/loder';
 import OrderBooking from '../../../components/modals/OrderBookingModal';
 import RequestConfirmation from '../../../components/modals/RequestConfirmation';
-import {COLORS, fontFamly} from '../../../constants';
-import {useTranslation} from '../../../hooks';
-import {setCartData} from '../../../redux/slice/cart';
-import {createConnection} from '../../../services/Chat';
+import { COLORS, fontFamly } from '../../../constants';
+import { useTranslation } from '../../../hooks';
+import { setCartData } from '../../../redux/slice/cart';
+import { createConnection } from '../../../services/Chat';
 import {
   listingAddToCart,
   sendBookingRequest,
 } from '../../../services/ListingsItem';
-import {getDistance} from '../../../utils';
+import { getDistance } from '../../../utils';
 
 const DEFAULT_MAP_COORDINATE = {
   latitude: 24.860966,
@@ -73,7 +73,7 @@ const getResolvedMapCoordinates = listingData => {
     return DEFAULT_MAP_COORDINATE;
   }
 
-  return {latitude, longitude};
+  return { latitude, longitude };
 };
 
 const getInitialMarkedDates = availableDays => {
@@ -90,38 +90,38 @@ const getInitialMarkedDates = availableDays => {
     marked[dateStr] =
       isPast || !isAvailable
         ? {
-            disabled: true,
-            disableTouchEvent: true,
-            customStyles: {
-              container: {backgroundColor: '#f0f0f0'},
-              text: {color: '#999'},
-            },
-          }
+          disabled: true,
+          disableTouchEvent: true,
+          customStyles: {
+            container: { backgroundColor: '#f0f0f0' },
+            text: { color: '#999' },
+          },
+        }
         : {
-            disabled: false,
-            customStyles: {
-              container: {backgroundColor: '#fff'},
-              text: {color: '#000'},
-            },
-          };
+          disabled: false,
+          customStyles: {
+            container: { backgroundColor: '#fff' },
+            text: { color: '#000' },
+          },
+        };
   }
   return marked;
 };
 
-const DetailsContent = ({data, selectedTab, navigation}) => {
+const DetailsContent = ({ data, selectedTab, navigation }) => {
   console.log(data, 'datadatadatadatadatadata');
 
-  const {cartData} = useSelector(state => state.CartSlice);
-  const {user} = useSelector(state => state.LoginSlice);
+  const { cartData } = useSelector(state => state.CartSlice);
+  const { user } = useSelector(state => state.LoginSlice);
   const dispatch = useDispatch(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const {currentLanguage} = useTranslation();
+  const { currentLanguage } = useTranslation();
   const modalRef = useRef(null);
   const [responeData, setResponeData] = useState(null);
   const [isLoadding, setIsLoadding] = useState(false);
   const mapCoordinates = useMemo(() => getResolvedMapCoordinates(data), [data]);
 
-  const {latitude, longitude} = mapCoordinates;
+  const { latitude, longitude } = mapCoordinates;
   const markerCoordinate = useMemo(
     () => ({
       latitude: parseFiniteNumber(latitude) ?? DEFAULT_MAP_COORDINATE.latitude,
@@ -206,8 +206,8 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
           updatedMarked[d] = {
             ...updatedMarked[d],
             customStyles: {
-              container: {backgroundColor: '#FF295D', borderRadius: 5},
-              text: {color: '#fff', fontWeight: 'bold'},
+              container: { backgroundColor: '#FF295D', borderRadius: 5 },
+              text: { color: '#fff', fontWeight: 'bold' },
             },
           };
         }
@@ -218,8 +218,8 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         updatedMarked[newStartDate] = {
           ...updatedMarked[newStartDate],
           customStyles: {
-            container: {backgroundColor: '#FF295D', borderRadius: 5},
-            text: {color: '#fff', fontWeight: 'bold'},
+            container: { backgroundColor: '#FF295D', borderRadius: 5 },
+            text: { color: '#fff', fontWeight: 'bold' },
           },
         };
       }
@@ -227,13 +227,12 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
 
     setMarkedDates(updatedMarked);
   };
-
   const selectedRangeText =
     startDate && endDate
       ? `${startDate} → ${endDate}`
       : startDate
-      ? `${startDate}`
-      : 'No date selected';
+        ? `${startDate}`
+        : 'No date selected';
 
   const handleSendBookingRequest = async details => {
     try {
@@ -380,13 +379,13 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
 
   const locationData = useSelector(state => state.LocationSlice);
 
-  const {coords} = locationData;
+  const { coords } = locationData;
   let coLatLng = {
     latitude: data?.location?.coordinates?.latitude,
     longitude: data?.location?.coordinates?.longitude,
   };
 
-  const {distance} = getDistance(coLatLng, coords);
+  const { distance } = getDistance(coLatLng, coords);
   const averageRating = Number(
     data?.reviews?.averageRating ?? data?.rating?.average ?? 0,
   );
@@ -396,7 +395,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
 
   const formatParticipants = participantsData => {
     const participants = {};
-    participantsData?.forEach(({role, refPath, userId}) => {
+    participantsData?.forEach(({ role, refPath, userId }) => {
       const normalizedRole = String(role || '').toLowerCase();
       const normalizedRefPath = String(refPath || '').toLowerCase();
       const isVendorParticipant =
@@ -507,7 +506,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
             disableAllTouchEventsForDisabledDays
           />
 
-          <View style={{marginHorizontal: 20, marginTop: 10}}>
+          <View style={{ marginHorizontal: 20, marginTop: 10 }}>
             <Text
               style={{
                 fontFamily: fontFamly.PlusJakartaSansSemiBold,
@@ -527,7 +526,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
           </View>
         </>
       )}
-      <View style={{marginHorizontal: 10, marginTop: width(3)}}>
+      <View style={{ marginHorizontal: 10, marginTop: width(3) }}>
         <View
           style={{
             flexDirection: 'row',
@@ -535,7 +534,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
             justifyContent: 'space-between',
             paddingHorizontal: width(3),
           }}>
-          <View style={{width: width(60)}}>
+          <View style={{ width: width(60) }}>
             <Text
               style={{
                 fontFamily: fontFamly.PlusJakartaSansSemiBold,
@@ -636,19 +635,19 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
               alignItems: 'center',
             }}>
             <Image
-              style={{width: 30, height: 30, borderRadius: 100}}
+              style={{ width: 30, height: 30, borderRadius: 100 }}
               source={ICONS.userIcon}
               resizeMode="contain"
             />
           </View>
         ) : (
           <Image
-            style={{width: 55, height: 55, borderRadius: 100}}
-            source={{uri: data?.vendor?.businessLogo}}
+            style={{ width: 55, height: 55, borderRadius: 100 }}
+            source={{ uri: data?.vendor?.businessLogo }}
             resizeMode="contain"
           />
         )}
-        <View style={{marginLeft: 10, justifyContent: 'center'}}>
+        <View style={{ marginLeft: 10, justifyContent: 'center' }}>
           <Text
             style={{
               color: COLORS.black,
@@ -668,12 +667,12 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         </View>
         <TouchableOpacity
           onPress={handleConnect}
-          style={{flex: 1, justifyContent: 'center', alignItems: 'flex-end'}}>
-          <Image style={{width: 32, height: 32}} source={ICONS.chatIcon} />
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'flex-end' }}>
+          <Image style={{ width: 32, height: 32 }} source={ICONS.chatIcon} />
         </TouchableOpacity>
       </View>
 
-      <View style={{paddingVertical: width(3), marginHorizontal: 20}}>
+      <View style={{ paddingVertical: width(3), marginHorizontal: 20 }}>
         <Text
           style={{
             color: COLORS.black,
@@ -698,8 +697,8 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
       </View>
 
       {data?.type !== 'saleItem' ? (
-        <View style={{paddingVertical: width(3), marginHorizontal: 20}}>
-          <Text
+        <View style={{ paddingVertical: width(3), marginHorizontal: 20 }}>
+          {/* <Text
             style={{
               color: COLORS.black,
               fontFamily: fontFamly.PlusJakartaSansBold,
@@ -745,7 +744,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
                 />
               </Marker>
             </MapView>
-          </View>
+          </View> */}
           {selectedTab == 'details' && (
             <View
               style={{
@@ -757,16 +756,16 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
               <TouchableOpacity
                 onPress={() => handleAddToWishList(data)}
                 style={{
-                  width: width(45),
+                  width: width(44),
                   backgroundColor: COLORS.backgroundLight,
-                  height: width(13),
+                  height: width(11),
                   borderRadius: width(5),
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}>
                 <GradientText text={'Add To Wishlist'} />
               </TouchableOpacity>
-              <View style={{width: width(42)}}>
+              <View style={{ width: width(44) }}>
                 <GradientButton
                   text={'Book Now'}
                   type="filled"
@@ -803,7 +802,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         data={data}
         isVisible={modalVisible}
         type={'add'}
-        selectedDate={{startDate, endDate}}
+        selectedDate={{ startDate, endDate }}
         onClose={() => setModalVisible(false)}
         handleAddToWishList={handleAddToWishList}
         handleSendBookingRequest={handleSendBookingRequest}

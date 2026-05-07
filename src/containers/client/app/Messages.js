@@ -130,7 +130,6 @@ const Messages = ({navigation}) => {
           'user',
         );
 
-        console.log(response?.data, 'responseresponseresponseresponseresponse');
 
         if (response?.success && Array.isArray(response?.data)) {
           const formattedData = response.data.map(item => ({

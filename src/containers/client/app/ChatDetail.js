@@ -320,7 +320,6 @@ const ChatDetail = ({navigation, route}) => {
         user?.id,
       );
 
-      console.log(response, 'responseresponseresponseresponseresponseresponse');
 
       const responseMessages = Array.isArray(response?.data)
         ? response.data

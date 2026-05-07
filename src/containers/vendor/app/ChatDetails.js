@@ -1091,7 +1091,6 @@ const ChatDetail = ({navigation, route}) => {
         activeChat?._id,
       );
 
-      console.log(response, 'responseresponseresponseresponseresponseas444faf');
 
       if (response?.success) {
         modalRef.current.show({

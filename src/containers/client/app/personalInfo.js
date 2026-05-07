@@ -1,5 +1,5 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {useTranslation} from 'react-i18next';
+import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Image,
@@ -10,25 +10,25 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {width} from 'react-native-dimension';
-import {launchImageLibrary} from 'react-native-image-picker';
-import {ICONS, IMAGES} from '../../../assets';
+import { width } from 'react-native-dimension';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { ICONS, IMAGES } from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
 import CommonAlert from '../../../components/commanAlert';
 import Loader from '../../../components/loder';
 import TextField from '../../../components/textInput';
-import {COLORS, SIZES} from '../../../constants';
-import {helper} from '../../../helper';
+import { COLORS, SIZES } from '../../../constants';
+import { helper } from '../../../helper';
 import useProfile from '../../../hooks/getProfileData';
-import {updateProfilePicture} from '../../../services/Media';
-import {updateProfile} from '../../../services/Settings';
+import { updateProfilePicture } from '../../../services/Media';
+import { updateProfile } from '../../../services/Settings';
 
-const PersonalInfo = ({navigation}) => {
-  const {t} = useTranslation();
+const PersonalInfo = ({ navigation }) => {
+  const { t } = useTranslation();
   const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
-  const {profileData, fetchProfile} = useProfile();
+  const { profileData, fetchProfile } = useProfile();
   console.log(profileData, 'profileDataprofileDataprofileDataprofileData');
 
   useEffect(() => {
@@ -64,7 +64,7 @@ const PersonalInfo = ({navigation}) => {
   }, [profileData]);
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({...prev, [field]: value}));
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const validateFields = () => {
@@ -92,7 +92,7 @@ const PersonalInfo = ({navigation}) => {
   const handleSave = async () => {
     const errorMsg = validateFields();
     if (errorMsg) {
-      modalRef.current?.show({status: 'error', message: errorMsg});
+      modalRef.current?.show({ status: 'error', message: errorMsg });
       return;
     }
 
@@ -127,7 +127,7 @@ const PersonalInfo = ({navigation}) => {
   };
 
   const handleUpdateImage = () => {
-    launchImageLibrary({mediaType: 'photo'}, async response => {
+    launchImageLibrary({ mediaType: 'photo' }, async response => {
       if (response.didCancel) {
         return;
       }
@@ -187,7 +187,7 @@ const PersonalInfo = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
@@ -209,7 +209,7 @@ const PersonalInfo = ({navigation}) => {
           <Image
             source={
               profileData?.profileImage
-                ? {uri: profileData?.profileImage}
+                ? { uri: profileData?.profileImage }
                 : IMAGES.avatarIcon
             }
             resizeMode="contain"
@@ -236,7 +236,7 @@ const PersonalInfo = ({navigation}) => {
             <Image
               resizeMode="contain"
               source={ICONS.cameraIcon}
-              style={{height: '50%', width: '50%'}}
+              style={{ height: '50%', width: '50%' }}
             />
           </TouchableOpacity>
         </View>
@@ -249,7 +249,7 @@ const PersonalInfo = ({navigation}) => {
             onChangeText={val => handleInputChange('firstName', val)}
           />
 
-          <View style={{height: 10}} />
+          <View style={{ height: 10 }} />
           <TextField
             label={t('lastName')}
             placeholder={t('lastNamePlaceholder')}
@@ -257,7 +257,7 @@ const PersonalInfo = ({navigation}) => {
             onChangeText={val => handleInputChange('lastName', val)}
           />
 
-          <View style={{height: 10}} />
+          <View style={{ height: 10 }} />
           <TextField
             label={t('emailAddress')}
             placeholder={t('emailPlaceholder')}
@@ -267,18 +267,18 @@ const PersonalInfo = ({navigation}) => {
             autoCapitalize="none"
           />
 
-          <View style={{height: 10}} />
+          <View style={{ height: 10 }} />
 
           <TextField
             label={t('contactNumber')}
             placeholder={t('+123 456 7890')}
             value={formData.contactNumber}
             onChangeText={val => handleInputChange('contactNumber', val)}
-            keyboardType="numaric"
+            keyboardType="numeric"
             autoCapitalize="none"
           />
 
-          <View style={{height: 10}} />
+          <View style={{ height: 10 }} />
           <TextField
             label={t('Address')}
             placeholder={t('Enter your address')}

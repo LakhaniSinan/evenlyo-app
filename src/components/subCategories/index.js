@@ -1,12 +1,24 @@
 import React from 'react';
 import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import {SvgUri} from 'react-native-svg';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 
+const isSafeSvgUri = uri =>
+  typeof uri === 'string' &&
+  /^https?:\/\//i.test(uri.trim()) &&
+  uri.toLowerCase().includes('.svg');
+
 const SubCategories = ({data, subSelected, setsubSelected}) => {
   const {currentLanguage} = useTranslation();
+  const renderSubCategoryIcon = icon => {
+    if (!isSafeSvgUri(icon)) {
+      return <View style={styles.iconFallback} />;
+    }
+
+    return <SvgUri width={13} height={13} uri={encodeURI(icon.trim())} />;
+  };
+
   return (
     <FlatList
       data={data}
@@ -23,22 +35,18 @@ const SubCategories = ({data, subSelected, setsubSelected}) => {
             style={styles.pillTouchable}
             onPress={() => setsubSelected(item)}>
             {isSelected ? (
-              <LinearGradient
-                colors={['#FF295D', '#E31B95', '#C817AE']}
-                style={styles.gradientBorder}>
-                <View style={[styles.card, styles.selectedCard]}>
-                  <View style={styles.selectedIconWrapper}>
-                    <SvgUri width={13} height={13} uri={item?.icon} />
-                  </View>
-                  <Text style={[styles.cardText, styles.selectedText]}>
-                    {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
-                  </Text>
+              <View style={[styles.card, styles.selectedCard]}>
+                <View style={[styles.iconWrapper, styles.selectedIconWrapper]}>
+                  {renderSubCategoryIcon(item?.icon)}
                 </View>
-              </LinearGradient>
+                <Text style={[styles.cardText, styles.selectedText]}>
+                  {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
+                </Text>
+              </View>
             ) : (
               <View style={styles.card}>
                 <View style={styles.iconWrapper}>
-                  <SvgUri width={13} height={13} uri={item?.icon} />
+                  {renderSubCategoryIcon(item?.icon)}
                 </View>
                 <Text style={styles.cardText}>
                   {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
@@ -60,10 +68,6 @@ const styles = StyleSheet.create({
   pillTouchable: {
     marginRight: 10,
   },
-  gradientBorder: {
-    padding: 1,
-    borderRadius: 10,
-  },
   card: {
     minWidth: 108,
     height: 44,
@@ -75,7 +79,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.backgroundLight,
   },
   selectedCard: {
-    backgroundColor: 'transparent',
+    borderWidth: 1.2,
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.backgroundLight,
   },
   iconWrapper: {
     height: 22,
@@ -93,7 +99,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 6,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.primary,
   },
   cardText: {
     fontSize: 10,
@@ -101,7 +107,13 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
   },
   selectedText: {
-    color: COLORS.white,
+    color: COLORS.primary,
+  },
+  iconFallback: {
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+    backgroundColor: '#DADADA',
   },
 });
 

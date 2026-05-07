@@ -1,5 +1,5 @@
 import api from '.';
-import {endPoints, requestType} from '../constants/Variable';
+import { endPoints, requestType } from '../constants/Variable';
 
 export const createPaymentIntent = params => {
   return api(endPoints.createPaymentIntent, params, requestType.POST);
@@ -9,5 +9,5 @@ export const buySaleItem = params => {
 };
 
 export const getAmountToPay = id => {
-  return api(`${endPoints.amountToPay}/${id}`, requestType.GET);
+  return api(`${endPoints.amountToPay}/${id}`, null, requestType.GET);
 };

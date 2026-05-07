@@ -24,6 +24,14 @@ const CommonAlert = forwardRef((props, ref) => {
   }));
 
   const {message, status, handleDelete, handlePressOk} = modalData;
+  const normalizedStatus =
+    status === 'ok' || status === 'alert' || status === 'error'
+      ? status
+      : 'error';
+  const normalizedMessage =
+    typeof message === 'string' && message.trim().length > 0
+      ? message
+      : 'Something went wrong.';
 
   return (
     <Modal
@@ -42,20 +50,20 @@ const CommonAlert = forwardRef((props, ref) => {
           padding: width(8),
         }}>
         <View style={{alignItems: 'center', justifyContent: 'center'}}>
-          {status === 'ok' && (
+          {normalizedStatus === 'ok' && (
             <FastImage
               source={ICONS.checkedCircle}
               style={{height: width(25), width: width(25)}}
             />
           )}
-          {status === 'alert' && (
+          {normalizedStatus === 'alert' && (
             <FastImage
               resizeMode="contain"
               source={ICONS.alertIcon}
               style={{height: width(25), width: width(25)}}
             />
           )}
-          {status === 'error' && (
+          {normalizedStatus === 'error' && (
             <FastImage
               source={ICONS.redcross}
               style={{height: width(12), width: width(12)}}
@@ -71,15 +79,15 @@ const CommonAlert = forwardRef((props, ref) => {
             marginVertical: width(5),
             textAlign: 'center',
           }}>
-          {message}
+          {normalizedMessage}
         </Text>
 
-        {status == 'ok' && (
+        {normalizedStatus === 'ok' && (
           <View style={{justifyContent: 'center', height: width(14)}}>
             <GradientButton
               text={t('OK')}
               onPress={() => {
-                if (status === 'ok' && handlePressOk) {
+                if (handlePressOk) {
                   handlePressOk();
                 }
                 setIsVisible(false);
@@ -93,7 +101,7 @@ const CommonAlert = forwardRef((props, ref) => {
             />
           </View>
         )}
-        {status == 'error' && (
+        {normalizedStatus === 'error' && (
           <View style={{justifyContent: 'center', height: width(14)}}>
             <GradientButton
               text={t('OK')}
@@ -110,7 +118,7 @@ const CommonAlert = forwardRef((props, ref) => {
           </View>
         )}
 
-        {status === 'alert' && (
+        {normalizedStatus === 'alert' && (
           <View
             style={{
               flexDirection: 'row',

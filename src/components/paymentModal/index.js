@@ -23,6 +23,14 @@ const PaymentModal = ({
   const [processing, setProcessing] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
+  const handleBackdropPress = () => {
+    if (keyboardVisible) {
+      Keyboard.dismiss();
+      return;
+    }
+    onClose?.();
+  };
+
   useEffect(() => {
     const showListener = Keyboard.addListener('keyboardDidShow', () =>
       setKeyboardVisible(true),
@@ -59,6 +67,7 @@ const PaymentModal = ({
 
   const onPay = useCallback(async () => {
     if (!validatePayment() || processing) return;
+    Keyboard.dismiss();
 
     setProcessing(true);
 
@@ -69,8 +78,8 @@ const PaymentModal = ({
 
       if (error) {
         modalRef.current.show({
-          status: error,
-          message: error.message,
+          status: 'error',
+          message: error?.message || 'Payment failed. Please try again.',
         });
         return;
       }
@@ -99,6 +108,7 @@ const PaymentModal = ({
               status: 'error',
               message: res?.data?.message,
             });
+            console.log(res, 'resresresresresresresres');
           }
         } catch (err) {
           console.log('PAY ERROR', err);
@@ -114,7 +124,7 @@ const PaymentModal = ({
   return (
     <Modal
       isVisible={isVisible}
-      onBackdropPress={onClose}
+      onBackdropPress={handleBackdropPress}
       backdropOpacity={0.5}
       avoidKeyboard
       style={styles.modal}>
@@ -148,7 +158,13 @@ const PaymentModal = ({
           postalCodeEnabled={false}
           style={styles.cardFieldContainer}
           cardStyle={styles.cardField}
-          onCardChange={card => setCardComplete(card.complete)}
+          onCardChange={card => {
+            const isComplete = Boolean(card?.complete);
+            setCardComplete(isComplete);
+            if (isComplete) {
+              Keyboard.dismiss();
+            }
+          }}
         />
 
         {!keyboardVisible && (

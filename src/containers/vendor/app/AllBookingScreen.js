@@ -382,7 +382,6 @@ function AllBookingScreen() {
       const response = await handleUpdateOrderStatus(orderId, {
         status: newStatus,
       });
-      console.log(response, 'responseresponseresponseresponseresponse');
 
       if (response?.status === 200 || response?.status === 201) {
         setSaleOrders(prev =>
