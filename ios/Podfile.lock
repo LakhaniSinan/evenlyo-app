@@ -2244,7 +2244,7 @@ PODS:
     - Yoga
   - RNFS (2.20.0):
     - React-Core
-  - RNGestureHandler (2.31.1):
+  - RNGestureHandler (2.31.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2516,7 +2516,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNShare (12.2.6):
+  - RNShare (12.3.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3155,13 +3155,13 @@ SPEC CHECKSUMS:
   RNFBApp: 46d4283b43d65c80f7b65f587cf56c138d948616
   RNFBMessaging: 56ce62451cac66b4fdcbd73c801d523b43cd8af9
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
-  RNGestureHandler: 80235a0cb70eed222da3e28cd392ac5c252beae7
+  RNGestureHandler: e461a062892cd8b3b3dbfc55d0e86fb0281f111b
   RNGoogleSignin: fa5e389a0dea463d2d7a5b697dbfeeb805a703b8
   RNLocalize: 0b5b54ce69778d4cd8c1f42b40d11ff5a9eef2ab
   RNPermissions: 6f40701bf48b89d6ce9ec317a99ddb5ecf24f3fe
   RNReanimated: aeca78e794b87ec881a55fde810a4b23825feb2e
   RNScreens: 482e9707f9826230810c92e765751af53826d509
-  RNShare: cce57f7ba69bc3b9486c939768ce8fb9d7d00fb7
+  RNShare: 3f6f18e00a073202649091f966e0f45e0492c019
   RNSVG: 1658bbb38984e7142b24eb93df1e05b1d4c6c0ba
   RNVectorIcons: 1fe59cfa2d3ac94ceb9d373a59c54609471b8d56
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
