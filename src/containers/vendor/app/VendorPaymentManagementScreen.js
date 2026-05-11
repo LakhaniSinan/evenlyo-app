@@ -1,7 +1,6 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {
-  Alert,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -14,6 +13,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
+import CommonAlert from '../../../components/commanAlert';
 import Loader from '../../../components/loder';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
@@ -23,21 +23,13 @@ import {
 } from '../../../services/VendorPaymentManagement';
 import {vendorStripeOnboardingStatus} from '../../../services/VendorStripe';
 
-const getOrderId = order =>
-  order?._id || order?.id || order?.orderId || order?.bookingId || '';
+const getOrderId = order => {
+  return order?.trackingId;
+};
 
-const getOrderAmount = order =>
-  Number(
-    order?.orderAmount ||
-      order?.amount ||
-      order?.totalAmount ||
-      order?.payableAmount ||
-      order?.price ||
-      0,
-  );
+const getOrderAmount = order => Number(order?.amount) || 0;
 
-const getPaymentStatus = order =>
-  String(order?.paymentStatus || order?.status || '').toLowerCase();
+const getPaymentStatus = order => String(order?.status || '').toLowerCase();
 
 const getEscrowDate = order =>
   order?.escrowEndsAt || order?.escrowEndDate || order?.escrowTime || null;
@@ -83,7 +75,7 @@ const VendorPaymentManagementScreen = () => {
   const [pendingOrdersApi, setPendingOrdersApi] = useState([]);
   const [paidOrdersApi, setPaidOrdersApi] = useState([]);
   const [stripeConnected, setStripeConnected] = useState(false);
-
+  const alertRef = useRef(null);
   const fetchScreenData = useCallback(async () => {
     try {
       setLoading(true);
@@ -232,42 +224,47 @@ const VendorPaymentManagementScreen = () => {
 
   const handlePaySelected = async () => {
     if (!stripeConnected) {
-      Alert.alert(
-        'Stripe Required',
-        'Please connect your Stripe account first.',
+      alertRef.current.showAlert(
+        'error',
+        t('Stripe Required'),
+        t('Please connect your Stripe account first.'),
       );
       return;
     }
     if (!selectedOrderIds.length) {
-      Alert.alert('Select Orders', 'Please select at least one order.');
+      alertRef.current.showAlert(
+        'error',
+        t('Select Orders'),
+        t('Please select at least one order.'),
+      );
       return;
     }
 
     const payload = {
-      orderIds: selectedOrderIds,
-      totalAmount: selectedTotal,
+      trackingIds: selectedOrderIds,
+      amount: Number(selectedTotal),
     };
 
     try {
       setLoading(true);
       const response = await disburseVendorPayments(VENDOR_ID, payload);
+      console.log(response, 'responseresponseresponseresponse');
+
       if (response?.status === 200 || response?.status === 201) {
-        Alert.alert('Success', response?.data?.message || 'Payout submitted.');
         setSelectedOrderIds([]);
         fetchScreenData();
       } else {
-        Alert.alert(
-          'Error',
-          response?.data?.message || 'Could not submit payout.',
-        );
+        alertRef.current.showAlert('error', response?.data?.message);
       }
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+      alertRef.current.showAlert(
+        'error',
+        t('Something went wrong. Please try again.'),
+      );
     } finally {
       setLoading(false);
     }
   };
-
   const renderOrderCard = order => {
     const orderId = getOrderId(order);
     const amount = getOrderAmount(order);
@@ -396,7 +393,7 @@ const VendorPaymentManagementScreen = () => {
           Payout EUR {selectedTotal.toFixed(2)}
         </Text>
       </TouchableOpacity>
-
+      <CommonAlert ref={alertRef} />
       <Loader isLoading={loading} />
     </SafeAreaView>
   );

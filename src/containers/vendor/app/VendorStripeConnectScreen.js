@@ -40,16 +40,7 @@ const VendorStripeConnectScreen = () => {
     try {
       setStatusLoading(true);
       const res = await vendorStripeOnboardingStatus();
-      console.log(res, 'resresresresresres');
-
-      const body = res?.data?.data ?? res?.data ?? {};
-      setConnected(
-        body?.connected === true ||
-          body?.onboardingComplete === true ||
-          body?.onboarding_complete === true ||
-          body?.payoutsEnabled === true ||
-          body?.payouts_enabled === true,
-      );
+      setConnected(res?.data?.onboarded);
     } finally {
       setStatusLoading(false);
     }
@@ -64,6 +55,8 @@ const VendorStripeConnectScreen = () => {
   const handleOnboardingCompletion = useCallback(async () => {
     try {
       setStatusSyncing(true);
+      const res = await vendorStripeOnboardingStatus();
+      setConnected(res?.data?.onboarded);
       await fetchStatus();
     } finally {
       setStatusSyncing(false);
@@ -73,18 +66,20 @@ const VendorStripeConnectScreen = () => {
 
   const handleWebNavigation = useCallback(
     navState => {
+      console.log(navState, 'navStatenavStatenavStatenavStatenavState');
+
       const currentUrl = String(navState?.url || '').toLowerCase();
       if (!currentUrl) return;
       const isStripeHost = currentUrl.includes('connect.stripe.com');
       if (isStripeHost) return;
 
       // Stripe redirects to app return/refresh URLs when onboarding flow changes state.
-      const reachedReturnUrl =
-        currentUrl.includes('stripe/return') ||
-        currentUrl.includes('onboarding-status') ||
-        currentUrl.includes('stripe/connect/success') ||
-        currentUrl.includes('refresh');
+      const reachedReturnUrl = currentUrl.includes('/leverancier/succes');
 
+      console.log(
+        reachedReturnUrl,
+        'reachedReturnUrlreachedReturnUrlreachedReturnUrl',
+      );
       if (reachedReturnUrl) {
         handleOnboardingCompletion();
       }
@@ -102,12 +97,7 @@ const VendorStripeConnectScreen = () => {
       const linkRes = await vendorStripeOnboardingLink();
       console.log(linkRes, 'linkReslinkReslinkReslinkRes');
 
-      const body = linkRes?.data || {};
-      const url =
-        body?.url ||
-        body?.data?.url ||
-        body?.onboardingUrl ||
-        body?.data?.onboardingUrl;
+      const url = linkRes?.data?.url;
       if (!url) {
         Alert.alert('Stripe', t('Unable to get Stripe onboarding link.'));
         return;

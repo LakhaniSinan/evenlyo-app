@@ -219,9 +219,16 @@ const ProfileScreen = () => {
             <TouchableOpacity
               onPress={() => navigation.navigate('VendorStripeConnect')}
               style={styles.connectStripeButton}>
-              <Text style={styles.connectStripeButtonText}>
-                {t('Connect Stripe Account')}
-              </Text>
+              <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <Image
+                  style={{width: 16, height: 20}}
+                  resizeMode="contain"
+                  source={ICONS.wallet}
+                />
+                <Text style={styles.connectStripeButtonText}>
+                  {t('Connect Stripe Account')}
+                </Text>
+              </View>
               <Image
                 style={styles.connectStripeArrow}
                 resizeMode="contain"
@@ -342,6 +349,7 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     fontSize: 13,
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
+    marginLeft: 15,
   },
   connectStripeArrow: {
     width: width(3),

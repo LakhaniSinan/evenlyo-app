@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   },
   filledText: {
     color: '#fff',
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
   outlineOuter: {
