@@ -251,14 +251,14 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: COLORS.gray,
+    color: COLORS.textLight,
     marginTop: 10,
-    fontFamily: fontFamly.PlusJakartaSansRegular,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray,
-    fontFamily: fontFamly.PlusJakartaSansRegular,
+    color: COLORS.textLight,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
   },
 });
 

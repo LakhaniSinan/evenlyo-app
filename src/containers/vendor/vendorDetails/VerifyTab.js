@@ -18,14 +18,13 @@ const VerifyTab = ({onPressBack, handleNextStep, setVerification}) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const {t} = useTranslation();
-  const modalRef = useRef(null);
+  const alertRef = useRef(null);
   const handleContinue = () => {
-    if (email) {
-      modalRef.current.show({
-        status: 'error',
-        message: 'Please enter your email address.',
-      });
-      return;
+    if (!email) {
+      return alertRef.current.showAlert(
+        'error',
+        'Please enter your email address.',
+      );
     }
     setVerification({
       email,
