@@ -35,18 +35,22 @@ const SubCategories = ({data, subSelected, setsubSelected}) => {
             style={styles.pillTouchable}
             onPress={() => setsubSelected(item)}>
             {isSelected ? (
-              <View style={[styles.card, styles.selectedCard]}>
-                <View style={[styles.iconWrapper, styles.selectedIconWrapper]}>
-                  {renderSubCategoryIcon(item?.icon)}
+              <LinearGradient
+                colors={['#FF295D', '#E31B95', '#C817AE']}
+                style={styles.gradientBorder}>
+                <View style={[styles.card, styles.selectedCard]}>
+                  <View style={styles.selectedIconWrapper}>
+                    <SvgUri width={13} height={13} uri={item?.icon} />
+                  </View>
+                  <Text style={[styles.cardText, styles.selectedText]}>
+                    {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
+                  </Text>
                 </View>
-                <Text style={[styles.cardText, styles.selectedText]}>
-                  {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
-                </Text>
-              </View>
+              </LinearGradient>
             ) : (
               <View style={styles.card}>
                 <View style={styles.iconWrapper}>
-                  {renderSubCategoryIcon(item?.icon)}
+                  <SvgUri width={13} height={13} uri={item?.icon} />
                 </View>
                 <Text style={styles.cardText}>
                   {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
@@ -68,6 +72,10 @@ const styles = StyleSheet.create({
   pillTouchable: {
     marginRight: 10,
   },
+  gradientBorder: {
+    padding: 1,
+    borderRadius: 10,
+  },
   card: {
     minWidth: 108,
     height: 44,
@@ -79,9 +87,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.backgroundLight,
   },
   selectedCard: {
-    borderWidth: 1.2,
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.backgroundLight,
+    backgroundColor: 'transparent',
   },
   iconWrapper: {
     height: 22,
@@ -99,7 +105,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 6,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.white,
   },
   cardText: {
     fontSize: 10,
@@ -107,13 +113,7 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
   },
   selectedText: {
-    color: COLORS.primary,
-  },
-  iconFallback: {
-    width: 9,
-    height: 9,
-    borderRadius: 4.5,
-    backgroundColor: '#DADADA',
+    color: COLORS.white,
   },
 });
 

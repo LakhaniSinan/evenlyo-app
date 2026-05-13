@@ -122,22 +122,10 @@ const Home = ({navigation, route}) => {
           setSubCategoriesSelected(subRes.data[0]);
         } else {
           setSubCategoriesSelected(null);
-          setHomeData({
-            bookingItems: [],
-            saleItems: [],
-            otherSaleItemms: [],
-            releventVendors: [],
-          });
         }
       } catch (error) {
         if (isMounted) {
           setSubCategoriesSelected(null);
-          setHomeData({
-            bookingItems: [],
-            saleItems: [],
-            otherSaleItemms: [],
-            releventVendors: [],
-          });
         }
       } finally {
         if (isMounted) {

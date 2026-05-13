@@ -37,22 +37,27 @@ const Categories = ({data, selected, setSelected}) => {
             style={styles.cardTouchable}
             onPress={() => setSelected(item)}>
             {isSelected ? (
-              <View style={styles.selectedCardBorder}>
-                <View style={[styles.card, styles.selectedCard]}>
-                  <LinearGradient
-                    colors={['#FF295D', '#E31B95', '#C817AE']}
-                    start={{x: 0, y: 0}}
-                    end={{x: 1, y: 1}}
-                    style={[styles.iconWrapper, styles.activeIconWrapper]}>
-                    <View style={styles.iconCenter}>
-                      {renderCategoryIcon(item?.icon)}
-                    </View>
-                  </LinearGradient>
-                  <Text style={styles.cardText}>
-                    {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
-                  </Text>
+              <LinearGradient
+                colors={['#FFFFFF', '#FFE6F1', '#FF4D88', '#C817AE']}
+                locations={[0, 0.22, 0.62, 1]}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 1}}
+                style={styles.gradientBorder}>
+                <View style={styles.innerCard}>
+                  <View style={styles.card}>
+                    <LinearGradient
+                      colors={['#FF295D', '#E31B95', '#C817AE']}
+                      style={styles.activeIconWrapper}>
+                      <View style={styles.iconCenter}>
+                        <SvgUri width={16} height={16} uri={item?.icon} />
+                      </View>
+                    </LinearGradient>
+                    <Text style={styles.cardText}>
+                      {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
+                    </Text>
+                  </View>
                 </View>
-              </View>
+              </LinearGradient>
             ) : (
               <View style={styles.card}>
                 <View style={styles.iconWrapper}>
@@ -80,6 +85,15 @@ const styles = StyleSheet.create({
   cardTouchable: {
     marginRight: 10,
   },
+  gradientBorder: {
+    padding: 1.5,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardTouchable: {
+    marginRight: 10,
+  },
   selectedCardBorder: {
     width: 118,
     height: width(28),
@@ -88,19 +102,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 1,
     backgroundColor: COLORS.backgroundLight,
-    overflow: 'hidden',
-  },
-  selectedCard: {
-    borderWidth: 0,
-    borderRadius: 9,
-    overflow: 'hidden',
+    borderRadius: 12,
+    borderWidth: 2.2,
+    borderColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   card: {
     width: 118,
     height: width(28),
     paddingHorizontal: 10,
-    paddingVertical: 12,
-    justifyContent: 'flex-start',
+    paddingVertical: 10,
+    justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,
     backgroundColor: COLORS.backgroundLight,
@@ -114,7 +127,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   activeIconWrapper: {
-    backgroundColor: 'transparent',
+    height: 48,
+    width: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   iconCenter: {
     height: 20,
@@ -122,18 +139,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconFallback: {
-    height: 14,
-    width: 14,
-    borderRadius: 7,
-    backgroundColor: '#DADADA',
-  },
   cardText: {
     textAlign: 'center',
     fontSize: 11,
     lineHeight: 14,
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
-    marginTop: 10,
+    marginTop: 8,
     color: COLORS.textDark,
   },
 });

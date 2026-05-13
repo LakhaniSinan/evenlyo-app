@@ -73,7 +73,7 @@ const getResolvedMapCoordinates = listingData => {
     return DEFAULT_MAP_COORDINATE;
   }
 
-  return { latitude, longitude };
+  return {latitude, longitude};
 };
 
 const getInitialMarkedDates = availableDays => {
@@ -121,7 +121,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
   const [isLoadding, setIsLoadding] = useState(false);
   const mapCoordinates = useMemo(() => getResolvedMapCoordinates(data), [data]);
 
-  const { latitude, longitude } = mapCoordinates;
+  const {latitude, longitude} = mapCoordinates;
   const markerCoordinate = useMemo(
     () => ({
       latitude: parseFiniteNumber(latitude) ?? DEFAULT_MAP_COORDINATE.latitude,
