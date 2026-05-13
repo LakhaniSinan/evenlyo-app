@@ -16,6 +16,47 @@ import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 
 const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
+
+// E.164: + then 7–15 digits (ITU max 15), first digit 1–9 (no leading national 0).
+const E164_MAX_DIGITS = 15;
+const E164_MIN_DIGITS = 7;
+
+const compactPhoneInput = value =>
+  String(value ?? '')
+    .trim()
+    .replace(/\s/g, '');
+
+// Strips to +digits; caps length; treats 00… as international prefix; allows lone "+" while editing.
+const normalizeToE164 = input => {
+  const compact = compactPhoneInput(input);
+  if (compact === '') {
+    return '';
+  }
+  if (compact === '+') {
+    return '+';
+  }
+  let digits = compact.replace(/\D/g, '');
+  if (digits.startsWith('00')) {
+    digits = digits.slice(2);
+  }
+  digits = digits.replace(/^0+/, '');
+  if (!digits) {
+    return '';
+  }
+  if (!/^[1-9]/.test(digits)) {
+    return '';
+  }
+  digits = digits.slice(0, E164_MAX_DIGITS);
+  return `+${digits}`;
+};
+
+const isValidE164 = value => {
+  if (!value || value === '+') {
+    return false;
+  }
+  return /^\+[1-9]\d{6,14}$/.test(value);
+};
+
 const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
   const {t} = useTranslation();
   const modalRef = useRef(null);
@@ -52,7 +93,10 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
       setFormData({
         companyName: businessInfo?.companyName || '',
         companyEmail: businessInfo?.companyEmail || '',
-        contact: businessInfo?.contact || '',
+        contact:
+          normalizeToE164(businessInfo?.contact || '') ||
+          businessInfo?.contact ||
+          '',
         companyAddress: businessInfo?.companyAddress || '',
         companyWebsite: businessInfo?.companyWebsite || '',
         passportNumber: businessInfo?.passportNumber || '',
@@ -134,11 +178,13 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
     if (!emailRegex.test(companyEmail)) {
       return showError('Please enter a valid email address.');
     }
-    if (!contact) {
+    if (!contact || contact === '+') {
       return showError('Please enter Contact Number.');
     }
-    if (contact.replace(/\D/g, '').length < 7) {
-      return showError('Please enter a valid contact number.');
+    if (!isValidE164(contact)) {
+      return showError(
+        `Please enter a valid E.164 phone number (e.g. +31612345678): include country code, ${E164_MIN_DIGITS}–${E164_MAX_DIGITS} digits after +.`,
+      );
     }
     if (!companyAddress) {
       return showError('Please enter Company Address.');
@@ -149,11 +195,14 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
     if (!workType) {
       return showError('Please select your Work Type.');
     }
-    if (!teamSize) {
+    if (workType === 'Team' && !teamSize) {
       return showError('Please select your Team Size.');
     }
 
-    handleNextStep(formData);
+    handleNextStep({
+      ...formData,
+      teamSize: workType === 'Single' ? "It's Just Me" : formData.teamSize,
+    });
   };
 
   return (
@@ -188,9 +237,11 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
           {/* Contact */}
           <TextField
             label={t('Company Number')}
-            placeholder={t('0000*****')}
+            placeholder={t('+31612345678')}
             value={formData.contact}
-            onChangeText={val => handleInputChange('contact', val)}
+            onChangeText={val =>
+              handleInputChange('contact', normalizeToE164(val))
+            }
             keyboardType="phone-pad"
             bgColor={COLORS.white}
           />
@@ -256,33 +307,30 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
             dropdownContainerStyle={{backgroundColor: COLORS.white}}
           />
 
-          <Spacing />
-
-          {/* Team Size */}
-          <CustomPicker
-            ref={teamSizeRef}
-            labelll={t('Team Size')}
-            label={t('Team Size')}
-            value={formData.teamSize}
-            listData={
-              formData.workType === 'Single'
-                ? [{name: "It's Just Me"}]
-                : [
-                    {name: '1-5'},
-                    {name: '11-20'},
-                    {name: '21-50'},
-                    {name: '51-100'},
-                    {name: '101-200'},
-                    {name: '201-500'},
-                    {name: '501-1000'},
-                    {name: '1001-2000'},
-                  ]
-            }
-            name="teamSize"
-            handleSelectValue={handleSelectValue}
-            disable={formData.workType === 'Single'}
-            dropdownContainerStyle={{backgroundColor: COLORS.white}}
-          />
+          {formData.workType === 'Team' && (
+            <>
+              <Spacing />
+              <CustomPicker
+                ref={teamSizeRef}
+                labelll={t('Team Size')}
+                label={t('Team Size')}
+                value={formData.teamSize}
+                listData={[
+                  {name: '1-5'},
+                  {name: '11-20'},
+                  {name: '21-50'},
+                  {name: '51-100'},
+                  {name: '101-200'},
+                  {name: '201-500'},
+                  {name: '501-1000'},
+                  {name: '1001-2000'},
+                ]}
+                name="teamSize"
+                handleSelectValue={handleSelectValue}
+                dropdownContainerStyle={{backgroundColor: COLORS.white}}
+              />
+            </>
+          )}
 
           <Spacing />
 

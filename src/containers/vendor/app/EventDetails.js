@@ -157,7 +157,7 @@ function EventDetailsScreen({navigation, route}) {
             <Text
               style={
                 styles.feeText
-              }>{`Extra: $${listingDetails?.pricing?.securityFee}`}</Text>
+              }>{`Extra: €${listingDetails?.pricing?.securityFee}`}</Text>
             <Text style={styles.feeSubText}>Security Fee</Text>
           </View>
           <View style={styles.feeRow}>
@@ -165,7 +165,7 @@ function EventDetailsScreen({navigation, route}) {
             <Text
               style={
                 styles.feeSubText
-              }>{`1km $${listingDetails?.pricing?.pricePerKm}`}</Text>
+              }>{`1km €${listingDetails?.pricing?.pricePerKm}`}</Text>
           </View>
         </View>
 

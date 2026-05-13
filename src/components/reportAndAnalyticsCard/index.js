@@ -94,7 +94,7 @@ const CardContent = ({item, isDark = false}) => {
           fontSize: 16,
           color: isDark ? COLORS.white : COLORS.textDark,
         }}>
-        ${item?.value}
+        €{item?.value}
       </Text>
     </>
   );

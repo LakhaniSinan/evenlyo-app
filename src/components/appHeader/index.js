@@ -2,6 +2,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {Menu} from 'react-native-paper';
+import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
@@ -168,14 +169,27 @@ const AppHeader = ({
             width: '70%',
           }}>
           <Image
-            resizeMode="cover"
+            resizeMode="contain"
             style={{
               width: 50,
               height: 50,
               borderRadius: 100,
               overflow: 'hidden',
             }}
-            source={{uri: chatHeaderData.Icon}}
+            source={(() => {
+              const raw = chatHeaderData?.Icon;
+              if (
+                raw == null ||
+                raw === '' ||
+                (typeof raw === 'string' && !String(raw).trim())
+              ) {
+                return ICONS.userIcon;
+              }
+              if (typeof raw === 'number') {
+                return raw;
+              }
+              return {uri: String(raw).trim()};
+            })()}
           />
           <View style={{flex: 1, padding: 10}}>
             <Text

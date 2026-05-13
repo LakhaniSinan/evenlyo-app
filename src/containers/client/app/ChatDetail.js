@@ -25,6 +25,7 @@ import {
 import {width} from 'react-native-dimension';
 import {launchImageLibrary} from 'react-native-image-picker';
 import LinearGradient from 'react-native-linear-gradient';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
@@ -41,6 +42,7 @@ import {useTranslation} from '../../../hooks';
 import {conversationService, messageService} from '../../../services/Chat';
 
 const ChatDetail = ({navigation, route}) => {
+  const insets = useSafeAreaInsets();
   const modalRef = useRef();
   const data = route.params;
   const {socket} = useContext(SocketContext);
@@ -61,7 +63,6 @@ const ChatDetail = ({navigation, route}) => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [isAcceptingOffer, setIsAcceptingOffer] = useState(false);
   const [showViewOfferModal, setShowViewOfferModal] = useState(false);
-  const [composerHeight, setComposerHeight] = useState(width(24));
   const currentConversationId =
     conversation?.conversationId || conversation?._id;
   const vendorDisplayName = useMemo(() => {
@@ -320,7 +321,6 @@ const ChatDetail = ({navigation, route}) => {
         user?.id,
       );
 
-
       const responseMessages = Array.isArray(response?.data)
         ? response.data
         : Array.isArray(response)
@@ -548,8 +548,17 @@ const ChatDetail = ({navigation, route}) => {
             ]}>
             {!isOwn && (
               <Image
-                resizeMode="cover"
-                source={{uri: conversation?.participants?.vendor?.photo}}
+                resizeMode="contain"
+                source={
+                  conversation?.participants?.vendor?.photo &&
+                  String(conversation.participants.vendor.photo).trim()
+                    ? {
+                        uri: String(
+                          conversation.participants.vendor.photo,
+                        ).trim(),
+                      }
+                    : ICONS.userIcon
+                }
                 style={styles.messageAvatar}
               />
             )}
@@ -711,7 +720,12 @@ const ChatDetail = ({navigation, route}) => {
 
             {isOwn && (
               <Image
-                source={{uri: user.profileImage}}
+                resizeMode="contain"
+                source={
+                  user?.profileImage && String(user.profileImage).trim()
+                    ? {uri: String(user.profileImage).trim()}
+                    : ICONS.userIcon
+                }
                 style={styles.messageAvatar}
               />
             )}
@@ -1045,7 +1059,10 @@ const ChatDetail = ({navigation, route}) => {
 
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}>
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
           onLeftIconPress={() => navigation.goBack()}
@@ -1058,7 +1075,7 @@ const ChatDetail = ({navigation, route}) => {
           rightIcon={ICONS.menuIcon}
           onRightIconPress={() => {}}
           chatHeaderData={{
-            Icon: conversation?.participants?.vendor?.photo,
+            Icon: conversation?.participants?.vendor?.photo || null,
             name: vendorDisplayName,
             lastSeen: 'Thanks for the quick res....',
           }}
@@ -1072,11 +1089,9 @@ const ChatDetail = ({navigation, route}) => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             padding: width(2),
-            // Keep last message above the absolute input composer (dynamic height).
-            paddingBottom: conversation?.isBlocked
-              ? width(4)
-              : composerHeight + width(2),
+            paddingBottom: width(4),
           }}
+          keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => setTimeout(scrollToBottom, 20)}
         />
 
@@ -1084,6 +1099,7 @@ const ChatDetail = ({navigation, route}) => {
           <View
             style={{
               padding: width(3),
+              paddingBottom: width(3) + insets.bottom,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: COLORS.backgroundLight,
@@ -1142,16 +1158,10 @@ const ChatDetail = ({navigation, route}) => {
             )}
 
             <View
-              style={[styles.inputWrapper, {flexDirection: 'column'}]}
-              onLayout={event => {
-                const nextHeight = event?.nativeEvent?.layout?.height || 0;
-                if (
-                  nextHeight > 0 &&
-                  Math.abs(nextHeight - composerHeight) > 2
-                ) {
-                  setComposerHeight(nextHeight);
-                }
-              }}>
+              style={[
+                styles.inputWrapper,
+                {flexDirection: 'column', paddingBottom: insets.bottom},
+              ]}>
               <View
                 style={{
                   flexDirection: 'row',
@@ -1296,10 +1306,6 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,

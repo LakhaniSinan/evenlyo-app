@@ -196,7 +196,8 @@ function BookingDetails({route}) {
     try {
       setIsLoading(true);
       const response = await updateStatus(booking?._id, params, type);
-      console.log(response, 'responceresponceresponceresponceresponce');
+      console.log(response, 'responseresponseresponseresponseresponse');
+
       if (response?.status === 200 || response?.status === 201) {
         setOpenPickedUpModal(false);
         showAlert(
@@ -220,7 +221,7 @@ function BookingDetails({route}) {
     } catch (error) {
       console.log(error, 'errorerrorerrorerrorerrorerror');
     } finally {
-      setIsLoading(true);
+      setIsLoading(false);
     }
   };
 
@@ -233,14 +234,32 @@ function BookingDetails({route}) {
   };
 
   const handleMarkPickedUp = vall => {
-    let params =
-      vall?.type == 'Good'
-        ? {condition: vall?.type?.toLowerCase()}
-        : {
-            condition: vall?.type?.toLowerCase(),
-            securityFee: vall?.amount,
-          };
-    handleUpdateStatus(params, 'mark-picked-up');
+    if (!vall?.type) {
+      handleUpdateStatus({condition: 'good'}, 'mark-picked-up');
+      return;
+    }
+    if (vall?.type === 'Good') {
+      handleUpdateStatus({condition: 'good'}, 'mark-picked-up');
+      return;
+    }
+    if (vall?.type === 'Claim') {
+      handleUpdateStatus(
+        {
+          condition: 'claim',
+          claimAmount: Number(vall.claimAmount) || 0,
+          reason: String(vall.reason || '').trim(),
+        },
+        'mark-picked-up',
+      );
+      return;
+    }
+    handleUpdateStatus(
+      {
+        condition: 'fair',
+        securityFee: vall?.amount,
+      },
+      'mark-picked-up',
+    );
   };
 
   return (
@@ -343,80 +362,71 @@ function BookingDetails({route}) {
         </View>
       </ScrollView>
 
-      {booking?.status === 'pending' && (
-        <View style={styles.actionRow}>
-          <View style={styles.actionButton}>
+      {booking && (
+        <View style={styles.footer}>
+          {booking?.status === 'pending' && (
+            <View style={styles.actionRow}>
+              <View style={styles.actionButton}>
+                <GradientButton
+                  text="Accept"
+                  onPress={handleAcceptBooking}
+                  type="outline"
+                  textStyle={styles.pendingAcceptOutlineText}
+                  styleContainer={styles.pendingPairBtnOuter}
+                  outlineButtonStyle={styles.pendingPairOutlineInner}
+                />
+              </View>
+              <View style={styles.actionButton}>
+                <GradientButton
+                  text="Reject"
+                  onPress={() => setRejectModalVisible(true)}
+                  styleContainer={styles.pendingPairBtnOuter}
+                />
+              </View>
+            </View>
+          )}
+          {booking?.paymentStatus == 'paid' &&
+            booking?.status == 'accepted' && (
+              <GradientButton
+                text="Mark As On the way"
+                onPress={() => handleUpdateStatus(null, 'mark-on-the-way')}
+                type="outline"
+                useGradient
+              />
+            )}
+          {booking?.status == 'finished' && (
             <GradientButton
-              text="Accept"
-              onPress={handleAcceptBooking}
+              text="Picked Up"
+              onPress={handlePickedUp}
               type="outline"
               useGradient
             />
-          </View>
-          <View style={styles.actionButton}>
+          )}
+          {booking?.status == 'picked_up' && (
             <GradientButton
-              text="Reject"
-              onPress={() => setRejectModalVisible(true)}
+              text="Received Back"
+              onPress={() => handleUpdateStatus(null, 'received-back')}
+              type="outline"
+              useGradient
             />
-          </View>
-        </View>
-      )}
-      {booking?.paymentStatus == 'paid' && booking?.status == 'accepted' && (
-        <View style={{paddingHorizontal: width(4), marginTop: width(3)}}>
-          <GradientButton
-            text="Mark As On the way"
-            onPress={() => handleUpdateStatus(null, 'mark-on-the-way')}
-            type="outline"
-            useGradient
-          />
-        </View>
-      )}
-      {booking?.status == 'finished' && (
-        <View style={{paddingHorizontal: width(4), marginTop: width(3)}}>
-          <GradientButton
-            text="Pickedup"
-            onPress={handlePickedUp}
-            type="outline"
-            useGradient
-          />
-        </View>
-      )}
-      {booking?.status == 'picked_up' && (
-        <View style={{paddingHorizontal: width(4), marginTop: width(3)}}>
-          <GradientButton
-            text="Received Back"
-            onPress={() => handleUpdateStatus(null, 'received-back')}
-            type="outline"
-            useGradient
-          />
-        </View>
-      )}
-      {booking?.status == 'received_back' && (
-        <View style={{paddingHorizontal: width(4), marginTop: width(3)}}>
-          <GradientButton
-            text="Complete"
-            onPress={() => handleUpdateStatus(null, 'mark-completed')}
-            type="outline"
-            useGradient
-          />
-        </View>
-      )}
-      {booking?.status !== 'pending' && (
-        <View style={{paddingHorizontal: width(4), marginTop: width(3)}}>
-          <GradientButton
-            textStyle={{
-              fontSize: 13,
-              fontFamly: fontFamly.PlusJakartaSansMedium,
-              color: COLORS.white,
-            }}
-            text={'Track Now'}
-            onPress={() =>
-              navigation.navigate('TrackingBookingDetails', booking)
-            }
-            styleProps={{
-              paddingVertical: width(3),
-            }}
-          />
+          )}
+          {booking?.status == 'received_back' && (
+            <GradientButton
+              text="Complete"
+              onPress={() => handleUpdateStatus(null, 'mark-completed')}
+              type="outline"
+              useGradient
+            />
+          )}
+          {booking?.status !== 'pending' && (
+            <GradientButton
+              text="Track Now"
+              onPress={() =>
+                navigation.navigate('TrackingBookingDetails', booking)
+              }
+              textStyle={styles.footerFilledText}
+            />
+          )}
         </View>
       )}
 
@@ -462,12 +472,15 @@ const renderInfoRow = (icon, title, value) => (
 const renderUserRow = (user, address) => {
   return (
     <View style={styles.dividerRow}>
-      <Image
-        source={
-          user?.businessLogo ? {uri: user?.businessLogo} : IMAGES.profilePhoto
-        }
-        style={styles.avatar}
-      />
+      <View style={styles.avatarContainer}>
+        <Image
+          source={
+            user?.businessLogo ? {uri: user?.businessLogo} : ICONS.userIcon
+          }
+          style={styles.avatar}
+          resizeMode="contain"
+        />
+      </View>
       <View style={styles.infoText}>
         <Text style={styles.infoValue}>
           {user?.firstName} {user?.lastName}
@@ -482,6 +495,15 @@ const renderUserRow = (user, address) => {
 
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: COLORS.white},
+  avatarContainer: {
+    width: width(10),
+    height: width(10),
+    borderRadius: 100,
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 2,
+  },
   sectionPadding: {paddingHorizontal: width(3)},
   rowBetween: {
     flexDirection: 'row',
@@ -528,12 +550,12 @@ const styles = StyleSheet.create({
   },
   infoRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingVertical: width(3),
   },
   dividerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingVertical: width(3),
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
@@ -541,13 +563,16 @@ const styles = StyleSheet.create({
   iconSmall: {
     height: width(5),
     width: width(5),
+    marginTop: 2,
   },
   avatar: {
-    height: width(10),
-    width: width(10),
+    height: width(8),
+    width: width(8),
     borderRadius: 100,
   },
   infoText: {
+    flex: 1,
+    minWidth: 0,
     marginLeft: width(3),
   },
   infoTitle: {
@@ -559,19 +584,48 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansMedium,
     color: COLORS.textDark,
+    flexShrink: 1,
   },
   infoSubValue: {
     fontSize: 10,
     fontFamily: fontFamly.PlusJakartaSansMedium,
     color: COLORS.textLight,
+    flexShrink: 1,
+  },
+  footer: {
+    paddingHorizontal: width(4),
+    paddingTop: width(2),
+    paddingBottom: width(4),
+    gap: width(2),
+    backgroundColor: COLORS.white,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: COLORS.border,
   },
   actionRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: width(3),
+    alignItems: 'stretch',
+    gap: width(2),
   },
   actionButton: {
-    width: width(44),
+    flex: 1,
+    minWidth: 0,
+  },
+  pendingPairBtnOuter: {
+    height: width(11),
+  },
+  pendingPairOutlineInner: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  pendingAcceptOutlineText: {
+    color: COLORS.primary,
+    fontSize: 10,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  footerFilledText: {
+    fontSize: 10,
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+    color: COLORS.white,
   },
 });
 

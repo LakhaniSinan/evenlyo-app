@@ -101,9 +101,9 @@ const ReportingModal = ({data, visible, onClose}) => {
 
     <h3>Earnings Summary</h3>
     <div class="earnings">
-      <div>Today Earning: $${data?.stats?.todayEarnings || 0}</div>
-      <div>Last Week Earning: $${data?.stats?.lastWeekEarnings || 0}</div>
-      <div>Total Earning: $${data?.stats?.totalEarnings || 0}</div>
+      <div>Today Earning: €${data?.stats?.todayEarnings || 0}</div>
+      <div>Last Week Earning: €${data?.stats?.lastWeekEarnings || 0}</div>
+      <div>Total Earning: €${data?.stats?.totalEarnings || 0}</div>
     </div>
 
     <h3>Booking Details</h3>
@@ -123,7 +123,7 @@ const ReportingModal = ({data, visible, onClose}) => {
               <tr>
                 <td>${item?.trackingId || '-'}</td>
                 <td>${item?.listingName || '-'}</td>
-                <td>$${item?.totalCost || 0}</td>
+                <td>€${item?.totalCost || 0}</td>
               </tr>
             `,
             )

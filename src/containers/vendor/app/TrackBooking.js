@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {
   Alert,
   Platform,
@@ -12,10 +12,13 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import {generatePDF} from 'react-native-html-to-pdf';
 import RNFS from 'react-native-fs';
+import {useDispatch, useSelector} from 'react-redux';
 import GradientButton from '../../../components/button';
 import {COLORS, fontFamly} from '../../../constants';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
+import {setActiveChat} from '../../../redux/slice/chat';
+import {checkIsChatedBefore, createConnection} from '../../../services/Chat';
 
 const STATUS_CONFIG = {
   requested: {
@@ -84,31 +87,179 @@ const STATUS_CONFIG = {
   },
 };
 
+function isSameCalendarDay(isoA, isoB) {
+  if (!isoA || !isoB) {
+    return true;
+  }
+  const a = new Date(isoA);
+  const b = new Date(isoB);
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) {
+    return true;
+  }
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function formatDisplayDate(dateValue) {
+  if (!dateValue) {
+    return '—';
+  }
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) {
+    return '—';
+  }
+  return date.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+/** API often sends "08:00" / "22:00" strings, not full ISO datetimes. */
+function formatDisplayTime(timeStr) {
+  if (timeStr == null || String(timeStr).trim() === '') {
+    return '—';
+  }
+  const s = String(timeStr).trim();
+  const m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (m) {
+    const h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    if (h > 23 || min > 59) {
+      return s;
+    }
+    const d = new Date(2000, 0, 1, h, min, 0);
+    return d.toLocaleTimeString('en-GB', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+  const d = new Date(s);
+  if (!Number.isNaN(d.getTime())) {
+    return d.toLocaleTimeString('en-GB', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+  return s;
+}
+
+function buildEventSchedule(data) {
+  const details = data?.details || {};
+  const bookingDateTime = data?.bookingDateTime || {};
+  const startDateIso = details.startDate || bookingDateTime.start;
+  const endDateIso = details.endDate || bookingDateTime.end;
+  const startTimeRaw =
+    details.startTime ??
+    bookingDateTime.startTime ??
+    details.schedule?.[0]?.startTime ??
+    '';
+  const endTimeRaw =
+    details.endTime ??
+    bookingDateTime.endTime ??
+    details.schedule?.[0]?.endTime ??
+    '';
+
+  const sameCalendarDay = isSameCalendarDay(startDateIso, endDateIso);
+  const isMultiDay =
+    details.duration?.isMultiDay === true ||
+    (!sameCalendarDay && Boolean(startDateIso && endDateIso));
+
+  return {
+    isMultiDay,
+    startDateIso,
+    endDateIso,
+    startTimeRaw,
+    endTimeRaw,
+    singleDateLabel: formatDisplayDate(startDateIso),
+    startDateLabel: formatDisplayDate(startDateIso),
+    endDateLabel: formatDisplayDate(endDateIso),
+    startTimeLabel: formatDisplayTime(startTimeRaw),
+    endTimeLabel: formatDisplayTime(endTimeRaw),
+  };
+}
+
 const TrackingBookingDetails = ({navigation, route}) => {
   const data = route?.params || {};
+  console.log('data', data);
+  const dispatch = useDispatch();
+  const {user} = useSelector(state => state.LoginSlice);
   const detailsData = data?.details || {};
   const statusHistory = data?.statusHistory || [];
   const pricingRows = data?.pricingBreakdown?.breakdown || [];
+  const eventSchedule = useMemo(() => buildEventSchedule(data), [data]);
+
+  const formatedParticipants = useCallback(participantsArr => {
+    const participants = {};
+    participantsArr?.forEach(({role, refPath, userId}) => {
+      const commonData = {
+        userId: userId?._id,
+        name:
+          refPath === 'Vendor'
+            ? userId?.businessName
+            : `${userId?.firstName || ''} ${userId?.lastName || ''}`.trim(),
+        photo:
+          userId?.profileImage || userId?.businessLogo || userId?.photo || null,
+        email: userId?.email || userId?.businessEmail,
+      };
+      participants[role === 'vendor' ? 'vendor' : 'user'] = {
+        ...commonData,
+        role: role === 'vendor' ? 'vendor' : 'user',
+      };
+    });
+    return participants;
+  }, []);
+
+  const handleOpenClientChat = useCallback(async () => {
+    const client = data?.client || data?.userId;
+    const clientId = client?._id || client?.id;
+    const vendorId = user?.vendorId;
+    if (!clientId || !vendorId) {
+      Alert.alert(
+        'Chat unavailable',
+        'Client or vendor information is missing for this booking.',
+      );
+      return;
+    }
+    try {
+      const response = await checkIsChatedBefore(clientId, vendorId);
+      if (response?.status !== 200 && response?.status !== 201) {
+        Alert.alert('Error', 'Could not open chat. Please try again.');
+        return;
+      }
+      let conversation = response?.data?.data;
+      if (!conversation) {
+        const createRes = await createConnection({userId: clientId, vendorId});
+        if (createRes?.status !== 200 && createRes?.status !== 201) {
+          Alert.alert('Error', 'Could not start a conversation.');
+          return;
+        }
+        conversation = createRes?.data?.data;
+      }
+      if (!conversation?.conversationId) {
+        Alert.alert('Error', 'Could not open chat.');
+        return;
+      }
+      const finalChatData = {
+        ...conversation,
+        participants: formatedParticipants(conversation?.participants),
+      };
+      dispatch(setActiveChat(finalChatData));
+      navigation.navigate('ChatDetails', finalChatData);
+    } catch (e) {
+      Alert.alert('Error', 'Could not open chat. Please try again.');
+    }
+  }, [data, user?.vendorId, dispatch, navigation, formatedParticipants]);
 
   const formatAmount = amount =>
     `€ ${Number(amount || 0)
       .toFixed(2)
       .replace('.', ',')}`;
-
-  const formatDisplayDate = dateValue => {
-    if (!dateValue) {
-      return 'Invalid date';
-    }
-    const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) {
-      return 'Invalid date';
-    }
-    return date.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
 
   const formatTimelineDateTime = dateValue => {
     const date = new Date(dateValue);
@@ -225,6 +376,15 @@ const TrackingBookingDetails = ({navigation, route}) => {
       data?.totalPrice || data?.pricingBreakdown?.total || 0,
     ).replace(',', '.');
 
+    const schedPdf = buildEventSchedule(data);
+    const locPdf = escapeHtml(
+      data?.eventLocation || detailsData?.eventLocation || 'N/A',
+    );
+    const eventLocationAndDatesPdf = schedPdf.isMultiDay
+      ? `<tr><td class="key">Event Location</td><td class="value">${locPdf}</td><td class="key">Start date</td><td class="value">${escapeHtml(schedPdf.startDateLabel)}</td></tr><tr><td class="key">End date</td><td class="value">${escapeHtml(schedPdf.endDateLabel)}</td><td class="key"></td><td class="value"></td></tr>`
+      : `<tr><td class="key">Event Location</td><td class="value">${locPdf}</td><td class="key">Event Date</td><td class="value">${escapeHtml(schedPdf.singleDateLabel)}</td></tr>`;
+    const timesRowPdf = `<tr><td class="key">Start Time</td><td class="value">${escapeHtml(schedPdf.startTimeLabel)}</td><td class="key">End Time</td><td class="value">${escapeHtml(schedPdf.endTimeLabel)}</td></tr>`;
+
     return `
       <!DOCTYPE html>
       <html>
@@ -268,8 +428,8 @@ const TrackingBookingDetails = ({navigation, route}) => {
           <tr><td class="key">Order ID</td><td class="value">${escapeHtml(data?.trackingId || 'N/A')}</td><td class="key">Status</td><td class="value">${escapeHtml(data?.status || 'N/A')}</td></tr>
           <tr><td class="key">Client Name</td><td class="value">${escapeHtml(data?.client?.fullName || data?.userId?.fullName || 'N/A')}</td><td class="key">Phone</td><td class="value">${escapeHtml(data?.client?.contactNumber || data?.userId?.contactNumber || 'N/A')}</td></tr>
           <tr><td class="key">Email</td><td class="value">${escapeHtml(data?.client?.email || data?.userId?.email || 'N/A')}</td><td class="key">Client Location</td><td class="value">${escapeHtml(data?.eventLocation || detailsData?.eventLocation || 'N/A')}</td></tr>
-          <tr><td class="key">Event Location</td><td class="value">${escapeHtml(data?.eventLocation || detailsData?.eventLocation || 'N/A')}</td><td class="key">Event Date</td><td class="value">${escapeHtml(formatDisplayDate(detailsData?.startDate || data?.bookingDateTime?.start))}</td></tr>
-          <tr><td class="key">Start Time</td><td class="value">${escapeHtml(detailsData?.schedule?.[0]?.startTime || 'Invalid date')}</td><td class="key">End Time</td><td class="value">${escapeHtml(detailsData?.schedule?.[0]?.endTime || 'Invalid date')}</td></tr>
+          ${eventLocationAndDatesPdf}
+          ${timesRowPdf}
         </table>
 
         <div class="section-title">Pricing Breakdown</div>
@@ -336,7 +496,7 @@ const TrackingBookingDetails = ({navigation, route}) => {
         leftIcon={ICONS.leftArrowIcon}
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={() => navigation.goBack()}
-        onRightIconPress={() => navigation.navigate('Messages')}
+        onRightIconPress={handleOpenClientChat}
       />
 
       <ScrollView
@@ -403,31 +563,45 @@ const TrackingBookingDetails = ({navigation, route}) => {
             </View>
           </View>
 
-          <View style={styles.fieldsRow}>
-            <View style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>Event Date</Text>
-              <Text style={styles.fieldValue}>
-                {formatDisplayDate(
-                  detailsData?.startDate || data?.bookingDateTime?.start,
-                )}
-              </Text>
+          {eventSchedule.isMultiDay ? (
+            <View style={styles.fieldsRow}>
+              <View style={styles.fieldBlock}>
+                <Text style={styles.fieldLabel}>Start date</Text>
+                <Text style={styles.fieldValue}>
+                  {eventSchedule.startDateLabel}
+                </Text>
+              </View>
+              <View style={styles.fieldBlock}>
+                <Text style={styles.fieldLabel}>End date</Text>
+                <Text style={styles.fieldValue}>
+                  {eventSchedule.endDateLabel}
+                </Text>
+              </View>
             </View>
-            <View style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>Start Time</Text>
-              <Text style={styles.fieldValue}>
-                {detailsData?.schedule?.[0]?.startTime || 'Invalid date'}
-              </Text>
+          ) : (
+            <View style={styles.fieldsRow}>
+              <View style={[styles.fieldBlock, styles.fullWidth]}>
+                <Text style={styles.fieldLabel}>Event Date</Text>
+                <Text style={styles.fieldValue}>
+                  {eventSchedule.singleDateLabel}
+                </Text>
+              </View>
             </View>
-          </View>
+          )}
 
           <View style={styles.fieldsRow}>
             <View style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>End Time</Text>
+              <Text style={styles.fieldLabel}>Start Time</Text>
               <Text style={styles.fieldValue}>
-                {detailsData?.schedule?.[0]?.endTime || 'Invalid date'}
+                {eventSchedule.startTimeLabel}
               </Text>
             </View>
-            <View style={styles.fieldBlock} />
+            <View style={styles.fieldBlock}>
+              <Text style={styles.fieldLabel}>End Time</Text>
+              <Text style={styles.fieldValue}>
+                {eventSchedule.endTimeLabel}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -581,6 +755,7 @@ const styles = StyleSheet.create({
   },
   fieldBlock: {
     flex: 1,
+    minWidth: 0,
     backgroundColor: '#F6F7F9',
     borderWidth: 1,
     borderColor: '#E1E2E5',
@@ -601,6 +776,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#2A2A2A',
     fontFamily: fontFamly.PlusJakartaSansMedium,
+    flexShrink: 1,
   },
   pricingCard: {
     backgroundColor: '#F1F2F4',

@@ -38,6 +38,11 @@ const AnalyticsReport = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [analyticsReport, setAnalyticsReport] = useState(null);
+  console.log(
+    analyticsReport,
+    'analyticsReportanalyticsReportanalyticsReportanalyticsReport',
+  );
+
   const [rawAnalyticsReport, setRawAnalyticsReport] = useState(null);
   const [activeTab, setActiveTab] = useState('Booking Items');
   const [refreshing, setRefreshing] = useState(false);
@@ -67,10 +72,11 @@ const AnalyticsReport = () => {
   const handleGetAnalyticsReport = useCallback(async () => {
     try {
       setRefreshing(true);
-      const response =
-        activeTab === 'Booking Items'
-          ? await getBookingAnalytic()
-          : await getAnalyticsReport();
+      // const response =
+      //   activeTab === 'Booking Items'
+      //     ? await getBookingAnalytic()
+      //     : await getAnalyticsReport();
+      const response = await getBookingAnalytic();
 
       if (response?.status === 200 || response?.status === 201) {
         setAnalyticsReport(response.data);
@@ -409,10 +415,9 @@ const AnalyticsReport = () => {
           />
         }
         showsVerticalScrollIndicator={false}
+        // <View style={styles.tabContainer}>{renderTabs}</View>
         ListHeaderComponent={
           <>
-            {/* <View style={styles.tabContainer}>{renderTabs}</View> */}
-
             <View
               style={{
                 flexDirection: 'row',
@@ -439,17 +444,18 @@ const AnalyticsReport = () => {
                 </View>
               </View>
               <Text style={styles.totalEarningValue}>
-                ${analyticsReport?.stats?.totalEarnings || 0}
+                €{analyticsReport?.stats?.totalEarnings || 0}
               </Text>
             </View>
 
             <View style={styles.chartContainer}>
               <LineChartComponent
-                labelll={
-                  activeTab === 'Booking Items'
-                    ? 'Booking Earnings'
-                    : 'Sale Earnings'
-                }
+                // labelll={
+                //   activeTab === 'Booking Items'
+                //     ? 'Booking Earnings'
+                //     : 'Sale Earnings'
+                // }
+                labelll={'Orders Overview'}
                 data={analyticsReport?.monthlyEarnings || []}
               />
             </View>
@@ -493,7 +499,7 @@ const AnalyticsReport = () => {
             </View>
             {/* Booking Table */}
             {/* {activeTab === 'Booking Items' ? (
-              
+
             ) : (
               <View style={styles.tableContainer}>
                 <SaleItemTable

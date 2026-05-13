@@ -1,9 +1,10 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   Animated,
-  FlatList,
+  Dimensions,
   Image,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   ToastAndroid,
@@ -22,12 +23,28 @@ import TextField from '../textInput';
 const REASONS = ['Good', 'Fair', 'Claim'];
 
 const PickedupModal = ({booking, visible, onClose, onConfirm}) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const securityFee = Number(booking?.pricingBreakdown?.securityFee || 0);
+  const listingTitle = useMemo(() => {
+    const title = booking?.listingDetails?.title;
+    if (!title) {
+      return '—';
+    }
+    if (typeof title === 'string') {
+      return title;
+    }
+    return (
+      (currentLanguage === 'en' ? title?.en : title?.nl) ||
+      title?.en ||
+      title?.nl ||
+      '—'
+    );
+  }, [booking, currentLanguage]);
 
   const [selectedReason, setSelectedReason] = useState(null);
   const [amount, setAmount] = useState('');
-  const [note, setNote] = useState('');
+  const [claimAmount, setClaimAmount] = useState('');
+  const [claimReason, setClaimReason] = useState('');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
@@ -36,7 +53,8 @@ const PickedupModal = ({booking, visible, onClose, onConfirm}) => {
     if (!visible) {
       setSelectedReason(null);
       setAmount('');
-      setNote('');
+      setClaimAmount('');
+      setClaimReason('');
     }
   }, [visible]);
 
@@ -55,11 +73,20 @@ const PickedupModal = ({booking, visible, onClose, onConfirm}) => {
   }, [visible, fadeAnim, scaleAnim]);
 
   const isValid = useMemo(() => {
-    if (!selectedReason) return false;
-    if (selectedReason === 'Fair' && !amount) return false;
-    if (selectedReason === 'Claim' && !amount) return false;
+    if (!selectedReason) {
+      return false;
+    }
+    if (selectedReason === 'Fair') {
+      return Boolean(amount);
+    }
+    if (selectedReason === 'Claim') {
+      const n = Number(claimAmount);
+      return (
+        !Number.isNaN(n) && n > 0 && String(claimReason || '').trim().length > 0
+      );
+    }
     return true;
-  }, [selectedReason, amount, note]);
+  }, [selectedReason, amount, claimAmount, claimReason]);
 
   const handleConfirm = () => {
     const numericAmount = Number(amount);
@@ -69,16 +96,30 @@ const PickedupModal = ({booking, visible, onClose, onConfirm}) => {
       return;
     }
 
+    if (selectedReason === 'Good') {
+      onConfirm({type: 'Good'});
+      return;
+    }
+
+    if (selectedReason === 'Claim') {
+      onConfirm({
+        type: 'Claim',
+        claimAmount: Number(claimAmount) || 0,
+        reason: String(claimReason || '').trim(),
+      });
+      return;
+    }
+
     if (selectedReason === 'Fair' && numericAmount > securityFee) {
       ToastAndroid.show(
-        `Fair amount cannot exceed $${securityFee}`,
+        `Fair amount cannot exceed €${securityFee}`,
         ToastAndroid.SHORT,
       );
       return;
     }
 
     onConfirm({
-      type: selectedReason,
+      type: 'Fair',
       amount: numericAmount || 0,
     });
   };
@@ -95,7 +136,7 @@ const PickedupModal = ({booking, visible, onClose, onConfirm}) => {
 
     if (numericValue > securityFee) {
       ToastAndroid.show(
-        `Fair amount cannot exceed $${securityFee}`,
+        `Fair amount cannot exceed €${securityFee}`,
         ToastAndroid.SHORT,
       );
       setAmount(String(securityFee));
@@ -105,10 +146,41 @@ const PickedupModal = ({booking, visible, onClose, onConfirm}) => {
     setAmount(text);
   };
 
+  const handleClaimAmountChange = text => {
+    if (text === '') {
+      setClaimAmount('');
+      return;
+    }
+    const numericValue = Number(text);
+    if (Number.isNaN(numericValue)) {
+      return;
+    }
+    setClaimAmount(text);
+  };
+
+  const claimTotalDisplay = useMemo(() => {
+    const n = Number(claimAmount);
+    const v = Number.isNaN(n) ? 0 : n;
+    return `€${v.toFixed(2)}`;
+  }, [claimAmount]);
+
+  const scrollMaxHeight = Dimensions.get('window').height * 0.52;
+
+  const handleSelectReason = item => {
+    setSelectedReason(item);
+    if (item !== 'Fair') {
+      setAmount('');
+    }
+    if (item !== 'Claim') {
+      setClaimAmount('');
+      setClaimReason('');
+    }
+  };
+
   const renderReasonItem = ({item}) => (
     <TouchableOpacity
       style={styles.reasonItem}
-      onPress={() => setSelectedReason(item)}>
+      onPress={() => handleSelectReason(item)}>
       <View
         style={[
           styles.radioOuter,
@@ -131,69 +203,105 @@ const PickedupModal = ({booking, visible, onClose, onConfirm}) => {
         <Animated.View
           style={[styles.container, {transform: [{scale: scaleAnim}]}]}>
           <View style={styles.header}>
-            <Text style={styles.title}>{t('Pickup Status')}</Text>
+            <Text style={styles.title}>
+              {selectedReason === 'Claim'
+                ? t('Claim Security Fees')
+                : t('Pickup Status')}
+            </Text>
             <TouchableOpacity onPress={onClose}>
               <GradientText text="✕" />
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.subtitle}>
-            {t('Rate the Condition of Booked Items')}
-          </Text>
+          <ScrollView
+            style={{maxHeight: scrollMaxHeight}}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
+            <Text style={styles.subtitle}>
+              {t('Rate the Condition of Booked Items')}
+            </Text>
 
-          <FlatList
-            data={REASONS}
-            keyExtractor={item => item}
-            renderItem={renderReasonItem}
-          />
+            {REASONS.map(item => (
+              <View key={item}>{renderReasonItem({item})}</View>
+            ))}
 
-          {selectedReason === 'Fair' && (
-            <TextField
-              label={t(`Add security fee ($${securityFee})`)}
-              placeholder={`Max $${securityFee}`}
-              value={amount}
-              keyboardType="numeric"
-              onChangeText={handleFairAmountChange}
-            />
-          )}
-
-          {selectedReason === 'Claim' && (
-            <>
-              <View style={styles.infoBox}>
-                <Text style={styles.infoTitle}>Claim Security Fees</Text>
-                <Text style={styles.infoText}>
-                  Security Fee (Already Paid: ${securityFee})
-                </Text>
-                <Text style={styles.infoDesc}>
-                  The security fee will be processed in full along with any
-                  additional amount if your product has sustained severe damage
-                  beyond normal wear and tear.
-                </Text>
-              </View>
-
+            {selectedReason === 'Fair' && (
               <TextField
-                label={t('Claim Amount')}
-                placeholder="Enter amount"
-                keyboardType="numeric"
+                label={t(`Add security fee (€${securityFee})`)}
+                placeholder={`Max €${securityFee}`}
                 value={amount}
-                onChangeText={setAmount}
+                keyboardType="numeric"
+                onChangeText={handleFairAmountChange}
               />
-            </>
-          )}
+            )}
+
+            {selectedReason === 'Claim' && (
+              <>
+                <View style={styles.infoBox}>
+                  <Text style={styles.listingTitleBold}>{listingTitle}</Text>
+                  <Text style={styles.infoText}>
+                    {t('Security Fee (Already Paid)')}: €
+                    {securityFee.toFixed(2)}
+                  </Text>
+                  <Text style={styles.infoDesc}>
+                    {t(
+                      'The security fee will be processed in full along with any additional amount if your product has sustained severe damage beyond normal wear and tear.',
+                    )}
+                  </Text>
+
+                  <TextField
+                    label={t('Current claimed fee')}
+                    placeholder={t('Enter claim amount')}
+                    keyboardType="numeric"
+                    value={claimAmount}
+                    onChangeText={handleClaimAmountChange}
+                    labelColor={COLORS.textLight}
+                    inputBorderColor={COLORS.border}
+                    styleProps={{marginTop: width(2)}}
+                  />
+                  <TextField
+                    label={t('Description')}
+                    placeholder={t('Enter description for the claim')}
+                    value={claimReason}
+                    onChangeText={setClaimReason}
+                    multiline
+                    numberOfLines={4}
+                    labelColor={COLORS.textLight}
+                    inputBorderColor={COLORS.border}
+                    styleProps={{height: width(28), marginTop: width(1)}}
+                  />
+                </View>
+
+                <View style={styles.claimFooter}>
+                  <Text style={styles.claimFooterLabel}>
+                    {t('Total Claimed Fees')}:
+                  </Text>
+                  <Text style={styles.claimFooterValue}>
+                    {claimTotalDisplay}
+                  </Text>
+                </View>
+              </>
+            )}
+          </ScrollView>
 
           <View style={styles.buttonRow}>
-            <View style={{width: width(40)}}>
+            <View style={styles.buttonHalf}>
               <GradientButton
                 text={t('Cancel')}
                 type="outline"
                 onPress={onClose}
+                textStyle={styles.modalCancelText}
+                styleContainer={styles.modalBtnHeight}
+                outlineButtonStyle={styles.modalOutlineInner}
               />
             </View>
-            <View style={{width: width(40)}}>
+            <View style={styles.buttonHalf}>
               <GradientButton
                 text={t('Confirm')}
+                type="filled"
                 onPress={handleConfirm}
-                disabled={!isValid}
+                textStyle={styles.confirmBtnText}
+                styleContainer={styles.modalBtnHeight}
               />
             </View>
           </View>
@@ -261,28 +369,75 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
   infoBox: {
-    backgroundColor: COLORS.backgroundLight,
+    backgroundColor: COLORS.white,
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     padding: width(4),
     marginVertical: width(3),
   },
-  infoTitle: {
+  listingTitleBold: {
     color: COLORS.black,
     fontSize: 14,
     fontFamily: fontFamly.PlusJakartaSansBold,
+    marginBottom: width(1),
   },
   infoText: {
     fontSize: 12,
     color: COLORS.textLight,
   },
   infoDesc: {
-    fontSize: 10,
+    fontSize: 11,
     color: COLORS.textLight,
-    marginTop: 5,
+    marginTop: width(2),
+    marginBottom: width(2),
+    lineHeight: 16,
+  },
+  claimFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#E8F4FC',
+    borderRadius: 10,
+    paddingVertical: width(3),
+    paddingHorizontal: width(4),
+    marginBottom: width(2),
+  },
+  claimFooterLabel: {
+    fontSize: 13,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textDark,
+  },
+  claimFooterValue: {
+    fontSize: 13,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textDark,
   },
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'stretch',
+    gap: width(2),
     marginTop: width(4),
+  },
+  buttonHalf: {
+    flex: 1,
+    minWidth: 0,
+  },
+  modalBtnHeight: {
+    height: width(11),
+  },
+  modalOutlineInner: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  modalCancelText: {
+    color: COLORS.primary,
+    fontSize: 10,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  confirmBtnText: {
+    fontSize: 13,
+    color: COLORS.white,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
   },
 });

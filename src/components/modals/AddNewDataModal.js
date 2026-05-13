@@ -16,7 +16,7 @@ const AddNewDataModal = ({
   const {t} = useTranslation();
 
   const options = [
-    {id: 1, label: t('Add More Category')},
+    // {id: 1, label: t('Add More Category')},
     {id: 2, label: t('Booking Items')},
     // {id: 3, label: t('Add New Sale list')},
   ];

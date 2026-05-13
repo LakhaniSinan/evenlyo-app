@@ -46,7 +46,7 @@ const LineChartComponent = ({labelll = 'Overview', data = []}) => {
         );
         return found ? found[valueKey] || 0 : 0;
       });
-    } else if (filterType === '6Monthly') {
+    } else if (filterType === '6 Months') {
       // 🗓 Last 6 months data
       const last6 = data?.slice(-6) || [];
       labels = monthLabels.slice(-6);
@@ -113,9 +113,9 @@ const LineChartComponent = ({labelll = 'Overview', data = []}) => {
         <View style={{width: width(40)}}>
           <CustomPicker
             ref={selectSizeRef}
-            labelll={'Earnings Overview'}
+            labelll={'Orders Overview'}
             value={filterType}
-            listData={[{name: 'Monthly'}, {name: '6Monthly'}, {name: 'Yearly'}]}
+            listData={[{name: 'Monthly'}, {name: '6 Months'}, {name: 'Yearly'}]}
             name="filterType"
             handleSelectValue={handleSelectValue}
             dropdownContainerStyle={{backgroundColor: COLORS.white}}

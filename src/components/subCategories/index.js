@@ -1,5 +1,6 @@
 import React from 'react';
 import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import {SvgUri} from 'react-native-svg';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';

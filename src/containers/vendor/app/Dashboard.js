@@ -37,6 +37,8 @@ const ViewMoreButton = React.memo(({heading, onPress, showViewAll}) => (
 const Dashboard = () => {
   const navigation = useNavigation();
   const {t} = useTranslation();
+  const tRef = useRef(t);
+  tRef.current = t;
   const modalRef = useRef(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -106,15 +108,22 @@ const Dashboard = () => {
   );
 
   const handleGetDashboard = useCallback(async () => {
+    setRefreshing(true);
     try {
       const response = await getDashboard();
+      console.log(
+        response,
+        'responseresponseresponseresponseresponseresponseasdd',
+      );
 
       if (response?.status === 200 || response?.status === 201) {
         setDashboardData(response?.data || null);
       } else {
         modalRef.current?.show({
           status: 'error',
-          message: response?.data?.message || t('failedToLoadDashboardData'),
+          message:
+            response?.data?.message ||
+            tRef.current('failedToLoadDashboardData'),
         });
       }
     } catch (error) {
@@ -129,7 +138,6 @@ const Dashboard = () => {
   }, [handleGetDashboard]);
 
   const onRefresh = useCallback(() => {
-    setRefreshing(true);
     handleGetDashboard();
   }, [handleGetDashboard]);
 
@@ -173,7 +181,12 @@ const Dashboard = () => {
         style={{flex: 1}}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
         }>
         <View style={styles.headerContainer}>
           <Text style={styles.welcomeText}>

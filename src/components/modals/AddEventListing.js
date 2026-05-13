@@ -4,6 +4,7 @@ import {
   Alert,
   Image,
   Keyboard,
+  Modal as NativeTermsModal,
   ScrollView,
   StyleSheet,
   Text,
@@ -30,10 +31,36 @@ import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
 import CustomPicker from '../customPicker';
 import DualLanguageCustomPicker from '../dualLanguagePicker';
-import GradientText from '../gradiantText';
 import GooglePlacesInput from '../locationField';
 import Loader from '../loder';
 import TextField from '../textInput';
+
+const TERMS_MODAL_SECTIONS = [
+  {
+    title: 'Welcome to Evenlyo',
+    body: 'By accessing and using our platform, you agree to the following terms and conditions.\n\nThese terms are designed to protect both clients and vendors, ensuring a safe, fair, and transparent experience for everyone.',
+  },
+  {
+    number: '1',
+    title: 'General Terms',
+    body: 'Evenlyo acts as a platform to connect clients and vendors for event services.\nUsers must provide accurate information when creating accounts and listings.\nAll users must comply with local laws and regulations when using our platform.\nEvenlyo reserves the right to suspend or terminate accounts that violate these terms.',
+  },
+  {
+    number: '2',
+    title: 'Platform Usage Rules',
+    body: 'Clients may book services directly through Evenlyo.\nVendors are responsible for maintaining accurate service descriptions, pricing, and availability up-to-date.\nBoth clients and vendors must communicate respectfully and in good faith.',
+  },
+  {
+    number: '3',
+    title: 'Payments & Fees',
+    body: 'Payments are processed securely through our integrated system.\nFees for vendors (if applicable) will be disclosed clearly before sign-up.\nRefund policies are determined by individual vendors and platform rules.',
+  },
+  {
+    number: '4',
+    title: 'Liability & Cancellations',
+    body: 'Evenlyo is not a party to contracts between clients and vendors.\nUsers are responsible for their own interactions and agreements.\nVendors are responsible for service delivery.\nCancellation policies vary by vendor and should be reviewed before booking.\nEvenlyo may mediate disputes but is not liable for service performance or service.',
+  },
+];
 
 const EventListingModal = ({isVisible, onClose, toEditData}) => {
   console.log(toEditData, 'toEditDatatoEditDatatoEditDatatoEditDatatoEditData');
@@ -68,12 +95,12 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
   const [endTime, setEndTime] = useState(null);
   const [isStartPickerOpen, setIsStartPickerOpen] = useState(false);
   const [isEndPickerOpen, setIsEndPickerOpen] = useState(false);
+  const [termsModalVisible, setTermsModalVisible] = useState(false);
   const modalRef = useRef(null);
   const pricingType = [
     {name: 'Per Hour'},
     {name: 'Per Day'},
     {name: 'Per Event'},
-    {name: 'Fixed Price'},
   ];
   const daysData = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
@@ -270,18 +297,34 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       securityFeeAmount,
       selectedCoords,
       termsAccepted,
+      productImage,
     } = formData;
 
     // ✅ Common Validation Helper
     const showError = message =>
       modalRef.current.show({status: 'error', message});
 
-    // ✅ Validations
-    if (!title.en.trim() && !title.nl.trim()) {
-      return showError('Title is required');
+    const isNonEmpty = v => String(v ?? '').trim().length > 0;
+    const isValidAmount = (v, {allowZero = false} = {}) => {
+      const n = Number(String(v ?? '').trim());
+      if (Number.isNaN(n) || !Number.isFinite(n)) {
+        return false;
+      }
+      return allowZero ? n >= 0 : n > 0;
+    };
+
+    // ✅ Validations (all fields required except security fee)
+    if (!isNonEmpty(title.en)) {
+      return showError('Title (English) is required');
     }
-    if (!subTitle.en.trim() && !subTitle.nl.trim()) {
-      return showError('SubTitle is required');
+    if (!isNonEmpty(title.nl)) {
+      return showError('Title (Dutch) is required');
+    }
+    if (!isNonEmpty(subTitle.en)) {
+      return showError('Sub Title (English) is required');
+    }
+    if (!isNonEmpty(subTitle.nl)) {
+      return showError('Sub Title (Dutch) is required');
     }
     if (!mainCategory) {
       return showError('Main Category is required');
@@ -289,14 +332,33 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
     if (!subCategory) {
       return showError('Sub Category is required');
     }
-    if (!description.en.trim() && !description.nl.trim()) {
-      return showError('Description is required');
+    if (!isNonEmpty(description.en)) {
+      return showError('Description (English) is required');
+    }
+    if (!isNonEmpty(description.nl)) {
+      return showError('Description (Dutch) is required');
     }
     if (!pricingType) {
       return showError('Pricing Type is required');
     }
-    if (!cost.trim()) {
-      return showError('Cost is required');
+    if (!isNonEmpty(cost) || !isValidAmount(cost)) {
+      return showError(
+        'Cost is required and must be a valid amount greater than 0',
+      );
+    }
+    if (
+      !isNonEmpty(extraTimeCost) ||
+      !isValidAmount(extraTimeCost, {allowZero: true})
+    ) {
+      return showError(
+        'Extra Time Cost is required and must be a valid number',
+      );
+    }
+    if (!isNonEmpty(perKm) || !isValidAmount(perKm, {allowZero: true})) {
+      return showError('Per km is required and must be a valid number');
+    }
+    if (!productImage?.length) {
+      return showError('At least one listing image is required');
     }
     if (availableDays.length === 0) {
       return showError('Select at least one available day');
@@ -353,17 +415,18 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
 
     try {
       setIsLoading(true);
-
       const response = toEditData
         ? await updateVendorListing(toEditData?._id, payload)
         : await createVendorLosting(payload);
-
-
+      console.log(response, 'responseresponseresponseresponse');
       const isSuccess = response?.status === 200 || response?.status === 201;
-
       modalRef.current.show({
         status: isSuccess ? 'ok' : 'error',
-        message: response?.data?.message,
+        message: response?.data?.message?.en
+          ? currentLanguage == 'en'
+            ? response?.data?.message?.en
+            : response?.data?.message?.nl
+          : response?.data?.message,
         handlePressOk: () => {
           modalRef.current.hide();
           onClose();
@@ -372,11 +435,6 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       });
     } catch (error) {
       console.log('❌ handleSubmit error:', error);
-      showError(
-        currentLanguage == 'en'
-          ? 'Something went wrong, please try again later'
-          : 'Iets is misgegaan, probeer het opnieuw later.',
-      );
     } finally {
       setIsLoading(false);
     }
@@ -525,407 +583,474 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
   };
 
   return (
-    <Modal
-      isVisible={isVisible}
-      onBackdropPress={() => {
-        resetForm();
-        onClose();
-      }}
-      style={styles.modal}
-      backdropOpacity={0.5}
-      avoidKeyboard
-      propagateSwipe>
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>
-            {currentLanguage == 'en'
-              ? 'Add New Listing'
-              : 'Nieuwe vermelding toevoegen'}
-          </Text>
-          <TouchableOpacity onPress={onClose}>
-            <Icon name="close" size={24} color="#333" />
-          </TouchableOpacity>
-        </View>
-
-        {/* ScrollView */}
-        <ScrollView style={{flex: 1}}>
-          {/* Basic Information */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
+    <>
+      <Modal
+        isVisible={isVisible}
+        onBackdropPress={() => {
+          resetForm();
+          onClose();
+        }}
+        style={styles.modal}
+        backdropOpacity={0.5}
+        avoidKeyboard
+        propagateSwipe>
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>
               {currentLanguage == 'en'
-                ? 'Basic Information'
-                : 'Basis informatie'}
+                ? 'Add New Listing'
+                : 'Nieuwe vermelding toevoegen'}
             </Text>
-
-            <View style={styles.languageRow}>
-              <Text style={styles.langLabel}>
-                {currentLanguage == 'en'
-                  ? 'Select Language:'
-                  : 'Selecteer taal:'}
-              </Text>
-              <View style={styles.radioGroup}>
-                <TouchableOpacity
-                  style={styles.radioOption}
-                  onPress={() => setSelectedLang('en')}>
-                  <View
-                    style={[
-                      styles.radioCircle,
-                      selectedLang === 'en' && styles.radioSelected,
-                    ]}
-                  />
-                  <Text style={styles.radioText}>
-                    {currentLanguage == 'en' ? 'US English' : 'US Engels'}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.radioOption}
-                  onPress={() => setSelectedLang('nl')}>
-                  <View
-                    style={[
-                      styles.radioCircle,
-                      selectedLang === 'nl' && styles.radioSelected,
-                    ]}
-                  />
-                  <Text style={styles.radioText}>
-                    {currentLanguage == 'en' ? 'NL Dutch' : 'NL Nederlands'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Dynamic Fields */}
-            <TextField
-              bgColor={COLORS.white}
-              label={`Title (${currentLanguage == 'en' ? 'English' : 'Dutch'})`}
-              placeholder={
-                currentLanguage == 'en' ? 'Enter title' : 'Voer titel in'
-              }
-              value={formData.title[selectedLang]}
-              onChangeText={v => handleTextChange('title', v)}
-            />
-            <View style={{height: 10}} />
-            <TextField
-              bgColor={COLORS.white}
-              label={`Sub Title (${
-                selectedLang === 'en' ? 'English' : 'Dutch'
-              })`}
-              placeholder={t('Enter subtitle')}
-              value={formData.subTitle[selectedLang]}
-              onChangeText={v => handleTextChange('subTitle', v)}
-            />
-
-            <DualLanguageCustomPicker
-              label="Main Category"
-              labelll="Select Main Category"
-              dropdownContainerStyle={{backgroundColor: COLORS.white}}
-              value={formData?.mainCategory}
-              listData={vendorsCategories}
-              name="mainCategory"
-              handleSelectValue={handleSelectValue}
-            />
-            <DualLanguageCustomPicker
-              label="Sub Category"
-              labelll="Select Sub Category"
-              dropdownContainerStyle={{backgroundColor: COLORS.white}}
-              value={formData?.subCategory}
-              listData={allSubCategories}
-              name="subCategory"
-              handleSelectValue={handleSelectValue}
-            />
-
-            <GooglePlacesInput
-              selectedLocation={formData?.selectedCoords || ''}
-              setSelectedLocation={v => handleSelectValue('selectedCoords', v)}
-              placeholder="Enter Location"
-              bgcolor={COLORS.white}
-              showRightIcon={ICONS.locationIcon}
-              lable="Add Location *"
-            />
-
-            <TextField
-              bgColor={COLORS.white}
-              label={`Description (${
-                selectedLang === 'en' ? 'English' : 'Dutch'
-              })`}
-              placeholder={t(
-                'Focused on creating vibes through immersive sound...',
-              )}
-              multiline
-              numberOfLines={3}
-              value={formData.description[selectedLang]}
-              onChangeText={v => handleTextChange('description', v)}
-            />
+            <TouchableOpacity onPress={onClose}>
+              <Icon name="close" size={24} color="#333" />
+            </TouchableOpacity>
           </View>
-          {/* Pricing Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('Pricing Section')}</Text>
-            <View
-              style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-              <View style={{width: width(40)}}>
-                <CustomPicker
-                  label="Pricing Type"
-                  labelll="Pricing Type"
-                  dropdownContainerStyle={{backgroundColor: COLORS.white}}
-                  value={formData.pricingType}
-                  listData={pricingType}
-                  name="pricingType"
-                  handleSelectValue={handleSelectValue}
-                />
+
+          {/* ScrollView */}
+          <ScrollView style={{flex: 1}}>
+            {/* Basic Information */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {currentLanguage == 'en'
+                  ? 'Basic Information'
+                  : 'Basis informatie'}
+              </Text>
+
+              <View style={styles.languageRow}>
+                <Text style={styles.langLabel}>
+                  {currentLanguage == 'en'
+                    ? 'Select Language:'
+                    : 'Selecteer taal:'}
+                </Text>
+                <View style={styles.radioGroup}>
+                  <TouchableOpacity
+                    style={styles.radioOption}
+                    onPress={() => setSelectedLang('en')}>
+                    <View
+                      style={[
+                        styles.radioCircle,
+                        selectedLang === 'en' && styles.radioSelected,
+                      ]}
+                    />
+                    <Text style={styles.radioText}>
+                      {currentLanguage == 'en' ? 'US English' : 'US Engels'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.radioOption}
+                    onPress={() => setSelectedLang('nl')}>
+                    <View
+                      style={[
+                        styles.radioCircle,
+                        selectedLang === 'nl' && styles.radioSelected,
+                      ]}
+                    />
+                    <Text style={styles.radioText}>
+                      {currentLanguage == 'en' ? 'NL Dutch' : 'NL Nederlands'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={{width: width(40), marginTop: width(3)}}>
-                <TextField
-                  label={'Cost'}
-                  placeholder={'Enter Cost'}
-                  bgColor={COLORS.white}
-                  value={formData.cost}
-                  onChangeText={v => handleTextChange('cost', v)}
-                />
-              </View>
+
+              {/* Dynamic Fields */}
+              <TextField
+                bgColor={COLORS.white}
+                label={`Title (${
+                  currentLanguage == 'en' ? 'English' : 'Dutch'
+                })`}
+                placeholder={
+                  currentLanguage == 'en' ? 'Enter title' : 'Voer titel in'
+                }
+                value={formData.title[selectedLang]}
+                onChangeText={v => handleTextChange('title', v)}
+              />
+              <View style={{height: 10}} />
+              <TextField
+                bgColor={COLORS.white}
+                label={`Sub Title (${
+                  selectedLang === 'en' ? 'English' : 'Dutch'
+                })`}
+                placeholder={t('Enter subtitle')}
+                value={formData.subTitle[selectedLang]}
+                onChangeText={v => handleTextChange('subTitle', v)}
+              />
+
+              <DualLanguageCustomPicker
+                label="Main Category"
+                labelll="Select Main Category"
+                dropdownContainerStyle={{backgroundColor: COLORS.white}}
+                value={formData?.mainCategory}
+                listData={vendorsCategories}
+                name="mainCategory"
+                handleSelectValue={handleSelectValue}
+              />
+              <DualLanguageCustomPicker
+                label="Sub Category"
+                labelll="Select Sub Category"
+                dropdownContainerStyle={{backgroundColor: COLORS.white}}
+                value={formData?.subCategory}
+                listData={allSubCategories}
+                name="subCategory"
+                handleSelectValue={handleSelectValue}
+              />
+
+              <GooglePlacesInput
+                selectedLocation={formData?.selectedCoords || ''}
+                setSelectedLocation={v =>
+                  handleSelectValue('selectedCoords', v)
+                }
+                placeholder="Enter Location"
+                bgcolor={COLORS.white}
+                showRightIcon={ICONS.locationIcon}
+                lable="Add Location *"
+              />
+
+              <TextField
+                bgColor={COLORS.white}
+                label={`Description (${
+                  selectedLang === 'en' ? 'English' : 'Dutch'
+                })`}
+                placeholder={t(
+                  'Focused on creating vibes through immersive sound...',
+                )}
+                multiline
+                numberOfLines={3}
+                value={formData.description[selectedLang]}
+                onChangeText={v => handleTextChange('description', v)}
+              />
             </View>
-
-            <TextField
-              label={'Extra Time Cost'}
-              placeholder={'Extra Time Cost'}
-              bgColor={COLORS.white}
-              value={formData.extraTimeCost}
-              onChangeText={v => handleTextChange('extraTimeCost', v)}
-            />
-
-            <TextField
-              label={'Per km (1)'}
-              placeholder={'€1'}
-              bgColor={COLORS.white}
-              value={formData.perKm}
-              onChangeText={v => handleTextChange('perKm', v)}
-            />
-
-            <TouchableOpacity
-              style={styles.optionRow}
-              onPress={() => setIsCheck(!isCheck)}>
+            {/* Pricing Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{t('Pricing Section')}</Text>
               <View
-                style={[
-                  styles.checkbox,
-                  isCheck && {backgroundColor: COLORS.primary},
-                ]}>
-                {isCheck && (
-                  <Icon name="checkmark" size={16} color={COLORS.white} />
+                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                <View style={{width: width(40)}}>
+                  <CustomPicker
+                    label="Pricing Type"
+                    labelll="Pricing Type"
+                    dropdownContainerStyle={{backgroundColor: COLORS.white}}
+                    value={formData.pricingType}
+                    listData={pricingType}
+                    name="pricingType"
+                    handleSelectValue={handleSelectValue}
+                  />
+                </View>
+                <View style={{width: width(40), marginTop: width(3)}}>
+                  <TextField
+                    label={'Cost'}
+                    placeholder={'Enter Cost'}
+                    bgColor={COLORS.white}
+                    value={formData.cost}
+                    onChangeText={v => handleTextChange('cost', v)}
+                  />
+                </View>
+              </View>
+
+              <TextField
+                label={'Extra Time Cost'}
+                placeholder={'Extra Time Cost'}
+                bgColor={COLORS.white}
+                value={formData.extraTimeCost}
+                onChangeText={v => handleTextChange('extraTimeCost', v)}
+              />
+
+              <TextField
+                label={'Per km (1)'}
+                placeholder={'€1'}
+                bgColor={COLORS.white}
+                value={formData.perKm}
+                onChangeText={v => handleTextChange('perKm', v)}
+              />
+
+              <TouchableOpacity
+                style={styles.optionRow}
+                onPress={() => setIsCheck(!isCheck)}>
+                <View
+                  style={[
+                    styles.checkbox,
+                    isCheck && {backgroundColor: COLORS.primary},
+                  ]}>
+                  {isCheck && (
+                    <Icon name="checkmark" size={16} color={COLORS.white} />
+                  )}
+                </View>
+                <Text style={styles.optionLabel}>
+                  Security Fee (Non-living things only)
+                </Text>
+              </TouchableOpacity>
+
+              {isCheck && (
+                <TextField
+                  label={'Security Fee Amount'}
+                  placeholder={'Enter Security Fee Amount'}
+                  bgColor={COLORS.white}
+                  value={formData.securityFeeAmount}
+                  onChangeText={v => handleTextChange('securityFeeAmount', v)}
+                />
+              )}
+            </View>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{t('Gallery View')}</Text>
+
+              <Text style={styles.sectionTitle}>{t('Images (Maximum 3)')}</Text>
+              {renderUploadBox('Click to upload work Images', () =>
+                handleUpdateImage(),
+              )}
+              <View style={styles.previewRow}>
+                {renderMedia(formData?.productImage || [], images =>
+                  setFormData(prev => ({...prev, productImage: images})),
                 )}
               </View>
-              <Text style={styles.optionLabel}>
-                Security Fee (Non-living things only)
-              </Text>
-            </TouchableOpacity>
-
-            {isCheck && (
-              <TextField
-                label={'Security Fee Amount'}
-                placeholder={'Enter Security Fee Amount'}
-                bgColor={COLORS.white}
-                value={formData.securityFeeAmount}
-                onChangeText={v => handleTextChange('securityFeeAmount', v)}
-              />
-            )}
-          </View>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('Gallery View')}</Text>
-
-            <Text style={styles.sectionTitle}>{t('Images (Maximum 3)')}</Text>
-            {renderUploadBox('Click to upload work Images', () =>
-              handleUpdateImage(),
-            )}
-            <View style={styles.previewRow}>
-              {renderMedia(formData?.productImage || [], images =>
-                setFormData(prev => ({...prev, productImage: images})),
-              )}
             </View>
-          </View>
-          <View
-            style={{
-              backgroundColor: COLORS.backgroundLight,
-              borderRadius: width(4),
-              padding: width(4),
-              marginBottom: width(3),
-            }}>
-            <Text style={styles.sectionTitle}>{t('Booking Date/Time ')}</Text>
-            <Text style={styles.sectionTitle}>{t('Available Days')}</Text>
+            <View
+              style={{
+                backgroundColor: COLORS.backgroundLight,
+                borderRadius: width(4),
+                padding: width(4),
+                marginBottom: width(3),
+              }}>
+              <Text style={styles.sectionTitle}>{t('Booking Date/Time ')}</Text>
+              <Text style={styles.sectionTitle}>{t('Available Days')}</Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  marginVertical: width(3),
+                }}>
+                {daysData.map(item => {
+                  const isSelected = availableDays.includes(item);
+
+                  return (
+                    <TouchableOpacity
+                      key={item}
+                      onPress={() => {
+                        setAvailableDays(prev =>
+                          prev.includes(item)
+                            ? prev.filter(d => d !== item)
+                            : [...prev, item],
+                        );
+                      }}
+                      style={{margin: width(1)}}>
+                      {isSelected ? (
+                        <LinearGradient
+                          colors={['#FF295D', '#FF517B']}
+                          start={{x: 0, y: 0}}
+                          end={{x: 1, y: 1}}
+                          style={{
+                            height: width(8),
+                            width: width(15),
+                            borderRadius: 100,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
+                          <Text
+                            style={{color: COLORS.white, fontWeight: 'bold'}}>
+                            {item.toUpperCase()}
+                          </Text>
+                        </LinearGradient>
+                      ) : (
+                        <View
+                          style={{
+                            height: width(8),
+                            width: width(15),
+                            borderRadius: 100,
+                            backgroundColor: COLORS.white,
+                            borderWidth: 1,
+                            borderColor: COLORS.primary,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
+                          <Text style={{color: COLORS.black}}>
+                            {item.toUpperCase()}
+                          </Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <Text style={styles.sectionTitle}>{t('Available Days')}</Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: width(4),
+                }}>
+                {/* Start Date */}
+                <TouchableOpacity
+                  style={styles.dateBox}
+                  onPress={() => setIsStartPickerOpen(true)}>
+                  <Text style={styles.dateLabel}>Start Time</Text>
+                  <Text style={styles.dateValue}>
+                    {startTime
+                      ? moment(startTime).format('hh:mm A')
+                      : 'Select Time'}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* End Date */}
+                <TouchableOpacity
+                  style={styles.dateBox}
+                  onPress={() => setIsEndPickerOpen(true)}>
+                  <Text style={styles.dateLabel}>End Time</Text>
+                  <Text style={styles.dateValue}>
+                    {endTime
+                      ? moment(endTime).format('hh:mm A')
+                      : 'Select Time'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            {/* Terms & Conditions */}
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                flexWrap: 'wrap',
                 marginVertical: width(3),
               }}>
-              {daysData.map(item => {
-                const isSelected = availableDays.includes(item);
-
-                return (
-                  <TouchableOpacity
-                    key={item}
-                    onPress={() => {
-                      setAvailableDays(prev =>
-                        prev.includes(item)
-                          ? prev.filter(d => d !== item)
-                          : [...prev, item],
-                      );
-                    }}
-                    style={{margin: width(1)}}>
-                    {isSelected ? (
-                      <LinearGradient
-                        colors={['#FF295D', '#FF517B']}
-                        start={{x: 0, y: 0}}
-                        end={{x: 1, y: 1}}
-                        style={{
-                          height: width(8),
-                          width: width(15),
-                          borderRadius: 100,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}>
-                        <Text style={{color: COLORS.white, fontWeight: 'bold'}}>
-                          {item.toUpperCase()}
-                        </Text>
-                      </LinearGradient>
-                    ) : (
-                      <View
-                        style={{
-                          height: width(8),
-                          width: width(15),
-                          borderRadius: 100,
-                          backgroundColor: COLORS.white,
-                          borderWidth: 1,
-                          borderColor: COLORS.primary,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}>
-                        <Text style={{color: COLORS.black}}>
-                          {item.toUpperCase()}
-                        </Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-            <Text style={styles.sectionTitle}>{t('Available Days')}</Text>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginBottom: width(4),
-              }}>
-              {/* Start Date */}
               <TouchableOpacity
-                style={styles.dateBox}
-                onPress={() => setIsStartPickerOpen(true)}>
-                <Text style={styles.dateLabel}>Start Time</Text>
-                <Text style={styles.dateValue}>
-                  {startTime
-                    ? moment(startTime).format('hh:mm A')
-                    : 'Select Time'}
-                </Text>
+                onPress={() =>
+                  setFormData(prev => ({
+                    ...prev,
+                    termsAccepted: !prev.termsAccepted,
+                  }))
+                }
+                hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                <View
+                  style={[
+                    styles.checkbox,
+                    formData.termsAccepted && styles.checkboxChecked,
+                  ]}>
+                  {formData.termsAccepted && (
+                    <Icon name="checkmark" size={16} color="white" />
+                  )}
+                </View>
               </TouchableOpacity>
-
-              {/* End Date */}
-              <TouchableOpacity
-                style={styles.dateBox}
-                onPress={() => setIsEndPickerOpen(true)}>
-                <Text style={styles.dateLabel}>End Time</Text>
-                <Text style={styles.dateValue}>
-                  {endTime ? moment(endTime).format('hh:mm A') : 'Select Time'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          {/* Terms & Conditions */}
-          <TouchableOpacity
-            onPress={() =>
-              setFormData(prev => ({
-                ...prev,
-                termsAccepted: !prev.termsAccepted,
-              }))
-            }
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginVertical: width(3),
-            }}>
-            <View
-              style={[
-                styles.checkbox,
-                formData.termsAccepted && styles.checkboxChecked,
-              ]}>
-              {formData.termsAccepted && (
-                <Icon name="checkmark" size={16} color="white" />
-              )}
-            </View>
-            <View style={{flexDirection: 'row'}}>
-              <Text
+              <View
                 style={{
-                  color: COLORS.black,
-                  fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                  flex: 1,
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  marginLeft: 4,
                 }}>
-                I agree to{' '}
-              </Text>
-              <TouchableOpacity>
-                <GradientText
-                  text={'Terms & Conditions'}
-                  customStyles={styles.termsLink}
-                />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() =>
+                    setFormData(prev => ({
+                      ...prev,
+                      termsAccepted: !prev.termsAccepted,
+                    }))
+                  }
+                  activeOpacity={0.7}>
+                  <Text
+                    style={{
+                      color: COLORS.black,
+                      fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                    }}>
+                    I agree to the{' '}
+                  </Text>
+                </TouchableOpacity>
+                <Text
+                  onPress={() => setTermsModalVisible(true)}
+                  style={styles.termsLink}>
+                  Terms & Conditions
+                </Text>
+              </View>
             </View>
-          </TouchableOpacity>
-        </ScrollView>
+          </ScrollView>
 
-        {/* Buttons */}
-        {!isKeyboardVisible && (
-          <View style={styles.buttonRow}>
-            <View style={{width: width(40)}}>
-              <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
+          {/* Buttons */}
+          {!isKeyboardVisible && (
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                onPress={onClose}
+                activeOpacity={0.8}
+                style={[styles.cancelButton, styles.buttonRowItem]}>
                 <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
               </TouchableOpacity>
+              <View style={styles.buttonRowItem}>
+                <GradientButton
+                  icon={ICONS.uploadIcon}
+                  iconTintColor={COLORS.white}
+                  text={toEditData ? t('Update Listing') : t('Add Listing')}
+                  onPress={handleSubmit}
+                  type="filled"
+                  textStyle={styles.applyText}
+                />
+              </View>
             </View>
-            <View style={{width: width(40)}}>
-              <GradientButton
-                icon={ICONS.uploadIcon}
-                iconTintColor={COLORS.white}
-                text={toEditData ? t('Update Listing') : t('Add Listing')}
-                onPress={handleSubmit}
-                type="filled"
-                textStyle={styles.applyText}
-              />
-            </View>
-          </View>
-        )}
-      </View>
-      <Loader isLoading={isLoading} />
-      <CommonAlert ref={modalRef} />
-      <DatePicker
-        modal
-        open={isStartPickerOpen}
-        date={startTime || new Date()}
-        mode="time"
-        onConfirm={date => {
-          setIsStartPickerOpen(false);
-          setStartTime(date);
-        }}
-        onCancel={() => setIsStartPickerOpen(false)}
-      />
+          )}
+        </View>
+        <Loader isLoading={isLoading} />
+        <CommonAlert ref={modalRef} />
+        <DatePicker
+          modal
+          open={isStartPickerOpen}
+          date={startTime || new Date()}
+          mode="time"
+          onConfirm={date => {
+            setIsStartPickerOpen(false);
+            setStartTime(date);
+          }}
+          onCancel={() => setIsStartPickerOpen(false)}
+        />
 
-      <DatePicker
-        modal
-        open={isEndPickerOpen}
-        date={endTime || new Date()}
-        mode="time"
-        minimumDate={startTime || new Date()}
-        onConfirm={date => {
-          setIsEndPickerOpen(false);
-          setEndTime(date);
-        }}
-        onCancel={() => setIsEndPickerOpen(false)}
-      />
-    </Modal>
+        <DatePicker
+          modal
+          open={isEndPickerOpen}
+          date={endTime || new Date()}
+          mode="time"
+          minimumDate={startTime || new Date()}
+          onConfirm={date => {
+            setIsEndPickerOpen(false);
+            setEndTime(date);
+          }}
+          onCancel={() => setIsEndPickerOpen(false)}
+        />
+      </Modal>
+
+      <NativeTermsModal
+        visible={termsModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setTermsModalVisible(false)}>
+        <View style={styles.termsModalOverlay}>
+          <View style={styles.termsModalCard}>
+            <View style={styles.termsModalHeader}>
+              <Text style={styles.termsModalTitle}>Terms & Conditions</Text>
+              <TouchableOpacity
+                onPress={() => setTermsModalVisible(false)}
+                hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+                accessibilityLabel="Close terms">
+                <Icon name="close" size={22} color={COLORS.textDark} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              style={styles.termsModalScroll}
+              showsVerticalScrollIndicator={false}
+              bounces={false}>
+              {TERMS_MODAL_SECTIONS.map((section, index) => (
+                <View key={index} style={styles.termsModalBlock}>
+                  {section.number ? (
+                    <Text style={styles.termsModalSectionNumber}>
+                      {section.number}. {section.title}
+                    </Text>
+                  ) : (
+                    <Text style={styles.termsModalSectionTitle}>
+                      {section.title}
+                    </Text>
+                  )}
+                  <Text style={styles.termsModalBody}>{section.body}</Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </NativeTermsModal>
+    </>
   );
 };
 
@@ -1122,12 +1247,18 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'stretch',
+    gap: 10,
+    paddingVertical: width(2),
+  },
+  buttonRowItem: {
+    flex: 1,
+    minWidth: 0,
   },
   cancelButton: {
     backgroundColor: COLORS.backgroundLight,
-    paddingVertical: 16,
-    borderRadius: 20,
+    borderRadius: 15,
+    height: width(11),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1140,6 +1271,66 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
     color: 'white',
+  },
+  termsLink: {
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    textDecorationLine: 'underline',
+  },
+  termsModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    paddingHorizontal: width(5),
+    paddingVertical: width(8),
+  },
+  termsModalCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: width(3),
+    maxHeight: '88%',
+    paddingBottom: width(3),
+    overflow: 'hidden',
+  },
+  termsModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: width(4),
+    paddingVertical: width(3),
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  termsModalTitle: {
+    fontSize: 16,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textDark,
+    flex: 1,
+    paddingRight: 8,
+  },
+  termsModalScroll: {
+    paddingHorizontal: width(4),
+    paddingTop: width(3),
+  },
+  termsModalBlock: {
+    marginBottom: width(4),
+  },
+  termsModalSectionTitle: {
+    fontSize: 14,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textDark,
+    marginBottom: 8,
+  },
+  termsModalSectionNumber: {
+    fontSize: 13,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.textDark,
+    marginBottom: 6,
+  },
+  termsModalBody: {
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: COLORS.black,
+    lineHeight: 18,
   },
   dateBox: {
     width: width(40),

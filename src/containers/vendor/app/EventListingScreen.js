@@ -400,7 +400,10 @@ const EventListingScreen = ({navigation}) => {
             </Text>
             <TouchableOpacity
               style={{borderRadius: 20}}
-              onPress={() => setShowAddNew(true)}>
+              onPress={() => {
+                setEditData(null);
+                setEventModal(true);
+              }}>
               <Image
                 resizeMode="contain"
                 style={{width: 40, height: 40}}

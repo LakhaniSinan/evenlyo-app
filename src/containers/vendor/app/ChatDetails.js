@@ -26,6 +26,7 @@ import {height, width} from 'react-native-dimension';
 import RNFS from 'react-native-fs';
 import {launchImageLibrary} from 'react-native-image-picker';
 import LinearGradient from 'react-native-linear-gradient';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useDispatch, useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
@@ -55,6 +56,7 @@ const commonEmojis = [
 ];
 
 const ChatDetail = ({navigation, route}) => {
+  const insets = useSafeAreaInsets();
   const data = route?.params || {};
   const dispatch = useDispatch();
   const {socket} = useContext(SocketContext);
@@ -110,7 +112,8 @@ const ChatDetail = ({navigation, route}) => {
     const alreadyExists = allMessagesRef.current.some(
       message =>
         message?._id === sentOfferMessage._id ||
-        message?.offerObject?.uniqueId === sentOfferMessage?.offerObject?.uniqueId,
+        message?.offerObject?.uniqueId ===
+          sentOfferMessage?.offerObject?.uniqueId,
     );
 
     if (!alreadyExists) {
@@ -632,10 +635,16 @@ const ChatDetail = ({navigation, route}) => {
       const isOwn = item?.senderId === user?.vendorId;
       const isOfferMessage = Boolean(item?.isOffer || item?.offerObject);
 
-      const imageUri = !isOwn
-        ? data?.participants?.user?.photo ||
-          'https://cdn-icons-png.flaticon.com/512/149/149071.png'
-        : data?.participants?.vendor?.photo || '';
+      const clientPhoto = data?.participants?.user?.photo;
+      const vendorPhoto = data?.participants?.vendor?.photo;
+      const avatarUri = !isOwn
+        ? clientPhoto && String(clientPhoto).trim()
+          ? String(clientPhoto).trim()
+          : null
+        : vendorPhoto && String(vendorPhoto).trim()
+        ? String(vendorPhoto).trim()
+        : null;
+      const messageAvatarSource = avatarUri ? {uri: avatarUri} : ICONS.userIcon;
 
       const isSending = item?.isPending && item?.attachment;
       const isImage =
@@ -728,8 +737,8 @@ const ChatDetail = ({navigation, route}) => {
             ]}>
             {!isOwn && (
               <Image
-                resizeMode="cover"
-                source={{uri: imageUri}}
+                resizeMode="contain"
+                source={messageAvatarSource}
                 style={styles.messageAvatar}
               />
             )}
@@ -754,7 +763,7 @@ const ChatDetail = ({navigation, route}) => {
                     <Image
                       source={offerImage ? {uri: offerImage} : ICONS.event2}
                       style={styles.offerMessageItemImage}
-                      resizeMode="cover"
+                      resizeMode="contain"
                     />
                     <View style={{flex: 1, marginLeft: width(2)}}>
                       <Text
@@ -794,7 +803,7 @@ const ChatDetail = ({navigation, route}) => {
                     <TouchableOpacity
                       activeOpacity={0.85}
                       style={styles.offerViewBtn}
-                        onPress={() => handleOpenOfferDetails(offerObject)}>
+                      onPress={() => handleOpenOfferDetails(offerObject)}>
                       <Text style={styles.offerViewBtnText}>View Offer</Text>
                       <Text style={styles.offerViewBtnArrow}>{'->'}</Text>
                     </TouchableOpacity>
@@ -1003,8 +1012,8 @@ const ChatDetail = ({navigation, route}) => {
 
             {isOwn && (
               <Image
-                resizeMode="cover"
-                source={{uri: imageUri}}
+                resizeMode="contain"
+                source={messageAvatarSource}
                 style={styles.messageAvatar}
               />
             )}
@@ -1090,7 +1099,6 @@ const ChatDetail = ({navigation, route}) => {
       const response = await conversationService.unblockConversation(
         activeChat?._id,
       );
-
 
       if (response?.success) {
         modalRef.current.show({
@@ -1219,7 +1227,8 @@ const ChatDetail = ({navigation, route}) => {
     <View style={styles.container}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}>
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
           onLeftIconPress={() => navigation.goBack()}
@@ -1232,9 +1241,7 @@ const ChatDetail = ({navigation, route}) => {
           rightIcon={ICONS.menuIcon}
           onRightIconPress={() => {}}
           chatHeaderData={{
-            Icon:
-              data?.participants?.user?.photo ||
-              'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+            Icon: data?.participants?.user?.photo || null,
             name: data?.participants?.user?.name,
             lastSeen: 'Thanks for the quick res....',
           }}
@@ -1248,7 +1255,8 @@ const ChatDetail = ({navigation, route}) => {
           style={styles.messagesList}
           showsVerticalScrollIndicator={false}
           inverted={false}
-          contentContainerStyle={{padding: width(2), paddingBottom: width(20)}}
+          contentContainerStyle={{padding: width(2), paddingBottom: width(4)}}
+          keyboardShouldPersistTaps="handled"
           initialNumToRender={20}
           maxToRenderPerBatch={10}
           windowSize={10}
@@ -1279,6 +1287,7 @@ const ChatDetail = ({navigation, route}) => {
           <View
             style={{
               padding: width(3),
+              paddingBottom: width(3) + insets.bottom,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: COLORS.backgroundLight,
@@ -1317,7 +1326,11 @@ const ChatDetail = ({navigation, route}) => {
               />
             </TouchableOpacity>
 
-            <View style={[styles.inputWrapper, {flexDirection: 'column'}]}>
+            <View
+              style={[
+                styles.inputWrapper,
+                {flexDirection: 'column', paddingBottom: insets.bottom},
+              ]}>
               {attachedFile && !attachedFile?.name && (
                 <View style={styles.previewContainer}>
                   <Image
@@ -1493,7 +1506,9 @@ const ChatDetail = ({navigation, route}) => {
             </View>
 
             <View style={styles.offerDetailsSummaryCard}>
-              <Text style={styles.offerDetailsSummaryTitle}>Pricing Summary</Text>
+              <Text style={styles.offerDetailsSummaryTitle}>
+                Pricing Summary
+              </Text>
               <View style={styles.offerDetailsRow}>
                 <Text style={styles.offerDetailsLabel}>Subtotal</Text>
                 <Text style={styles.offerDetailsValue}>
@@ -1505,7 +1520,8 @@ const ChatDetail = ({navigation, route}) => {
                   Security Fees
                 </Text>
                 <Text style={[styles.offerDetailsValue, {color: '#1D4ED8'}]}>
-                  +€{Number(selectedOfferDetails?.totalSecurity || 0).toFixed(2)}
+                  +€
+                  {Number(selectedOfferDetails?.totalSecurity || 0).toFixed(2)}
                 </Text>
               </View>
               <View style={styles.offerDetailsDivider} />
@@ -1520,7 +1536,9 @@ const ChatDetail = ({navigation, route}) => {
             <Text style={styles.offerDetailsStatusText}>
               Status: {selectedOfferDetails?.status || 'PENDING'}
             </Text>
-            <Text style={styles.offerDetailsExpiryText}>Valid for 24 hours</Text>
+            <Text style={styles.offerDetailsExpiryText}>
+              Valid for 24 hours
+            </Text>
           </View>
         </View>
       </Modal>
@@ -1645,10 +1663,6 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,

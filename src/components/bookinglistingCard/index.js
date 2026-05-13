@@ -8,8 +8,6 @@ import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 
 const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
-  console.log(item,'itemitemitemitemitemitemitemitemqe222eeee');
-  
   const navigation = useNavigation();
   const {t, currentLanguage} = useTranslation();
 
@@ -64,10 +62,12 @@ const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
           </TouchableOpacity>
           <View style={styles.priceContainer}>
             <Text style={styles.price}>
-              {item.pricing?.totalPrice?.toFixed(2)}
+              {item.pricing?.totalPrice?.toFixed(2) ||
+                item?.pricing?.amount?.toFixed(2) ||
+                0}
             </Text>
             <Text style={styles.perEvent}>
-              {item?.pricing?.type?.toUpperCase()}
+              /{item?.pricing?.type?.toUpperCase()}
             </Text>
           </View>
         </View>

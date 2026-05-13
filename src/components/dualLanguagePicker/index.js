@@ -25,10 +25,6 @@ const DualLanguageCustomPicker = React.forwardRef(
     ref,
   ) => {
     const [isVisible, setModalVisibility] = useState(false);
-    console.log(
-      value,
-      'listDatalistDatalistDatalistDatalistDatalistDatalistData',
-    );
 
     React.useImperativeHandle(ref, () => ({
       show(params) {
@@ -45,7 +41,6 @@ const DualLanguageCustomPicker = React.forwardRef(
         const selectedItem = listData?.find(
           item => item?.name?.en === value?.name?.en,
         );
-        console.log(listData, 'listDatalistDatalistDatalistDatalistData');
 
         return selectedItem ? selectedItem?.name?.en : labelll;
       }

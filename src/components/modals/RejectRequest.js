@@ -156,25 +156,24 @@ const RejectRequestModal = ({visible, onClose, onConfirm}) => {
             />
           )}
 
-          <View style={styles.buttonContainer}>
-            <View style={{width: width(35), marginRight: width(2)}}>
+          <View style={styles.buttonRow}>
+            <View style={styles.buttonHalf}>
               <GradientButton
                 text={t('Cancel')}
                 onPress={handleClose}
                 type="outline"
-                useGradient={true}
+                textStyle={styles.modalCancelText}
+                styleContainer={styles.modalBtnHeight}
+                outlineButtonStyle={styles.modalOutlineInner}
               />
             </View>
-            <View style={{width: width(44), marginLeft: width(2)}}>
+            <View style={styles.buttonHalf}>
               <GradientButton
                 text={t('Confirm Rejection')}
                 onPress={handleConfirm}
                 type="filled"
-                textStyle={{fontSize: 14, color: COLORS.white}}
-                disabled={
-                  !selectedReason ||
-                  (selectedReason === 'Custom reason' && !customReason.trim())
-                }
+                textStyle={styles.confirmBtnText}
+                styleContainer={styles.modalBtnHeight}
               />
             </View>
           </View>
@@ -257,10 +256,32 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     minHeight: 60,
   },
-  buttonContainer: {
+  buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'stretch',
+    gap: width(2),
     marginTop: width(5),
+  },
+  buttonHalf: {
+    flex: 1,
+    minWidth: 0,
+  },
+  modalBtnHeight: {
+    height: width(11),
+  },
+  modalOutlineInner: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  modalCancelText: {
+    color: COLORS.primary,
+    fontSize: 10,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  confirmBtnText: {
+    fontSize: 13,
+    color: COLORS.white,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
   },
 });
 
