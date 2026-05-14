@@ -22,6 +22,8 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>GMSApiKey</key>
+	<string>AIzaSyAvPVhgFVY2qv4c6kvukvIP2krPJe9dZGA</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -31,22 +33,14 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs access to location to show maps.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app uses your location to show nearby events and vendors.</string>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		<string>arm64</string>
-	</array>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Evenlyo needs camera access so you can take photos to upload with your profile or events.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Evenlyo needs access to your photo library so you can choose images to upload with your profile or events.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>PlusJakartaSans-Bold.ttf</string>
@@ -64,9 +58,19 @@
 		<string>PlusJakartaSans-SemiBold.ttf</string>
 		<string>PlusJakartaSans-SemiBoldItalic.ttf</string>
 	</array>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This app needs access to location to show maps.</string>
-	<key>GMSApiKey</key>
-	<string>AIzaSyAvPVhgFVY2qv4c6kvukvIP2krPJe9dZGA</string>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
 </dict>
 </plist>
