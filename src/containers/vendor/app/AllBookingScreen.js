@@ -49,6 +49,26 @@ const TABS = ['Booking Items', 'Sale Items'];
 const SALE_STATUS_TABS = ['All', 'Order Placed', 'On the way', 'Delivered'];
 const SALE_STATUSES = ['Order Placed', 'On the way', 'Delivered'];
 
+const BOOKING_STATUS_I18N = {
+  pending: 'statusPending',
+  accepted: 'statusAccepted',
+  rejected: 'statusRejected',
+  on_the_way: 'statusOnTheWay',
+  received: 'statusReceived',
+  finished: 'statusFinished',
+  picked_up: 'statusPickedUp',
+  received_back: 'statusReceivedBack',
+  completed: 'statusCompleted',
+  claim: 'statusClaim',
+};
+
+const SALE_STATUS_I18N = {
+  All: 'saleStatusAll',
+  'Order Placed': 'saleStatusOrderPlaced',
+  'On the way': 'saleStatusOnTheWay',
+  Delivered: 'saleStatusDelivered',
+};
+
 /* -------------------- COMPONENT -------------------- */
 const countBookingsByStatus = (bookings = []) => {
   const statusCounts = {
@@ -74,9 +94,10 @@ const countBookingsByStatus = (bookings = []) => {
   return statusCounts;
 };
 
-const getStatusData = counts => {
-  return Object.entries(counts).map(([key, value]) => ({
-    title: key.charAt(0).toUpperCase() + key.slice(1).replaceAll('-', ' '),
+const getStatusData = (counts, translate) => {
+  return Object.entries(counts).map(([statusKey, value]) => ({
+    statusKey,
+    title: translate(BOOKING_STATUS_I18N[statusKey] || statusKey),
     value,
   }));
 };
@@ -95,7 +116,7 @@ function AllBookingScreen() {
   /* Booking */
   const [stats, setStats] = useState(null);
   const [bookings, setBookings] = useState([]);
-  const [statusData, setStatusData] = useState([]);
+  const [statusCounts, setStatusCounts] = useState({});
 
   /* Sale Items */
   const [saleOrders, setSaleOrders] = useState([]);
@@ -126,8 +147,7 @@ function AllBookingScreen() {
         setStats(stats);
         setListingCartData(filteredBookings);
         const counts = countBookingsByStatus(filteredBookings);
-        const formattedStatusData = getStatusData(counts);
-        setStatusData(formattedStatusData);
+        setStatusCounts(counts);
       } else {
         console.log('Fetch failed:', response?.data?.message);
       }
@@ -141,32 +161,44 @@ function AllBookingScreen() {
 
   /* -------------------- MEMOS -------------------- */
 
-  const getDashboardData = t => [
-    {
-      title: t('Total Bookings'),
-      icon: ICONS.groupIcon,
-      value: stats?.totalBookings,
-      percentage: 12,
-    },
-    {
-      title: t('Completed Bookings'),
-      icon: ICONS.checkIcon,
-      value: stats?.completedBookings,
-      percentage: 10,
-    },
-    {
-      title: t('Request Booking'),
-      icon: ICONS.whiteCartIcon,
-      value: stats?.requestBookings,
-      percentage: 10,
-    },
-    {
-      title: t('In Process'),
-      icon: ICONS.earningIcon,
-      value: stats?.inProcessBookings,
-      percentage: 10,
-    },
-  ];
+  const dashboardData = useMemo(
+    () => [
+      {
+        id: 'total',
+        title: t('Total Bookings'),
+        icon: ICONS.groupIcon,
+        value: stats?.totalBookings,
+        percentage: 12,
+      },
+      {
+        id: 'completed',
+        title: t('Completed Bookings'),
+        icon: ICONS.checkIcon,
+        value: stats?.completedBookings,
+        percentage: 10,
+      },
+      {
+        id: 'request',
+        title: t('Request Booking'),
+        icon: ICONS.whiteCartIcon,
+        value: stats?.requestBookings,
+        percentage: 10,
+      },
+      {
+        id: 'inProcess',
+        title: t('In Process'),
+        icon: ICONS.earningIcon,
+        value: stats?.inProcessBookings,
+        percentage: 10,
+      },
+    ],
+    [t, stats],
+  );
+
+  const statusData = useMemo(
+    () => getStatusData(statusCounts, t),
+    [statusCounts, t],
+  );
 
   useEffect(() => {
     handleGetCartListing();
@@ -204,7 +236,10 @@ function AllBookingScreen() {
 
       console.log(booking, 'bookingbookingbookingbooking');
     } else {
-      Alert.alert('Not Allowed', 'You can only select booked start dates.');
+      Alert.alert(
+        t('Not Allowed'),
+        t('You can only select booked start dates.'),
+      );
     }
   };
 
@@ -392,20 +427,20 @@ function AllBookingScreen() {
         modalRef.current?.show({
           status: 'ok',
           message:
-            response?.data?.message || 'Order status updated successfully',
+            response?.data?.message || t('Order status updated successfully'),
           handlePressOk: () => fetchSaleOrders(),
         });
       } else {
         modalRef.current?.show({
           status: 'error',
-          message: response?.data?.message || 'Failed to update order status',
+          message: response?.data?.message || t('Failed to update order status'),
         });
       }
     } catch (error) {
       console.log('Error updating order status:', error);
       modalRef.current?.show({
         status: 'error',
-        message: 'Failed to update order status. Please try again.',
+        message: t('Failed to update order status. Please try again.'),
       });
     } finally {
       setRefreshing(false);
@@ -419,7 +454,7 @@ function AllBookingScreen() {
 
   /* -------------------- UI -------------------- */
 
-  const TabButton = ({label}) => {
+  const TabButton = ({label, labelText}) => {
     if (activeTab === label) {
       return (
         <LinearGradient
@@ -430,7 +465,7 @@ function AllBookingScreen() {
           <TouchableOpacity
             style={styles.tabButtonTouchable}
             onPress={() => setActiveTab(label)}>
-            <Text style={[styles.tabText, styles.activeText]}>{label}</Text>
+            <Text style={[styles.tabText, styles.activeText]}>{labelText}</Text>
           </TouchableOpacity>
         </LinearGradient>
       );
@@ -439,7 +474,7 @@ function AllBookingScreen() {
         <TouchableOpacity
           style={styles.tabButton}
           onPress={() => setActiveTab(label)}>
-          <Text style={styles.tabText}>{label}</Text>
+          <Text style={styles.tabText}>{labelText}</Text>
         </TouchableOpacity>
       );
     }
@@ -498,7 +533,7 @@ function AllBookingScreen() {
           <View
             style={[styles.statusBadge, {backgroundColor: statusColor + '20'}]}>
             <Text style={[styles.statusText, {color: statusColor}]}>
-              {item.status}
+              {t(SALE_STATUS_I18N[item.status] || item.status)}
             </Text>
             <Text style={styles.dropdownArrow}>▼</Text>
           </View>
@@ -528,7 +563,7 @@ function AllBookingScreen() {
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <AppHeader
-        headingText="All Bookings"
+        headingText={t('All Bookings')}
         leftIcon={ICONS.drawerIcon}
         rightIcon={ICONS.notificationIcon}
         onLeftIconPress={() => navigation.openDrawer()}
@@ -549,7 +584,7 @@ function AllBookingScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }>
           <FlatList
-            data={getDashboardData(t)}
+            data={dashboardData}
             numColumns={2}
             renderItem={({item}) => <AllBookingCard item={item} />}
             keyExtractor={(item, index) => index.toString()}
@@ -627,13 +662,19 @@ function AllBookingScreen() {
               marginTop: width(5),
               marginBottom: width(2),
             }}>
-            Booking Status Summary
+            {t('Booking Status Summary')}
           </Text>
 
           {statusData.map((item, index) => (
             <TouchableOpacity
-              key={index}
-              onPress={() => navigation.navigate('BookingsByStatus', item)}
+              key={item.statusKey || index}
+              onPress={() =>
+                navigation.navigate('BookingsByStatus', {
+                  status: item.statusKey,
+                  title: item.title,
+                  value: item.value,
+                })
+              }
               style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -695,7 +736,7 @@ function AllBookingScreen() {
                     styles.saleFilterText,
                     saleStatusFilter === tab && styles.saleFilterTextActive,
                   ]}>
-                  {tab}
+                  {t(SALE_STATUS_I18N[tab] || tab)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -712,12 +753,12 @@ function AllBookingScreen() {
                 style={styles.exportBtnTouchable}
                 disabled={exportLoading}>
                 <Text style={styles.exportBtnText}>
-                  {exportLoading ? 'Exporting...' : 'Export CSV'}
+                  {exportLoading ? t('Exporting...') : t('Export CSV')}
                 </Text>
               </TouchableOpacity>
             </LinearGradient>
             <Text style={styles.totalText}>
-              Total: {filteredSaleOrders.length} items
+              {t('Total: {{count}} items', {count: filteredSaleOrders.length})}
             </Text>
           </View>
 
@@ -742,13 +783,17 @@ function AllBookingScreen() {
                       ) && <Text style={styles.checkmark}>✓</Text>}
                   </View>
                 </TouchableOpacity>
-                <Text style={[styles.th, styles.trackingCell]}>TRACKING</Text>
-                <Text style={[styles.th, styles.dateCell]}>DATE</Text>
-                <Text style={[styles.th, styles.buyerCell]}>BUYER</Text>
-                <Text style={[styles.th, styles.statusCell]}>ITEMS LIST</Text>
-                <Text style={[styles.th, styles.statusCell]}>LOCATION</Text>
-                <Text style={[styles.th, styles.statusCell]}>STATUS</Text>
-                <Text style={[styles.th, styles.actionCell]}>PDF</Text>
+                <Text style={[styles.th, styles.trackingCell]}>{t('TRACKING')}</Text>
+                <Text style={[styles.th, styles.dateCell]}>{t('DATE')}</Text>
+                <Text style={[styles.th, styles.buyerCell]}>{t('BUYER')}</Text>
+                <Text style={[styles.th, styles.statusCell]}>
+                  {t('ITEMS LIST')}
+                </Text>
+                <Text style={[styles.th, styles.statusCell]}>
+                  {t('LOCATION')}
+                </Text>
+                <Text style={[styles.th, styles.statusCell]}>{t('STATUS')}</Text>
+                <Text style={[styles.th, styles.actionCell]}>{t('PDF')}</Text>
               </View>
 
               {paginatedOrders.map(item => (
@@ -772,12 +817,15 @@ function AllBookingScreen() {
                   onPress={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                   style={styles.pageBtnTouchable}>
-                  <Text style={styles.pageBtnText}>Prev</Text>
+                  <Text style={styles.pageBtnText}>{t('Prev')}</Text>
                 </TouchableOpacity>
               </LinearGradient>
 
               <Text style={styles.pageInfo}>
-                Page {currentPage} of {totalPages}
+                {t('Page {{current}} of {{total}}', {
+                  current: currentPage,
+                  total: totalPages,
+                })}
               </Text>
 
               <LinearGradient
@@ -794,7 +842,7 @@ function AllBookingScreen() {
                   }
                   disabled={currentPage === totalPages}
                   style={styles.pageBtnTouchable}>
-                  <Text style={styles.pageBtnText}>Next</Text>
+                  <Text style={styles.pageBtnText}>{t('Next')}</Text>
                 </TouchableOpacity>
               </LinearGradient>
             </View>
@@ -815,9 +863,11 @@ function AllBookingScreen() {
         onRequestClose={() => setStatusModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Update Order Status</Text>
+            <Text style={styles.modalTitle}>{t('Update Order Status')}</Text>
             <Text style={styles.modalSubtitle}>
-              Order: {selectedOrderForStatus?.trackingId}
+              {t('Order: {{id}}', {
+                id: selectedOrderForStatus?.trackingId,
+              })}
             </Text>
 
             <View style={styles.statusOptions}>
@@ -838,7 +888,7 @@ function AllBookingScreen() {
                       selectedOrderForStatus?.status === status &&
                         styles.statusOptionTextSelected,
                     ]}>
-                    {status}
+                    {t(SALE_STATUS_I18N[status] || status)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -847,7 +897,7 @@ function AllBookingScreen() {
             <TouchableOpacity
               onPress={() => setStatusModalVisible(false)}
               style={styles.cancelBtn}>
-              <Text style={styles.cancelBtnText}>Cancel</Text>
+              <Text style={styles.cancelBtnText}>{t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

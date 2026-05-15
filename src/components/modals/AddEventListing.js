@@ -1,5 +1,5 @@
 import moment from 'moment';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Alert,
   Image,
@@ -34,6 +34,18 @@ import DualLanguageCustomPicker from '../dualLanguagePicker';
 import GooglePlacesInput from '../locationField';
 import Loader from '../loder';
 import TextField from '../textInput';
+
+const PRICING_TYPE_VALUES = ['Per Hour', 'Per Day', 'Per Event'];
+const DAYS_OF_WEEK = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+const DAY_LABEL_KEYS = {
+  sun: 'daySun',
+  mon: 'dayMon',
+  tue: 'dayTue',
+  wed: 'dayWed',
+  thu: 'dayThu',
+  fri: 'dayFri',
+  sat: 'daySat',
+};
 
 const TERMS_MODAL_SECTIONS = [
   {
@@ -97,12 +109,15 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
   const [isEndPickerOpen, setIsEndPickerOpen] = useState(false);
   const [termsModalVisible, setTermsModalVisible] = useState(false);
   const modalRef = useRef(null);
-  const pricingType = [
-    {name: 'Per Hour'},
-    {name: 'Per Day'},
-    {name: 'Per Event'},
-  ];
-  const daysData = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+  const pricingTypeOptions = useMemo(
+    () =>
+      PRICING_TYPE_VALUES.map(name => ({
+        name,
+        label: t(name),
+      })),
+    [t],
+  );
 
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () =>
@@ -142,7 +157,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
           );
 
           // ✅ match pricing type from list
-          const priceType = pricingType.find(price => {
+          const priceType = pricingTypeOptions.find(price => {
             const name = price.name.toLowerCase().replace(/\s+/g, '');
             const type = toEditData?.pricing?.type
               ?.toLowerCase()
@@ -189,7 +204,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         }
       })();
     }
-  }, [isVisible, toEditData, vendorsCategories]);
+  }, [isVisible, toEditData, vendorsCategories, pricingTypeOptions]);
 
   // useEffect(() => {
   //   let selectedSubCats = allSubCategories?.find(
@@ -315,35 +330,35 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
 
     // ✅ Validations (all fields required except security fee)
     if (!isNonEmpty(title.en)) {
-      return showError('Title (English) is required');
+      return showError(t('Title (English) is required'));
     }
     if (!isNonEmpty(title.nl)) {
-      return showError('Title (Dutch) is required');
+      return showError(t('Title (Dutch) is required'));
     }
     if (!isNonEmpty(subTitle.en)) {
-      return showError('Sub Title (English) is required');
+      return showError(t('Sub Title (English) is required'));
     }
     if (!isNonEmpty(subTitle.nl)) {
-      return showError('Sub Title (Dutch) is required');
+      return showError(t('Sub Title (Dutch) is required'));
     }
     if (!mainCategory) {
-      return showError('Main Category is required');
+      return showError(t('Main Category is required'));
     }
     if (!subCategory) {
-      return showError('Sub Category is required');
+      return showError(t('Sub Category is required'));
     }
     if (!isNonEmpty(description.en)) {
-      return showError('Description (English) is required');
+      return showError(t('Description (English) is required'));
     }
     if (!isNonEmpty(description.nl)) {
-      return showError('Description (Dutch) is required');
+      return showError(t('Description (Dutch) is required'));
     }
     if (!pricingType) {
-      return showError('Pricing Type is required');
+      return showError(t('Pricing Type is required'));
     }
     if (!isNonEmpty(cost) || !isValidAmount(cost)) {
       return showError(
-        'Cost is required and must be a valid amount greater than 0',
+        t('Cost is required and must be a valid amount greater than 0'),
       );
     }
     if (
@@ -351,29 +366,29 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       !isValidAmount(extraTimeCost, {allowZero: true})
     ) {
       return showError(
-        'Extra Time Cost is required and must be a valid number',
+        t('Extra Time Cost is required and must be a valid number'),
       );
     }
     if (!isNonEmpty(perKm) || !isValidAmount(perKm, {allowZero: true})) {
-      return showError('Per km is required and must be a valid number');
+      return showError(t('Per km is required and must be a valid number'));
     }
     if (!productImage?.length) {
-      return showError('At least one listing image is required');
+      return showError(t('At least one listing image is required'));
     }
     if (availableDays.length === 0) {
-      return showError('Select at least one available day');
+      return showError(t('Select at least one available day'));
     }
     if (!startTime) {
-      return showError('Start Time is required');
+      return showError(t('Start Time is required'));
     }
     if (!endTime) {
-      return showError('End Time is required');
+      return showError(t('End Time is required'));
     }
     if (!selectedCoords) {
-      return showError('Please select a valid location');
+      return showError(t('Please select a valid location'));
     }
     if (!termsAccepted) {
-      return showError('You must agree to Terms & Conditions');
+      return showError(t('You must agree to Terms & Conditions'));
     }
 
     // ✅ Build Final Payload
@@ -423,7 +438,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       modalRef.current.show({
         status: isSuccess ? 'ok' : 'error',
         message: response?.data?.message?.en
-          ? currentLanguage == 'en'
+          ? currentLanguage === 'en'
             ? response?.data?.message?.en
             : response?.data?.message?.nl
           : response?.data?.message,
@@ -452,10 +467,12 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         }
         if (response.errorCode) {
           Alert.alert(
-            'Error',
-            currentLanguage == 'en'
-              ? response.errorMessage.en
-              : response.errorMessage.nl,
+            t('Error'),
+            typeof response.errorMessage === 'string'
+              ? response.errorMessage
+              : currentLanguage === 'en'
+              ? response.errorMessage?.en
+              : response.errorMessage?.nl,
           );
           return;
         }
@@ -471,10 +488,8 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
 
         if (existingCount + newCount > 3) {
           Alert.alert(
-            'Limit Reached',
-            currentLanguage == 'en'
-              ? 'You can upload a maximum of 3 images.'
-              : 'Je kunt maximaal 3 afbeeldingen uploaden.',
+            t('Limit Reached'),
+            t('You can upload a maximum of 3 images.'),
           );
           return;
         }
@@ -507,17 +522,15 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         } catch (err) {
           console.error('❌ Upload error:', err);
           Alert.alert(
-            'Error',
-            currentLanguage == 'en'
-              ? 'Failed to upload images. Please try again.'
-              : 'Fout bij het uploaden van afbeeldingen. Probeer het opnieuw.',
+            t('Error'),
+            t('Failed to upload images. Please try again.'),
           );
         } finally {
           setIsLoading(false);
         }
       },
     );
-  }, [formData]);
+  }, [formData, t]);
 
   // ✅ render uploaded media
   // ✅ render uploaded media safely
@@ -597,11 +610,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         <View style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>
-              {currentLanguage == 'en'
-                ? 'Add New Listing'
-                : 'Nieuwe vermelding toevoegen'}
-            </Text>
+            <Text style={styles.title}>{t('Add New Listing')}</Text>
             <TouchableOpacity onPress={onClose}>
               <Icon name="close" size={24} color="#333" />
             </TouchableOpacity>
@@ -611,18 +620,10 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
           <ScrollView style={{flex: 1}}>
             {/* Basic Information */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {currentLanguage == 'en'
-                  ? 'Basic Information'
-                  : 'Basis informatie'}
-              </Text>
+              <Text style={styles.sectionTitle}>{t('Basic Information')}</Text>
 
               <View style={styles.languageRow}>
-                <Text style={styles.langLabel}>
-                  {currentLanguage == 'en'
-                    ? 'Select Language:'
-                    : 'Selecteer taal:'}
-                </Text>
+                <Text style={styles.langLabel}>{t('Select Language:')}</Text>
                 <View style={styles.radioGroup}>
                   <TouchableOpacity
                     style={styles.radioOption}
@@ -633,9 +634,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                         selectedLang === 'en' && styles.radioSelected,
                       ]}
                     />
-                    <Text style={styles.radioText}>
-                      {currentLanguage == 'en' ? 'US English' : 'US Engels'}
-                    </Text>
+                    <Text style={styles.radioText}>{t('US English')}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -647,9 +646,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                         selectedLang === 'nl' && styles.radioSelected,
                       ]}
                     />
-                    <Text style={styles.radioText}>
-                      {currentLanguage == 'en' ? 'NL Dutch' : 'NL Nederlands'}
-                    </Text>
+                    <Text style={styles.radioText}>{t('NL Dutch')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -657,29 +654,31 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
               {/* Dynamic Fields */}
               <TextField
                 bgColor={COLORS.white}
-                label={`Title (${
-                  currentLanguage == 'en' ? 'English' : 'Dutch'
-                })`}
-                placeholder={
-                  currentLanguage == 'en' ? 'Enter title' : 'Voer titel in'
+                label={
+                  selectedLang === 'en'
+                    ? t('Title (English)')
+                    : t('Title (Dutch)')
                 }
+                placeholder={t('Enter title')}
                 value={formData.title[selectedLang]}
                 onChangeText={v => handleTextChange('title', v)}
               />
               <View style={{height: 10}} />
               <TextField
                 bgColor={COLORS.white}
-                label={`Sub Title (${
-                  selectedLang === 'en' ? 'English' : 'Dutch'
-                })`}
+                label={
+                  selectedLang === 'en'
+                    ? t('Sub Title (English)')
+                    : t('Sub Title (Dutch)')
+                }
                 placeholder={t('Enter subtitle')}
                 value={formData.subTitle[selectedLang]}
                 onChangeText={v => handleTextChange('subTitle', v)}
               />
 
               <DualLanguageCustomPicker
-                label="Main Category"
-                labelll="Select Main Category"
+                label={t('Main Category')}
+                labelll={t('Select Main Category')}
                 dropdownContainerStyle={{backgroundColor: COLORS.white}}
                 value={formData?.mainCategory}
                 listData={vendorsCategories}
@@ -687,8 +686,8 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                 handleSelectValue={handleSelectValue}
               />
               <DualLanguageCustomPicker
-                label="Sub Category"
-                labelll="Select Sub Category"
+                label={t('Sub Category')}
+                labelll={t('Select Sub Category')}
                 dropdownContainerStyle={{backgroundColor: COLORS.white}}
                 value={formData?.subCategory}
                 listData={allSubCategories}
@@ -701,17 +700,19 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                 setSelectedLocation={v =>
                   handleSelectValue('selectedCoords', v)
                 }
-                placeholder="Enter Location"
+                placeholder={t('Enter Location')}
                 bgcolor={COLORS.white}
                 showRightIcon={ICONS.locationIcon}
-                lable="Add Location *"
+                lable={t('Add Location *')}
               />
 
               <TextField
                 bgColor={COLORS.white}
-                label={`Description (${
-                  selectedLang === 'en' ? 'English' : 'Dutch'
-                })`}
+                label={
+                  selectedLang === 'en'
+                    ? t('Description (English)')
+                    : t('Description (Dutch)')
+                }
                 placeholder={t(
                   'Focused on creating vibes through immersive sound...',
                 )}
@@ -728,19 +729,19 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                 style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                 <View style={{width: width(40)}}>
                   <CustomPicker
-                    label="Pricing Type"
-                    labelll="Pricing Type"
+                    label={t('Pricing Type')}
+                    labelll={t('Pricing Type')}
                     dropdownContainerStyle={{backgroundColor: COLORS.white}}
                     value={formData.pricingType}
-                    listData={pricingType}
+                    listData={pricingTypeOptions}
                     name="pricingType"
                     handleSelectValue={handleSelectValue}
                   />
                 </View>
                 <View style={{width: width(40), marginTop: width(3)}}>
                   <TextField
-                    label={'Cost'}
-                    placeholder={'Enter Cost'}
+                    label={t('Cost')}
+                    placeholder={t('Enter Cost')}
                     bgColor={COLORS.white}
                     value={formData.cost}
                     onChangeText={v => handleTextChange('cost', v)}
@@ -749,15 +750,15 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
               </View>
 
               <TextField
-                label={'Extra Time Cost'}
-                placeholder={'Extra Time Cost'}
+                label={t('Extra Time Cost')}
+                placeholder={t('Extra Time Cost')}
                 bgColor={COLORS.white}
                 value={formData.extraTimeCost}
                 onChangeText={v => handleTextChange('extraTimeCost', v)}
               />
 
               <TextField
-                label={'Per km (1)'}
+                label={t('Per km (1)')}
                 placeholder={'€1'}
                 bgColor={COLORS.white}
                 value={formData.perKm}
@@ -777,14 +778,14 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                   )}
                 </View>
                 <Text style={styles.optionLabel}>
-                  Security Fee (Non-living things only)
+                  {t('Security Fee (Non-living things only)')}
                 </Text>
               </TouchableOpacity>
 
               {isCheck && (
                 <TextField
-                  label={'Security Fee Amount'}
-                  placeholder={'Enter Security Fee Amount'}
+                  label={t('Security Fee Amount')}
+                  placeholder={t('Enter Security Fee Amount')}
                   bgColor={COLORS.white}
                   value={formData.securityFeeAmount}
                   onChangeText={v => handleTextChange('securityFeeAmount', v)}
@@ -795,7 +796,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
               <Text style={styles.sectionTitle}>{t('Gallery View')}</Text>
 
               <Text style={styles.sectionTitle}>{t('Images (Maximum 3)')}</Text>
-              {renderUploadBox('Click to upload work Images', () =>
+              {renderUploadBox(t('Click to upload work Images'), () =>
                 handleUpdateImage(),
               )}
               <View style={styles.previewRow}>
@@ -820,7 +821,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                   flexWrap: 'wrap',
                   marginVertical: width(3),
                 }}>
-                {daysData.map(item => {
+                {DAYS_OF_WEEK.map(item => {
                   const isSelected = availableDays.includes(item);
 
                   return (
@@ -848,7 +849,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                           }}>
                           <Text
                             style={{color: COLORS.white, fontWeight: 'bold'}}>
-                            {item.toUpperCase()}
+                            {t(DAY_LABEL_KEYS[item])}
                           </Text>
                         </LinearGradient>
                       ) : (
@@ -883,11 +884,11 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                 <TouchableOpacity
                   style={styles.dateBox}
                   onPress={() => setIsStartPickerOpen(true)}>
-                  <Text style={styles.dateLabel}>Start Time</Text>
+                  <Text style={styles.dateLabel}>{t('startTime')}</Text>
                   <Text style={styles.dateValue}>
                     {startTime
                       ? moment(startTime).format('hh:mm A')
-                      : 'Select Time'}
+                      : t('Select Time')}
                   </Text>
                 </TouchableOpacity>
 
@@ -895,11 +896,11 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                 <TouchableOpacity
                   style={styles.dateBox}
                   onPress={() => setIsEndPickerOpen(true)}>
-                  <Text style={styles.dateLabel}>End Time</Text>
+                  <Text style={styles.dateLabel}>{t('endTime')}</Text>
                   <Text style={styles.dateValue}>
                     {endTime
                       ? moment(endTime).format('hh:mm A')
-                      : 'Select Time'}
+                      : t('Select Time')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -950,13 +951,13 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                       color: COLORS.black,
                       fontFamily: fontFamly.PlusJakartaSansSemiRegular,
                     }}>
-                    I agree to the{' '}
+                    {t('I agree to the')}{' '}
                   </Text>
                 </TouchableOpacity>
                 <Text
                   onPress={() => setTermsModalVisible(true)}
                   style={styles.termsLink}>
-                  Terms & Conditions
+                  {t('termsAndConditions')}
                 </Text>
               </View>
             </View>
@@ -1020,7 +1021,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         <View style={styles.termsModalOverlay}>
           <View style={styles.termsModalCard}>
             <View style={styles.termsModalHeader}>
-              <Text style={styles.termsModalTitle}>Terms & Conditions</Text>
+              <Text style={styles.termsModalTitle}>{t('termsAndConditions')}</Text>
               <TouchableOpacity
                 onPress={() => setTermsModalVisible(false)}
                 hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}

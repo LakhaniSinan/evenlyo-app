@@ -1,13 +1,25 @@
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
+
+const STATUS_LABEL_KEYS = {
+  accepted: 'Accepted',
+  rejected: 'Booking Rejected',
+};
 
 const StatusBadge = ({status}) => {
-  if (!status) {return null;}
+  const {t} = useTranslation();
 
-  // ✅ Format status (First letter capitalized, rest lowercase)
-  const formattedStatus =
-    status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+  if (!status) {
+    return null;
+  }
+
+  const statusKey = status.toLowerCase().replace(/\s+/g, '');
+  const translationKey = STATUS_LABEL_KEYS[statusKey];
+  const formattedStatus = translationKey
+    ? t(translationKey)
+    : status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 
   // ✅ Define colors for each status
   const getStatusColor = status => {

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Alert,
   Image,
@@ -22,6 +22,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
+import CommonAlert from '../../../components/commanAlert';
 import CustomPicker from '../../../components/customPicker';
 import Loader from '../../../components/loder';
 import TextField from '../../../components/textInput';
@@ -40,6 +41,8 @@ function ProfileManagement({navigation, route}) {
   const data = route.params;
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.LoginSlice);
+  console.log(user, 'useruseruseruseruseruser');
+
   const teamSizeRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef(null);
@@ -74,6 +77,14 @@ function ProfileManagement({navigation, route}) {
   const [selectedSubCategoryIds, setSelectedSubCategoryIds] = useState([]);
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
   const [hasHydratedSelections, setHasHydratedSelections] = useState(false);
+
+  const workTypeOptions = useMemo(
+    () => [
+      {name: 'Single', label: t('Work type Single')},
+      {name: 'Team', label: t('Work type Team')},
+    ],
+    [t],
+  );
 
   const normalizeLocalizedValue = useCallback(value => {
     if (typeof value === 'string') {
@@ -223,7 +234,8 @@ function ProfileManagement({navigation, route}) {
         if (response?.status === 200 || response?.status === 201) {
           const mapped = {};
           (response?.data?.data || []).forEach(item => {
-            mapped[String(item?._id || item?.id || '')] = item?.subcategories || [];
+            mapped[String(item?._id || item?.id || '')] =
+              item?.subcategories || [];
           });
           setCategorySubMap(prev => ({...prev, ...mapped}));
 
@@ -267,11 +279,13 @@ function ProfileManagement({navigation, route}) {
   const getLocalizedName = useCallback(
     node => {
       if (!node?.name) {
-        return 'Unnamed';
+        return t('Unnamed');
       }
-      return currentLanguage === 'en' ? node?.name?.en : node?.name?.nl;
+      return currentLanguage === 'en'
+        ? node?.name?.en || node?.name?.nl
+        : node?.name?.nl || node?.name?.en;
     },
-    [currentLanguage],
+    [currentLanguage, t],
   );
 
   const handleToggleCategory = useCallback(categoryId => {
@@ -368,11 +382,11 @@ function ProfileManagement({navigation, route}) {
 
       <CustomPicker
         ref={teamSizeRef}
-        labelll="Your Work Type"
-        label="Your Work Type"
+        labelll={t('Your Work Type')}
+        label={t('Your Work Type')}
         value={formData.selecctSizeRef}
         dropdownContainerStyle={{backgroundColor: COLORS.backgroundLight}}
-        listData={[{name: 'Single'}, {name: 'Team'}]}
+        listData={workTypeOptions}
         name="selecctSizeRef"
         handleSelectValue={handleSelectValue}
       />
@@ -383,8 +397,11 @@ function ProfileManagement({navigation, route}) {
         label={t('Team Size')}
         placeholder={t('Number of team')}
         value={formData.teamSize}
-        onChangeText={val => handleInputChange('teamSize', val)}
+        onChangeText={val =>
+          handleInputChange('teamSize', val.replace(/[^0-9]/g, ''))
+        }
         bgColor={COLORS.backgroundLight}
+        keyboardType="numeric"
       />
 
       <Spacing />
@@ -577,7 +594,9 @@ function ProfileManagement({navigation, route}) {
 
   const CategorySelectionEditor = memo(() => (
     <View style={styles.selectionContainer}>
-      <Text style={styles.selectionTitle}>{t('Categories & Subcategories')}</Text>
+      <Text style={styles.selectionTitle}>
+        {t('Categories & Subcategories')}
+      </Text>
       <Text style={styles.selectionSubtitle}>
         {t(
           'Select categories and subcategories that best describe your services.',
@@ -623,7 +642,9 @@ function ProfileManagement({navigation, route}) {
             {isCategorySelected && subcategories.length > 0 && (
               <>
                 <View style={styles.subCategoryHeadingWrapper}>
-                  <Text style={styles.subCategoryBadge}>{t('SUBCATEGORIES')}</Text>
+                  <Text style={styles.subCategoryBadge}>
+                    {t('SUBCATEGORIES')}
+                  </Text>
                 </View>
                 <View style={styles.subCategoryChipWrapper}>
                   {subcategories.map(sub => {
@@ -662,45 +683,44 @@ function ProfileManagement({navigation, route}) {
 
   const handleUpdate = useCallback(
     async (overrideData = {}, isPartial = false) => {
+      const dataToUse = {...formData, ...overrideData};
+      const categoryIdsForPayload = selectedCategoryIds;
+      const subCategoryIdsForPayload = selectedSubCategoryIds;
+
+      if (!isPartial) {
+        if (!categoryIdsForPayload.length) {
+          modalRef.current?.show({
+            status: 'error',
+            message: t('Please select at least one main category.'),
+          });
+          return;
+        }
+
+        const hasInvalidSelection = categoryIdsForPayload.some(categoryId => {
+          const mappedSubCategories = categorySubMap[categoryId] || [];
+          if (!mappedSubCategories.length) {
+            return false;
+          }
+          return !mappedSubCategories.some(sub =>
+            subCategoryIdsForPayload.includes(
+              String(sub?._id || sub?.id || ''),
+            ),
+          );
+        });
+
+        if (hasInvalidSelection) {
+          modalRef.current?.show({
+            status: 'error',
+            message: t(
+              'Please select at least one subcategory for every selected main category.',
+            ),
+          });
+          return;
+        }
+      }
+
       try {
         setIsLoading(true);
-
-        const dataToUse = isPartial
-          ? overrideData
-          : {...formData, ...overrideData};
-        const categoryIdsForPayload = selectedCategoryIds;
-        const subCategoryIdsForPayload = selectedSubCategoryIds;
-
-        if (!isPartial) {
-          if (!categoryIdsForPayload.length) {
-            modalRef.current?.show({
-              status: 'error',
-              message: 'Please select at least one main category.',
-            });
-            return;
-          }
-
-          const hasInvalidSelection = categoryIdsForPayload.some(categoryId => {
-            const mappedSubCategories = categorySubMap[categoryId] || [];
-            if (!mappedSubCategories.length) {
-              return false;
-            }
-            return !mappedSubCategories.some(sub =>
-              subCategoryIdsForPayload.includes(
-                String(sub?._id || sub?.id || ''),
-              ),
-            );
-          });
-
-          if (hasInvalidSelection) {
-            modalRef.current?.show({
-              status: 'error',
-              message:
-                'Please select at least one subcategory for every selected main category.',
-            });
-            return;
-          }
-        }
 
         let payload = {};
 
@@ -742,7 +762,6 @@ function ProfileManagement({navigation, route}) {
         }
 
         const response = await updateVendorDetails(payload);
-        console.log(response, 'responseresponseresponseresponseasd');
 
         if (response?.status === 200 || response?.status === 201) {
           const updatedUser = {
@@ -757,19 +776,25 @@ function ProfileManagement({navigation, route}) {
 
           modalRef.current?.show({
             status: 'ok',
-            message: response?.data?.message,
+            message: response?.data?.message?.en
+              ? currentLanguage === 'en'
+                ? response.data.message.en
+                : response.data.message.nl
+              : response?.data?.message || t('Profile updated successfully.'),
           });
         } else {
           modalRef.current?.show({
             status: 'error',
-            message: response?.data?.message,
+            message:
+              response?.data?.message ||
+              t('Failed to update profile. Please try again.'),
           });
         }
       } catch (error) {
         console.error('handleUpdate error:', error);
         modalRef.current?.show({
           status: 'error',
-          message: 'Failed to update vendor.',
+          message: t('Failed to update vendor.'),
         });
       } finally {
         setIsLoading(false);
@@ -783,6 +808,8 @@ function ProfileManagement({navigation, route}) {
       categorySubMap,
       user,
       dispatch,
+      t,
+      currentLanguage,
     ],
   );
 
@@ -791,7 +818,7 @@ function ProfileManagement({navigation, route}) {
       launchImageLibrary({mediaType: 'photo', selectionLimit: 1}, async res => {
         if (res.didCancel || res.errorCode) {
           if (res.errorMessage) {
-            Alert.alert('Error', res.errorMessage);
+            Alert.alert(t('Error'), res.errorMessage);
           }
           return;
         }
@@ -819,27 +846,26 @@ function ProfileManagement({navigation, route}) {
           handleInputChange(field, uploadedUrl);
 
           // auto update vendor image
-          await handleUpdate({
-            [field]: uploadedUrl, // only update the changed field
-          });
+          await handleUpdate({[field]: uploadedUrl}, true);
         } catch (err) {
           console.error('Upload error:', err);
-          Alert.alert('Error', 'Failed to upload image. Please try again.');
+          Alert.alert(t('Error'), t('Failed to upload image. Please try again.'));
         } finally {
           setIsLoading(false);
         }
       });
     },
-    [handleInputChange],
+    [handleInputChange, handleUpdate, t],
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <Loader isLoading={isLoading} />
+      <CommonAlert ref={modalRef} />
       <AppHeader
         leftIcon={ICONS.leftArrowIcon}
         headingText={t('Profile Management')}
-        rightIcon={ICONS.chatIcon}
+        rightIcon={user?.userType !== 'vendor' ? ICONS.chatIcon : null}
         onLeftIconPress={() => navigation.goBack()}
         onRightIconPress={() => navigation.navigate('Messages')}
         containerStyle={{marginVertical: 10}}
@@ -905,8 +931,8 @@ function ProfileManagement({navigation, route}) {
 
         <View style={styles.footer}>
           <GradientButton
-            text={'Save & Change'}
-            onPress={handleUpdate}
+            text={t('Save & Changes')}
+            onPress={() => handleUpdate()}
             styleContainer={styles.saveButtonContainer}
             styleProps={styles.saveButtonInner}
           />

@@ -42,7 +42,9 @@ const CustomPicker = React.forwardRef(
           item =>
             item?._id === value || item?.id === value || item?.name === value,
         );
-        return selectedItem ? selectedItem?.name : labelll;
+        return selectedItem
+          ? selectedItem?.label || selectedItem?.name
+          : labelll;
       }
       return labelll;
     };

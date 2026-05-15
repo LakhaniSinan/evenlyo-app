@@ -4,9 +4,11 @@ import {ScrollView, Text, View} from 'react-native';
 import {LineChart} from 'react-native-chart-kit';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 import CustomPicker from '../customPicker';
 
 const LineChartComponent = ({labelll = 'Overview', data = []}) => {
+  const {t} = useTranslation();
   const selectSizeRef = useRef();
   const [filterType, setFilterType] = useState('Monthly');
 
@@ -28,7 +30,9 @@ const LineChartComponent = ({labelll = 'Overview', data = []}) => {
   // 🧠 Detect data type dynamically
   const isEarnings = data?.some(item => item.totalEarnings !== undefined);
   const valueKey = isEarnings ? 'totalEarnings' : 'totalOrders';
-  const chartLabel = isEarnings ? 'Earnings Overview' : 'Orders Overview';
+  const chartLabel = isEarnings
+    ? t('Earnings Overview')
+    : t('Orders Overview');
 
   const filteredData = useMemo(() => {
     let labels = [];
@@ -113,7 +117,7 @@ const LineChartComponent = ({labelll = 'Overview', data = []}) => {
         <View style={{width: width(40)}}>
           <CustomPicker
             ref={selectSizeRef}
-            labelll={'Orders Overview'}
+            labelll={t('Orders Overview')}
             value={filterType}
             listData={[{name: 'Monthly'}, {name: '6 Months'}, {name: 'Yearly'}]}
             name="filterType"

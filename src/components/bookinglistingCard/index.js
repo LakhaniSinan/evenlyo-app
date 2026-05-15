@@ -7,9 +7,28 @@ import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 
+const PRICING_TYPE_LABEL_KEYS = {
+  perhour: 'Per Hour',
+  perday: 'Per Day',
+  perevent: 'Per Event',
+};
+
+const getPricingTypeLabel = (type, translate) => {
+  if (!type) {
+    return '';
+  }
+  const normalized = String(type).toLowerCase().replace(/\s+/g, '');
+  const labelKey = PRICING_TYPE_LABEL_KEYS[normalized];
+  if (labelKey) {
+    return `/${translate(labelKey)}`;
+  }
+  return `/${String(type).toUpperCase()}`;
+};
+
 const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
   const navigation = useNavigation();
   const {t, currentLanguage} = useTranslation();
+  const pricingTypeLabel = getPricingTypeLabel(item?.pricing?.type, t);
 
   return (
     <View style={styles.card}>
@@ -56,7 +75,14 @@ const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
           <TouchableOpacity
             onPress={() => navigation.navigate('EventDetails', item)}
             style={styles.button}>
-            <Text style={[styles.buttonText, {color: COLORS.black}]}>
+            <Text
+              style={[
+                styles.buttonText,
+                {
+                  color: COLORS.black,
+                  textAlign: 'center',
+                },
+              ]}>
               {t('View Details')}
             </Text>
           </TouchableOpacity>
@@ -66,9 +92,7 @@ const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
                 item?.pricing?.amount?.toFixed(2) ||
                 0}
             </Text>
-            <Text style={styles.perEvent}>
-              /{item?.pricing?.type?.toUpperCase()}
-            </Text>
+            <Text style={styles.perEvent}>{pricingTypeLabel}</Text>
           </View>
         </View>
       </View>
@@ -144,9 +168,8 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    // justifyContent: 'space-between',
+    // alignItems: 'center',
     width: '100%',
   },
   button: {

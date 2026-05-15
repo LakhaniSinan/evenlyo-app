@@ -22,21 +22,27 @@ import {helper} from '../../../helper';
 import {getDashboard} from '../../../services/Dashboard';
 import useTranslation from '../../../hooks/useTranslation';
 import {getMessagingOrNull} from '../../../utils/firebaseMessagingSafe';
+import {useSelector} from 'react-redux';
 
-const ViewMoreButton = React.memo(({heading, onPress, showViewAll}) => (
-  <View style={styles.viewMoreContainer}>
-    <Text style={styles.viewMoreHeading}>{heading}</Text>
-    {showViewAll && (
-      <TouchableOpacity onPress={onPress}>
-        <Text style={styles.viewMoreText}>View All</Text>
-      </TouchableOpacity>
-    )}
-  </View>
-));
+const ViewMoreButton = React.memo(
+  ({heading, onPress, showViewAll, viewAllLabel}) => (
+    <View style={styles.viewMoreContainer}>
+      <Text style={styles.viewMoreHeading}>{heading}</Text>
+      {showViewAll && (
+        <TouchableOpacity onPress={onPress}>
+          <Text style={styles.viewMoreText}>{viewAllLabel}</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  ),
+);
 
 const Dashboard = () => {
   const navigation = useNavigation();
   const {t} = useTranslation();
+  const {user} = useSelector(state => state.LoginSlice);
+  console.log(user, 'useruseruseruseruseruser');
+
   const tRef = useRef(t);
   tRef.current = t;
   const modalRef = useRef(null);
@@ -84,27 +90,31 @@ const Dashboard = () => {
   const dashboardStats = useMemo(
     () => [
       {
-        title: 'All Clients',
+        id: 'allClients',
+        title: t('All Clients'),
         icon: ICONS.groupIcon,
         value: dashboardData?.stats?.totalClients ?? 0,
       },
       {
-        title: 'Total Items',
+        id: 'totalItems',
+        title: t('Total Items'),
         icon: ICONS.whiteCartIcon,
         value: dashboardData?.stats?.totalItemsListed ?? 0,
       },
       {
-        title: 'Complete Bookings',
+        id: 'completeBookings',
+        title: t('Complete Bookings'),
         icon: ICONS.checkIcon,
         value: dashboardData?.stats?.completedBookingsCount ?? 0,
       },
       {
-        title: 'Monthly Revenue',
+        id: 'monthlyRevenue',
+        title: t('Monthly Revenue'),
         icon: ICONS.earningIcon,
         value: dashboardData?.stats?.monthlyRevenue ?? 0,
       },
     ],
-    [dashboardData],
+    [dashboardData, t],
   );
 
   const handleGetDashboard = useCallback(async () => {
@@ -190,7 +200,7 @@ const Dashboard = () => {
         }>
         <View style={styles.headerContainer}>
           <Text style={styles.welcomeText}>
-            {t('welcomeUser', {name: 'John Doe'})}
+            {t('welcomeUser', {name: user?.firstName})}
           </Text>
           <Text style={styles.roleText}>{t('vendorDashboardOverview')}</Text>
         </View>
@@ -241,6 +251,7 @@ const Dashboard = () => {
           <View style={styles.sectionContainer}>
             <ViewMoreButton
               heading={t('recentBookingOffers')}
+              viewAllLabel={t('viewAll')}
               showViewAll={dashboardData?.recentBookings?.length > 3}
               onPress={() =>
                 navigation.navigate(
@@ -262,6 +273,7 @@ const Dashboard = () => {
             <ViewMoreButton
               showViewAll={dashboardData?.activityLog?.length > 3}
               heading={t('activityLog')}
+              viewAllLabel={t('viewAll')}
               onPress={() =>
                 navigation.navigate(
                   'AllActivityLog',
@@ -282,6 +294,7 @@ const Dashboard = () => {
             <ViewMoreButton
               showViewAll={dashboardData?.recentClients?.length > 3}
               heading={t('recentlyJoinedClients')}
+              viewAllLabel={t('viewAll')}
               onPress={() =>
                 navigation.navigate(
                   'AllRecentClients',

@@ -6,7 +6,7 @@ import {useTranslation} from '../../hooks';
 
 const AllBookingCard = ({item}) => {
   const {t} = useTranslation();
-  const isGradient = item?.title === t('Completed Bookings');
+  const isGradient = item?.id === 'completed';
   const gradientColors = ['#FF295D', '#E31B95', '#C817AE'];
 
   return (
