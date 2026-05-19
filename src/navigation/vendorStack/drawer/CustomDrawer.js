@@ -4,9 +4,12 @@ import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
 import {useSelector} from 'react-redux';
 import {IMAGES} from '../../../assets';
-import {COLORS, fontFamly} from '../../../constants';
-
-const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
+import {
+  BRAND_BUTTON_GRADIENT_COLORS,
+  BRAND_BUTTON_GRADIENT_LOCATIONS,
+  COLORS,
+  fontFamly,
+} from '../../../constants';
 const VENDOR_PAGE_KEYS = {
   DASHBOARD: 'dashboard',
   ANALYTICS_REPORTS: 'analytics_reports',
@@ -96,16 +99,21 @@ const CustomDrawer = ({navigation}) => {
                 item.onPress();
               }}>
               {isActive ? (
-                <LinearGradient
-                  colors={GRADIENT_COLORS}
-                  style={styles.activeMenu}>
+                <View style={styles.activeMenu}>
+                  <LinearGradient
+                    colors={BRAND_BUTTON_GRADIENT_COLORS}
+                    locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 0}}
+                    style={styles.activeGradient}
+                  />
                   <Text style={styles.activeText}>{item.label}</Text>
                   {item.badge && (
                     <View style={styles.badge}>
                       <Text style={styles.badgeText}>{item.badge}</Text>
                     </View>
                   )}
-                </LinearGradient>
+                </View>
               ) : (
                 <View style={styles.inactiveMenu}>
                   <Text style={styles.inactiveText}>{item.label}</Text>
@@ -173,6 +181,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     paddingHorizontal: 20,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  activeGradient: {
+    ...StyleSheet.absoluteFillObject,
     borderRadius: 14,
   },
   inactiveMenu: {

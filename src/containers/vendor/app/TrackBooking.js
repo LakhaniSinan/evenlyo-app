@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {
   Alert,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -12,6 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import {generatePDF} from 'react-native-html-to-pdf';
 import RNFS from 'react-native-fs';
+import ShareLib from 'react-native-share';
 import {useDispatch, useSelector} from 'react-redux';
 import GradientButton from '../../../components/button';
 import {COLORS, fontFamly} from '../../../constants';
@@ -344,6 +346,35 @@ const TrackingBookingDetails = ({navigation, route}) => {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
 
+  const normalizeFilePath = path => String(path || '').replace(/^file:\/\//, '');
+
+  const shareFileOnIos = async (filePath, {type, title}) => {
+    const shareUrl = filePath.startsWith('file://')
+      ? filePath
+      : `file://${filePath}`;
+
+    try {
+      await ShareLib.open({
+        url: shareUrl,
+        type,
+        title,
+        failOnCancel: false,
+      });
+    } catch (shareLibError) {
+      try {
+        await Share.share({
+          url: shareUrl,
+          type,
+          title,
+        });
+      } catch (shareError) {
+        await Linking.openURL(shareUrl).catch(() => {
+          throw shareLibError || shareError;
+        });
+      }
+    }
+  };
+
   const createOrderTrackingPDFHtml = () => {
     const timelineRows = timelineData
       .map(
@@ -456,36 +487,55 @@ const TrackingBookingDetails = ({navigation, route}) => {
 
   const handleDownloadPDF = async () => {
     try {
-      const fileName = `order-tracking-${data?.trackingId || 'report'}`;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const fileName = `order-tracking-${data?.trackingId || 'report'}-${timestamp}`;
       const pdf = await generatePDF({
         html: createOrderTrackingPDFHtml(),
         fileName,
         directory: 'Documents',
       });
 
+      const generatedPath = normalizeFilePath(pdf?.filePath);
+      if (!generatedPath || !(await RNFS.exists(generatedPath))) {
+        throw new Error('PDF file was not created');
+      }
+
+      const destinationPath = `${RNFS.DocumentDirectoryPath}/${fileName}.pdf`;
+
+      if (generatedPath !== destinationPath) {
+        if (await RNFS.exists(destinationPath)) {
+          await RNFS.unlink(destinationPath);
+        }
+        await RNFS.copyFile(generatedPath, destinationPath);
+      }
+
       if (Platform.OS === 'android') {
         const folderPath = RNFS.DownloadDirectoryPath;
-        const destinationPath = `${folderPath}/${fileName}.pdf`;
+        const androidPath = `${folderPath}/${fileName}.pdf`;
         const folderExists = await RNFS.exists(folderPath);
 
         if (!folderExists) {
           await RNFS.mkdir(folderPath);
         }
 
-        await RNFS.copyFile(pdf.filePath, destinationPath);
+        if (await RNFS.exists(androidPath)) {
+          await RNFS.unlink(androidPath);
+        }
+
+        await RNFS.copyFile(destinationPath, androidPath);
         Alert.alert('Success', 'PDF saved to Downloads folder.');
       } else {
-        const destinationPath = `${RNFS.DocumentDirectoryPath}/${fileName}.pdf`;
-        await RNFS.moveFile(pdf.filePath, destinationPath);
-        await Share.share({
-          url: `file://${destinationPath}`,
+        await shareFileOnIos(destinationPath, {
           type: 'application/pdf',
           title: 'Order Tracking PDF',
         });
       }
     } catch (error) {
       console.log('PDF generation failed:', error);
-      Alert.alert('Error', 'Failed to generate PDF. Please try again.');
+      Alert.alert(
+        'Error',
+        error?.message || 'Failed to generate PDF. Please try again.',
+      );
     }
   };
 

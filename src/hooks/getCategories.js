@@ -27,23 +27,25 @@ const useCategories = () => {
 
   // 🔹 Fetch subcategories
   const fetchSubCategories = useCallback(async categoryId => {
+    if (!categoryId) {
+      setSubCategories([]);
+      return {success: false, message: 'Category is required'};
+    }
+
     try {
-      setLoading(true);
       const res = await getSubCategories(categoryId);
       if (res.status === 200 || res.status === 201) {
         const subCategoriesData = res.data?.data || [];
         setSubCategories(subCategoriesData);
         return {success: true, data: subCategoriesData};
-      } else {
-        setSubCategories([]);
-        return {success: false, message: res.data?.message};
       }
+
+      setSubCategories([]);
+      return {success: false, message: res.data?.message};
     } catch (error) {
       console.log('fetchSubCategories error:', error);
       setSubCategories([]);
       return {success: false, message: 'Something went wrong'};
-    } finally {
-      setLoading(false);
     }
   }, []);
 

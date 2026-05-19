@@ -1,47 +1,31 @@
-import {Image, Text, View} from 'react-native';
+import {Image, StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
-import {COLORS, fontFamly} from '../../constants';
+import {
+  BRAND_BUTTON_GRADIENT_COLORS,
+  BRAND_BUTTON_GRADIENT_LOCATIONS,
+  COLORS,
+  fontFamly,
+} from '../../constants';
 
 const DashboardCard = ({item}) => {
   const isGradient = item?.id === 'totalItems';
-  const gradientColors = ['#FF295D', '#E31B95', '#C817AE'];
+
   return (
-    <View
-      style={{
-        width: width(45),
-        height: 60,
-        marginTop: width(3),
-        borderRadius: width(3),
-        overflow: 'hidden',
-        backgroundColor: '#fff',
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-      }}>
+    <View style={styles.cardOuter}>
       {isGradient ? (
-        <LinearGradient
-          colors={gradientColors}
-          style={{
-            flex: 1,
-            padding: width(2),
-            borderRadius: width(3),
-          }}>
+        <View style={styles.gradientCard}>
+          <LinearGradient
+            colors={BRAND_BUTTON_GRADIENT_COLORS}
+            locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 0}}
+            style={styles.gradientFill}
+          />
           <CardContent item={item} isDark />
-        </LinearGradient>
+        </View>
       ) : (
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: COLORS.backgroundLight,
-            padding: width(2),
-            borderRadius: width(3),
-          }}>
+        <View style={styles.plainCard}>
           <CardContent item={item} />
         </View>
       )}
@@ -99,3 +83,38 @@ const CardContent = ({item, isDark = false}) => {
 };
 
 export default DashboardCard;
+
+const styles = StyleSheet.create({
+  cardOuter: {
+    width: width(45),
+    height: 60,
+    marginTop: width(3),
+    borderRadius: width(3),
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  gradientCard: {
+    flex: 1,
+    padding: width(2),
+    borderRadius: width(3),
+    overflow: 'hidden',
+  },
+  gradientFill: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: width(3),
+  },
+  plainCard: {
+    flex: 1,
+    backgroundColor: COLORS.backgroundLight,
+    padding: width(2),
+    borderRadius: width(3),
+  },
+});

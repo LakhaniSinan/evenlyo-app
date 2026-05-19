@@ -133,6 +133,15 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
   }, []);
 
   useEffect(() => {
+    if (!isVisible) {
+      setIsLoading(false);
+      setIsStartPickerOpen(false);
+      setIsEndPickerOpen(false);
+      setTermsModalVisible(false);
+      modalRef.current?.hide?.();
+      return;
+    }
+
     handleGetVendorCategories();
   }, [isVisible]);
 
@@ -444,8 +453,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
           : response?.data?.message,
         handlePressOk: () => {
           modalRef.current.hide();
-          onClose();
-          resetForm();
+          closeModal();
         },
       });
     } catch (error) {
@@ -595,23 +603,45 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
     setIsCheck(false);
   };
 
+  const closeModal = useCallback(() => {
+    Keyboard.dismiss();
+    setIsLoading(false);
+    setIsStartPickerOpen(false);
+    setIsEndPickerOpen(false);
+    setTermsModalVisible(false);
+    modalRef.current?.hide?.();
+    onClose?.();
+  }, [onClose]);
+
+  if (!isVisible) {
+    return null;
+  }
+
   return (
     <>
       <Modal
         isVisible={isVisible}
-        onBackdropPress={() => {
-          resetForm();
-          onClose();
+        onBackdropPress={closeModal}
+        onBackButtonPress={closeModal}
+        onModalHide={() => {
+          setIsLoading(false);
+          setIsStartPickerOpen(false);
+          setIsEndPickerOpen(false);
+          setTermsModalVisible(false);
         }}
         style={styles.modal}
         backdropOpacity={0.5}
         avoidKeyboard
-        propagateSwipe>
+        propagateSwipe
+        useNativeDriver
+        useNativeDriverForBackdrop
+        hideModalContentWhileAnimating
+        statusBarTranslucent>
         <View style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>{t('Add New Listing')}</Text>
-            <TouchableOpacity onPress={onClose}>
+            <TouchableOpacity onPress={closeModal}>
               <Icon name="close" size={24} color="#333" />
             </TouchableOpacity>
           </View>
@@ -967,7 +997,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
           {!isKeyboardVisible && (
             <View style={styles.buttonRow}>
               <TouchableOpacity
-                onPress={onClose}
+                onPress={closeModal}
                 activeOpacity={0.8}
                 style={[styles.cancelButton, styles.buttonRowItem]}>
                 <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
@@ -985,8 +1015,6 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
             </View>
           )}
         </View>
-        <Loader isLoading={isLoading} />
-        <CommonAlert ref={modalRef} />
         <DatePicker
           modal
           open={isStartPickerOpen}
@@ -1012,6 +1040,9 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
           onCancel={() => setIsEndPickerOpen(false)}
         />
       </Modal>
+
+      <Loader isLoading={isLoading} />
+      <CommonAlert ref={modalRef} />
 
       <NativeTermsModal
         visible={termsModalVisible}
@@ -1180,7 +1211,6 @@ const styles = StyleSheet.create({
   modal: {
     margin: 0,
     justifyContent: 'flex-end',
-    backgroundColor: '#8b8b8b66',
   },
   container: {
     height: '80%',

@@ -5,6 +5,7 @@ import {
   Alert,
   FlatList,
   Image,
+  Linking,
   Platform,
   RefreshControl,
   SafeAreaView,
@@ -18,6 +19,7 @@ import {width} from 'react-native-dimension';
 import RNFS from 'react-native-fs';
 import {generatePDF} from 'react-native-html-to-pdf';
 import LinearGradient from 'react-native-linear-gradient';
+import ShareLib from 'react-native-share';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import BookingTable from '../../../components/bookingTable';
@@ -185,6 +187,42 @@ const AnalyticsReport = () => {
 
   const safeCsvValue = value => `"${String(value ?? '-').replace(/"/g, '""')}"`;
 
+  const normalizeFilePath = path => String(path || '').replace(/^file:\/\//, '');
+
+  const escapeHtml = value =>
+    String(value ?? '-')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+
+  const shareFileOnIos = async (filePath, {type, title}) => {
+    const shareUrl = filePath.startsWith('file://')
+      ? filePath
+      : `file://${filePath}`;
+
+    try {
+      await ShareLib.open({
+        url: shareUrl,
+        type,
+        title,
+        failOnCancel: false,
+      });
+    } catch (shareLibError) {
+      try {
+        await Share.share({
+          url: shareUrl,
+          type,
+          title,
+        });
+      } catch (shareError) {
+        await Linking.openURL(shareUrl).catch(() => {
+          throw shareLibError || shareError;
+        });
+      }
+    }
+  };
+
   const exportSelectedCSV = useCallback(async () => {
     if (!hasSelectedBookings) {
       return;
@@ -228,8 +266,7 @@ const AnalyticsReport = () => {
       } else {
         const destinationPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
         await RNFS.writeFile(destinationPath, csvContent, 'utf8');
-        await Share.share({
-          url: `file://${destinationPath}`,
+        await shareFileOnIos(destinationPath, {
           type: 'text/csv',
           title: 'Selected Bookings CSV',
         });
@@ -253,16 +290,16 @@ const AnalyticsReport = () => {
         .map(
           item => `
             <tr>
-              <td>${item?.trackingId || '-'}</td>
-              <td>${item?.listingDetails?.title?.en || '-'}</td>
-              <td>${item?.userId?._id || item?.client?._id || '-'}</td>
-              <td>€${item?.pricingBreakdown?.total ?? 0}</td>
-              <td>${formatDate(item?.createdAt)}</td>
-              <td>${item?.status || '-'}</td>
-              <td>${item?.details?.duration?.totalHours ?? 0}h</td>
-              <td>${
-                item?.eventLocation || item?.details?.eventLocation || '-'
-              }</td>
+              <td>${escapeHtml(item?.trackingId)}</td>
+              <td>${escapeHtml(item?.listingDetails?.title?.en)}</td>
+              <td>${escapeHtml(item?.userId?._id || item?.client?._id)}</td>
+              <td>${escapeHtml(`€${item?.pricingBreakdown?.total ?? 0}`)}</td>
+              <td>${escapeHtml(formatDate(item?.createdAt))}</td>
+              <td>${escapeHtml(item?.status)}</td>
+              <td>${escapeHtml(`${item?.details?.duration?.totalHours ?? 0}h`)}</td>
+              <td>${escapeHtml(
+                item?.eventLocation || item?.details?.eventLocation,
+              )}</td>
             </tr>
           `,
         )
@@ -333,22 +370,39 @@ const AnalyticsReport = () => {
         directory: 'Documents',
       });
 
+      const generatedPath = normalizeFilePath(pdf?.filePath);
+      if (!generatedPath || !(await RNFS.exists(generatedPath))) {
+        throw new Error('PDF file was not created');
+      }
+
+      const destinationPath = `${RNFS.DocumentDirectoryPath}/${fileName}.pdf`;
+
+      if (generatedPath !== destinationPath) {
+        if (await RNFS.exists(destinationPath)) {
+          await RNFS.unlink(destinationPath);
+        }
+        await RNFS.copyFile(generatedPath, destinationPath);
+      }
+
       if (Platform.OS === 'android') {
-        const destinationPath = `${RNFS.DownloadDirectoryPath}/${fileName}.pdf`;
-        await RNFS.copyFile(pdf.filePath, destinationPath);
+        const androidPath = `${RNFS.DownloadDirectoryPath}/${fileName}.pdf`;
+        if (await RNFS.exists(androidPath)) {
+          await RNFS.unlink(androidPath);
+        }
+        await RNFS.copyFile(destinationPath, androidPath);
         Alert.alert('Success', 'Selected PDF saved to Downloads folder.');
       } else {
-        const destinationPath = `${RNFS.DocumentDirectoryPath}/${fileName}.pdf`;
-        await RNFS.moveFile(pdf.filePath, destinationPath);
-        await Share.share({
-          url: `file://${destinationPath}`,
+        await shareFileOnIos(destinationPath, {
           type: 'application/pdf',
           title: 'Selected Bookings PDF',
         });
       }
     } catch (error) {
       console.log('PDF export error:', error);
-      Alert.alert('Error', 'Failed to export PDF.');
+      Alert.alert(
+        'Error',
+        error?.message || 'Failed to export PDF. Please try again.',
+      );
     }
   }, [hasSelectedBookings, selectedBookings]);
 

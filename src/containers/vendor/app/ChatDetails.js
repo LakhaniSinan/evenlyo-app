@@ -34,7 +34,12 @@ import AppHeader from '../../../components/appHeader';
 import CommonAlert from '../../../components/commanAlert';
 import EmojiPickerPopup from '../../../components/emojiModal';
 import ReportUserModal from '../../../components/reportClient';
-import {COLORS, fontFamly} from '../../../constants';
+import {
+  BRAND_BUTTON_GRADIENT_COLORS,
+  BRAND_BUTTON_GRADIENT_LOCATIONS,
+  COLORS,
+  fontFamly,
+} from '../../../constants';
 import {SocketContext} from '../../../context';
 import {helper} from '../../../helper';
 import {useTranslation} from '../../../hooks';
@@ -648,9 +653,9 @@ const ChatDetail = ({navigation, route}) => {
 
       const isSending = item?.isPending && item?.attachment;
       const isImage =
+        item?.attachment?.type?.startsWith?.('image') ||
         item?.attachment?.type === 'image' ||
-        item?.attachment?.url?.endsWith('.jpg') ||
-        item?.attachment?.url?.endsWith('.png');
+        item?.attachment?.url?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
       const isPDF =
         item?.attachment?.type === 'file' ||
         item?.attachment?.url?.endsWith('.pdf');
@@ -809,80 +814,72 @@ const ChatDetail = ({navigation, route}) => {
                     </TouchableOpacity>
                   </LinearGradient>
                 </View>
+              ) : isImage && item?.attachment?.url && !isSending ? (
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => {
+                    setPreviewImage(item?.attachment?.url);
+                    setPreviewVisible(true);
+                  }}
+                  style={[
+                    styles.myMessageImageWrap,
+                    {maxWidth: width(80), alignSelf: 'flex-end'},
+                  ]}>
+                  <Image
+                    source={{uri: item.attachment.url}}
+                    resizeMode="cover"
+                    style={styles.myMessageImage}
+                  />
+                  {item?.message ? (
+                    <Text style={styles.myMessageImageCaption}>
+                      {item.message}
+                    </Text>
+                  ) : null}
+                </TouchableOpacity>
               ) : (
-                <LinearGradient
-                  colors={['#FF295D', '#E31B95', '#C817AE']}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 1}}
+                <View
                   style={[
                     styles.myMessageBubble,
                     {maxWidth: width(80), alignSelf: 'flex-end'},
                   ]}>
-                  {isSending ? (
-                    <Text style={styles.sendingText}>Sending...</Text>
-                  ) : isImage ? (
-                    <TouchableOpacity
-                      activeOpacity={0.9}
-                      onPress={() => {
-                        setPreviewImage(item?.attachment?.url);
-                        setPreviewVisible(true);
-                      }}>
-                      <Image
-                        source={{uri: item?.attachment?.url}}
-                        resizeMode="contain"
-                        style={{
-                          height: 300,
-                          width: '100%',
-                          borderRadius: width(5),
-                        }}
-                      />
-                      {item?.message ? (
-                        <Text
-                          style={[styles.messageText, styles.myMessageText]}>
-                          {item?.message}
-                        </Text>
-                      ) : null}
-                    </TouchableOpacity>
-                  ) : isPDF ? (
-                    <View
-                      style={{
-                        backgroundColor: 'white',
-                        borderRadius: width(2),
-                        padding: width(3),
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}>
-                      <View
-                        style={{flexDirection: 'row', alignItems: 'center'}}>
-                        <Icon name="file-pdf-box" size={32} color="#FF0000" />
-                        <Text
-                          style={{
-                            marginLeft: 8,
-                            fontWeight: 'bold',
-                            color: '#000',
-                            maxWidth: width(45),
-                          }}
-                          numberOfLines={1}>
-                          {item?.attachment?.name || 'PDF Document'}
-                        </Text>
+                  <LinearGradient
+                    colors={BRAND_BUTTON_GRADIENT_COLORS}
+                    locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 0}}
+                    pointerEvents="none"
+                    style={styles.myMessageBubbleGradient}
+                  />
+                  <View style={styles.myMessageBubbleContent}>
+                    {isSending ? (
+                      <Text style={styles.sendingText}>Sending...</Text>
+                    ) : isPDF ? (
+                      <View style={styles.myMessagePdf}>
+                        <View style={styles.myMessagePdfInfo}>
+                          <Icon name="file-pdf-box" size={32} color="#FF0000" />
+                          <Text
+                            style={styles.myMessagePdfName}
+                            numberOfLines={1}>
+                            {item?.attachment?.name || 'PDF Document'}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() =>
+                            handleDownloadPDF(
+                              item?.attachment?.url,
+                              item?.attachment?.name,
+                            )
+                          }>
+                          <Icon name="download" size={28} color="#E31B95" />
+                        </TouchableOpacity>
                       </View>
-                      <TouchableOpacity
-                        onPress={() =>
-                          handleDownloadPDF(
-                            item?.attachment?.url,
-                            item?.attachment?.name,
-                          )
-                        }>
-                        <Icon name="download" size={28} color="#E31B95" />
-                      </TouchableOpacity>
-                    </View>
-                  ) : (
-                    <Text style={[styles.messageText, styles.myMessageText]}>
-                      {item?.message}
-                    </Text>
-                  )}
-                </LinearGradient>
+                    ) : (
+                      <Text style={[styles.messageText, styles.myMessageText]}>
+                        {item?.message}
+                      </Text>
+                    )}
+                  </View>
+                </View>
               )
             ) : (
               <View
@@ -1621,9 +1618,51 @@ const styles = StyleSheet.create({
     borderRadius: 100,
   },
   myMessageBubble: {
-    backgroundColor: '#DCF8C6',
     borderRadius: width(3),
     padding: width(2.5),
+    overflow: 'hidden',
+  },
+  myMessageBubbleGradient: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: width(3),
+  },
+  myMessageBubbleContent: {
+    zIndex: 1,
+  },
+  myMessageImageWrap: {
+    borderRadius: width(3),
+    overflow: 'hidden',
+    backgroundColor: COLORS.backgroundLight,
+  },
+  myMessageImage: {
+    height: width(55),
+    width: width(70),
+    borderRadius: width(3),
+  },
+  myMessageImageCaption: {
+    color: COLORS.textDark,
+    fontSize: 13,
+    padding: width(2),
+    backgroundColor: COLORS.white,
+  },
+  myMessagePdf: {
+    backgroundColor: 'white',
+    borderRadius: width(2),
+    padding: width(3),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  myMessagePdfInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  myMessagePdfName: {
+    marginLeft: 8,
+    fontWeight: 'bold',
+    color: '#000',
+    maxWidth: width(45),
   },
   otherMessageBubble: {
     backgroundColor: '#fff',

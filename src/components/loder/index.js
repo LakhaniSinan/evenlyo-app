@@ -6,7 +6,10 @@ import { COLORS } from '../../constants';
 const Loader = ({isLoading, showContent}) => {
   return (
     <Spinner
-      visible={isLoading}
+      visible={Boolean(isLoading)}
+      animation="fade"
+      cancelable={false}
+      overlayColor="rgba(0,0,0,0.35)"
       customIndicator={
         <ActivityIndicator color={COLORS.primary} size="large" />
       }

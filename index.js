@@ -7,6 +7,7 @@ import {AppRegistry} from 'react-native';
 import App from './App';
 import {name as appName} from './app.json';
 import {getMessagingOrNull} from './src/utils/firebaseMessagingSafe';
+import {preloadVectorIcons} from './src/utils/preloadVectorIcons';
 
 const messaging = getMessagingOrNull();
 if (messaging) {
@@ -15,4 +16,6 @@ if (messaging) {
   });
 }
 
-AppRegistry.registerComponent(appName, () => App);
+preloadVectorIcons().finally(() => {
+  AppRegistry.registerComponent(appName, () => App);
+});

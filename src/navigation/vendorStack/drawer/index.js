@@ -6,6 +6,10 @@ import {useDrawerProgress} from '@react-navigation/drawer';
 import VendorBottomTabStack from '../BottomTabStack';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import {
+  BRAND_BUTTON_GRADIENT_COLORS,
+  BRAND_BUTTON_GRADIENT_LOCATIONS,
+} from '../../../constants';
 import CustomDrawer from './CustomDrawer';
 import ChatDetail from '../../../containers/vendor/app/ChatDetails';
 import CreateCustomOffer from '../../../containers/vendor/app/CreateCustomOffre';
@@ -51,7 +55,6 @@ function ScreenWithAnimation({navigation}) {
     };
   });
 
-  const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
   return (
     <View style={{backgroundColor: '#fff', flex: 1, position: 'relative'}}>
       <Animated.View
@@ -63,17 +66,19 @@ function ScreenWithAnimation({navigation}) {
           },
           closeButtonStyle,
         ]}>
-        <LinearGradient
-          colors={GRADIENT_COLORS}
-          style={{
-            padding: 10,
-            borderRadius: 15,
-            // elevation: 4,s
-          }}>
-          <TouchableOpacity onPress={() => navigation.closeDrawer()}>
-            <Icon name="close" size={24} color="#FFF" />
-          </TouchableOpacity>
-        </LinearGradient>
+        <TouchableOpacity
+          onPress={() => navigation.closeDrawer()}
+          activeOpacity={0.8}
+          style={styles.closeButton}>
+          <LinearGradient
+            colors={BRAND_BUTTON_GRADIENT_COLORS}
+            locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 0}}
+            style={StyleSheet.absoluteFillObject}
+          />
+          <Icon name="close" size={24} color="#FFF" />
+        </TouchableOpacity>
       </Animated.View>
       <Animated.View
         style={[
@@ -146,3 +151,11 @@ function CustomerDrawer() {
 }
 
 export default CustomerDrawer;
+
+const styles = StyleSheet.create({
+  closeButton: {
+    padding: 10,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+});

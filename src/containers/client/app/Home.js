@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   FlatList,
   Image,
+  InteractionManager,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -36,6 +37,8 @@ import {
   listingAddToCart,
 } from '../../../services/ListingsItem';
 
+const AUTH_MODAL_SWITCH_MS = 480;
+
 const Home = ({navigation, route}) => {
   const modalRef = useRef();
   const {t} = useTranslation();
@@ -55,8 +58,12 @@ const Home = ({navigation, route}) => {
   const [isSubCategoriesLoading, setIsSubCategoriesLoading] = useState(false);
   const [showFrogotModal, setShowFrogotModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const subCategoryRequestRef = useRef(0);
+  const homeDataRequestRef = useRef(0);
   const {categories, subCategories, fetchCategories, fetchSubCategories} =
     useCategories();
+  const selectedCategoryId = selected?._id;
+  const selectedSubCategoryId = subCategoriesSelected?._id;
   const hasSubCategories =
     Array.isArray(subCategories) && subCategories.length > 0;
 
@@ -102,44 +109,50 @@ const Home = ({navigation, route}) => {
   }, []);
 
   useEffect(() => {
+    if (!selectedCategoryId) {
+      return undefined;
+    }
+
     let isMounted = true;
+    const requestId = ++subCategoryRequestRef.current;
 
     const loadSubCategoriesByCategory = async () => {
-      if (!selected?._id) {
-        return;
-      }
-
       try {
         setIsSubCategoriesLoading(true);
-        const subRes = await fetchSubCategories(selected._id);
+        setSubCategoriesSelected(null);
+        homeDataRequestRef.current += 1;
 
-        if (!isMounted) {
+        const subRes = await fetchSubCategories(selectedCategoryId);
+
+        if (!isMounted || requestId !== subCategoryRequestRef.current) {
           return;
         }
 
         if (subRes?.success && subRes?.data?.length > 0) {
-          // Always keep first subcategory selected after category change.
           setSubCategoriesSelected(subRes.data[0]);
         } else {
           setSubCategoriesSelected(null);
         }
       } catch (error) {
-        if (isMounted) {
+        if (isMounted && requestId === subCategoryRequestRef.current) {
           setSubCategoriesSelected(null);
         }
       } finally {
-        if (isMounted) {
+        if (isMounted && requestId === subCategoryRequestRef.current) {
           setIsSubCategoriesLoading(false);
         }
       }
     };
 
-    loadSubCategoriesByCategory();
+    const debounceTimer = setTimeout(() => {
+      loadSubCategoriesByCategory();
+    }, 450);
 
     return () => {
       isMounted = false;
+      clearTimeout(debounceTimer);
     };
-  }, [selected]);
+  }, [selectedCategoryId, fetchSubCategories]);
 
   const loadInitialData = async () => {
     const res = await fetchCategories();
@@ -150,19 +163,23 @@ const Home = ({navigation, route}) => {
     }
   };
 
-  useEffect(() => {
-    if (selected?._id && subCategoriesSelected?._id) {
-      fetchHomeData();
+  const fetchHomeData = useCallback(async () => {
+    if (!selectedCategoryId || !selectedSubCategoryId) {
+      return;
     }
-  }, [selected, subCategoriesSelected]);
 
-  const fetchHomeData = async () => {
+    const requestId = ++homeDataRequestRef.current;
+
     try {
       const params = {
-        subCategoryId: subCategoriesSelected?._id,
+        subCategoryId: selectedSubCategoryId,
       };
       const res = await getHomeData(params);
-      const response = await getVendorsBySubCategory(selected?._id);
+      const response = await getVendorsBySubCategory(selectedCategoryId);
+
+      if (requestId !== homeDataRequestRef.current) {
+        return;
+      }
 
       if (res.status === 200 || res.status === 201) {
         setHomeData({
@@ -179,9 +196,34 @@ const Home = ({navigation, route}) => {
         });
       }
     } catch (err) {
-      console.log(err, 'askdnalskdhasjkdhjakshdks');
+      if (requestId === homeDataRequestRef.current) {
+        console.log(err, 'fetchHomeData error');
+      }
     }
-  };
+  }, [selectedCategoryId, selectedSubCategoryId]);
+
+  useEffect(() => {
+    if (selectedCategoryId && selectedSubCategoryId) {
+      fetchHomeData();
+    }
+  }, [selectedCategoryId, selectedSubCategoryId, fetchHomeData]);
+
+  const handleCategorySelect = useCallback(item => {
+    const nextId = item?._id || item?.id;
+    if (!nextId) {
+      return;
+    }
+
+    setSelected(prev => {
+      const prevId = prev?._id || prev?.id;
+      if (nextId === prevId) {
+        return prev;
+      }
+      return item;
+    });
+    setSubCategoriesSelected(null);
+    homeDataRequestRef.current += 1;
+  }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -311,32 +353,47 @@ const Home = ({navigation, route}) => {
     }
   };
 
-  const handlePressFun = type => {
-    setShowFrogotModal(false);
+  const closeAllAuthModals = useCallback(() => {
     setShowLoginModal(false);
+    setShowFrogotModal(false);
     setShowRegisterModal(false);
+  }, []);
 
-    if (type == 'forgot') {
-      setTimeout(() => {
-        setShowFrogotModal(true);
-      }, 500);
-    } else if (type == 'reset') {
-      setShowFrogotModal(false);
-      setTimeout(() => {
-        setShowLoginModal(true);
-      }, 500);
-    } else if (type == 'register') {
-      setShowLoginModal(false);
-      setTimeout(() => {
-        setShowRegisterModal(true);
-      }, 500);
-    } else if (type == 'goBackToLogin') {
-      setShowRegisterModal(false);
-      setTimeout(() => {
-        setShowLoginModal(true);
-      }, 500);
-    }
-  };
+  const handlePressFun = useCallback(
+    type => {
+      closeAllAuthModals();
+
+      const needsStaggeredOpen =
+        type === 'forgot' ||
+        type === 'register' ||
+        type === 'reset' ||
+        type === 'goBackToLogin' ||
+        type === 'registeredOTP';
+
+      const openTargetModal = () => {
+        if (type === 'forgot') {
+          setShowFrogotModal(true);
+        } else if (type === 'register') {
+          setShowRegisterModal(true);
+        } else if (
+          type === 'reset' ||
+          type === 'goBackToLogin' ||
+          type === 'registeredOTP'
+        ) {
+          setShowLoginModal(true);
+        }
+      };
+
+      if (needsStaggeredOpen) {
+        InteractionManager.runAfterInteractions(() => {
+          setTimeout(openTargetModal, AUTH_MODAL_SWITCH_MS);
+        });
+      } else {
+        openTargetModal();
+      }
+    },
+    [closeAllAuthModals],
+  );
 
   const renderItem = ({item}) => {
     switch (item.type) {
@@ -462,10 +519,7 @@ const Home = ({navigation, route}) => {
             <Categories
               data={categories}
               selected={selected}
-              setSelected={item => {
-                setSelected(item);
-                setSubCategoriesSelected(null);
-              }}
+              setSelected={handleCategorySelect}
             />
           </>
         );
@@ -664,17 +718,17 @@ const Home = ({navigation, route}) => {
       <Loader isLoading={isLoading || isSubCategoriesLoading} />
       <LoginModal
         isVisible={showLoginModal}
-        onClose={() => setShowLoginModal(!showLoginModal)}
+        onClose={() => setShowLoginModal(false)}
         handlePressFun={handlePressFun}
       />
       <ForgotModal
         isVisible={showFrogotModal}
-        onClose={() => setShowFrogotModal(!showFrogotModal)}
+        onClose={() => setShowFrogotModal(false)}
         handlePressFun={handlePressFun}
       />
       <RegistrationModal
         isVisible={showRegisterModal}
-        onClose={() => setShowRegisterModal(!showRegisterModal)}
+        onClose={() => setShowRegisterModal(false)}
         handlePressFun={handlePressFun}
       />
     </SafeAreaView>

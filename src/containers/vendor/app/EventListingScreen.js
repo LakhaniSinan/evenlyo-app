@@ -3,7 +3,6 @@ import {
   FlatList,
   Image,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -328,10 +327,11 @@ const EventListingScreen = ({navigation}) => {
     handleGetAllListings();
   };
 
-  const handleCloseListingModal = () => {
-    setEventModal(!eventModal);
+  const handleCloseListingModal = useCallback(() => {
+    setEventModal(false);
+    setEditData(null);
     handleGetAllBookingListings();
-  };
+  }, []);
 
   const listingsData =
     activeTab === 'Booking Items' ? vendroBookingListings : saleItem || [];
@@ -363,165 +363,90 @@ const EventListingScreen = ({navigation}) => {
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
-      <ScrollView>
-        <View
-          style={{
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: COLORS.backgroundLight,
-            borderBottomRightRadius: 20,
-            borderBottomLeftRadius: 20,
-          }}>
-          <View
-            style={{
-              width: '100%',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingVertical: width(2),
-              paddingHorizontal: width(2),
-            }}>
-            <TouchableOpacity
-              style={{marginLeft: width(2)}}
-              onPress={() => navigation.openDrawer()}>
-              <Image
-                resizeMode="contain"
-                style={{width: 40, height: 40}}
-                source={ICONS.drawerIcon}
-              />
-            </TouchableOpacity>
-            <Text
-              style={{
-                color: COLORS.textDark,
-                fontFamily: fontFamly.PlusJakartaSansBold,
-                fontSize: 14,
-              }}>
-              {t('All Listings')}
-            </Text>
-            <TouchableOpacity
-              style={{borderRadius: 20}}
-              onPress={() => {
-                setEditData(null);
-                setEventModal(true);
-              }}>
-              <Image
-                resizeMode="contain"
-                style={{width: 40, height: 40}}
-                source={ICONS.plusIcon}
-              />
-            </TouchableOpacity>
-          </View>
-          {/* <View style={styles.tabContainer}>
-            {renderTabs.map(tab => (
-              <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
-                {activeTab === tab ? (
-                  <LinearGradient
-                    colors={['#FF295D', '#E31B95', '#C817AE']}
-                    start={{x: 0, y: 0}}
-                    end={{x: 0, y: 1}}
-                    style={styles.activeTab}>
-                    <Text style={styles.activeText}>{tab}</Text>
-                  </LinearGradient>
-                ) : (
-                  <View style={styles.inactiveTab}>
-                    <Text style={styles.inactiveText}>{tab}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
-          </View> */}
-          <View
-            style={{
-              flex: 1,
-              width: '100%',
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginVertical: width(3),
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <TextField
-              placeholder={t('searchEvent')}
-              placeholderTextColor="#aaa"
-              bgColor={COLORS.white}
-              startIcon={ICONS.search}
-              value={searchText}
-              onChangeText={setSearchText}
-              inputContainer={{
-                paddingVertical: 0,
-                paddingHorizontal: 10,
-                height: 45,
-                marginTop: 0,
-                width: '95%',
-              }}
-              styleProps={{
-                fontSize: 14,
-                color: '#000',
-              }}
+      <View style={styles.headerSection}>
+        <View style={styles.headerTopRow}>
+          <TouchableOpacity
+            style={{marginLeft: width(2)}}
+            onPress={() => navigation.openDrawer()}>
+            <Image
+              resizeMode="contain"
+              style={{width: 40, height: 40}}
+              source={ICONS.drawerIcon}
             />
-            {/* <TouchableOpacity
-              onPress={() => setModalVisible(true)}
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
-                marginRight: 10,
-              }}>
-              <Image
-                resizeMode="contain"
-                style={{width: 40, height: 40}}
-                source={ICONS.filters}
-              />
-            </TouchableOpacity> */}
-          </View>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t('All Listings')}</Text>
+          <TouchableOpacity
+            style={{borderRadius: 20}}
+            onPress={() => {
+              setEditData(null);
+              setEventModal(true);
+            }}>
+            <Image
+              resizeMode="contain"
+              style={{width: 40, height: 40}}
+              source={ICONS.plusIcon}
+            />
+          </TouchableOpacity>
         </View>
-        <FlatList
-          data={filteredListings}
-          keyExtractor={(item, index) =>
-            item?.id ? String(item.id) : String(index)
+        <View style={styles.searchRow}>
+          <TextField
+            placeholder={t('searchEvent')}
+            placeholderTextColor="#aaa"
+            bgColor={COLORS.white}
+            startIcon={ICONS.search}
+            value={searchText}
+            onChangeText={setSearchText}
+            inputContainer={{
+              paddingVertical: 0,
+              paddingHorizontal: 10,
+              height: 45,
+              marginTop: 0,
+              width: '95%',
+            }}
+            styleProps={{
+              fontSize: 14,
+              color: '#000',
+            }}
+          />
+        </View>
+      </View>
+      <FlatList
+        data={filteredListings}
+        keyExtractor={(item, index) =>
+          item?._id || item?.id ? String(item._id || item.id) : String(index)
+        }
+        renderItem={({item}) => (
+          <BookingListingCard
+            item={item}
+            onDeleteIconPress={handleDeleteBooking}
+            onEditIconPress={handleEditBooking}
+          />
+        )}
+        style={{flex: 1}}
+        contentContainerStyle={{
+          padding: 16,
+          flexGrow: 1,
+        }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        ListEmptyComponent={() => (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              {activeTab === 'Booking Items'
+                ? 'No booking items found'
+                : 'No sale items found'}
+            </Text>
+          </View>
+        )}
+        refreshing={isLoading}
+        onRefresh={() => {
+          if (activeTab === 'Booking Items') {
+            handleGetAllBookingListings();
+          } else {
+            handleGetAllListings();
           }
-          renderItem={
-            ({item}) => (
-              // activeTab === 'Booking Items' ? (
-              <BookingListingCard
-                item={item}
-                onDeleteIconPress={handleDeleteBooking}
-                onEditIconPress={handleEditBooking}
-              />
-            )
-            // ) : (
-            //   <EventListingCard
-            //     item={item}
-            //     onDeleteIconPress={handleDeleteSaleItem}
-            //     onEditIconPress={handleEditSaleItem}
-            //   />
-            // )
-          }
-          contentContainerStyle={{
-            padding: 16,
-            flexGrow: 1,
-          }}
-          showsVerticalScrollIndicator={false}
-          // ✅ Empty List Component
-          ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                {activeTab === 'Booking Items'
-                  ? 'No booking items found'
-                  : 'No sale items found'}
-              </Text>
-            </View>
-          )}
-          // ✅ Pull to Refresh
-          refreshing={isLoading}
-          onRefresh={() => {
-            if (activeTab === 'Booking Items') {
-              handleGetAllBookingListings();
-            } else {
-              handleGetAllListings();
-            }
-          }}
-        />
-      </ScrollView>
+        }}
+      />
       <EventFilterModal
         isVisible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -548,11 +473,14 @@ const EventListingScreen = ({navigation}) => {
         onPressBack={() => console.log('Back pressed')}
         handleNextStep={handleUpdateCategory}
       />
-      <EventListingModal
-        toEditData={editData}
-        isVisible={eventModal}
-        onClose={handleCloseListingModal}
-      />
+      {eventModal ? (
+        <EventListingModal
+          key={editData?._id || 'new-listing'}
+          toEditData={editData}
+          isVisible
+          onClose={handleCloseListingModal}
+        />
+      ) : null}
       <AddNewSaleItems
         editSaleData={editSaleData}
         isVisible={showAddSaleItem}
@@ -567,6 +495,33 @@ const EventListingScreen = ({navigation}) => {
 export default EventListingScreen;
 
 const styles = StyleSheet.create({
+  headerSection: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.backgroundLight,
+    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 20,
+  },
+  headerTopRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: width(2),
+    paddingHorizontal: width(2),
+  },
+  headerTitle: {
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 14,
+  },
+  searchRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: width(3),
+    justifyContent: 'center',
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',

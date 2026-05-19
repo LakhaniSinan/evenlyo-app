@@ -204,8 +204,11 @@ const GooglePlacesInput = ({
               onPress={() => {
                 setQuery('');
                 setResults([]);
-                setSelectedLocation({...selectedLocation, userAddress: ''});
-                onEndIconPress && onEndIconPress();
+                if (onEndIconPress) {
+                  onEndIconPress();
+                } else {
+                  setSelectedLocation(null);
+                }
               }}>
               <AntDesign size={20} name="closecircleo" color={COLORS.black} />
             </TouchableOpacity>

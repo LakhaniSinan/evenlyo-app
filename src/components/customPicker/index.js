@@ -4,7 +4,12 @@ import {height, width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
 import Modal from 'react-native-modal';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {COLORS, fontFamly} from '../../constants';
+import {
+  BRAND_BUTTON_GRADIENT_COLORS,
+  BRAND_BUTTON_GRADIENT_LOCATIONS,
+  COLORS,
+  fontFamly,
+} from '../../constants';
 
 let propsData = {};
 const CustomPicker = React.forwardRef(
@@ -157,17 +162,20 @@ const CustomPicker = React.forwardRef(
                     }}
                     style={styles.optionContainer}>
                     {isSelected ? (
-                      <LinearGradient
-                        colors={['#FF295D', '#E31B95', '#C817AE']}
-                        start={{x: 0, y: 0}}
-                        end={{x: 0, y: 1}}
-                        style={styles.option}>
+                      <View style={styles.option}>
+                        <LinearGradient
+                          colors={BRAND_BUTTON_GRADIENT_COLORS}
+                          locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
+                          start={{x: 0, y: 0}}
+                          end={{x: 1, y: 0}}
+                          style={styles.optionGradient}
+                        />
                         <Text
                           style={[styles.optionText, {color: '#FFF'}]}
                           numberOfLines={1}>
                           {item.name ? item.name : item.label}
                         </Text>
-                      </LinearGradient>
+                      </View>
                     ) : (
                       <View
                         style={[
@@ -244,6 +252,11 @@ const styles = StyleSheet.create({
   option: {
     paddingVertical: width(4),
     paddingHorizontal: width(5),
+    borderRadius: 100,
+    overflow: 'hidden',
+  },
+  optionGradient: {
+    ...StyleSheet.absoluteFillObject,
     borderRadius: 100,
   },
   optionText: {

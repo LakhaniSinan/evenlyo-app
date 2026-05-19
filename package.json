@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@logicwind/react-native-exit-app": "^0.2.0",
     "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-native-clipboard/clipboard": "^1.16.3",
     "@react-native-community/blur": "^4.4.1",
@@ -42,6 +43,7 @@
     "react-native-collapsible": "^1.6.2",
     "react-native-confirmation-code-field": "^7.6.1",
     "react-native-date-picker": "^5.0.13",
+    "react-native-device-info": "^15.0.2",
     "react-native-dimension": "^1.0.6",
     "react-native-fast-image": "^8.6.3",
     "react-native-fs": "^2.20.0",

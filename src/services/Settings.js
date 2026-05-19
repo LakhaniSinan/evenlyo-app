@@ -19,3 +19,6 @@ export const udpateNotificationsSetup = parmas => {
 export const getNotificationsSetup = parmas => {
   return Api(endPoints.notificationSetup, parmas, requestType.GET);
 };
+export const getSettings = () => {
+  return Api(endPoints.settings, null, requestType.GET);
+};

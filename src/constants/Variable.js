@@ -36,7 +36,7 @@ export const endPoints = {
   changePassword: '/settings/change-password',
   updateDeliveryFee: '/vendor/profile/update-delivery-charges',
   notificationSetup: '/settings/notifications',
-
+  settings: '/getSetings',
   //Listings
   listings: '/listings',
   getAllListingsFullData: '/getAllListingsFull',

@@ -1,7 +1,8 @@
 import moment from 'moment';
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
+  InteractionManager,
   Keyboard,
   ScrollView,
   StyleSheet,
@@ -10,20 +11,22 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {width} from 'react-native-dimension';
+import { width } from 'react-native-dimension';
 import Modal from 'react-native-modal';
-import {useDispatch} from 'react-redux';
+import { useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {ICONS, IMAGES} from '../../assets';
-import {COLORS, fontFamly} from '../../constants';
-import {useTranslation} from '../../hooks';
-import {addItem} from '../../redux/slice/offers';
+import { ICONS, IMAGES } from '../../assets';
+import { COLORS, fontFamly } from '../../constants';
+import { useTranslation } from '../../hooks';
+import { addItem } from '../../redux/slice/offers';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
 import DateRangePicker from '../customDatePicker';
 import GradientText from '../gradiantText';
 import Loader from '../loder';
 import GooglePlacesInput from '../locationField';
+
+const NESTED_MODAL_DISMISS_MS = 480;
 
 const NewRequestModal = ({
   isVisible,
@@ -34,10 +37,11 @@ const NewRequestModal = ({
   editingItem,
   settingsData,
 }) => {
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const modalRef = useRef(null);
   const dispatch = useDispatch();
   const [selectedCoords, setSelectedCoords] = useState(null);
+  const [geocodedListingCoords, setGeocodedListingCoords] = useState(null);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [singleDay, setSingleDay] = useState(false);
@@ -49,6 +53,8 @@ const NewRequestModal = ({
   const [priceError, setPriceError] = useState('');
   const [showOfferInfoModal, setShowOfferInfoModal] = useState(false);
 
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyAvPVhgFVY2qv4c6kvukvIP2krPJe9dZGA';
+
   const normalizeCoords = coords => {
     if (!coords) return null;
 
@@ -57,21 +63,64 @@ const NewRequestModal = ({
       const lng = Number(coords[0]);
       const lat = Number(coords[1]);
       if (Number.isFinite(lat) && Number.isFinite(lng)) {
-        return {latitude: lat, longitude: lng};
+        return { latitude: lat, longitude: lng };
       }
       return null;
     }
 
     if (coords.latitude !== undefined && coords.longitude !== undefined) {
-      return {latitude: coords.latitude, longitude: coords.longitude};
+      const lat = Number(coords.latitude);
+      const lng = Number(coords.longitude);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        return { latitude: lat, longitude: lng };
+      }
     }
 
     if (coords.lat !== undefined && coords.lng !== undefined) {
-      return {latitude: coords.lat, longitude: coords.lng};
+      const lat = Number(coords.lat);
+      const lng = Number(coords.lng);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        return { latitude: lat, longitude: lng };
+      }
     }
 
     if (coords.latLng) {
       return normalizeCoords(coords.latLng);
+    }
+
+    return null;
+  };
+
+  const resolveEventCoords = selected => {
+    if (!selected) return null;
+    return normalizeCoords(selected.latLng ?? selected);
+  };
+
+  const resolveListingCoords = listing => {
+    if (!listing) return null;
+
+    const location = listing.location || {};
+    const locationCoordinates = location.coordinates;
+
+    const candidates = [
+      locationCoordinates,
+      locationCoordinates?.coordinates,
+      location,
+      listing.coordinates,
+      listing.latLng,
+      listing.latitude != null && listing.longitude != null
+        ? { latitude: listing.latitude, longitude: listing.longitude }
+        : null,
+      listing.eventLatitude != null && listing.eventLongitude != null
+        ? { latitude: listing.eventLatitude, longitude: listing.eventLongitude }
+        : null,
+    ];
+
+    for (const candidate of candidates) {
+      const normalized = normalizeCoords(candidate);
+      if (normalized) {
+        return normalized;
+      }
     }
 
     return null;
@@ -101,13 +150,15 @@ const NewRequestModal = ({
     return R * c;
   };
 
-  const listingCoords = normalizeCoords(
-    selectedListing?.location?.coordinates || selectedListing?.location,
-  );
+  const listingCoords =
+    resolveListingCoords(selectedListing) || geocodedListingCoords;
+  console.log(listingCoords, 'listingCoordslistingCoordslistingCoords');
+
 
   const distanceToSelectedListingKm = React.useMemo(() => {
-    if (!selectedCoords || !listingCoords) return null;
-    return distanceBetweenCoordsKm(selectedCoords, listingCoords);
+    const eventCoords = resolveEventCoords(selectedCoords);
+    if (!eventCoords || !listingCoords) return null;
+    return distanceBetweenCoordsKm(eventCoords, listingCoords);
   }, [selectedCoords, listingCoords]);
 
   const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -145,7 +196,7 @@ const NewRequestModal = ({
     const hour = parseInt(hourRaw, 10);
     const minute = parseInt(minRaw, 10);
     if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
-    return {hour, minute};
+    return { hour, minute };
   };
 
   const getTimeOfDayHours = date => {
@@ -204,13 +255,13 @@ const NewRequestModal = ({
   const distanceCost =
     distanceToSelectedListingKm != null
       ? distanceToSelectedListingKm *
-        (selectedListing?.pricing?.pricePerKm || 0)
+      (selectedListing?.pricing?.pricePerKm || 0)
       : 0;
 
   const securityFee = Number(
     selectedListing?.pricing?.securityFee ||
-      selectedListing?.paymentPolicy?.securityDeposit ||
-      0,
+    selectedListing?.paymentPolicy?.securityDeposit ||
+    0,
   );
 
   const parsePercent = value => {
@@ -221,16 +272,16 @@ const NewRequestModal = ({
 
   const bookingItemPlatformFee = parsePercent(
     settingsData?.bookingItemPlatformFee ||
-      selectedListing?.paymentPolicy?.platformFeePercent ||
-      11,
+    selectedListing?.paymentPolicy?.platformFeePercent ||
+    11,
   );
   const bookingVatFeePercent = parsePercent(
     settingsData?.vat ||
-      settingsData?.bookingVatFee ||
-      settingsData?.vatFee ||
-      settingsData?.vatPercentage ||
-      settingsData?.vatPercent ||
-      19,
+    settingsData?.bookingVatFee ||
+    settingsData?.vatFee ||
+    settingsData?.vatPercentage ||
+    settingsData?.vatPercent ||
+    19,
   );
 
   const discountBasePrice = perDayBaseCost * selectedDaysCount;
@@ -262,11 +313,11 @@ const NewRequestModal = ({
   const discountPercent =
     discountBasePrice > 0
       ? Math.max(
-          0,
-          Math.round(
-            ((discountBasePrice - safeOfferAmount) / discountBasePrice) * 100,
-          ),
-        )
+        0,
+        Math.round(
+          ((discountBasePrice - safeOfferAmount) / discountBasePrice) * 100,
+        ),
+      )
       : 0;
 
   const isDateTimeSelected = Boolean(startDate && endDate);
@@ -310,16 +361,16 @@ const NewRequestModal = ({
   const calculateOfferFees = (offerPrice, listing, offerSettings) => {
     const platformFeePercent = parsePercent(
       offerSettings?.bookingItemPlatformFee ||
-        listing?.paymentPolicy?.platformFeePercent ||
-        5,
+      listing?.paymentPolicy?.platformFeePercent ||
+      5,
     );
     const vatFeePercent = parsePercent(
       offerSettings?.vat ||
-        offerSettings?.bookingVatFee ||
-        offerSettings?.vatFee ||
-        offerSettings?.vatPercentage ||
-        offerSettings?.vatPercent ||
-        0,
+      offerSettings?.bookingVatFee ||
+      offerSettings?.vatFee ||
+      offerSettings?.vatPercentage ||
+      offerSettings?.vatPercent ||
+      0,
     );
     const platformFee = (offerPrice * platformFeePercent) / 100;
     const vatFee = (offerPrice * vatFeePercent) / 100;
@@ -339,12 +390,69 @@ const NewRequestModal = ({
       setStartDate(new Date());
       setEndDate(new Date());
       setSelectedCoords(null);
+      setGeocodedListingCoords(null);
       setSpecialRequest('');
       setIncludeSecurityFee(true);
       setOfferAmount('');
       setPriceError('');
     }
   }, [isVisible]);
+
+  useEffect(() => {
+    if (!isVisible || !selectedListing) {
+      setGeocodedListingCoords(null);
+      return;
+    }
+
+    const directCoords = resolveListingCoords(selectedListing);
+    if (directCoords) {
+      setGeocodedListingCoords(null);
+      return;
+    }
+
+    const listingAddress =
+      selectedListing?.location?.userAddress ||
+      selectedListing?.location?.fullAddress ||
+      selectedListing?.location?.address;
+
+    if (!listingAddress?.trim()) {
+      setGeocodedListingCoords(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const geocodeListingAddress = async () => {
+      try {
+        const response = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+            listingAddress.trim(),
+          )}&key=${GOOGLE_MAPS_API_KEY}`,
+        );
+        const json = await response.json();
+        const location = json?.results?.[0]?.geometry?.location;
+        if (cancelled || !location) {
+          return;
+        }
+
+        const normalized = normalizeCoords({
+          latitude: location.lat,
+          longitude: location.lng,
+        });
+        if (normalized) {
+          setGeocodedListingCoords(normalized);
+        }
+      } catch (error) {
+        console.log('Listing geocode error:', error);
+      }
+    };
+
+    geocodeListingAddress();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isVisible, selectedListing]);
 
   useEffect(() => {
     if (!isVisible || !editingItem) return;
@@ -358,7 +466,7 @@ const NewRequestModal = ({
 
     setSingleDay(
       Boolean(editingItem?.startDate && editingItem?.endDate) &&
-        editingItem?.startDate === editingItem?.endDate,
+      editingItem?.startDate === editingItem?.endDate,
     );
     setStartDate(parsedStart);
     setEndDate(parsedEnd);
@@ -395,15 +503,29 @@ const NewRequestModal = ({
     setStartDate(new Date());
     setEndDate(new Date());
     setSelectedCoords(null);
+    setGeocodedListingCoords(null);
     setSpecialRequest('');
     setIncludeSecurityFee(true);
     setOfferAmount('');
     setPriceError('');
   };
 
-  const handleCancel = () => {
+  const closeRequestModal = () => {
     resetForm();
     onClose?.();
+  };
+
+  const handleCancel = () => {
+    closeRequestModal();
+  };
+
+  const closeAfterSuccessAlert = () => {
+    resetForm();
+    InteractionManager.runAfterInteractions(() => {
+      setTimeout(() => {
+        onClose?.();
+      }, NESTED_MODAL_DISMISS_MS);
+    });
   };
 
   const handleAddItem = () => {
@@ -423,14 +545,22 @@ const NewRequestModal = ({
       return;
     }
 
-    const normalizedCoords = normalizeCoords(selectedCoords?.latLng);
+    const normalizedCoords = resolveEventCoords(selectedCoords);
     if (!normalizedCoords) {
       modalRef.current?.show({
         status: 'error',
-        message: t('Please select a valid location.'),
+        message: t(
+          'Please select a valid location from search or use the location icon.',
+        ),
       });
       return;
     }
+
+    const resolvedListingCoords = listingCoords;
+    const submitDistanceKm = distanceBetweenCoordsKm(
+      normalizedCoords,
+      resolvedListingCoords,
+    );
 
     if (selectedListing?.quantity <= 0) {
       modalRef.current?.show({
@@ -453,14 +583,17 @@ const NewRequestModal = ({
     }
 
     if (
-      distanceToSelectedListingKm == null ||
-      Number.isNaN(distanceToSelectedListingKm) ||
-      distanceToSelectedListingKm < 0
+      !resolvedListingCoords ||
+      submitDistanceKm == null ||
+      Number.isNaN(submitDistanceKm) ||
+      submitDistanceKm < 0
     ) {
       modalRef.current?.show({
         status: 'error',
         message: t(
-          'Distance must be calculated. Please select a valid location.',
+          resolvedListingCoords
+            ? 'Distance must be calculated. Please select a valid event location.'
+            : 'This listing has no service location configured. Please update the listing location first.',
         ),
       });
       return;
@@ -507,9 +640,7 @@ const NewRequestModal = ({
           explanation: '',
         },
         {
-          label: `Travel Cost (${Number(
-            distanceToSelectedListingKm || 0,
-          ).toFixed(2)}km)`,
+          label: `Travel Cost (${Number(submitDistanceKm || 0).toFixed(2)}km)`,
           amount: Number(distanceCost.toFixed(2)),
           explanation: '',
         },
@@ -541,7 +672,7 @@ const NewRequestModal = ({
     const offerFees = calculateOfferFees(
       offerPrice,
       selectedListing,
-      settingsData || {bookingItemPlatformFee: 5},
+      settingsData || { bookingItemPlatformFee: 5 },
     );
     const payloadTotal = Number(
       (
@@ -566,7 +697,7 @@ const NewRequestModal = ({
         ...selectedCoords,
         latLng: normalizedCoords,
       },
-      distanceKm: Number(distanceToSelectedListingKm) || 0,
+      distanceKm: Number(submitDistanceKm) || 0,
       total: payloadTotal,
       basePrice: pricingBreakdown.baseAmount,
       extraTimeCost: pricingBreakdown.extraTimeCost,
@@ -599,11 +730,7 @@ const NewRequestModal = ({
     modalRef.current?.show({
       status: 'ok',
       message: t('Item added to offer!'),
-      handlePressOk: () => {
-        modalRef.current?.hide?.();
-        handleCancel();
-        // navigation?.navigate?.('ChatDetails', {offreShow: true});
-      },
+      handlePressOk: closeAfterSuccessAlert,
     });
   };
 
@@ -647,11 +774,11 @@ const NewRequestModal = ({
             <Image
               source={
                 selectedListing?.images
-                  ? {uri: selectedListing.images[0]}
+                  ? { uri: selectedListing.images[0] }
                   : IMAGES.backgroundImage2
               }
               resizeMode="contain"
-              style={{height: '100%', width: '100%', borderRadius: 12}}
+              style={{ height: '100%', width: '100%', borderRadius: 12 }}
             />
           </View>
           <View
@@ -752,7 +879,7 @@ const NewRequestModal = ({
               marginVertical: width(2),
               padding: width(3),
             }}>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Image
                 source={ICONS.calenderIcon}
                 resizeMode="contain"
@@ -895,7 +1022,7 @@ const NewRequestModal = ({
                 name="shield-outline"
                 size={15}
                 color={COLORS.primary}
-                style={{marginRight: 6}}
+                style={{ marginRight: 6 }}
               />
               <Text style={styles.checkboxLabel}>
                 Include Security Fee (€{securityFee?.toFixed(2)})
@@ -922,7 +1049,7 @@ const NewRequestModal = ({
                 </View>
               )}
               {vatFee > 0 && (
-                <View style={[styles.feeRow, {borderBottomWidth: 0}]}>
+                <View style={[styles.feeRow, { borderBottomWidth: 0 }]}>
                   <Text style={styles.feeLabel}>
                     VAT Fee ({bookingVatFeePercent}%)
                   </Text>
@@ -972,7 +1099,7 @@ const NewRequestModal = ({
             <Text
               style={[
                 styles.totalText,
-                {fontSize: 12, marginBottom: width(2)},
+                { fontSize: 12, marginBottom: width(2) },
               ]}>
               Special Request (optional)
             </Text>
@@ -996,9 +1123,9 @@ const NewRequestModal = ({
                   style={styles.addToWishlistButton}>
                   <GradientText text="Reject Offer" />
                 </TouchableOpacity>
-                <View style={{width: width(50)}}>
+                <View style={{ width: width(50) }}>
                   <GradientButton
-                    styleContainer={{height: width(12.5)}}
+                    styleContainer={{ height: width(12.5) }}
                     text="Accept Offer"
                     onPress={() => onClose()}
                     type="filled"
@@ -1010,7 +1137,7 @@ const NewRequestModal = ({
           </>
         ) : (
           <View style={styles.buttonRow}>
-            <View style={{width: width(40)}}>
+            <View style={{ width: width(40) }}>
               <TouchableOpacity
                 onPress={handleCancel}
                 style={styles.cancelButton}
@@ -1019,7 +1146,7 @@ const NewRequestModal = ({
               </TouchableOpacity>
             </View>
 
-            <View style={{width: width(40)}}>
+            <View style={{ width: width(40) }}>
               <GradientButton
                 text={t('Add Item')}
                 onPress={handleAddItem}
@@ -1045,10 +1172,10 @@ const NewRequestModal = ({
             </Text>
           </View>
           <View style={styles.infoModalRow}>
-            <Text style={[styles.infoModalLabel, {color: '#FF5B00'}]}>
+            <Text style={[styles.infoModalLabel, { color: '#FF5B00' }]}>
               Extra Time Cost
             </Text>
-            <Text style={[styles.infoModalValue, {color: '#FF5B00'}]}>
+            <Text style={[styles.infoModalValue, { color: '#FF5B00' }]}>
               +€{totalExtraCost.toFixed(2)}
             </Text>
           </View>
@@ -1067,7 +1194,7 @@ const NewRequestModal = ({
 };
 
 const styles = StyleSheet.create({
-  modal: {margin: 0, justifyContent: 'flex-end', backgroundColor: '#8b8b8b66'},
+  modal: { margin: 0, justifyContent: 'flex-end', backgroundColor: '#8b8b8b66' },
   container: {
     height: '90%',
     borderTopLeftRadius: 28,
@@ -1333,7 +1460,7 @@ const styles = StyleSheet.create({
   extraTimeInfoBox: {
     marginTop: width(2),
     borderRadius: 10,
-    backgroundColor: '#EEF6FF',
+    backgroundColor: COLORS.white,
     padding: 10,
   },
   extraTimeInfoText: {

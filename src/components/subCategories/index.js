@@ -1,66 +1,160 @@
-import React from 'react';
-import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useCallback, useMemo, useRef} from 'react';
+import {
+  FlatList,
+  InteractionManager,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {SvgUri} from 'react-native-svg';
-import {COLORS, fontFamly} from '../../constants';
+import {
+  BRAND_BUTTON_GRADIENT_COLORS,
+  BRAND_BUTTON_GRADIENT_LOCATIONS,
+  COLORS,
+  fontFamly,
+} from '../../constants';
 import {useTranslation} from '../../hooks';
+
+const PRESS_COOLDOWN_MS = 500;
+const failedIconUris = new Set();
 
 const isSafeSvgUri = uri =>
   typeof uri === 'string' &&
   /^https?:\/\//i.test(uri.trim()) &&
   uri.toLowerCase().includes('.svg');
 
+const getSubCategoryKey = item =>
+  String(item?._id || item?.id || item?.slug || item?.name?.en || '');
+
+const SafeSubCategoryIcon = React.memo(({uri, size = 13, enabled = false}) => {
+  const safeUri = typeof uri === 'string' ? uri.trim() : '';
+
+  if (!enabled || !isSafeSvgUri(safeUri) || failedIconUris.has(safeUri)) {
+    return (
+      <View
+        style={[styles.iconFallback, {width: size, height: size, borderRadius: size / 2}]}
+      />
+    );
+  }
+
+  return (
+    <SvgUri
+      width={size}
+      height={size}
+      uri={safeUri}
+      onError={() => {
+        failedIconUris.add(safeUri);
+      }}
+    />
+  );
+});
+
+const SubCategoryCard = React.memo(({item, isSelected, label, onPress}) => (
+  <TouchableOpacity
+    activeOpacity={0.85}
+    style={styles.pillTouchable}
+    onPress={onPress}>
+    <View style={[styles.card, isSelected && styles.cardSelected]}>
+      <View style={styles.iconSlot}>
+        {isSelected ? (
+          <>
+            <LinearGradient
+              colors={BRAND_BUTTON_GRADIENT_COLORS}
+              locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}
+              style={styles.iconGradient}
+            />
+            <View style={styles.iconCenter}>
+              <SafeSubCategoryIcon uri={item?.icon} enabled />
+            </View>
+          </>
+        ) : (
+          <Text style={styles.iconInitial}>{label?.charAt(0)?.toUpperCase() || '?'}</Text>
+        )}
+      </View>
+      <Text
+        style={[styles.cardText, isSelected && styles.selectedText]}
+        numberOfLines={1}>
+        {label}
+      </Text>
+    </View>
+  </TouchableOpacity>
+));
+
 const SubCategories = ({data, subSelected, setsubSelected}) => {
   const {currentLanguage} = useTranslation();
-  const renderSubCategoryIcon = icon => {
-    if (!isSafeSvgUri(icon)) {
-      return <View style={styles.iconFallback} />;
-    }
+  const isPressLockedRef = useRef(false);
+  const selectedId = subSelected?._id || subSelected?.id;
 
-    return <SvgUri width={13} height={13} uri={encodeURI(icon.trim())} />;
-  };
+  const subCategories = useMemo(
+    () => (Array.isArray(data) ? data.filter(Boolean) : []),
+    [data],
+  );
+
+  const getLabel = useCallback(
+    item =>
+      currentLanguage === 'en'
+        ? item?.name?.en || item?.name || ''
+        : item?.name?.nl || item?.name || '',
+    [currentLanguage],
+  );
+
+  const handleSelect = useCallback(
+    item => {
+      const itemId = item?._id || item?.id;
+      if (!itemId || itemId === selectedId || isPressLockedRef.current) {
+        return;
+      }
+
+      isPressLockedRef.current = true;
+
+      InteractionManager.runAfterInteractions(() => {
+        setsubSelected(item);
+      });
+
+      setTimeout(() => {
+        isPressLockedRef.current = false;
+      }, PRESS_COOLDOWN_MS);
+    },
+    [selectedId, setsubSelected],
+  );
+
+  const renderItem = useCallback(
+    ({item}) => {
+      const itemId = item?._id || item?.id;
+      return (
+        <SubCategoryCard
+          item={item}
+          label={getLabel(item)}
+          isSelected={Boolean(itemId && itemId === selectedId)}
+          onPress={() => handleSelect(item)}
+        />
+      );
+    },
+    [getLabel, handleSelect, selectedId],
+  );
+
+  const keyExtractor = useCallback(item => getSubCategoryKey(item), []);
+
+  if (!subCategories.length) {
+    return null;
+  }
 
   return (
     <FlatList
-      data={data}
+      data={subCategories}
       horizontal
-      keyExtractor={(item, index) => index.toString()}
+      keyExtractor={keyExtractor}
+      extraData={selectedId}
       contentContainerStyle={styles.listContent}
       showsHorizontalScrollIndicator={false}
-      renderItem={({item}) => {
-        const isSelected = subSelected?._id === item?._id;
-
-        return (
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.pillTouchable}
-            onPress={() => setsubSelected(item)}>
-            {isSelected ? (
-              <LinearGradient
-                colors={['#FF295D', '#E31B95', '#C817AE']}
-                style={styles.gradientBorder}>
-                <View style={[styles.card, styles.selectedCard]}>
-                  <View style={styles.selectedIconWrapper}>
-                    <SvgUri width={13} height={13} uri={item?.icon} />
-                  </View>
-                  <Text style={[styles.cardText, styles.selectedText]}>
-                    {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
-                  </Text>
-                </View>
-              </LinearGradient>
-            ) : (
-              <View style={styles.card}>
-                <View style={styles.iconWrapper}>
-                  <SvgUri width={13} height={13} uri={item?.icon} />
-                </View>
-                <Text style={styles.cardText}>
-                  {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        );
-      }}
+      initialNumToRender={8}
+      maxToRenderPerBatch={6}
+      windowSize={7}
+      renderItem={renderItem}
     />
   );
 };
@@ -73,24 +167,23 @@ const styles = StyleSheet.create({
   pillTouchable: {
     marginRight: 10,
   },
-  gradientBorder: {
-    padding: 1,
-    borderRadius: 10,
-  },
   card: {
     minWidth: 108,
     height: 44,
     paddingHorizontal: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 9,
+    borderRadius: 10,
     flexDirection: 'row',
     backgroundColor: COLORS.backgroundLight,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  selectedCard: {
-    backgroundColor: 'transparent',
+  cardSelected: {
+    backgroundColor: COLORS.white,
+    borderColor: COLORS.primary,
   },
-  iconWrapper: {
+  iconSlot: {
     height: 22,
     width: 22,
     borderRadius: 11,
@@ -98,24 +191,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 6,
     backgroundColor: COLORS.white,
+    overflow: 'hidden',
   },
-  selectedIconWrapper: {
-    height: 22,
-    width: 22,
+  iconGradient: {
+    ...StyleSheet.absoluteFillObject,
     borderRadius: 11,
+  },
+  iconCenter: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 6,
-    backgroundColor: COLORS.white,
+  },
+  iconInitial: {
+    fontSize: 11,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.primary,
+  },
+  iconFallback: {
+    backgroundColor: COLORS.border,
   },
   cardText: {
     fontSize: 10,
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
     color: COLORS.textDark,
+    flexShrink: 1,
   },
   selectedText: {
-    color: COLORS.white,
+    color: COLORS.textDark,
   },
 });
 
-export default SubCategories;
+export default React.memo(SubCategories);

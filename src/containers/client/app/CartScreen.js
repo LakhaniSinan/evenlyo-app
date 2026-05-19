@@ -42,6 +42,7 @@ function CartScreen({navigation}) {
   const {t} = useTranslation();
   const modalRef = useRef(null);
   const {user} = useSelector(state => state.LoginSlice);
+  const isAuthenticated = Boolean(user?.id || user?._id);
   const [payModalVisible, setPayModalVisible] = useState(false);
   const [orderBookingForm, setOrderBookingForm] = useState(false);
   const [cancelConfirmation, setCancelConfirmation] = useState(false);
@@ -63,19 +64,75 @@ function CartScreen({navigation}) {
   const [clientSecret, setClientSecret] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  const handleGetCartListing = useCallback(async () => {
+    if (!isAuthenticated) {
+      setListingCartData([]);
+      setAccepetedBookings([]);
+      setIsLoadding(false);
+      return;
+    }
+
+    try {
+      setIsLoadding(true);
+
+      const [responseCart, responseAccepted] = await Promise.all([
+        getCartListings(),
+        getAccepetedBookings(),
+      ]);
+
+      setIsLoadding(false);
+      if (
+        (responseCart?.status === 200 || responseCart?.status === 201) &&
+        (responseAccepted?.status === 200 || responseAccepted?.status === 201)
+      ) {
+        const cartData = responseCart?.data?.data || [];
+        const acceptedData = responseAccepted?.data?.data?.bookings || [];
+        setAccepetedBookings(acceptedData);
+        setListingCartData(cartData);
+      } else {
+        modalRef.current?.show({
+          status: 'error',
+          message: responseCart?.data?.message,
+        });
+      }
+    } catch (error) {
+      setIsLoadding(false);
+      console.log(error, 'errorerrorerrorerrorerror214543654');
+    }
+  }, [isAuthenticated]);
+
   useFocusEffect(
     useCallback(() => {
-      user?.id && handleGetCartListing();
-    }, [modalVisible, payModalVisible, user, orderBookingForm]),
+      if (!isAuthenticated) {
+        setListingCartData([]);
+        setAccepetedBookings([]);
+        setIsLoadding(false);
+        return;
+      }
+      void handleGetCartListing();
+    }, [
+      isAuthenticated,
+      modalVisible,
+      payModalVisible,
+      orderBookingForm,
+      handleGetCartListing,
+    ]),
   );
 
   const onRefresh = async () => {
+    if (!isAuthenticated) {
+      setRefreshing(false);
+      return;
+    }
     setRefreshing(true);
     await handleGetCartListing();
     setRefreshing(false);
   };
 
   const handlePayAmount = async () => {
+    if (!isAuthenticated) {
+      return;
+    }
     if (!selectedData) {
       modalRef.current?.show({
         status: 'error',
@@ -130,37 +187,10 @@ function CartScreen({navigation}) {
     }
   };
 
-  const handleGetCartListing = async () => {
-    try {
-      setIsLoadding(true);
-
-      const [responseCart, responseAccepted] = await Promise.all([
-        getCartListings(),
-        getAccepetedBookings(),
-      ]);
-
-      setIsLoadding(false);
-      if (
-        (responseCart?.status === 200 || responseCart?.status === 201) &&
-        (responseAccepted?.status === 200 || responseAccepted?.status === 201)
-      ) {
-        const cartData = responseCart?.data?.data || [];
-        const acceptedData = responseAccepted?.data?.data?.bookings || [];
-        setAccepetedBookings(acceptedData);
-        setListingCartData(cartData);
-      } else {
-        modalRef.current?.show({
-          status: 'error',
-          message: responseCart?.data?.message,
-        });
-      }
-    } catch (error) {
-      setIsLoadding(false);
-      console.log(error, 'errorerrorerrorerrorerror214543654');
-    }
-  };
-
   const handleRemoveFromCart = async item => {
+    if (!isAuthenticated) {
+      return;
+    }
     console.log(item, 'itemitemitemitemitemitem');
 
     modalRef.current.show({
@@ -286,6 +316,9 @@ function CartScreen({navigation}) {
   };
 
   const handleSendBookingRequest = async details => {
+    if (!isAuthenticated) {
+      return;
+    }
     try {
       setIsLoadding(true);
       const response = await sendBookingRequest(details);
@@ -363,7 +396,9 @@ function CartScreen({navigation}) {
         contentContainerStyle={{flexGrow: 1}}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          isAuthenticated ? (
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          ) : undefined
         }>
         {/* {renderTabs()} */}
 

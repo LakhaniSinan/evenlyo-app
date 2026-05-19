@@ -1,78 +1,166 @@
-import React from 'react';
-import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useCallback, useMemo, useRef} from 'react';
+import {
+  FlatList,
+  InteractionManager,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
 import {SvgUri} from 'react-native-svg';
-import {COLORS, fontFamly} from '../../constants';
+import {
+  BRAND_BUTTON_GRADIENT_COLORS,
+  BRAND_BUTTON_GRADIENT_LOCATIONS,
+  COLORS,
+  fontFamly,
+} from '../../constants';
 import {useTranslation} from '../../hooks';
-import {width} from 'react-native-dimension';
+
+const PRESS_COOLDOWN_MS = 500;
+const failedIconUris = new Set();
 
 const isSafeSvgUri = uri =>
   typeof uri === 'string' &&
   /^https?:\/\//i.test(uri.trim()) &&
   uri.toLowerCase().includes('.svg');
 
+const getCategoryKey = item =>
+  String(item?._id || item?.id || item?.slug || item?.name?.en || '');
+
+const getInitial = label => {
+  const trimmed = String(label || '').trim();
+  return trimmed ? trimmed.charAt(0).toUpperCase() : '?';
+};
+
+const SafeCategoryIcon = React.memo(({uri, size = 16, enabled = false}) => {
+  const safeUri = typeof uri === 'string' ? uri.trim() : '';
+
+  if (!enabled || !isSafeSvgUri(safeUri) || failedIconUris.has(safeUri)) {
+    return (
+      <View
+        style={[styles.iconFallback, {width: size, height: size, borderRadius: size / 2}]}
+      />
+    );
+  }
+
+  return (
+    <SvgUri
+      width={size}
+      height={size}
+      uri={safeUri}
+      onError={() => {
+        failedIconUris.add(safeUri);
+      }}
+    />
+  );
+});
+
+const CategoryCard = React.memo(({item, isSelected, label, onPress}) => {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.85}
+      style={styles.cardTouchable}
+      onPress={onPress}>
+      <View style={[styles.cardShell, isSelected && styles.cardShellSelected]}>
+        <View style={styles.iconWrapper}>
+          {isSelected ? (
+            <>
+              <LinearGradient
+                colors={BRAND_BUTTON_GRADIENT_COLORS}
+                locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 0}}
+                style={styles.activeIconGradient}
+              />
+              <View style={styles.iconCenter}>
+                <SafeCategoryIcon uri={item?.icon} enabled />
+              </View>
+            </>
+          ) : (
+            <Text style={styles.iconInitial}>{getInitial(label)}</Text>
+          )}
+        </View>
+        <Text style={styles.cardText} numberOfLines={2}>
+          {label}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+});
+
 const Categories = ({data, selected, setSelected}) => {
   const {currentLanguage} = useTranslation();
-  const renderCategoryIcon = icon => {
-    if (!isSafeSvgUri(icon)) {
-      return <View style={styles.iconFallback} />;
-    }
+  const isPressLockedRef = useRef(false);
+  const selectedId = selected?._id || selected?.id;
 
-    return <SvgUri width={16} height={16} uri={encodeURI(icon.trim())} />;
-  };
+  const categories = useMemo(
+    () => (Array.isArray(data) ? data.filter(Boolean) : []),
+    [data],
+  );
+
+  const getLabel = useCallback(
+    item =>
+      currentLanguage === 'en'
+        ? item?.name?.en || item?.name || ''
+        : item?.name?.nl || item?.name || '',
+    [currentLanguage],
+  );
+
+  const handleSelect = useCallback(
+    item => {
+      const itemId = item?._id || item?.id;
+      if (!itemId || itemId === selectedId || isPressLockedRef.current) {
+        return;
+      }
+
+      isPressLockedRef.current = true;
+
+      InteractionManager.runAfterInteractions(() => {
+        setSelected(item);
+      });
+
+      setTimeout(() => {
+        isPressLockedRef.current = false;
+      }, PRESS_COOLDOWN_MS);
+    },
+    [selectedId, setSelected],
+  );
+
+  const renderItem = useCallback(
+    ({item}) => {
+      const itemId = item?._id || item?.id;
+      return (
+        <CategoryCard
+          item={item}
+          label={getLabel(item)}
+          isSelected={Boolean(itemId && itemId === selectedId)}
+          onPress={() => handleSelect(item)}
+        />
+      );
+    },
+    [getLabel, handleSelect, selectedId],
+  );
+
+  const keyExtractor = useCallback(item => getCategoryKey(item), []);
+
+  if (!categories.length) {
+    return null;
+  }
 
   return (
     <FlatList
-      data={data}
+      data={categories}
       horizontal
-      keyExtractor={(item, index) => index.toString()}
+      keyExtractor={keyExtractor}
+      extraData={selectedId}
       contentContainerStyle={styles.listContent}
       showsHorizontalScrollIndicator={false}
-      renderItem={({item}) => {
-        const isSelected = selected?._id === item?._id;
-
-        return (
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.cardTouchable}
-            onPress={() => setSelected(item)}>
-            {isSelected ? (
-              <LinearGradient
-                colors={['#FFFFFF', '#FFE6F1', '#FF4D88', '#C817AE']}
-                locations={[0, 0.22, 0.62, 1]}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 1}}
-                style={styles.gradientBorder}>
-                <View style={styles.innerCard}>
-                  <View style={styles.card}>
-                    <LinearGradient
-                      colors={['#FF295D', '#E31B95', '#C817AE']}
-                      style={styles.activeIconWrapper}>
-                      <View style={styles.iconCenter}>
-                        <SvgUri width={16} height={16} uri={item?.icon} />
-                      </View>
-                    </LinearGradient>
-                    <Text style={styles.cardText}>
-                      {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
-                    </Text>
-                  </View>
-                </View>
-              </LinearGradient>
-            ) : (
-              <View style={styles.card}>
-                <View style={styles.iconWrapper}>
-                  <View style={styles.iconCenter}>
-                    {renderCategoryIcon(item?.icon)}
-                  </View>
-                </View>
-                <Text style={styles.cardText}>
-                  {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        );
-      }}
+      initialNumToRender={8}
+      maxToRenderPerBatch={6}
+      windowSize={7}
+      renderItem={renderItem}
     />
   );
 };
@@ -85,28 +173,21 @@ const styles = StyleSheet.create({
   cardTouchable: {
     marginRight: 10,
   },
-  gradientBorder: {
-    padding: 1.5,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardTouchable: {
-    marginRight: 10,
-  },
-  selectedCardBorder: {
+  cardShell: {
     width: 118,
     height: width(28),
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
-    borderRadius: 10,
-    padding: 1,
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: 12,
-    borderWidth: 2.2,
-    borderColor: 'white',
-    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 10,
     justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 14,
+    backgroundColor: COLORS.backgroundLight,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+  },
+  cardShellSelected: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.white,
   },
   card: {
     width: 118,
@@ -125,19 +206,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.white,
+    overflow: 'hidden',
   },
-  activeIconWrapper: {
-    height: 48,
-    width: 48,
+  activeIconGradient: {
+    ...StyleSheet.absoluteFillObject,
     borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   iconCenter: {
     height: 20,
     width: 20,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  iconInitial: {
+    fontSize: 16,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.primary,
+  },
+  iconFallback: {
+    backgroundColor: COLORS.border,
   },
   cardText: {
     textAlign: 'center',
@@ -149,4 +236,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Categories;
+export default React.memo(Categories);

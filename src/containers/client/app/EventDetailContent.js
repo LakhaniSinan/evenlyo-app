@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Image, InteractionManager, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { width } from 'react-native-dimension';
 import MapView, { Marker } from 'react-native-maps';
@@ -9,6 +9,8 @@ import { Rating } from 'react-native-ratings';
 import { useDispatch, useSelector } from 'react-redux';
 import { ICONS } from '../../../assets';
 import LoginModal from '../../../components/authModal';
+import ForgotModal from '../../../components/authModal/ForgotModal';
+import RegistrationModal from '../../../components/authModal/RegistrationModal';
 import GradientButton from '../../../components/button';
 import CarouselComponent from '../../../components/carousel';
 import CommonAlert from '../../../components/commanAlert';
@@ -25,6 +27,8 @@ import {
   sendBookingRequest,
 } from '../../../services/ListingsItem';
 import { getDistance } from '../../../utils';
+
+const AUTH_MODAL_SWITCH_MS = 480;
 
 const DEFAULT_MAP_COORDINATE = {
   latitude: 24.860966,
@@ -73,7 +77,7 @@ const getResolvedMapCoordinates = listingData => {
     return DEFAULT_MAP_COORDINATE;
   }
 
-  return {latitude, longitude};
+  return { latitude, longitude };
 };
 
 const getInitialMarkedDates = availableDays => {
@@ -109,19 +113,19 @@ const getInitialMarkedDates = availableDays => {
 };
 
 const DetailsContent = ({ data, selectedTab, navigation }) => {
-  console.log(data, 'datadatadatadatadatadata');
-
   const { cartData } = useSelector(state => state.CartSlice);
   const { user } = useSelector(state => state.LoginSlice);
   const dispatch = useDispatch(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
   const { currentLanguage } = useTranslation();
   const modalRef = useRef(null);
   const [responeData, setResponeData] = useState(null);
   const [isLoadding, setIsLoadding] = useState(false);
   const mapCoordinates = useMemo(() => getResolvedMapCoordinates(data), [data]);
 
-  const {latitude, longitude} = mapCoordinates;
+  const { latitude, longitude } = mapCoordinates;
   const markerCoordinate = useMemo(
     () => ({
       latitude: parseFiniteNumber(latitude) ?? DEFAULT_MAP_COORDINATE.latitude,
@@ -157,6 +161,48 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
   useEffect(() => {
     setMarkedDates(getInitialMarkedDates(availableDays));
   }, [availableDays]);
+
+  const closeAllAuthModals = useCallback(() => {
+    setShowLoginModal(false);
+    setShowForgotModal(false);
+    setShowRegisterModal(false);
+  }, []);
+
+  const handlePressFun = useCallback(
+    type => {
+      closeAllAuthModals();
+
+      const needsStaggeredOpen =
+        type === 'forgot' ||
+        type === 'register' ||
+        type === 'reset' ||
+        type === 'goBackToLogin' ||
+        type === 'registeredOTP';
+
+      const openTargetModal = () => {
+        if (type === 'forgot') {
+          setShowForgotModal(true);
+        } else if (type === 'register') {
+          setShowRegisterModal(true);
+        } else if (
+          type === 'reset' ||
+          type === 'goBackToLogin' ||
+          type === 'registeredOTP'
+        ) {
+          setShowLoginModal(true);
+        }
+      };
+
+      if (needsStaggeredOpen) {
+        InteractionManager.runAfterInteractions(() => {
+          setTimeout(openTargetModal, AUTH_MODAL_SWITCH_MS);
+        });
+      } else {
+        openTargetModal();
+      }
+    },
+    [closeAllAuthModals],
+  );
 
   const handleDayPress = day => {
     const date = day.dateString;
@@ -447,7 +493,12 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
     return participants;
   };
 
-  const handleConnect = () => {
+  const handleConnect = async () => {
+    const userToken = await AsyncStorage.getItem('token');
+    if (userToken == null) {
+      setShowLoginModal(true);
+      return;
+    }
     if (chatData) {
       navigation.navigate('ChatDetail', chatData);
     } else {
@@ -665,11 +716,11 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
             {data?.vendor?.businessEmail || data?.vendor?.email}
           </Text>
         </View>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={handleConnect}
           style={{ flex: 1, justifyContent: 'center', alignItems: 'flex-end' }}>
           <Image style={{ width: 32, height: 32 }} source={ICONS.chatIcon} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <View style={{ paddingVertical: width(3), marginHorizontal: 20 }}>
@@ -769,7 +820,13 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
                 <GradientButton
                   text={'Book Now'}
                   type="filled"
-                  onPress={() => {
+                  onPress={async () => {
+
+                    const userToken = await AsyncStorage.getItem('token');
+                    if (userToken == null) {
+                      setShowLoginModal(true);
+                      return;
+                    }
                     if (startDate == null) {
                       return modalRef.current.show({
                         status: 'error',
@@ -815,7 +872,18 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
       />
       <LoginModal
         isVisible={showLoginModal}
-        onClose={() => setShowLoginModal(!showLoginModal)}
+        onClose={() => setShowLoginModal(false)}
+        handlePressFun={handlePressFun}
+      />
+      <ForgotModal
+        isVisible={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+        handlePressFun={handlePressFun}
+      />
+      <RegistrationModal
+        isVisible={showRegisterModal}
+        onClose={() => setShowRegisterModal(false)}
+        handlePressFun={handlePressFun}
       />
       <Loader isLoading={isLoadding} />
       <CommonAlert ref={modalRef} />

@@ -1,11 +1,11 @@
 import React from 'react';
-import {Image, StyleSheet, Switch, Text, View} from 'react-native';
-import {width} from 'react-native-dimension';
-import {Rating} from 'react-native-ratings';
-import {useSelector} from 'react-redux';
-import {ICONS} from '../../assets';
-import {COLORS, fontFamly} from '../../constants';
-import {getDistance} from '../../utils';
+import { Image, StyleSheet, Switch, Text, View } from 'react-native';
+import { width } from 'react-native-dimension';
+import { Rating } from 'react-native-ratings';
+import { useSelector } from 'react-redux';
+import { ICONS } from '../../assets';
+import { COLORS, fontFamly } from '../../constants';
+import { getDistance } from '../../utils';
 const EventAndPriceDetails = ({
   data,
   showrating,
@@ -17,8 +17,8 @@ const EventAndPriceDetails = ({
 }) => {
   const locationData = useSelector(state => state.LocationSlice);
 
-  const {coords} = locationData;
-  const {distance} = getDistance(data?.location?.coordinates, coords);
+  const { coords } = locationData;
+  const { distance } = getDistance(data?.location?.coordinates, coords);
   console.log(data, 'datadatadatadatadatadatadataasdad');
 
   return (
@@ -29,7 +29,7 @@ const EventAndPriceDetails = ({
         justifyContent: 'space-between',
         paddingHorizontal: width(3),
       }}>
-      <View style={{width: width(50)}}>
+      <View style={{ width: width(50) }}>
         <Text
           style={{
             fontFamily: fontFamly.PlusJakartaSansSemiBold,
@@ -48,11 +48,11 @@ const EventAndPriceDetails = ({
           }}>
           {currentLanguage == 'en' ? data?.title?.en : data?.title?.nl}
         </Text>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Image
             source={ICONS.locationWithoutBg}
             resizeMode="contain"
-            style={{height: 10, width: 10}}
+            style={{ height: 10, width: 10 }}
             tintColor={COLORS.semiLightText}
           />
           <Text
@@ -122,6 +122,7 @@ const EventAndPriceDetails = ({
                 fontFamily: fontFamly.PlusJakartaSansBold,
                 color: COLORS.green,
                 fontSize: 12,
+                marginRight: width(2),
               }}>
               Live
             </Text>
@@ -164,6 +165,6 @@ export default EventAndPriceDetails;
 
 const styles = StyleSheet.create({
   switch: {
-    transform: [{scaleX: 1.1}, {scaleY: 1.1}],
+    transform: [{ scaleX: 1.1 }, { scaleY: 1.1 }],
   },
 });

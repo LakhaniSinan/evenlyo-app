@@ -3,6 +3,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   Image,
+  InteractionManager,
   ScrollView,
   StyleSheet,
   Text,
@@ -23,6 +24,8 @@ import {COLORS, fontFamly} from '../../../constants';
 import useTranslation from '../../../hooks/useTranslation';
 import {setUserData} from '../../../redux/slice/auth';
 import useProfile from '../../../hooks/getProfileData';
+
+const AUTH_MODAL_SWITCH_MS = 480;
 
 const UserLoginPlaceholder = ({onLoginPress}) => {
   const {t} = useTranslation();
@@ -124,23 +127,33 @@ const Profile = () => {
     }
   };
 
-  const checkUserLoggedIn = async () => {
+  const checkUserLoggedIn = useCallback(async ({showBlockingLoader = true} = {}) => {
     try {
-      setCheckingAuth(true);
+      if (showBlockingLoader) {
+        setCheckingAuth(true);
+      }
       const token = await getParsedToken();
       setIsLoggedIn(!!token);
     } catch (error) {
       console.log('Auth check error:', error);
       setIsLoggedIn(false);
     } finally {
-      setCheckingAuth(false);
+      if (showBlockingLoader) {
+        setCheckingAuth(false);
+      }
     }
-  };
+  }, []);
+
+  const profileFirstFocusRef = useRef(true);
 
   useFocusEffect(
     useCallback(() => {
-      checkUserLoggedIn();
-    }, [showLogin]),
+      const showBlockingLoader = profileFirstFocusRef.current;
+      profileFirstFocusRef.current = false;
+      void checkUserLoggedIn({showBlockingLoader});
+
+      return undefined;
+    }, [checkUserLoggedIn]),
   );
 
   useEffect(() => {
@@ -154,24 +167,57 @@ const Profile = () => {
     }
   }, [user]);
 
-  const handlePressFun = type => {
+  const closeAllAuthModals = useCallback(() => {
     setShowLogin(false);
     setShowForgot(false);
     setShowRegister(false);
+  }, []);
 
-    if (type === 'forgot') setShowForgot(true);
-    if (type === 'reset' || type === 'goBackToLogin') setShowLogin(true);
-    if (type === 'register') setShowRegister(true);
+  const handlePressFun = useCallback(
+    type => {
+      closeAllAuthModals();
 
-    if (!type) {
-      setIsLoggedIn(true);
-    }
+      const needsStaggeredOpen =
+        type === 'forgot' ||
+        type === 'register' ||
+        type === 'reset' ||
+        type === 'goBackToLogin' ||
+        type === 'registeredOTP';
 
-    // Token write can complete slightly after modal callbacks.
-    setTimeout(() => {
-      checkUserLoggedIn();
-    }, 300);
-  };
+      const openTargetModal = () => {
+        if (type === 'forgot') {
+          setShowForgot(true);
+        } else if (type === 'register') {
+          setShowRegister(true);
+        } else if (
+          type === 'reset' ||
+          type === 'goBackToLogin' ||
+          type === 'registeredOTP'
+        ) {
+          setShowLogin(true);
+        } else if (type == null || type === '') {
+          setIsLoggedIn(true);
+        }
+      };
+
+      if (needsStaggeredOpen) {
+        InteractionManager.runAfterInteractions(() => {
+          setTimeout(openTargetModal, AUTH_MODAL_SWITCH_MS);
+        });
+      } else {
+        openTargetModal();
+      }
+
+      setTimeout(() => {
+        void checkUserLoggedIn({showBlockingLoader: false});
+      }, 300);
+    },
+    [checkUserLoggedIn, closeAllAuthModals],
+  );
+
+  const handleOpenLoginModal = useCallback(() => {
+    setShowLogin(true);
+  }, []);
 
   const handleNavigate = async navigate => {
     if (navigate === 'Logout') {
@@ -260,7 +306,7 @@ const Profile = () => {
       ) : isLoggedIn ? (
         <RenderProfileContent />
       ) : (
-        <UserLoginPlaceholder onLoginPress={() => setShowLogin(true)} />
+        <UserLoginPlaceholder onLoginPress={handleOpenLoginModal} />
       )}
 
       <AuthModals
