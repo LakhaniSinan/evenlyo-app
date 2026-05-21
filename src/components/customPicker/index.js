@@ -48,7 +48,7 @@ const CustomPicker = React.forwardRef(
             item?._id === value || item?.id === value || item?.name === value,
         );
         return selectedItem
-          ? selectedItem?.label || selectedItem?.name
+          ? selectedItem?.label ?? selectedItem?.name
           : labelll;
       }
       return labelll;
@@ -173,7 +173,7 @@ const CustomPicker = React.forwardRef(
                         <Text
                           style={[styles.optionText, {color: '#FFF'}]}
                           numberOfLines={1}>
-                          {item.name ? item.name : item.label}
+                          {item.label ?? item.name}
                         </Text>
                       </View>
                     ) : (
@@ -185,7 +185,7 @@ const CustomPicker = React.forwardRef(
                         <Text
                           style={[styles.optionText, {color: COLORS.black}]}
                           numberOfLines={1}>
-                          {item.name ? item.name : item.label}
+                          {item.label ?? item.name}
                         </Text>
                       </View>
                     )}

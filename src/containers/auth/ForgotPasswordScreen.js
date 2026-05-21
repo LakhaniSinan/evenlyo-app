@@ -35,6 +35,8 @@ const ForgotPasswordScreen = ({route, navigation}) => {
   };
 
   const handleContinue = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     // if (activeTab === 'phone') {
     //   if (!phoneNumber) {
     //     return modalRef.current.show({
@@ -43,11 +45,17 @@ const ForgotPasswordScreen = ({route, navigation}) => {
     //     });
     //   }
     // } else {
-
-    if (!email) {
+    if (!email.trim()) {
       return modalRef.current.show({
         status: 'error',
-        message: 'Please enter email first.',
+        message: t('emailRequired'),
+      });
+    }
+
+    if (!emailRegex.test(email.trim())) {
+      return modalRef.current.show({
+        status: 'error',
+        message: t('invalidEmail'),
       });
     }
     // }
@@ -69,7 +77,10 @@ const ForgotPasswordScreen = ({route, navigation}) => {
             : response?.data?.message,
           handlePressOk: () => {
             modalRef.current.hide();
-            navigation.navigate('ForgotPasswordOtpScreen', {email: email});
+            navigation.navigate('ForgotPasswordOtpScreen', {
+              email: email.trim(),
+              userType: type,
+            });
           },
         });
       } else {

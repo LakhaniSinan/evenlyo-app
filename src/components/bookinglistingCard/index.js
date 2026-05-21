@@ -41,7 +41,7 @@ const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
                 {moment(item?.date).format('MMM DD,YYYY')}
               </Text>
               <View style={{flexDirection: 'row'}}>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={{marginRight: width(2)}}
                   onPress={() => onDeleteIconPress(item)}>
                   <Image
@@ -49,7 +49,7 @@ const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
                     source={ICONS.deleteIcon}
                     style={{height: width(5), width: width(5)}}
                   />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
                 <TouchableOpacity onPress={() => onEditIconPress(item)}>
                   <Image
                     resizeMode="contain"
@@ -171,6 +171,7 @@ const styles = StyleSheet.create({
     // justifyContent: 'space-between',
     // alignItems: 'center',
     width: '100%',
+    marginTop: width(2),
   },
   button: {
     backgroundColor: COLORS.white,

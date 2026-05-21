@@ -1,5 +1,5 @@
 import moment from 'moment';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Modal,
   ScrollView,
@@ -11,7 +11,6 @@ import {
 import {height, width} from 'react-native-dimension';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {COLORS, fontFamly} from '../../constants';
-import {useTranslation} from '../../hooks';
 
 const CustomCalendar = ({
   isVisible,
@@ -19,13 +18,29 @@ const CustomCalendar = ({
   onDateSelect,
   selectedStartDate,
   selectedEndDate,
+  /** When true, dates before today can be selected (e.g. analytics history). */
+  allowPastDates = false,
 }) => {
-  const {t} = useTranslation();
   const [currentMonth, setCurrentMonth] = useState(moment());
   const [tempStartDate, setTempStartDate] = useState(
     selectedStartDate || selectedEndDate,
   );
   const [tempEndDate, setTempEndDate] = useState(null);
+
+  useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
+    const seed =
+      selectedStartDate && moment(selectedStartDate).isValid()
+        ? moment(selectedStartDate)
+        : selectedEndDate && moment(selectedEndDate).isValid()
+          ? moment(selectedEndDate)
+          : moment();
+    setCurrentMonth(seed.clone().startOf('month'));
+    setTempStartDate(selectedStartDate || selectedEndDate || null);
+    setTempEndDate(selectedEndDate || null);
+  }, [isVisible, selectedStartDate, selectedEndDate]);
 
   const weekDays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
@@ -76,6 +91,8 @@ const CustomCalendar = ({
     const isSelected = isStartDate(date) || isEndDate(date);
     const isInRange = isDateInRange(date);
     const isPast = date.isBefore(moment(), 'day');
+    const pastBlocksSelection = isPast && !allowPastDates;
+    const dayDisabled = !isCurrentMonth || pastBlocksSelection;
 
     return (
       <TouchableOpacity
@@ -85,17 +102,19 @@ const CustomCalendar = ({
           isSelected && styles.selectedDay,
           isInRange && !isSelected && styles.rangeDay,
           !isCurrentMonth && styles.otherMonthDay,
-          isPast && styles.pastDay,
+          pastBlocksSelection && styles.pastDay,
+          allowPastDates && isPast && !isSelected && styles.pastSelectableDay,
         ]}
-        onPress={() => !isPast && isCurrentMonth && handleDatePress(date)}
-        disabled={isPast || !isCurrentMonth}>
+        onPress={() => !dayDisabled && handleDatePress(date)}
+        disabled={dayDisabled}>
         <Text
           style={[
             styles.dayText,
             isSelected && styles.selectedDayText,
             isInRange && !isSelected && styles.rangeDayText,
             !isCurrentMonth && styles.otherMonthText,
-            isPast && styles.pastDayText,
+            pastBlocksSelection && styles.pastDayText,
+            allowPastDates && isPast && !isSelected && styles.pastSelectableDayText,
             isToday && !isSelected && styles.todayText,
           ]}>
           {date.date()}
@@ -237,6 +256,12 @@ const styles = StyleSheet.create({
   },
   pastDay: {
     opacity: 0.4,
+  },
+  pastSelectableDay: {
+    opacity: 1,
+  },
+  pastSelectableDayText: {
+    color: COLORS.textDark,
   },
   dayText: {
     fontFamily: fontFamly.PlusJakartaSansSemiBold,

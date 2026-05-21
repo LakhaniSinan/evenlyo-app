@@ -106,7 +106,7 @@ const RegistrationOtp = ({route, navigation}) => {
 
       if (response?.status === 200 || response?.status === 201) {
         navigation.navigate('AuthSuccess', {
-          type: data?.type == 'vendor' ? 'register' : data?.type,
+          userType: data?.type === 'vendor' ? 'vendor' : 'client',
           message:
             currentLanguage == 'en'
               ? response.data?.message.en

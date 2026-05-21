@@ -4,11 +4,13 @@ import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 import StatusBadge from '../statusComponent';
 
 const RecentBookingCards = ({item, index, dataLength}) => {
   const isLastItem = index === dataLength - 1;
   const navigation = useNavigation();
+  const {t} = useTranslation();
 
   const capitalizeWords = text => {
     if (!text) {
@@ -49,7 +51,9 @@ const RecentBookingCards = ({item, index, dataLength}) => {
             <StatusBadge status={item?.status} />
           </View>
 
-          <Text style={styles.service}>Tracking ID: {item.trackingId}</Text>
+          <Text style={styles.service}>
+            {t('Tracking ID')}: {item.trackingId}
+          </Text>
           <Text style={styles.location}>
             📍 {item?.location?.address || item?.location}
           </Text>
@@ -59,7 +63,7 @@ const RecentBookingCards = ({item, index, dataLength}) => {
           <TouchableOpacity
             style={styles.trackButton}
             onPress={() => navigation.navigate('BookingDetails', item)}>
-            <Text style={styles.trackText}>View</Text>
+            <Text style={styles.trackText}>{t('View')}</Text>
           </TouchableOpacity>
           <Text style={styles.time}>
             ⏱ {moment(item.createdAt).format('hh:mm A')}

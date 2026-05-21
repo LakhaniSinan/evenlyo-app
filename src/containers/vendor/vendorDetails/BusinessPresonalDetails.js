@@ -159,9 +159,10 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
       companyEmail,
       contact,
       companyAddress,
-      companyWebsite,
       workType,
       teamSize,
+      tagline,
+      description,
     } = formData;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -169,34 +170,40 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
     const showError = message =>
       modalRef.current?.show({status: 'error', message});
 
-    if (!companyName) {
-      return showError('Please enter Company Name.');
+    if (!companyName?.trim()) {
+      return showError(t('validationCompanyNameRequired'));
     }
-    if (!companyEmail) {
-      return showError('Please enter Company Email.');
+    if (!companyEmail?.trim()) {
+      return showError(t('validationCompanyEmailRequired'));
     }
-    if (!emailRegex.test(companyEmail)) {
-      return showError('Please enter a valid email address.');
+    if (!emailRegex.test(companyEmail.trim())) {
+      return showError(t('invalidEmail'));
     }
     if (!contact || contact === '+') {
-      return showError('Please enter Contact Number.');
+      return showError(t('validationContactRequired'));
     }
     if (!isValidE164(contact)) {
       return showError(
-        `Please enter a valid E.164 phone number (e.g. +31612345678): include country code, ${E164_MIN_DIGITS}–${E164_MAX_DIGITS} digits after +.`,
+        t('validationContactE164', {
+          min: E164_MIN_DIGITS,
+          max: E164_MAX_DIGITS,
+        }),
       );
     }
-    if (!companyAddress) {
-      return showError('Please enter Company Address.');
-    }
-    if (!companyWebsite) {
-      return showError('Please enter Company Website.');
+    if (!companyAddress?.trim()) {
+      return showError(t('validationCompanyAddressRequired'));
     }
     if (!workType) {
-      return showError('Please select your Work Type.');
+      return showError(t('validationWorkTypeRequired'));
     }
     if (workType === 'Team' && !teamSize) {
-      return showError('Please select your Team Size.');
+      return showError(t('validationTeamSizeRequired'));
+    }
+    if (!tagline?.nl?.trim()) {
+      return showError(t('validationTaglineDutchRequired'));
+    }
+    if (!description?.nl?.trim()) {
+      return showError(t('validationDescriptionDutchRequired'));
     }
 
     handleNextStep({
@@ -208,7 +215,7 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
   return (
     <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
       <View style={styles.form}>
-        <Text style={styles.titleText}>Your Business Info</Text>
+        <Text style={styles.titleText}>{t('vendorBusinessInfoTitle')}</Text>
 
         <KeyboardAvoidingView>
           {/* Company Name */}
@@ -259,9 +266,9 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
 
           <Spacing />
 
-          {/* Website */}
+          {/* Website (optional) */}
           <TextField
-            label={t('Company Website')}
+            label={t('Company Website (optional)')}
             placeholder={t('Enter Website URL')}
             value={formData.companyWebsite}
             onChangeText={val => handleInputChange('companyWebsite', val)}
@@ -283,14 +290,14 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
 
           <Spacing />
 
-          {/* Passport */}
+          {/* Passport (optional) */}
           <TextField
-            label={t('Passport Number')}
+            label={t('Passport Number (optional)')}
             placeholder={t('Enter Passport Number')}
             value={formData.passportNumber}
             onChangeText={val => handleInputChange('passportNumber', val)}
             bgColor={COLORS.white}
-            keyboardType="phone-pad"
+            keyboardType="default"
           />
 
           <Spacing />
@@ -334,18 +341,7 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
 
           <Spacing />
 
-          {/* Tagline (English) */}
-          <TextField
-            label={t('Tagline (English)')}
-            placeholder={t('Add Why Choose Us (English)')}
-            value={formData.tagline.en}
-            onChangeText={text => handleLangBasedInput('tagline', 'en', text)}
-            bgColor={COLORS.white}
-          />
-
-          <Spacing />
-
-          {/* Tagline (Dutch) */}
+          {/* Tagline (Dutch, required) */}
           <TextField
             label={t('Tagline (Dutch)')}
             placeholder={t('Add Why Choose Us (Dutch)')}
@@ -356,24 +352,18 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
 
           <Spacing />
 
-          {/* Description (English) */}
+          {/* Tagline (English, optional) */}
           <TextField
-            label={t('Description (English)')}
-            placeholder={t(
-              'Focused on creating vibes through immersive sound... (English)',
-            )}
-            value={formData.description.en}
-            onChangeText={text =>
-              handleLangBasedInput('description', 'en', text)
-            }
+            label={t('taglineEnglishOptional')}
+            placeholder={t('Add Why Choose Us (English)')}
+            value={formData.tagline.en}
+            onChangeText={text => handleLangBasedInput('tagline', 'en', text)}
             bgColor={COLORS.white}
-            multiline
-            numberOfLines={3}
           />
 
           <Spacing />
 
-          {/* Description (Dutch) */}
+          {/* Description (Dutch, required) */}
           <TextField
             label={t('Description (Dutch)')}
             placeholder={t(
@@ -382,6 +372,23 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
             value={formData.description.nl}
             onChangeText={text =>
               handleLangBasedInput('description', 'nl', text)
+            }
+            bgColor={COLORS.white}
+            multiline
+            numberOfLines={3}
+          />
+
+          <Spacing />
+
+          {/* Description (English, optional) */}
+          <TextField
+            label={t('descriptionEnglishOptional')}
+            placeholder={t(
+              'Focused on creating vibes through immersive sound... (English)',
+            )}
+            value={formData.description.en}
+            onChangeText={text =>
+              handleLangBasedInput('description', 'en', text)
             }
             bgColor={COLORS.white}
             multiline
@@ -403,7 +410,7 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
               styleContainer={styles.backButton}
             />
             <GradientButton
-              text={t('Continue')}
+              text={t('continue')}
               onPress={handleContinue}
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}

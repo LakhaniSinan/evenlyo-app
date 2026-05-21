@@ -1,6 +1,5 @@
 import i18n from 'i18next';
 import {initReactI18next} from 'react-i18next';
-import {getLocales} from 'react-native-localize';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import translations from '../../locales';
@@ -14,13 +13,8 @@ const LANGUAGE_DETECTOR = {
       return callback(savedLanguage);
     }
 
-    // If no saved language, use device language
-    const deviceLanguages = getLocales();
-    const deviceLanguage = deviceLanguages[0]?.languageCode || 'en';
-
-    // Check if we support the device language
-    const supportedLanguage = translations[deviceLanguage] ? deviceLanguage : 'en';
-    return callback(supportedLanguage);
+    // Default to Dutch when no saved preference
+    return callback('nl');
   },
   init: () => {},
   cacheUserLanguage: async language => {
@@ -40,7 +34,7 @@ i18n
         translation: translations.nl,
       },
     },
-    fallbackLng: 'en',
+    fallbackLng: 'nl',
     debug: __DEV__,
 
     interpolation: {

@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {
   Dimensions,
   StyleSheet,
@@ -9,38 +9,74 @@ import {
 import {PieChart} from 'react-native-chart-kit';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 import CustomPicker from '../customPicker';
 
 const screenWidth = Dimensions.get('window').width;
+
+const FILTER_MONTHLY = 'Monthly';
+const FILTER_SIX_MONTHS = '6 Months';
+const FILTER_YEARLY = 'Yearly';
+
+const PIE_CHART_COLORS = [
+  '#FF2D87',
+  '#3B82F6',
+  '#F59E0B',
+  '#10B981',
+  '#8B5CF6',
+  '#F97316',
+];
 
 const PieChartComponent = ({
   labelll = 'Orders Overview',
   data = [],
   loading = false,
 }) => {
+  const {t, currentLanguage} = useTranslation();
   const selectSizeRef = useRef();
-  const [filterType, setFilterType] = useState('Monthly');
+  const [filterType, setFilterType] = useState(FILTER_MONTHLY);
 
-  // 🎨 Auto color list for pie slices
-  const chartColors = [
-    '#FF2D87',
-    '#3B82F6',
-    '#F59E0B',
-    '#10B981',
-    '#8B5CF6',
-    '#F97316',
-  ];
+  const filterOptions = useMemo(
+    () => [
+      {name: FILTER_MONTHLY, label: t('chartFilterMonthly')},
+      {name: FILTER_SIX_MONTHS, label: t('chartFilterSixMonths')},
+      {name: FILTER_YEARLY, label: t('chartFilterYearly')},
+    ],
+    [t, currentLanguage],
+  );
+
+  const selectedFilterLabel =
+    filterOptions.find(option => option.name === filterType)?.label ||
+    t('chartFilterMonthly');
+
+  const getCategoryDisplayName = useCallback(
+    categoryName => {
+      if (!categoryName) {
+        return t('Unknown');
+      }
+      if (typeof categoryName === 'string') {
+        return categoryName;
+      }
+      return currentLanguage === 'nl'
+        ? categoryName?.nl || categoryName?.en || t('Unknown')
+        : categoryName?.en || categoryName?.nl || t('Unknown');
+    },
+    [currentLanguage, t],
+  );
 
   // 🧠 Convert API data into chart format
-  const chartData = data?.length
-    ? data.map((item, index) => ({
-        name: item.categoryName || 'Unknown',
-        population: item.totalEarnings || 0, // 👈 change to totalBookings if needed
-        color: chartColors[index % chartColors.length],
-        legendFontColor: '#000',
-        legendFontSize: 10,
-      }))
-    : [];
+  const chartData = useMemo(() => {
+    if (!data?.length) {
+      return [];
+    }
+    return data.map((item, index) => ({
+      name: getCategoryDisplayName(item.categoryName),
+      population: item.totalEarnings || 0,
+      color: PIE_CHART_COLORS[index % PIE_CHART_COLORS.length],
+      legendFontColor: '#000',
+      legendFontSize: 10,
+    }));
+  }, [data, getCategoryDisplayName]);
 
   const handleSelectValue = (_, value) => {
     setFilterType(value?.name || value);
@@ -55,8 +91,8 @@ const PieChartComponent = ({
           <CustomPicker
             ref={selectSizeRef}
             value={filterType}
-            labelll={labelll}
-            listData={[{name: 'Monthly'}, {name: '6 Months'}, {name: 'Yearly'}]}
+            labelll={selectedFilterLabel}
+            listData={filterOptions}
             name="filterType"
             handleSelectValue={handleSelectValue}
             dropdownContainerStyle={{backgroundColor: COLORS.white}}
@@ -68,11 +104,11 @@ const PieChartComponent = ({
       {loading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={COLORS.primary || '#FF2D87'} />
-          <Text style={styles.loaderText}>Loading chart data...</Text>
+          <Text style={styles.loaderText}>{t('chartLoadingData')}</Text>
         </View>
       ) : !data?.length ? (
         <View style={styles.loaderContainer}>
-          <Text style={styles.noDataText}>No data available</Text>
+          <Text style={styles.noDataText}>{t('chartNoDataAvailable')}</Text>
         </View>
       ) : (
         <View style={styles.chartContainer}>
@@ -84,7 +120,7 @@ const PieChartComponent = ({
                   style={[styles.legendDot, {backgroundColor: item.color}]}
                 />
                 <Text style={styles.legendText}>{item.name}</Text>
-                <Text style={styles.legendValue}>${item.population}</Text>
+                <Text style={styles.legendValue}>€{item.population}</Text>
               </View>
             ))}
           </View>

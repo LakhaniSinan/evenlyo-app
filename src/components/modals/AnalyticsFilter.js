@@ -1,6 +1,6 @@
 import moment from 'moment';
 import React, {useEffect, useState} from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Alert, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -25,7 +25,9 @@ const AnalyticsFilter = ({
   const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible) {
+      return;
+    }
     setStartDate(filters?.startDate || '');
     setEndDate(filters?.endDate || '');
   }, [filters?.endDate, filters?.startDate, isVisible]);
@@ -35,7 +37,9 @@ const AnalyticsFilter = ({
 
   const handleDateSelect = date => {
     const selectedDate = date?.format ? date.format('YYYY-MM-DD') : '';
-    if (!selectedDate) return;
+    if (!selectedDate) {
+      return;
+    }
 
     if (activeField === 'endDate') {
       setEndDate(selectedDate);
@@ -45,6 +49,14 @@ const AnalyticsFilter = ({
   };
 
   const handleApplyFilters = () => {
+    if (
+      startDate &&
+      endDate &&
+      moment(endDate).isBefore(moment(startDate), 'day')
+    ) {
+      Alert.alert(t('Error'), t('analyticsFilterEndBeforeStart'));
+      return;
+    }
     onApplyFilters?.({startDate, endDate});
     onClose?.();
   };
@@ -67,57 +79,28 @@ const AnalyticsFilter = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('Filter')}</Text>
-          <TouchableOpacity onPress={onClose}>
+          <TouchableOpacity onPress={onClose} hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
             <Icon name="close" size={24} color="#333" />
           </TouchableOpacity>
         </View>
-        <View style={{}}>
-          <Text
-            style={{
-              fontFamily: fontFamly.PlusJakartaSansBold,
-              fontSize: 12,
-              color: COLORS.black,
-            }}>
-            {t('Start Date')}
-          </Text>
+
+        <View style={styles.fields}>
+          <Text style={styles.fieldLabel}>{t('Start Date')}</Text>
           <TouchableOpacity
             onPress={() => {
               setActiveField('startDate');
               setShowCalendar(true);
             }}
-            style={{
-              marginTop: width(2),
-              height: width(13),
-              borderRadius: 12,
-              backgroundColor: COLORS.backgroundLight,
-              justifyContent: 'center',
-              paddingHorizontal: width(4),
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexDirection: 'row',
-              paddingHorizontal: width(3),
-            }}>
-            <Text
-              style={{
-                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                color: COLORS.textLight,
-              }}>
-              {formatDateLabel(startDate)}
-            </Text>
+            style={styles.dateField}>
+            <Text style={styles.dateFieldText}>{formatDateLabel(startDate)}</Text>
             <Image
               source={ICONS.calenderIcon}
-              style={{height: 20, width: 20}}
+              style={styles.calendarIcon}
               resizeMode="contain"
             />
           </TouchableOpacity>
-        </View>
-        <View style={{}}>
-          <Text
-            style={{
-              fontFamily: fontFamly.PlusJakartaSansBold,
-              fontSize: 12,
-              color: COLORS.black,
-            }}>
+
+          <Text style={[styles.fieldLabel, styles.endDateLabel]}>
             {t('End Date')}
           </Text>
           <TouchableOpacity
@@ -125,66 +108,30 @@ const AnalyticsFilter = ({
               setActiveField('endDate');
               setShowCalendar(true);
             }}
-            style={{
-              marginTop: width(2),
-              height: width(13),
-              borderRadius: 12,
-              backgroundColor: COLORS.backgroundLight,
-              justifyContent: 'center',
-              paddingHorizontal: width(4),
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexDirection: 'row',
-              paddingHorizontal: width(3),
-            }}>
-            <Text
-              style={{
-                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                color: COLORS.textLight,
-              }}>
-              {formatDateLabel(endDate)}
-            </Text>
+            style={styles.dateField}>
+            <Text style={styles.dateFieldText}>{formatDateLabel(endDate)}</Text>
             <Image
               source={ICONS.calenderIcon}
-              style={{height: 20, width: 20}}
+              style={styles.calendarIcon}
               resizeMode="contain"
             />
           </TouchableOpacity>
         </View>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            position: 'absolute',
-            bottom: 20,
-            left: 20,
-            width: '100%',
-          }}>
-          <View style={{}}>
-            <TouchableOpacity
-              onPress={handleResetFilters}
-              style={{
-                backgroundColor: COLORS.backgroundLight,
-                paddingVertical: 12,
-                paddingHorizontal: 24,
-                borderRadius: 15,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              activeOpacity={0.7}>
-              <GradientText text={t('Reset All')} />
-            </TouchableOpacity>
-          </View>
-          <View style={{}}>
+
+        <View style={styles.footer}>
+          <TouchableOpacity
+            onPress={handleResetFilters}
+            style={styles.resetButton}
+            activeOpacity={0.7}>
+            <GradientText text={t('Reset All')} />
+          </TouchableOpacity>
+          <View style={styles.applyButtonWrap}>
             <GradientButton
               text={t('Apply Filters')}
               onPress={handleApplyFilters}
               type="filled"
-              textStyle={{
-                fontSize: 12,
-                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                color: 'white',
-              }}
+              styleContainer={styles.applyButtonContainer}
+              textStyle={styles.applyButtonText}
             />
           </View>
         </View>
@@ -196,7 +143,8 @@ const AnalyticsFilter = ({
         selectedStartDate={activeField === 'endDate' ? endDate : startDate}
         selectedEndDate={null}
         mode="single"
-        title={t('selectDate') || 'Select Date'}
+        title={t('selectDate')}
+        allowPastDates
       />
     </Modal>
   );
@@ -209,11 +157,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#8b8b8b66',
   },
   container: {
-    height: '50%',
+    minHeight: '50%',
+    maxHeight: '70%',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     backgroundColor: COLORS.white,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -221,7 +172,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-
     elevation: 5,
   },
   header: {
@@ -235,6 +185,67 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.black,
+  },
+  fields: {
+    flex: 1,
+  },
+  fieldLabel: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 12,
+    color: COLORS.black,
+  },
+  endDateLabel: {
+    marginTop: width(4),
+  },
+  dateField: {
+    marginTop: width(2),
+    height: width(13),
+    borderRadius: 12,
+    backgroundColor: COLORS.backgroundLight,
+    paddingHorizontal: width(3),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateFieldText: {
+    flex: 1,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: COLORS.textLight,
+    marginRight: width(2),
+  },
+  calendarIcon: {
+    height: 20,
+    width: 20,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: width(3),
+    marginTop: width(4),
+    paddingTop: width(2),
+  },
+  resetButton: {
+    flex: 1,
+    minHeight: width(12),
+    backgroundColor: COLORS.backgroundLight,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  applyButtonWrap: {
+    flex: 1,
+    minWidth: 0,
+  },
+  applyButtonContainer: {
+    flex: 1,
+    minHeight: width(12),
+  },
+  applyButtonText: {
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: COLORS.white,
   },
 });
 

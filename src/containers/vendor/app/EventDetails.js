@@ -1,3 +1,5 @@
+import moment from 'moment';
+import 'moment/locale/nl';
 import React, {
   memo,
   useCallback,
@@ -12,7 +14,9 @@ import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import CarouselComponent from '../../../components/carousel';
 import CommonAlert from '../../../components/commanAlert';
-import EventAndPriceDetails from '../../../components/eventDetailAndPrice';
+import EventAndPriceDetails, {
+  EventListingReviewsSection,
+} from '../../../components/eventDetailAndPrice';
 import Loader from '../../../components/loder';
 import CategoryEditSuccess from '../../../components/modals/CategoryEditSuccess';
 import DeleteRequestModal from '../../../components/modals/DeleteRequestModal';
@@ -22,15 +26,20 @@ import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {getBookingDetails, toggleStatus} from '../../../services/ListingsItem';
 
-const DAYS = [
-  {key: 'mon', label: 'Mon'},
-  {key: 'tue', label: 'Tue'},
-  {key: 'wed', label: 'Wed'},
-  {key: 'thu', label: 'Thu'},
-  {key: 'fri', label: 'Fri'},
-  {key: 'sat', label: 'Sat'},
-  {key: 'sun', label: 'Sun'},
-];
+const WEEKDAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+const pickApiMessage = (message, lang) => {
+  if (message == null) {
+    return '';
+  }
+  if (typeof message === 'string') {
+    return message;
+  }
+  if (typeof message === 'object') {
+    return lang === 'nl' ? message.nl || message.en : message.en || message.nl;
+  }
+  return String(message);
+};
 
 function EventDetailsScreen({navigation, route}) {
   const {t, currentLanguage} = useTranslation();
@@ -52,20 +61,24 @@ function EventDetailsScreen({navigation, route}) {
       if (response.status === 200 || response.status === 201) {
         setListingDetails(response.data.data);
       } else {
+        const msg =
+          pickApiMessage(response?.data?.message, currentLanguage) ||
+          t('Something went wrong');
         modalRef.current?.show({
           status: 'error',
-          message:
-            currentLanguage === 'en'
-              ? response?.data?.message?.en
-              : response?.data?.message?.nl,
+          message: msg,
         });
       }
     } catch (error) {
       console.log('Error fetching listing details:', error);
+      modalRef.current?.show({
+        status: 'error',
+        message: t('Something went wrong'),
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [item?._id]);
+  }, [item?._id, currentLanguage, t]);
 
   useEffect(() => {
     handleGetListingDetails();
@@ -76,32 +89,36 @@ function EventDetailsScreen({navigation, route}) {
     try {
       const response = await toggleStatus(item?.id);
       if (response?.status === 200 || response?.status === 201) {
+        const msg =
+          pickApiMessage(response?.data?.message, currentLanguage) ||
+          t('successfullyChanged');
         modalRef.current?.show({
           status: 'ok',
-          message:
-            currentLanguage === 'en'
-              ? response?.data?.message?.en
-              : response?.data?.message?.nl,
+          message: msg,
           handlePressOk: async () => {
             modalRef.current?.hide();
             await handleGetListingDetails();
           },
         });
       } else {
+        const msg =
+          pickApiMessage(response?.data?.message, currentLanguage) ||
+          t('Something went wrong');
         modalRef.current?.show({
           status: 'error',
-          message:
-            currentLanguage === 'en'
-              ? response?.data?.message?.en
-              : response?.data?.message?.nl,
+          message: msg,
         });
       }
     } catch (error) {
       console.log('Error toggling status:', error);
+      modalRef.current?.show({
+        status: 'error',
+        message: t('Something went wrong'),
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [item?.id, handleGetListingDetails]);
+  }, [item?.id, handleGetListingDetails, currentLanguage, t]);
 
   const handleBackPress = useCallback(() => navigation.goBack(), [navigation]);
 
@@ -120,24 +137,52 @@ function EventDetailsScreen({navigation, route}) {
     if (!listingDetails) {
       return [];
     }
+    const locale = currentLanguage === 'nl' ? 'nl' : 'en';
     const slot = listingDetails?.availability?.availableTimeSlots?.[0] || {};
-    return DAYS.map(day => {
+    const unavailableLabel = t('notAvailable');
+
+    const mondayWeek = moment().locale(locale).clone().isoWeekday(1);
+
+    return WEEKDAY_KEYS.map((dayKey, index) => {
       const isAvailable = listingDetails?.availability?.availableDays?.includes(
-        day.key,
+        dayKey,
       );
+      const dayLabel = mondayWeek
+        .clone()
+        .add(index, 'days')
+        .format('ddd');
+
       return {
-        day: day.label,
+        day: dayLabel,
         isAvailable,
-        opening: isAvailable ? slot.startTime || '—' : '',
-        closing: isAvailable ? slot.endTime || '—' : '',
+        opening: isAvailable ? slot.startTime || unavailableLabel : '',
+        closing: isAvailable ? slot.endTime || unavailableLabel : '',
       };
     });
-  }, [listingDetails]);
+  }, [listingDetails, currentLanguage, t]);
+
+  const descriptionParagraph = useMemo(() => {
+    const desc = listingDetails?.description;
+    if (!desc) {
+      return t('notAvailable');
+    }
+    if (typeof desc === 'string') {
+      return desc.trim() || t('notAvailable');
+    }
+    const text =
+      currentLanguage === 'nl'
+        ? desc.nl || desc.en
+        : desc.en || desc.nl;
+    return (text || '').trim() || t('notAvailable');
+  }, [listingDetails?.description, currentLanguage, t]);
+
+  const feeAmount = listingDetails?.pricing?.securityFee;
+  const perKmAmount = listingDetails?.pricing?.pricePerKm;
 
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader
-        headingText="Details"
+        headingText={t('vendorEventDetailsHeader')}
         leftIcon={ICONS.leftArrowIcon}
         onLeftIconPress={handleBackPress}
       />
@@ -154,50 +199,66 @@ function EventDetailsScreen({navigation, route}) {
 
         <View style={styles.feeContainer}>
           <View style={styles.feeRow}>
-            <Text
-              style={
-                styles.feeText
-              }>{`Extra: €${listingDetails?.pricing?.securityFee}`}</Text>
-            <Text style={styles.feeSubText}>Security Fee</Text>
+            <Text style={styles.feeText}>
+              {t('vendorEventFeeExtraPrefix', {
+                amount:
+                  feeAmount != null && feeAmount !== ''
+                    ? String(feeAmount)
+                    : t('notAvailable'),
+              })}
+            </Text>
+            <Text style={styles.feeSubText}>
+              {t('vendorEventSecurityFeeShortLabel')}
+            </Text>
           </View>
           <View style={styles.feeRow}>
-            <Text style={styles.feeText}>Kilometer:</Text>
-            <Text
-              style={
-                styles.feeSubText
-              }>{`1km €${listingDetails?.pricing?.pricePerKm}`}</Text>
+            <Text style={styles.feeText}>
+              {t('vendorEventKmRowLabel')}
+              :
+            </Text>
+            <Text style={styles.feeSubText}>
+              {t('vendorEventPricePerKmLine', {
+                amount:
+                  perKmAmount != null && perKmAmount !== ''
+                    ? String(perKmAmount)
+                    : t('notAvailable'),
+              })}
+            </Text>
           </View>
         </View>
 
+        <EventListingReviewsSection data={listingDetails} />
+
         <View style={styles.descriptionContainer}>
-          <Text style={styles.descriptionTitle}>Description:</Text>
+          <Text style={styles.descriptionTitle}>{`${t('Description')}:`}</Text>
           <Text numberOfLines={4} style={styles.descriptionText}>
-            {currentLanguage === 'en'
-              ? listingDetails?.description?.en
-              : listingDetails?.description?.nl}
+            {descriptionParagraph}
           </Text>
         </View>
 
         <View style={styles.scheduleContainer}>
           <Text style={styles.scheduleTitle}>
-            Opening / Closing: Day & Time
+            {t('vendorEventOpeningHoursTitle')}
           </Text>
-          {scheduleData.map((item, index) => (
+          {scheduleData.map((row, index) => (
             <View
               key={index}
               style={[
                 styles.scheduleRow,
                 index === scheduleData.length - 1 && {borderBottomWidth: 0},
               ]}>
-              <Text style={styles.scheduleDay}>{item.day}</Text>
+              <Text style={styles.scheduleDay}>{row.day}</Text>
               <Text
                 style={[
                   styles.scheduleTime,
-                  {color: item.isAvailable ? COLORS.textLight : '#999'},
+                  {color: row.isAvailable ? COLORS.textLight : '#999'},
                 ]}>
-                {item.isAvailable
-                  ? `${item.opening} to ${item.closing}`
-                  : 'Closed'}
+                {row.isAvailable
+                  ? t('vendorEventTimeSlotRange', {
+                      start: row.opening,
+                      end: row.closing,
+                    })
+                  : t('vendorEventScheduleClosed')}
               </Text>
             </View>
           ))}
@@ -223,7 +284,7 @@ function EventDetailsScreen({navigation, route}) {
         />
         <CategoryEditSuccess
           visible={successModalVisible}
-          type="Successfully Delete!"
+          type="vendorEventSuccessfullyDeletedModal"
         />
 
         <Loader isLoading={isLoading} />
@@ -291,6 +352,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansMedium,
     fontSize: 12,
     color: COLORS.black,
+    textTransform: 'capitalize',
   },
   scheduleTime: {fontFamily: fontFamly.PlusJakartaSansMedium, fontSize: 12},
 });

@@ -18,7 +18,9 @@ import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
 import CarouselComponent from '../../../components/carousel';
 import CommonAlert from '../../../components/commanAlert';
-import EventAndPriceDetails from '../../../components/eventDetailAndPrice';
+import EventAndPriceDetails, {
+  EventListingReviewsSection,
+} from '../../../components/eventDetailAndPrice';
 import GradientText from '../../../components/gradiantText';
 import Loader from '../../../components/loder';
 import CancelBookingModal from '../../../components/modals/CancellationModal';
@@ -367,6 +369,12 @@ const BookingDetails = ({route, navigation}) => {
           <Image style={styles.arrowIcon} source={ICONS.arrowIcon} />
           <RenderCards type="Check Out" data={bookingData?.bookingDateTime} />
         </View>
+        <EventListingReviewsSection
+          data={{
+            ...(bookingData?.listingDetails || {}),
+            reviews: bookingData?.listingDetails?.reviews || bookingData?.reviews,
+          }}
+        />
         <View style={{paddingVertical: width(3), marginHorizontal: 20}}>
           <Text
             style={{

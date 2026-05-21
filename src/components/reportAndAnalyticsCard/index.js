@@ -7,9 +7,11 @@ import {
   COLORS,
   fontFamly,
 } from '../../constants';
+import {useTranslation} from '../../hooks';
 
 const AnalyticsCard = ({item}) => {
-  const isGradient = item?.title === 'Last Week Earning';
+  const {t} = useTranslation();
+  const isGradient = item?.isGradient === true;
 
   return (
     <View style={styles.cardOuter}>
@@ -22,18 +24,18 @@ const AnalyticsCard = ({item}) => {
             end={{x: 1, y: 0}}
             style={styles.gradientFill}
           />
-          <CardContent item={item} isDark />
+          <CardContent item={item} isDark label={t(item?.titleKey || item?.title)} />
         </View>
       ) : (
         <View style={styles.plainCard}>
-          <CardContent item={item} />
+          <CardContent item={item} label={t(item?.titleKey || item?.title)} />
         </View>
       )}
     </View>
   );
 };
 
-const CardContent = ({item, isDark = false}) => {
+const CardContent = ({item, isDark = false, label}) => {
   return (
     <>
       <View
@@ -48,8 +50,11 @@ const CardContent = ({item, isDark = false}) => {
             fontFamily: fontFamly.PlusJakartaSansSemiBold,
             fontSize: 10,
             color: isDark ? COLORS.white : COLORS.textDark,
-          }}>
-          {item?.title}
+            flex: 1,
+            marginRight: 4,
+          }}
+          numberOfLines={2}>
+          {label}
         </Text>
         <View
           style={{
@@ -60,10 +65,7 @@ const CardContent = ({item, isDark = false}) => {
             borderColor: COLORS.border,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor:
-              item?.title === 'Last Week Earning'
-                ? 'transparent'
-                : COLORS.white,
+            backgroundColor: isDark ? 'transparent' : COLORS.white,
           }}>
           <Image
             source={item.icon}

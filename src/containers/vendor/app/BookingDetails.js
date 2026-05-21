@@ -27,54 +27,69 @@ import {
   rejectBooking,
   updateStatus,
 } from '../../../services/BookingItem';
-const STATUS_CONFIG = {
-  pending: {
-    bg: '#FFF4E5',
-    text: '#FF9800',
-    label: 'Pending',
-  },
-  accepted: {
-    bg: '#E3F2FD',
-    text: '#1976D2',
-    label: 'Accepted',
-  },
-  on_the_way: {
-    bg: '#E1F5FE',
-    text: '#0288D1',
-    label: 'On the way',
-  },
-  finished: {
-    bg: '#E8F5E9',
-    text: '#2E7D32',
-    label: 'Finished',
-  },
-  picked_up: {
-    bg: '#F3E5F5',
-    text: '#7B1FA2',
-    label: 'Picked up',
-  },
-  received_back: {
-    bg: '#E0F2F1',
-    text: '#00695C',
-    label: 'Received back',
-  },
-  completed: {
-    bg: '#E8F5E9',
-    text: '#1B5E20',
-    label: 'Completed',
-  },
-  rejected: {
-    bg: '#FDECEA',
-    text: '#D32F2F',
-    label: 'Rejected',
-  },
+
+const BOOKING_STATUS_I18N = {
+  pending: 'statusPending',
+  accepted: 'statusAccepted',
+  on_the_way: 'statusOnTheWay',
+  finished: 'statusFinished',
+  picked_up: 'statusPickedUp',
+  received_back: 'statusReceivedBack',
+  completed: 'statusCompleted',
+  rejected: 'statusRejected',
+};
+
+const STATUS_COLORS = {
+  pending: {bg: '#FFF4E5', text: '#FF9800'},
+  accepted: {bg: '#E3F2FD', text: '#1976D2'},
+  on_the_way: {bg: '#E1F5FE', text: '#0288D1'},
+  finished: {bg: '#E8F5E9', text: '#2E7D32'},
+  picked_up: {bg: '#F3E5F5', text: '#7B1FA2'},
+  received_back: {bg: '#E0F2F1', text: '#00695C'},
+  completed: {bg: '#E8F5E9', text: '#1B5E20'},
+  rejected: {bg: '#FDECEA', text: '#D32F2F'},
+};
+
+const PRICING_TYPE_LABEL_KEYS = {
+  perhour: 'Per Hour',
+  perday: 'Per Day',
+  perevent: 'Per Event',
+};
+
+const PAYMENT_STATUS_LABEL_KEYS = {
+  paid: 'Paid',
+  unpaid: 'Unpaid',
+  pending: 'Pending',
+};
+
+const getPricingTypeLabel = (type, translate) => {
+  if (!type) {
+    return '';
+  }
+  const normalized = String(type).toLowerCase().replace(/\s+/g, '');
+  const labelKey = PRICING_TYPE_LABEL_KEYS[normalized];
+  if (labelKey) {
+    return translate(labelKey);
+  }
+  return String(type);
+};
+
+const getPaymentStatusLabel = (status, translate) => {
+  if (!status) {
+    return '';
+  }
+  const labelKey = PAYMENT_STATUS_LABEL_KEYS[String(status).toLowerCase()];
+  if (labelKey) {
+    return translate(labelKey);
+  }
+  return String(status);
 };
 
 function BookingDetails({route}) {
   console.log(route, 'routerouterouterouteroute');
 
   const navigation = useNavigation();
-  const {currentLanguage} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const {_id} = route.params || {};
   const [openPickedUpModal, setOpenPickedUpModal] = useState(false);
 
@@ -92,13 +107,14 @@ function BookingDetails({route}) {
 
   const getStatusStyle = status => {
     const key = (status || '').toLowerCase();
-    return (
-      STATUS_CONFIG[key] || {
-        bg: '#ECEFF1',
-        text: '#37474F',
-        label: status || 'Unknown',
-      }
-    );
+    const colors = STATUS_COLORS[key] || {bg: '#ECEFF1', text: '#37474F'};
+    const labelKey = BOOKING_STATUS_I18N[key];
+    const label = labelKey ? t(labelKey) : status || t('Unknown');
+
+    return {
+      ...colors,
+      label,
+    };
   };
 
   const fetchBookingDetails = useCallback(async () => {
@@ -262,10 +278,56 @@ function BookingDetails({route}) {
     );
   };
 
+  const renderDateBlock = (labelKey, date, time) => (
+    <View style={styles.infoRow}>
+      <Image source={ICONS.clockIcon} style={styles.iconSmall} />
+      <View style={styles.infoText}>
+        <Text style={styles.infoTitle}>{t(labelKey)}</Text>
+        <Text style={styles.infoValue}>{moment(date).format('YYYY-MM-DD')}</Text>
+        <Text style={styles.infoSubValue}>{time}</Text>
+      </View>
+    </View>
+  );
+
+  const renderInfoRow = (icon, titleKey, value) => (
+    <View style={styles.dividerRow}>
+      <Image source={icon} style={styles.iconSmall} />
+      <View style={styles.infoText}>
+        <Text style={styles.infoValue}>{t(titleKey)}</Text>
+        <Text style={styles.infoSubValue}>{value}</Text>
+      </View>
+    </View>
+  );
+
+  const renderUserRow = (user, address) => (
+    <View style={styles.dividerRow}>
+      <View style={styles.avatarContainer}>
+        <Image
+          source={
+            user?.businessLogo ? {uri: user?.businessLogo} : ICONS.userIcon
+          }
+          style={styles.avatar}
+          resizeMode="contain"
+        />
+      </View>
+      <View style={styles.infoText}>
+        <Text style={styles.infoValue}>
+          {user?.firstName} {user?.lastName}
+        </Text>
+        <Text style={styles.infoSubValue}>{address}</Text>
+      </View>
+    </View>
+  );
+
+  const pricingTypeLabel = getPricingTypeLabel(
+    booking?.listingDetails?.pricing?.type,
+    t,
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader
-        headingText="Booking Details"
+        headingText={t('Booking Details')}
         leftIcon={ICONS.leftArrowIcon}
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={navigation.goBack}
@@ -294,16 +356,14 @@ function BookingDetails({route}) {
               <Text style={styles.price}>
                 € {booking?.listingDetails?.pricing?.amount}
               </Text>
-              <Text style={styles.priceType}>
-                /{booking?.listingDetails?.pricing?.type}
-              </Text>
+              <Text style={styles.priceType}>/{pricingTypeLabel}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.card}>
           <View style={styles.rowBetween}>
-            <Text style={styles.cardTitle}>Order Details</Text>
+            <Text style={styles.cardTitle}>{t('Order Details')}</Text>
             {booking?.status &&
               (() => {
                 const statusUI = getStatusStyle(booking.status);
@@ -342,18 +402,22 @@ function BookingDetails({route}) {
             booking?.details?.endTime,
           )}
 
-          {renderInfoRow(ICONS.ticketIcon, 'Tracking ID', booking?.trackingId)}
+          {renderInfoRow(
+            ICONS.ticketIcon,
+            'Tracking ID',
+            booking?.trackingId,
+          )}
           {renderInfoRow(
             ICONS.ticketIcon,
             'Payment Status',
-            booking?.paymentStatus,
+            getPaymentStatusLabel(booking?.paymentStatus, t),
           )}
 
-          <Text style={styles.sectionLabel}>Buyer Details</Text>
+          <Text style={styles.sectionLabel}>{t('Buyer Details')}</Text>
 
           {renderUserRow(booking?.userId, booking?.details?.eventLocation)}
 
-          <Text style={styles.sectionLabel}>Seller Details</Text>
+          <Text style={styles.sectionLabel}>{t('Seller Details')}</Text>
 
           {renderUserRow(
             booking?.vendorDetails,
@@ -447,49 +511,6 @@ function BookingDetails({route}) {
     </SafeAreaView>
   );
 }
-
-const renderDateBlock = (label, date, time) => (
-  <View style={styles.infoRow}>
-    <Image source={ICONS.clockIcon} style={styles.iconSmall} />
-    <View style={styles.infoText}>
-      <Text style={styles.infoTitle}>{label}</Text>
-      <Text style={styles.infoValue}>{moment(date).format('YYYY-MM-DD')}</Text>
-      <Text style={styles.infoSubValue}>{time}</Text>
-    </View>
-  </View>
-);
-
-const renderInfoRow = (icon, title, value) => (
-  <View style={styles.dividerRow}>
-    <Image source={icon} style={styles.iconSmall} />
-    <View style={styles.infoText}>
-      <Text style={styles.infoValue}>{title}</Text>
-      <Text style={styles.infoSubValue}>{value}</Text>
-    </View>
-  </View>
-);
-
-const renderUserRow = (user, address) => {
-  return (
-    <View style={styles.dividerRow}>
-      <View style={styles.avatarContainer}>
-        <Image
-          source={
-            user?.businessLogo ? {uri: user?.businessLogo} : ICONS.userIcon
-          }
-          style={styles.avatar}
-          resizeMode="contain"
-        />
-      </View>
-      <View style={styles.infoText}>
-        <Text style={styles.infoValue}>
-          {user?.firstName} {user?.lastName}
-        </Text>
-        <Text style={styles.infoSubValue}>{address}</Text>
-      </View>
-    </View>
-  );
-};
 
 /* -------------------- Styles -------------------- */
 

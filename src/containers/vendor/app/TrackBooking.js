@@ -3,7 +3,6 @@ import {
   Alert,
   Linking,
   Platform,
-  Pressable,
   ScrollView,
   Share,
   StyleSheet,
@@ -19,73 +18,125 @@ import GradientButton from '../../../components/button';
 import {COLORS, fontFamly} from '../../../constants';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
+import {useTranslation} from '../../../hooks';
 import {setActiveChat} from '../../../redux/slice/chat';
 import {checkIsChatedBefore, createConnection} from '../../../services/Chat';
+import {
+  normalizeStatusKey,
+  translatePricingBreakdownLabel,
+} from '../../../utils/translatePricingBreakdownLabel';
 
-const STATUS_CONFIG = {
+const BOOKING_STATUS_I18N = {
+  pending: 'statusPending',
+  accepted: 'statusAccepted',
+  rejected: 'statusRejected',
+  on_the_way: 'statusOnTheWay',
+  received: 'statusReceived',
+  finished: 'statusFinished',
+  picked_up: 'statusPickedUp',
+  received_back: 'statusReceivedBack',
+  completed: 'statusCompleted',
+  cancelled: 'statusCancelled',
+  claim: 'statusClaim',
+  requested: 'New Request',
+};
+
+const STATUS_TIMELINE_CONFIG = {
   requested: {
-    title: 'New Request',
-    description: 'Booking request received',
+    titleKey: 'New Request',
+    descriptionKey: 'Booking request received',
     icon: 'checkmark-circle',
-    badge: 'Client',
+    badgeKey: 'Client',
     badgeColor: '#FFF2E2',
     textColor: '#D98B2B',
   },
   accepted: {
-    title: 'Order Accepted',
-    description: 'Vendor accepted the order',
+    titleKey: 'Order Accepted',
+    descriptionKey: 'Vendor accepted the order',
     icon: 'checkmark-circle',
-    badge: 'Vendor',
+    badgeKey: 'Vendor',
     badgeColor: '#FFF3E0',
     textColor: '#FF9800',
   },
   on_the_way: {
-    title: 'On The Way',
-    description: 'Status updated',
+    titleKey: 'On The Way',
+    descriptionKey: 'Status updated',
     icon: 'car',
-    badge: 'Driver',
+    badgeKey: 'Driver',
     badgeColor: '#E3F2FD',
     textColor: '#2196F3',
   },
   picked_up: {
-    title: 'Service Received',
-    description: 'Status updated',
+    titleKey: 'Service Received',
+    descriptionKey: 'Status updated',
     icon: 'checkmark-circle',
-    badge: 'Client',
+    badgeKey: 'Client',
     badgeColor: '#E8F5E8',
     textColor: '#2E7D32',
   },
   received: {
-    title: 'Order Accepted',
-    description: 'Vendor accepted the booking',
+    titleKey: 'Order Accepted',
+    descriptionKey: 'Vendor accepted the booking',
     icon: 'checkmark-circle',
-    badge: 'Vendor',
+    badgeKey: 'Vendor',
     badgeColor: '#E8F5E8',
     textColor: '#2E7D32',
   },
   finished: {
-    title: 'Service Finished',
-    description: 'Status updated',
+    titleKey: 'Service Finished',
+    descriptionKey: 'Status updated',
     icon: 'checkmark-circle',
-    badge: 'Vendor',
+    badgeKey: 'Vendor',
     badgeColor: '#E8F5E8',
     textColor: '#2E7D32',
   },
   received_back: {
-    title: 'Service Finished',
-    description: 'Item received back',
+    titleKey: 'Service Finished',
+    descriptionKey: 'Item received back',
     icon: 'checkmark-circle',
-    badge: 'Vendor',
+    badgeKey: 'Vendor',
     badgeColor: '#E8F5E8',
     textColor: '#2E7D32',
   },
   completed: {
-    title: 'Order Completed',
-    description: 'Order completed successfully',
+    titleKey: 'Order Completed',
+    descriptionKey: 'Order completed successfully',
     icon: 'checkmark-circle',
-    badge: 'System',
+    badgeKey: 'System',
     badgeColor: '#FFF1E6',
     textColor: '#E58845',
+  },
+  pending: {
+    titleKey: 'statusPending',
+    descriptionKey: 'Status updated',
+    icon: 'time',
+    badgeKey: 'Client',
+    badgeColor: '#FFF4E5',
+    textColor: '#FF9800',
+  },
+  rejected: {
+    titleKey: 'statusRejected',
+    descriptionKey: 'Booking rejected',
+    icon: 'close-circle',
+    badgeKey: 'Vendor',
+    badgeColor: '#FDECEA',
+    textColor: '#D32F2F',
+  },
+  cancelled: {
+    titleKey: 'statusCancelled',
+    descriptionKey: 'Status updated',
+    icon: 'close-circle',
+    badgeKey: 'System',
+    badgeColor: '#FFEBEE',
+    textColor: '#C62828',
+  },
+  claim: {
+    titleKey: 'statusClaim',
+    descriptionKey: 'Status updated',
+    icon: 'alert-circle',
+    badgeKey: 'Client',
+    badgeColor: '#FFF8E1',
+    textColor: '#FBC02D',
   },
 };
 
@@ -105,15 +156,19 @@ function isSameCalendarDay(isoA, isoB) {
   );
 }
 
-function formatDisplayDate(dateValue) {
+function getDateLocale(language) {
+  return language === 'nl' ? 'nl-NL' : 'en-GB';
+}
+
+function formatDisplayDate(dateValue, locale, emptyLabel = '—') {
   if (!dateValue) {
-    return '—';
+    return emptyLabel;
   }
   const date = new Date(dateValue);
   if (Number.isNaN(date.getTime())) {
-    return '—';
+    return emptyLabel;
   }
-  return date.toLocaleDateString('en-GB', {
+  return date.toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -121,9 +176,9 @@ function formatDisplayDate(dateValue) {
 }
 
 /** API often sends "08:00" / "22:00" strings, not full ISO datetimes. */
-function formatDisplayTime(timeStr) {
+function formatDisplayTime(timeStr, locale, emptyLabel = '—') {
   if (timeStr == null || String(timeStr).trim() === '') {
-    return '—';
+    return emptyLabel;
   }
   const s = String(timeStr).trim();
   const m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
@@ -134,7 +189,7 @@ function formatDisplayTime(timeStr) {
       return s;
     }
     const d = new Date(2000, 0, 1, h, min, 0);
-    return d.toLocaleTimeString('en-GB', {
+    return d.toLocaleTimeString(locale, {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -142,7 +197,7 @@ function formatDisplayTime(timeStr) {
   }
   const d = new Date(s);
   if (!Number.isNaN(d.getTime())) {
-    return d.toLocaleTimeString('en-GB', {
+    return d.toLocaleTimeString(locale, {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -151,7 +206,7 @@ function formatDisplayTime(timeStr) {
   return s;
 }
 
-function buildEventSchedule(data) {
+function buildEventSchedule(data, locale, emptyLabel = '—') {
   const details = data?.details || {};
   const bookingDateTime = data?.bookingDateTime || {};
   const startDateIso = details.startDate || bookingDateTime.start;
@@ -178,11 +233,11 @@ function buildEventSchedule(data) {
     endDateIso,
     startTimeRaw,
     endTimeRaw,
-    singleDateLabel: formatDisplayDate(startDateIso),
-    startDateLabel: formatDisplayDate(startDateIso),
-    endDateLabel: formatDisplayDate(endDateIso),
-    startTimeLabel: formatDisplayTime(startTimeRaw),
-    endTimeLabel: formatDisplayTime(endTimeRaw),
+    singleDateLabel: formatDisplayDate(startDateIso, locale, emptyLabel),
+    startDateLabel: formatDisplayDate(startDateIso, locale, emptyLabel),
+    endDateLabel: formatDisplayDate(endDateIso, locale, emptyLabel),
+    startTimeLabel: formatDisplayTime(startTimeRaw, locale, emptyLabel),
+    endTimeLabel: formatDisplayTime(endTimeRaw, locale, emptyLabel),
   };
 }
 
@@ -191,10 +246,62 @@ const TrackingBookingDetails = ({navigation, route}) => {
   console.log('data', data);
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.LoginSlice);
+  const {t, i18n, currentLanguage} = useTranslation();
+  const dateLocale = getDateLocale(currentLanguage);
+  const notAvailableLabel = t('notAvailable');
   const detailsData = data?.details || {};
   const statusHistory = data?.statusHistory || [];
   const pricingRows = data?.pricingBreakdown?.breakdown || [];
-  const eventSchedule = useMemo(() => buildEventSchedule(data), [data]);
+  const eventSchedule = useMemo(
+    () => buildEventSchedule(data, dateLocale, notAvailableLabel),
+    [data, dateLocale, notAvailableLabel],
+  );
+
+  const translatePricingLabel = useCallback(
+    label => translatePricingBreakdownLabel(label, t, i18n),
+    [t, i18n],
+  );
+
+  const getBookingStatusLabel = useCallback(
+    status => {
+      if (!status) {
+        return t('N/A');
+      }
+      const key = normalizeStatusKey(status);
+      const labelKey = BOOKING_STATUS_I18N[key];
+      if (labelKey) {
+        return t(labelKey);
+      }
+      return t(String(status).trim()) !== String(status).trim()
+        ? t(String(status).trim())
+        : String(status)
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, char => char.toUpperCase());
+    },
+    [t],
+  );
+
+  const listingTitle =
+    currentLanguage === 'en'
+      ? data?.listingDetails?.title?.en
+      : data?.listingDetails?.title?.nl ||
+        data?.listingDetails?.title?.en;
+
+  const getPaymentStatusLabel = useCallback(
+    status => {
+      if (!status) {
+        return t('N/A');
+      }
+      const paymentKeys = {
+        paid: 'Paid',
+        unpaid: 'Unpaid',
+        pending: 'Pending',
+      };
+      const labelKey = paymentKeys[normalizeStatusKey(status)];
+      return labelKey ? t(labelKey) : getBookingStatusLabel(status);
+    },
+    [t, getBookingStatusLabel],
+  );
 
   const formatedParticipants = useCallback(participantsArr => {
     const participants = {};
@@ -223,28 +330,28 @@ const TrackingBookingDetails = ({navigation, route}) => {
     const vendorId = user?.vendorId;
     if (!clientId || !vendorId) {
       Alert.alert(
-        'Chat unavailable',
-        'Client or vendor information is missing for this booking.',
+        t('Chat unavailable'),
+        t('Client or vendor information is missing for this booking.'),
       );
       return;
     }
     try {
       const response = await checkIsChatedBefore(clientId, vendorId);
       if (response?.status !== 200 && response?.status !== 201) {
-        Alert.alert('Error', 'Could not open chat. Please try again.');
+        Alert.alert(t('Error'), t('Could not open chat. Please try again.'));
         return;
       }
       let conversation = response?.data?.data;
       if (!conversation) {
         const createRes = await createConnection({userId: clientId, vendorId});
         if (createRes?.status !== 200 && createRes?.status !== 201) {
-          Alert.alert('Error', 'Could not start a conversation.');
+          Alert.alert(t('Error'), t('Could not start a conversation.'));
           return;
         }
         conversation = createRes?.data?.data;
       }
       if (!conversation?.conversationId) {
-        Alert.alert('Error', 'Could not open chat.');
+        Alert.alert(t('Error'), t('Could not open chat.'));
         return;
       }
       const finalChatData = {
@@ -254,29 +361,32 @@ const TrackingBookingDetails = ({navigation, route}) => {
       dispatch(setActiveChat(finalChatData));
       navigation.navigate('ChatDetails', finalChatData);
     } catch (e) {
-      Alert.alert('Error', 'Could not open chat. Please try again.');
+      Alert.alert(t('Error'), t('Could not open chat. Please try again.'));
     }
-  }, [data, user?.vendorId, dispatch, navigation, formatedParticipants]);
+  }, [data, user?.vendorId, dispatch, navigation, formatedParticipants, t]);
 
   const formatAmount = amount =>
     `€ ${Number(amount || 0)
       .toFixed(2)
       .replace('.', ',')}`;
 
-  const formatTimelineDateTime = dateValue => {
-    const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) {
-      return 'Invalid date';
-    }
-    return date.toLocaleString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
+  const formatTimelineDateTime = useCallback(
+    dateValue => {
+      const date = new Date(dateValue);
+      if (Number.isNaN(date.getTime())) {
+        return t('Invalid date');
+      }
+      return date.toLocaleString(dateLocale, {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+    },
+    [dateLocale, t],
+  );
 
   const timelineData = useMemo(() => {
     const initialTimeline = data?.createdAt
@@ -292,51 +402,54 @@ const TrackingBookingDetails = ({navigation, route}) => {
     const mergedHistory = [...initialTimeline, ...statusHistory];
 
     return mergedHistory.map((item, index) => {
-      const config = STATUS_CONFIG[item.status] || {};
+      const statusKey = normalizeStatusKey(item.status);
+      const config = STATUS_TIMELINE_CONFIG[statusKey] || {};
+      const bookingStatusKey = BOOKING_STATUS_I18N[statusKey];
+
+      const statusTitle = config.titleKey
+        ? t(config.titleKey)
+        : bookingStatusKey
+          ? t(bookingStatusKey)
+          : item.status || t('Unknown');
+
+      const statusDescription = config.descriptionKey
+        ? t(config.descriptionKey)
+        : bookingStatusKey
+          ? t('Status updated')
+          : '';
 
       return {
         id: item._id || index,
-        status: config.title || item.status,
-        description: config.description || '',
+        status: statusTitle,
+        description: statusDescription,
         timestamp: item.timestamp,
         time: formatTimelineDateTime(item.timestamp),
         icon: config.icon || 'time',
-        badge: config.badge || 'Status',
+        badge: config.badgeKey ? t(config.badgeKey) : t('Status'),
         badgeColor: config.badgeColor || '#F5F5F5',
         textColor: config.textColor || '#9E9E9E',
         completed: true,
       };
     });
-  }, [data?.createdAt, statusHistory]);
+  }, [data?.createdAt, statusHistory, t, formatTimelineDateTime]);
 
-  const formatPDFDateTime = dateValue => {
-    const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) {
-      return 'Invalid date';
-    }
-    const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    const day = `${date.getDate()}`.padStart(2, '0');
-    const month = monthNames[date.getMonth()];
-    const year = date.getFullYear();
-    const hours24 = date.getHours();
-    const hours12 = hours24 % 12 || 12;
-    const minutes = `${date.getMinutes()}`.padStart(2, '0');
-    const ampm = hours24 >= 12 ? 'PM' : 'AM';
-    return `${month} ${day}, ${year} ${hours12}:${minutes} ${ampm}`;
-  };
+  const formatPDFDateTime = useCallback(
+    dateValue => {
+      const date = new Date(dateValue);
+      if (Number.isNaN(date.getTime())) {
+        return t('Invalid date');
+      }
+      return date.toLocaleString(dateLocale, {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+    },
+    [dateLocale, t],
+  );
 
   const escapeHtml = value =>
     String(value ?? '')
@@ -375,13 +488,15 @@ const TrackingBookingDetails = ({navigation, route}) => {
     }
   };
 
-  const createOrderTrackingPDFHtml = () => {
+  const createOrderTrackingPDFHtml = useCallback(() => {
     const timelineRows = timelineData
       .map(
         item => `
           <tr>
             <td>${escapeHtml(item.status)}</td>
-            <td>Status updated to ${escapeHtml(item.status)}</td>
+            <td>${escapeHtml(
+              t('Status updated to {{status}}', {status: item.status}),
+            )}</td>
             <td>${escapeHtml(formatPDFDateTime(item.timestamp))}</td>
             <td>${escapeHtml(item.badge)}</td>
           </tr>
@@ -393,7 +508,7 @@ const TrackingBookingDetails = ({navigation, route}) => {
       .map(
         row => `
           <tr>
-            <td>${escapeHtml(row?.label || '-')}</td>
+            <td>${escapeHtml(translatePricingLabel(row?.label))}</td>
             <td style="text-align:right;">${escapeHtml(
               formatAmount(row?.amount).replace(',', '.'),
             )}</td>
@@ -407,14 +522,14 @@ const TrackingBookingDetails = ({navigation, route}) => {
       data?.totalPrice || data?.pricingBreakdown?.total || 0,
     ).replace(',', '.');
 
-    const schedPdf = buildEventSchedule(data);
+    const schedPdf = buildEventSchedule(data, dateLocale, notAvailableLabel);
     const locPdf = escapeHtml(
-      data?.eventLocation || detailsData?.eventLocation || 'N/A',
+      data?.eventLocation || detailsData?.eventLocation || t('N/A'),
     );
     const eventLocationAndDatesPdf = schedPdf.isMultiDay
-      ? `<tr><td class="key">Event Location</td><td class="value">${locPdf}</td><td class="key">Start date</td><td class="value">${escapeHtml(schedPdf.startDateLabel)}</td></tr><tr><td class="key">End date</td><td class="value">${escapeHtml(schedPdf.endDateLabel)}</td><td class="key"></td><td class="value"></td></tr>`
-      : `<tr><td class="key">Event Location</td><td class="value">${locPdf}</td><td class="key">Event Date</td><td class="value">${escapeHtml(schedPdf.singleDateLabel)}</td></tr>`;
-    const timesRowPdf = `<tr><td class="key">Start Time</td><td class="value">${escapeHtml(schedPdf.startTimeLabel)}</td><td class="key">End Time</td><td class="value">${escapeHtml(schedPdf.endTimeLabel)}</td></tr>`;
+      ? `<tr><td class="key">${escapeHtml(t('Event Location'))}</td><td class="value">${locPdf}</td><td class="key">${escapeHtml(t('Start date'))}</td><td class="value">${escapeHtml(schedPdf.startDateLabel)}</td></tr><tr><td class="key">${escapeHtml(t('End date'))}</td><td class="value">${escapeHtml(schedPdf.endDateLabel)}</td><td class="key"></td><td class="value"></td></tr>`
+      : `<tr><td class="key">${escapeHtml(t('Event Location'))}</td><td class="value">${locPdf}</td><td class="key">${escapeHtml(t('Event Date'))}</td><td class="value">${escapeHtml(schedPdf.singleDateLabel)}</td></tr>`;
+    const timesRowPdf = `<tr><td class="key">${escapeHtml(t('Start Time'))}</td><td class="value">${escapeHtml(schedPdf.startTimeLabel)}</td><td class="key">${escapeHtml(t('End Time'))}</td><td class="value">${escapeHtml(schedPdf.endTimeLabel)}</td></tr>`;
 
     return `
       <!DOCTYPE html>
@@ -451,39 +566,53 @@ const TrackingBookingDetails = ({navigation, route}) => {
             <div class="brand-icon">E</div>
             <div class="brand-name">Evenlyo</div>
           </div>
-          <div class="report-title">Order Tracking Report</div>
+          <div class="report-title">${escapeHtml(t('Order Tracking Report'))}</div>
         </div>
 
-        <div class="section-title">Order Information</div>
+        <div class="section-title">${escapeHtml(t('Order Information'))}</div>
         <table>
-          <tr><td class="key">Order ID</td><td class="value">${escapeHtml(data?.trackingId || 'N/A')}</td><td class="key">Status</td><td class="value">${escapeHtml(data?.status || 'N/A')}</td></tr>
-          <tr><td class="key">Client Name</td><td class="value">${escapeHtml(data?.client?.fullName || data?.userId?.fullName || 'N/A')}</td><td class="key">Phone</td><td class="value">${escapeHtml(data?.client?.contactNumber || data?.userId?.contactNumber || 'N/A')}</td></tr>
-          <tr><td class="key">Email</td><td class="value">${escapeHtml(data?.client?.email || data?.userId?.email || 'N/A')}</td><td class="key">Client Location</td><td class="value">${escapeHtml(data?.eventLocation || detailsData?.eventLocation || 'N/A')}</td></tr>
+          <tr><td class="key">${escapeHtml(t('Order ID'))}</td><td class="value">${escapeHtml(data?.trackingId || t('N/A'))}</td><td class="key">${escapeHtml(t('Status'))}</td><td class="value">${escapeHtml(getBookingStatusLabel(data?.status))}</td></tr>
+          <tr><td class="key">${escapeHtml(t('Booking Item'))}</td><td class="value">${escapeHtml(listingTitle || t('Untitled'))}</td><td class="key">${escapeHtml(t('Payment Status'))}</td><td class="value">${escapeHtml(getPaymentStatusLabel(data?.paymentStatus))}</td></tr>
+          <tr><td class="key">${escapeHtml(t('Client Name'))}</td><td class="value">${escapeHtml(data?.client?.fullName || data?.userId?.fullName || t('N/A'))}</td><td class="key">${escapeHtml(t('Phone'))}</td><td class="value">${escapeHtml(data?.client?.contactNumber || data?.userId?.contactNumber || t('N/A'))}</td></tr>
+          <tr><td class="key">${escapeHtml(t('Email'))}</td><td class="value">${escapeHtml(data?.client?.email || data?.userId?.email || t('N/A'))}</td><td class="key">${escapeHtml(t('Client Location'))}</td><td class="value">${escapeHtml(data?.eventLocation || detailsData?.eventLocation || t('N/A'))}</td></tr>
           ${eventLocationAndDatesPdf}
           ${timesRowPdf}
         </table>
 
-        <div class="section-title">Pricing Breakdown</div>
+        <div class="section-title">${escapeHtml(t('Pricing Breakdown'))}</div>
         <table>
-          <tr><th>Description</th><th style="text-align:right;">Amount</th></tr>
+          <tr><th>${escapeHtml(t('Description'))}</th><th style="text-align:right;">${escapeHtml(t('Amount'))}</th></tr>
           ${pricingHtmlRows}
-          <tr class="total-row"><td>Total</td><td style="text-align:right;">${escapeHtml(totalAmount)}</td></tr>
+          <tr class="total-row"><td>${escapeHtml(t('Total'))}</td><td style="text-align:right;">${escapeHtml(totalAmount)}</td></tr>
         </table>
 
-        <div class="section-title">Order Timeline</div>
+        <div class="section-title">${escapeHtml(t('Order Timeline'))}</div>
         <table>
-          <tr><th>Title</th><th>Description</th><th>Date</th><th>Actor</th></tr>
+          <tr><th>${escapeHtml(t('Title'))}</th><th>${escapeHtml(t('Description'))}</th><th>${escapeHtml(t('Date'))}</th><th>${escapeHtml(t('Actor'))}</th></tr>
           ${timelineRows}
         </table>
 
         <div class="footer">
-          <span>Generated on: ${escapeHtml(generatedAt)}</span>
-          <span>Page 1</span>
+          <span>${escapeHtml(t('Generated on:'))} ${escapeHtml(generatedAt)}</span>
+          <span>${escapeHtml(t('Page 1'))}</span>
         </div>
       </body>
       </html>
     `;
-  };
+  }, [
+    timelineData,
+    pricingRows,
+    data,
+    detailsData,
+    dateLocale,
+    notAvailableLabel,
+    t,
+    formatPDFDateTime,
+    translatePricingLabel,
+    getBookingStatusLabel,
+    getPaymentStatusLabel,
+    listingTitle,
+  ]);
 
   const handleDownloadPDF = async () => {
     try {
@@ -497,7 +626,7 @@ const TrackingBookingDetails = ({navigation, route}) => {
 
       const generatedPath = normalizeFilePath(pdf?.filePath);
       if (!generatedPath || !(await RNFS.exists(generatedPath))) {
-        throw new Error('PDF file was not created');
+        throw new Error(t('PDF file was not created'));
       }
 
       const destinationPath = `${RNFS.DocumentDirectoryPath}/${fileName}.pdf`;
@@ -523,26 +652,29 @@ const TrackingBookingDetails = ({navigation, route}) => {
         }
 
         await RNFS.copyFile(destinationPath, androidPath);
-        Alert.alert('Success', 'PDF saved to Downloads folder.');
+        Alert.alert(t('Success'), t('PDF saved to Downloads folder.'));
       } else {
         await shareFileOnIos(destinationPath, {
           type: 'application/pdf',
-          title: 'Order Tracking PDF',
+          title: t('Order Tracking PDF'),
         });
       }
     } catch (error) {
       console.log('PDF generation failed:', error);
       Alert.alert(
-        'Error',
-        error?.message || 'Failed to generate PDF. Please try again.',
+        t('Error'),
+        error?.message || t('Failed to generate PDF. Please try again.'),
       );
     }
   };
 
+  const lastTimelineStatus =
+    timelineData[timelineData.length - 1]?.status || t('Order Completed');
+
   return (
     <View style={styles.container}>
       <AppHeader
-        headingText={'Order Tracking'}
+        headingText={t('Order Tracking')}
         leftIcon={ICONS.leftArrowIcon}
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={() => navigation.goBack()}
@@ -554,61 +686,87 @@ const TrackingBookingDetails = ({navigation, route}) => {
         showsVerticalScrollIndicator={false}>
         <View style={styles.topHeader}>
           <Text style={styles.pageTitle}>
-            Order Tracking - {data?.trackingId || 'N/A'}
+            {t('Order Tracking')} - {data?.trackingId || t('N/A')}
           </Text>
           <View style={styles.completedPill}>
             <Text style={styles.completedPillText}>
-              {data?.status?.toUpperCase()}
+              {getBookingStatusLabel(data?.status)}
             </Text>
           </View>
         </View>
 
-        <Text style={styles.sectionHeading}>Order Information</Text>
+        <Text style={styles.sectionHeading}>{t('Order Information')}</Text>
         <View style={styles.orderInfoCard}>
+          {listingTitle ? (
+            <View style={styles.fieldsRow}>
+              <View style={[styles.fieldBlock, styles.fullWidth]}>
+                <Text style={styles.fieldLabel}>{t('Booking Item')}</Text>
+                <Text style={styles.fieldValue}>{listingTitle}</Text>
+              </View>
+            </View>
+          ) : null}
+
           <View style={styles.fieldsRow}>
             <View style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>Tracking ID</Text>
-              <Text style={styles.fieldValue}>{data?.trackingId || 'N/A'}</Text>
+              <Text style={styles.fieldLabel}>{t('Payment Status')}</Text>
+              <Text style={styles.fieldValue}>
+                {getPaymentStatusLabel(data?.paymentStatus)}
+              </Text>
             </View>
             <View style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>Client Name</Text>
+              <Text style={styles.fieldLabel}>{t('Status')}</Text>
               <Text style={styles.fieldValue}>
-                {data?.client?.fullName || data?.userId?.fullName || 'N/A'}
+                {getBookingStatusLabel(data?.status)}
               </Text>
             </View>
           </View>
 
           <View style={styles.fieldsRow}>
             <View style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>Phone</Text>
+              <Text style={styles.fieldLabel}>{t('Tracking ID')}</Text>
+              <Text style={styles.fieldValue}>
+                {data?.trackingId || t('N/A')}
+              </Text>
+            </View>
+            <View style={styles.fieldBlock}>
+              <Text style={styles.fieldLabel}>{t('Client Name')}</Text>
+              <Text style={styles.fieldValue}>
+                {data?.client?.fullName || data?.userId?.fullName || t('N/A')}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.fieldsRow}>
+            <View style={styles.fieldBlock}>
+              <Text style={styles.fieldLabel}>{t('Phone')}</Text>
               <Text style={styles.fieldValue}>
                 {data?.client?.contactNumber ||
                   data?.userId?.contactNumber ||
-                  'N/A'}
+                  t('N/A')}
               </Text>
             </View>
             <View style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>Email</Text>
+              <Text style={styles.fieldLabel}>{t('Email')}</Text>
               <Text style={styles.fieldValue}>
-                {data?.client?.email || data?.userId?.email || 'N/A'}
+                {data?.client?.email || data?.userId?.email || t('N/A')}
               </Text>
             </View>
           </View>
 
           <View style={styles.fieldsRow}>
             <View style={[styles.fieldBlock, styles.fullWidth]}>
-              <Text style={styles.fieldLabel}>Client Location</Text>
+              <Text style={styles.fieldLabel}>{t('Client Location')}</Text>
               <Text style={styles.fieldValue}>
-                {data?.eventLocation || detailsData?.eventLocation || 'N/A'}
+                {data?.eventLocation || detailsData?.eventLocation || t('N/A')}
               </Text>
             </View>
           </View>
 
           <View style={styles.fieldsRow}>
             <View style={[styles.fieldBlock, styles.fullWidth]}>
-              <Text style={styles.fieldLabel}>Event Location</Text>
+              <Text style={styles.fieldLabel}>{t('Event Location')}</Text>
               <Text style={styles.fieldValue}>
-                {data?.eventLocation || detailsData?.eventLocation || 'N/A'}
+                {data?.eventLocation || detailsData?.eventLocation || t('N/A')}
               </Text>
             </View>
           </View>
@@ -616,13 +774,13 @@ const TrackingBookingDetails = ({navigation, route}) => {
           {eventSchedule.isMultiDay ? (
             <View style={styles.fieldsRow}>
               <View style={styles.fieldBlock}>
-                <Text style={styles.fieldLabel}>Start date</Text>
+                <Text style={styles.fieldLabel}>{t('Start date')}</Text>
                 <Text style={styles.fieldValue}>
                   {eventSchedule.startDateLabel}
                 </Text>
               </View>
               <View style={styles.fieldBlock}>
-                <Text style={styles.fieldLabel}>End date</Text>
+                <Text style={styles.fieldLabel}>{t('End date')}</Text>
                 <Text style={styles.fieldValue}>
                   {eventSchedule.endDateLabel}
                 </Text>
@@ -631,7 +789,7 @@ const TrackingBookingDetails = ({navigation, route}) => {
           ) : (
             <View style={styles.fieldsRow}>
               <View style={[styles.fieldBlock, styles.fullWidth]}>
-                <Text style={styles.fieldLabel}>Event Date</Text>
+                <Text style={styles.fieldLabel}>{t('Event Date')}</Text>
                 <Text style={styles.fieldValue}>
                   {eventSchedule.singleDateLabel}
                 </Text>
@@ -641,13 +799,13 @@ const TrackingBookingDetails = ({navigation, route}) => {
 
           <View style={styles.fieldsRow}>
             <View style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>Start Time</Text>
+              <Text style={styles.fieldLabel}>{t('Start Time')}</Text>
               <Text style={styles.fieldValue}>
                 {eventSchedule.startTimeLabel}
               </Text>
             </View>
             <View style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>End Time</Text>
+              <Text style={styles.fieldLabel}>{t('End Time')}</Text>
               <Text style={styles.fieldValue}>
                 {eventSchedule.endTimeLabel}
               </Text>
@@ -655,7 +813,7 @@ const TrackingBookingDetails = ({navigation, route}) => {
           </View>
         </View>
 
-        <Text style={styles.sectionHeading}>Pricing Breakdown</Text>
+        <Text style={styles.sectionHeading}>{t('Pricing Breakdown')}</Text>
         <View style={styles.pricingCard}>
           {pricingRows.map((row, index) => (
             <View
@@ -664,7 +822,9 @@ const TrackingBookingDetails = ({navigation, route}) => {
                 styles.pricingRow,
                 index !== pricingRows.length - 1 && styles.borderBottom,
               ]}>
-              <Text style={styles.pricingLabel}>{row?.label || '-'}</Text>
+              <Text style={styles.pricingLabel}>
+                {translatePricingLabel(row?.label)}
+              </Text>
               <Text style={styles.pricingValue}>
                 {formatAmount(row?.amount)}
               </Text>
@@ -672,7 +832,7 @@ const TrackingBookingDetails = ({navigation, route}) => {
           ))}
 
           <View style={styles.pricingRow}>
-            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalLabel}>{t('Total')}</Text>
             <Text style={styles.totalValue}>
               {formatAmount(
                 data?.totalPrice || data?.pricingBreakdown?.total || 0,
@@ -682,7 +842,7 @@ const TrackingBookingDetails = ({navigation, route}) => {
         </View>
 
         <View style={styles.timelineSection}>
-          <Text style={styles.sectionHeading}>Order Timeline</Text>
+          <Text style={styles.sectionHeading}>{t('Order Timeline')}</Text>
 
           <View style={styles.timeline}>
             {timelineData.map((item, index) => (
@@ -721,12 +881,11 @@ const TrackingBookingDetails = ({navigation, route}) => {
           </View>
         </View>
 
-        <Text style={styles.sectionHeading}>Progress Notes</Text>
+        <Text style={styles.sectionHeading}>{t('Progress Notes')}</Text>
         <View style={styles.progressNotesSection}>
           <Icon name="alert-circle-outline" size={14} color="#E6A100" />
           <Text style={styles.progressNotesText}>
-            Current status:{' '}
-            {timelineData[timelineData.length - 1]?.status || 'Completed'}
+            {t('Current status:')} {lastTimelineStatus}
           </Text>
         </View>
 

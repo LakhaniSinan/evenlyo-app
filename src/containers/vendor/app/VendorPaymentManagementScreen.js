@@ -84,9 +84,6 @@ const VendorPaymentManagementScreen = () => {
         vendorStripeOnboardingStatus(),
       ]);
 
-      console.log(stripeRes, 'stripeResstripeResstripeResstripeRes');
-      console.log(ordersRes, 'ordersResordersResordersResordersRes');
-
       if (ordersRes?.status === 200 || ordersRes?.status === 201) {
         const fetchedOrders = normalizeOrdersFromResponse(ordersRes?.data);
         if (
@@ -140,7 +137,7 @@ const VendorPaymentManagementScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [VENDOR_ID]);
 
   useFocusEffect(
     useCallback(() => {
@@ -211,13 +208,31 @@ const VendorPaymentManagementScreen = () => {
     0,
   );
 
-  const toggleOrderSelection = orderId => {
+  const toggleOrderSelection = useCallback(orderId => {
     setSelectedOrderIds(prev =>
       prev.includes(orderId)
         ? prev.filter(id => id !== orderId)
         : [...prev, orderId],
     );
-  };
+  }, []);
+
+  const getPaymentStatusLabel = useCallback(
+    status => {
+      const s = String(status || 'pending').toLowerCase();
+      if (s === 'paid') {
+        return t('Paid');
+      }
+      if (s === 'completed') {
+        return t('Completed');
+      }
+      if (s === 'pending') {
+        return t('Pending');
+      }
+      const raw = String(status || '').trim();
+      return raw || t('Pending');
+    },
+    [t],
+  );
 
   const canPayout =
     stripeConnected && selectedOrderIds.length > 0 && activeTab === 'ready';
@@ -226,16 +241,16 @@ const VendorPaymentManagementScreen = () => {
     if (!stripeConnected) {
       alertRef.current.showAlert(
         'error',
-        t('Stripe Required'),
-        t('Please connect your Stripe account first.'),
+        t('vendorPaymentStripeRequiredTitle'),
+        t('vendorPaymentConnectStripeFirst'),
       );
       return;
     }
     if (!selectedOrderIds.length) {
       alertRef.current.showAlert(
         'error',
-        t('Select Orders'),
-        t('Please select at least one order.'),
+        t('vendorPaymentSelectOrdersTitle'),
+        t('vendorPaymentSelectOneOrder'),
       );
       return;
     }
@@ -248,7 +263,6 @@ const VendorPaymentManagementScreen = () => {
     try {
       setLoading(true);
       const response = await disburseVendorPayments(VENDOR_ID, payload);
-      console.log(response, 'responseresponseresponseresponse');
 
       if (response?.status === 200 || response?.status === 201) {
         setSelectedOrderIds([]);
@@ -265,49 +279,68 @@ const VendorPaymentManagementScreen = () => {
       setLoading(false);
     }
   };
-  const renderOrderCard = order => {
-    const orderId = getOrderId(order);
-    const amount = getOrderAmount(order);
-    const paymentStatus = getPaymentStatus(order);
-    const escrowDate = getEscrowDate(order);
-    const escrowEnded = escrowDate ? new Date(escrowDate) <= now : false;
-    const isSelected = selectedOrderIds.includes(orderId);
+  const renderOrderCard = useCallback(
+    order => {
+      const orderId = getOrderId(order);
+      const amount = getOrderAmount(order);
+      const paymentStatus = getPaymentStatus(order);
+      const escrowDate = getEscrowDate(order);
+      const escrowEnded = escrowDate ? new Date(escrowDate) <= now : false;
+      const isSelected = selectedOrderIds.includes(orderId);
 
-    return (
-      <View key={orderId} style={styles.orderCard}>
-        <View style={styles.orderTopStrip}>
-          <Text style={styles.orderId}>{orderId || 'N/A'}</Text>
-          <Text style={styles.orderStatusText}>
-            {paymentStatus || 'pending'}
+      return (
+        <View key={orderId} style={styles.orderCard}>
+          <View style={styles.orderTopStrip}>
+            <Text style={styles.orderId}>{orderId || t('N/A')}</Text>
+            <Text style={styles.orderStatusText}>
+              {getPaymentStatusLabel(paymentStatus)}
+            </Text>
+          </View>
+          <View style={styles.orderHeader}>
+            <Text style={styles.orderText}>
+              {order?.customerName ||
+                order?.customer?.name ||
+                t('vendorPaymentCustomerFallback')}
+            </Text>
+            {activeTab === 'ready' ? (
+              <TouchableOpacity onPress={() => toggleOrderSelection(orderId)}>
+                <View
+                  style={[
+                    styles.checkbox,
+                    isSelected && styles.checkboxChecked,
+                  ]}>
+                  {isSelected ? (
+                    <Icon name="checkmark" size={14} color={COLORS.white} />
+                  ) : null}
+                </View>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+          <Text style={styles.orderAmount}>
+            {t('vendorPaymentAmountEur', {amount: amount.toFixed(2)})}
+          </Text>
+          <Text style={styles.orderMeta}>
+            {escrowEnded
+              ? t('vendorPaymentEscrowCompleted')
+              : t('vendorPaymentEscrowInProgress')}
           </Text>
         </View>
-        <View style={styles.orderHeader}>
-          <Text style={styles.orderText}>
-            {order?.customerName || order?.customer?.name || 'Customer'}
-          </Text>
-          {activeTab === 'ready' ? (
-            <TouchableOpacity onPress={() => toggleOrderSelection(orderId)}>
-              <View
-                style={[styles.checkbox, isSelected && styles.checkboxChecked]}>
-                {isSelected ? (
-                  <Icon name="checkmark" size={14} color={COLORS.white} />
-                ) : null}
-              </View>
-            </TouchableOpacity>
-          ) : null}
-        </View>
-        <Text style={styles.orderAmount}>EUR {amount.toFixed(2)}</Text>
-        <Text style={styles.orderMeta}>
-          Escrow {escrowEnded ? 'completed' : 'in progress'}
-        </Text>
-      </View>
-    );
-  };
+      );
+    },
+    [
+      activeTab,
+      getPaymentStatusLabel,
+      now,
+      selectedOrderIds,
+      t,
+      toggleOrderSelection,
+    ],
+  );
 
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader
-        headingText={t('Payment Management')}
+        headingText={t('paymentManagement')}
         leftIcon={ICONS.leftArrowIcon}
         rightIcon={ICONS.notificationIcon}
         onLeftIconPress={() => navigation.goBack()}
@@ -328,7 +361,7 @@ const VendorPaymentManagementScreen = () => {
               styles.tabText,
               activeTab === 'ready' && styles.tabTextActive,
             ]}>
-            {t('Ready to Pay')} ({readyToPayOrders.length})
+            {`${t('vendorPaymentReadyToPay')} (${readyToPayOrders.length})`}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -342,7 +375,7 @@ const VendorPaymentManagementScreen = () => {
               styles.tabText,
               activeTab === 'pending' && styles.tabTextActive,
             ]}>
-            {t('Pending')} ({pendingOrders.length})
+            {`${t('Pending')} (${pendingOrders.length})`}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -356,14 +389,14 @@ const VendorPaymentManagementScreen = () => {
               styles.tabText,
               activeTab === 'completed' && styles.tabTextActive,
             ]}>
-            {t('Completed')} ({completedOrders.length})
+            {`${t('Completed')} (${completedOrders.length})`}
           </Text>
         </TouchableOpacity>
       </View>
 
       {!stripeConnected ? (
         <Text style={styles.warningText}>
-          Stripe account not connected. Connect Stripe before payout.
+          {t('vendorPaymentStripeNotConnected')}
         </Text>
       ) : null}
 
@@ -376,7 +409,7 @@ const VendorPaymentManagementScreen = () => {
           </View>
         ) : (
           <View style={styles.emptyWrap}>
-            <Text style={styles.emptyText}>{t('No orders found.')}</Text>
+            <Text style={styles.emptyText}>{t('vendorPaymentNoOrders')}</Text>
           </View>
         )}
       </ScrollView>
@@ -390,7 +423,9 @@ const VendorPaymentManagementScreen = () => {
           !canPayout ? styles.floatingButtonDisabled : null,
         ]}>
         <Text style={styles.floatingButtonText}>
-          Payout EUR {selectedTotal.toFixed(2)}
+          {t('vendorPaymentPayoutCta', {
+            amount: selectedTotal.toFixed(2),
+          })}
         </Text>
       </TouchableOpacity>
       <CommonAlert ref={alertRef} />

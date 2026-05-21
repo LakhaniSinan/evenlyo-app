@@ -39,7 +39,7 @@ const ViewMoreButton = React.memo(
 
 const Dashboard = () => {
   const navigation = useNavigation();
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const {user} = useSelector(state => state.LoginSlice);
   console.log(user, 'useruseruseruseruseruser');
 
@@ -263,6 +263,7 @@ const Dashboard = () => {
             <FlatList
               data={dashboardData?.recentBookings?.slice(0, 3) || []}
               renderItem={renderRecentBookings}
+              extraData={currentLanguage}
               keyExtractor={(item, index) => index.toString()}
             />
           </View>

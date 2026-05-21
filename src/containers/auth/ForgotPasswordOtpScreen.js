@@ -1,27 +1,27 @@
-import React, { useRef, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
-import { width } from 'react-native-dimension';
+import React, {useRef, useState} from 'react';
+import {ScrollView, Text, View} from 'react-native';
+import {width} from 'react-native-dimension';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
 import CommonAlert from '../../components/commanAlert';
 import Header from '../../components/header';
 import Loader from '../../components/loder';
 import OTPInputScreen from '../../components/otpScreen';
-import { COLORS, fontFamly } from '../../constants';
-import { useTranslation } from '../../hooks';
-import { forgotUser, verifyForgotOtp } from '../../services/Auth';
-import { globalStyles } from '../../styles/globalStyle';
+import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
+import {forgotUser, verifyForgotOtp} from '../../services/Auth';
+import {globalStyles} from '../../styles/globalStyle';
 
-const ForgotPasswordOtpScreen = ({ route, navigation }) => {
+const ForgotPasswordOtpScreen = ({route, navigation}) => {
   const data = route.params;
   const [otp, setOtp] = useState(0);
   const modalRef = useRef(null);
-  const { t, currentLanguage } = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleVerifyOtp = async () => {
     try {
-      const payload = { ...data, otp: otp };
+      const payload = {...data, otp: otp};
       setIsLoading(true);
       const response = await verifyForgotOtp(payload);
       console.log(response, 'responseresponseresponseresponse');
@@ -37,7 +37,11 @@ const ForgotPasswordOtpScreen = ({ route, navigation }) => {
             : response?.data?.message,
           handlePressOk: () => {
             modalRef.current.hide();
-            navigation.navigate('ResetPasswordScreen', { type: 'forgot', email: data?.email, resetToken: response?.data?.resetToken });
+            navigation.navigate('ResetPasswordScreen', {
+              userType: data?.userType,
+              email: data?.email,
+              resetToken: response?.data?.resetToken,
+            });
           },
         });
       } else {
@@ -61,7 +65,9 @@ const ForgotPasswordOtpScreen = ({ route, navigation }) => {
   const handleResendCode = async () => {
     try {
       setIsLoading(true);
-      const response = await forgotUser({ email: data.email });
+      const response = await forgotUser({email: data.email});
+      console.log(response, 'responseresponseresponseresponseresponse');
+
       setIsLoading(false);
       if (response?.status == 200 || response?.status == 201) {
         modalRef.current.show({
@@ -108,11 +114,11 @@ const ForgotPasswordOtpScreen = ({ route, navigation }) => {
               minHeight: width(90),
             }}>
             <Text
-              style={[globalStyles.title, { fontSize: 20, textAlign: 'center' }]}>
+              style={[globalStyles.title, {fontSize: 20, textAlign: 'center'}]}>
               {t('enterCode')}
             </Text>
             <OTPInputScreen onResendPress={handleResendCode} setOtp={setOtp} />
-            <View style={{ marginTop: width(4) }}>
+            <View style={{marginTop: width(4)}}>
               <GradientButton
                 onPress={handleVerifyOtp}
                 text={t('Verify OTP')}

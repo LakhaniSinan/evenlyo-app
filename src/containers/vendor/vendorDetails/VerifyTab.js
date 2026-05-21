@@ -1,105 +1,51 @@
-import {useNavigation} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
-import {Alert, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
-import LinearGradient from 'react-native-linear-gradient';
 import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
+import CommonAlert from '../../../components/commanAlert';
 import GradientText from '../../../components/gradiantText';
-import ContactNumberInput from '../../../components/phoneInput';
 import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {globalStyles} from '../../../styles/globalStyle';
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const VerifyTab = ({onPressBack, handleNextStep, setVerification}) => {
-  const navigation = useNavigation();
-  const [activeTab, setActiveTab] = useState('phone');
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const {t} = useTranslation();
-  const alertRef = useRef(null);
+  const modalRef = useRef(null);
+
+  const showError = message => {
+    modalRef.current?.show({status: 'error', message});
+  };
+
   const handleContinue = () => {
-    if (!email) {
-      return alertRef.current.showAlert(
-        'error',
-        'Please enter your email address.',
-      );
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) {
+      return showError(t('emailRequired'));
     }
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      return showError(t('invalidEmail'));
+    }
+
     setVerification({
-      email,
+      email: trimmedEmail,
     });
 
-    handleNextStep({phoneNumber, email});
+    handleNextStep({email: trimmedEmail});
   };
 
   return (
-    <View style={{flex: 1}}>
-      <View
-        style={{
-          backgroundColor: COLORS.backgroundLight,
-          borderRadius: width(5),
-        }}>
-        <Text style={[globalStyles.title, {fontSize: 20, textAlign: 'center'}]}>
+    <View style={styles.wrapper}>
+      <View style={styles.card}>
+        <Text style={[globalStyles.title, styles.title]}>
           {t('verification')}
         </Text>
-        {/* <View style={styles.tabContainer}>
-          <LinearGradient
-            colors={
-              activeTab == 'phone'
-                ? ['#FF295D', '#E31B95', '#C817AE']
-                : ['#fff', '#fff', '#fff']
-            }
-            style={styles.tabGradient}
-            start={{x: 0, y: 0}}
-            end={{x: 0, y: 1}}>
-            <TouchableOpacity
-              style={styles.tab}
-              onPress={() => setActiveTab('phone')}>
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'phone' && styles.activeTabText,
-                ]}>
-                {t('phoneNumber')}
-              </Text>
-            </TouchableOpacity>
-          </LinearGradient>
 
-          <LinearGradient
-            colors={
-              activeTab == 'email'
-                ? ['#FF295D', '#E31B95', '#C817AE']
-                : ['#fff', '#fff', '#fff']
-            }
-            style={styles.tabGradient}
-            start={{x: 0, y: 0}}
-            end={{x: 0, y: 1}}>
-            <TouchableOpacity
-              style={styles.tab}
-              onPress={() => setActiveTab('email')}>
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'email' && styles.activeTabText,
-                ]}>
-                {t('emailAddress')}
-              </Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        </View> */}
-        <View style={{gap: 10, marginTop: width(1)}}>
-          {/* {activeTab === 'phone' ? (
-            <ContactNumberInput
-              labelText={t('phoneNumber')}
-              phoneNumber={phoneNumber}
-              onChange={setPhoneNumber}
-              labelColor={COLORS.text}
-              containerStyle={{
-                backgroundColor: COLORS.white,
-              }}
-            />
-          ) : ( */}
+        <View style={styles.fieldContainer}>
           <TextField
             label={t('emailAddress')}
             placeholder={t('enterYourEmail')}
@@ -109,12 +55,10 @@ const VerifyTab = ({onPressBack, handleNextStep, setVerification}) => {
             autoCapitalize="none"
             labelColor={COLORS.text}
             bgColor={COLORS.white}
-            styleProps={{
-              paddingVertical: width(3),
-            }}
+            styleProps={styles.input}
           />
-          {/* )} */}
         </View>
+
         <View style={styles.buttonContainer}>
           <GradientButton
             text={<GradientText text={t('back')} />}
@@ -137,40 +81,29 @@ const VerifyTab = ({onPressBack, handleNextStep, setVerification}) => {
           />
         </View>
       </View>
+      <CommonAlert ref={modalRef} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  tabContainer: {
-    flexDirection: 'row',
-    borderRadius: width(5),
-    padding: width(1),
-    marginVertical: width(3),
-    backgroundColor: COLORS.white,
-    gap: width(1),
-  },
-  tabGradient: {
+  wrapper: {
     flex: 1,
-    borderRadius: width(3),
   },
-  tab: {
-    paddingHorizontal: width(3),
-    paddingVertical: width(3.5),
-    borderRadius: width(3),
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: width(12),
+  card: {
+    backgroundColor: COLORS.backgroundLight,
+    borderRadius: width(5),
   },
-  tabText: {
-    fontSize: 12,
-    fontFamily: fontFamly.PlusJakartaSansMedium,
-    color: COLORS.textLight,
+  title: {
+    fontSize: 20,
     textAlign: 'center',
   },
-  activeTabText: {
-    color: COLORS.white,
-    fontFamily: fontFamly.PlusJakartaSansBold,
+  fieldContainer: {
+    gap: 10,
+    marginTop: width(1),
+  },
+  input: {
+    paddingVertical: width(3),
   },
   buttonContainer: {
     flexDirection: 'row',

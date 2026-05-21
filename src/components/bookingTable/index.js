@@ -15,7 +15,7 @@ import ReportingModal from '../modals/ReportingModal';
 import {useTranslation} from '../../hooks';
 
 const BookingTable = ({data, canDownload, onSelectionChange}) => {
-  const {currentLanguage} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const pageSize = 5;
   const bookingRows = data?.bookingTable || [];
   const [modalVisible, setModalVisible] = useState(false);
@@ -72,10 +72,20 @@ const BookingTable = ({data, canDownload, onSelectionChange}) => {
   };
 
   const getRangeLabel = () => {
-    if (!bookingRows.length) return 'Showing 0 to 0 of 0 bookings';
+    if (!bookingRows.length) {
+      return t('Showing {{start}} to {{end}} of {{total}} bookings', {
+        start: 0,
+        end: 0,
+        total: 0,
+      });
+    }
     const start = (safePage - 1) * pageSize + 1;
     const end = Math.min(safePage * pageSize, bookingRows.length);
-    return `Showing ${start} to ${end} of ${bookingRows.length} bookings`;
+    return t('Showing {{start}} to {{end}} of {{total}} bookings', {
+      start,
+      end,
+      total: bookingRows.length,
+    });
   };
 
   const formatCost = value => {
@@ -137,11 +147,19 @@ const BookingTable = ({data, canDownload, onSelectionChange}) => {
               color={isAllSelected ? '#E31B95' : '#B8B8B8'}
             />
           </Pressable>
-          <Text style={[styles.headerCell, styles.trackingCell]}>Tracking ID</Text>
-          <Text style={[styles.headerCell, styles.itemCell]}>Booking Item</Text>
-          <Text style={[styles.headerCell, styles.costCell]}>Total Cost</Text>
+          <Text style={[styles.headerCell, styles.trackingCell]}>
+            {t('Tracking ID')}
+          </Text>
+          <Text style={[styles.headerCell, styles.itemCell]}>
+            {t('Booking Item')}
+          </Text>
+          <Text style={[styles.headerCell, styles.costCell]}>
+            {t('Total Cost')}
+          </Text>
           {canDownload && (
-            <Text style={[styles.headerCell, styles.exportCell]}>Export</Text>
+            <Text style={[styles.headerCell, styles.exportCell]}>
+              {t('Export')}
+            </Text>
           )}
         </View>
 
@@ -155,7 +173,7 @@ const BookingTable = ({data, canDownload, onSelectionChange}) => {
             renderItem={renderItem}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
-              <Text style={styles.emptyText}>No bookings found</Text>
+              <Text style={styles.emptyText}>{t('No bookings found')}</Text>
             }
           />
         </View>
@@ -171,7 +189,7 @@ const BookingTable = ({data, canDownload, onSelectionChange}) => {
               safePage === 1 && styles.pageButtonDisabled,
             ]}
             onPress={() => setCurrentPage(prev => Math.max(1, prev - 1))}>
-            <Text style={styles.pageButtonText}>Previous</Text>
+            <Text style={styles.pageButtonText}>{t('Previous')}</Text>
           </Pressable>
           <View style={styles.pageCurrent}>
             <Text style={styles.pageCurrentText}>{safePage}</Text>
@@ -185,7 +203,7 @@ const BookingTable = ({data, canDownload, onSelectionChange}) => {
             onPress={() =>
               setCurrentPage(prev => Math.min(totalPages, prev + 1))
             }>
-            <Text style={styles.pageButtonText}>Next</Text>
+            <Text style={styles.pageButtonText}>{t('Next')}</Text>
           </Pressable>
         </View>
       </View>

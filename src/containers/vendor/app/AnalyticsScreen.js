@@ -28,22 +28,32 @@ import PieChartComponent from '../../../components/charts/PiaCart';
 import AnalyticsFilter from '../../../components/modals/AnalyticsFilter';
 import AnalyticsCard from '../../../components/reportAndAnalyticsCard';
 import {COLORS, fontFamly} from '../../../constants';
-import {
-  getAnalyticsReport,
-  getBookingAnalytic,
-} from '../../../services/AnalyticsReport';
+import {useTranslation} from '../../../hooks';
+import {getBookingAnalytic} from '../../../services/AnalyticsReport';
+import {normalizeStatusKey} from '../../../utils/translatePricingBreakdownLabel';
 
 const TABS = ['Booking Items', 'Sale Items'];
 
+const BOOKING_STATUS_I18N = {
+  pending: 'statusPending',
+  accepted: 'statusAccepted',
+  rejected: 'statusRejected',
+  on_the_way: 'statusOnTheWay',
+  received: 'statusReceived',
+  finished: 'statusFinished',
+  picked_up: 'statusPickedUp',
+  received_back: 'statusReceivedBack',
+  completed: 'statusCompleted',
+  cancelled: 'statusCancelled',
+  claim: 'statusClaim',
+};
+
 const AnalyticsReport = () => {
   const navigation = useNavigation();
+  const {t, currentLanguage} = useTranslation();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [analyticsReport, setAnalyticsReport] = useState(null);
-  console.log(
-    analyticsReport,
-    'analyticsReportanalyticsReportanalyticsReportanalyticsReport',
-  );
 
   const [rawAnalyticsReport, setRawAnalyticsReport] = useState(null);
   const [activeTab, setActiveTab] = useState('Booking Items');
@@ -55,19 +65,47 @@ const AnalyticsReport = () => {
   const DUMMY_DASHBOARD_DATA = useMemo(
     () => [
       {
-        title: 'Today Earning',
+        titleKey: 'Today Earning:',
         icon: ICONS.earningIcon,
         value: analyticsReport?.stats?.todayEarnings,
         percentage: 10,
       },
       {
-        title: 'Last Week Earning',
+        titleKey: 'Last Week Earning:',
         icon: ICONS.dollerSignIcon,
         value: analyticsReport?.stats?.lastWeekEarnings,
         percentage: 10,
+        isGradient: true,
       },
     ],
     [analyticsReport],
+  );
+
+  const getStatusLabel = useCallback(
+    status => {
+      if (!status) {
+        return t('N/A');
+      }
+      const key = BOOKING_STATUS_I18N[normalizeStatusKey(status)];
+      return key ? t(key) : String(status);
+    },
+    [t],
+  );
+
+  const getListingTitle = useCallback(
+    item => {
+      const title = item?.listingDetails?.title;
+      if (!title) {
+        return t('Untitled');
+      }
+      if (typeof title === 'string') {
+        return title;
+      }
+      return currentLanguage === 'nl'
+        ? title?.nl || title?.en || t('Untitled')
+        : title?.en || title?.nl || t('Untitled');
+    },
+    [currentLanguage, t],
   );
 
   // Fetch analytics data
@@ -85,8 +123,8 @@ const AnalyticsReport = () => {
         setRawAnalyticsReport(response.data);
       } else {
         Alert.alert(
-          'Error',
-          response?.data?.message || 'Failed to load report.',
+          t('Error'),
+          response?.data?.message || t('Failed to load report.'),
         );
       }
     } catch (error) {
@@ -94,7 +132,7 @@ const AnalyticsReport = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [activeTab]);
+  }, [t]);
 
   useEffect(() => {
     handleGetAnalyticsReport();
@@ -175,15 +213,22 @@ const AnalyticsReport = () => {
     setAnalyticsReport(rawAnalyticsReport);
   }, [rawAnalyticsReport]);
 
-  const formatDate = value => {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '-';
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: '2-digit',
-      year: 'numeric',
-    });
-  };
+  const dateLocale = currentLanguage === 'nl' ? 'nl-NL' : 'en-US';
+
+  const formatDate = useCallback(
+    value => {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return t('notAvailable');
+      }
+      return date.toLocaleDateString(dateLocale, {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+      });
+    },
+    [dateLocale, t],
+  );
 
   const safeCsvValue = value => `"${String(value ?? '-').replace(/"/g, '""')}"`;
 
@@ -232,50 +277,66 @@ const AnalyticsReport = () => {
       const fileName = `selected-bookings-${timestamp}.csv`;
       const generatedAt = formatDate(new Date());
       const rows = selectedBookings.map(item => {
-        const bookingItem = item?.listingDetails?.title?.en || '-';
+        const bookingItem = getListingTitle(item);
         const totalCost = `€${item?.pricingBreakdown?.total ?? 0}`;
         const bookingDate = formatDate(item?.createdAt);
-        const duration = `${item?.details?.duration?.totalHours ?? 0} hours`;
+        const duration = `${item?.details?.duration?.totalHours ?? 0} ${t('hours')}`;
         const location =
-          item?.eventLocation || item?.details?.eventLocation || '-';
+          item?.eventLocation || item?.details?.eventLocation || t('notAvailable');
         return [
-          safeCsvValue(item?.trackingId || '-'),
+          safeCsvValue(item?.trackingId || t('notAvailable')),
           safeCsvValue(bookingItem),
-          safeCsvValue(item?.userId?._id || item?.client?._id || '-'),
+          safeCsvValue(item?.userId?._id || item?.client?._id || t('notAvailable')),
           safeCsvValue(totalCost),
           safeCsvValue(bookingDate),
-          safeCsvValue(item?.status || '-'),
+          safeCsvValue(getStatusLabel(item?.status)),
           safeCsvValue(duration),
           safeCsvValue(location),
         ].join(',');
       });
       const csvContent = [
-        'Selected Bookings Report',
+        t('Selected Bookings Report'),
         '',
-        `Generated on:,${generatedAt}`,
-        `Total Items:,${selectedBookings.length}`,
+        `${t('Generated on:')},${generatedAt}`,
+        `${t('Total Items')}:,${selectedBookings.length}`,
         '',
-        'Tracking ID,Service Name,Customer ID,Total Cost,Booking Date,Status,Duration,Location',
+        [
+          t('Tracking ID'),
+          t('Service Name'),
+          t('Customer ID'),
+          t('Total Cost'),
+          t('Booking Date'),
+          t('Status'),
+          t('Duration'),
+          t('Location'),
+        ].join(','),
         ...rows,
       ].join('\n');
 
       if (Platform.OS === 'android') {
         const destinationPath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
         await RNFS.writeFile(destinationPath, csvContent, 'utf8');
-        Alert.alert('Success', 'Selected CSV saved to Downloads folder.');
+        Alert.alert(t('Success'), t('Selected CSV saved to Downloads folder.'));
       } else {
         const destinationPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
         await RNFS.writeFile(destinationPath, csvContent, 'utf8');
         await shareFileOnIos(destinationPath, {
           type: 'text/csv',
-          title: 'Selected Bookings CSV',
+          title: t('Selected Bookings CSV'),
         });
       }
     } catch (error) {
       console.log('CSV export error:', error);
-      Alert.alert('Error', 'Failed to export CSV.');
+      Alert.alert(t('Error'), t('Failed to export CSV.'));
     }
-  }, [hasSelectedBookings, selectedBookings]);
+  }, [
+    hasSelectedBookings,
+    selectedBookings,
+    formatDate,
+    getListingTitle,
+    getStatusLabel,
+    t,
+  ]);
 
   const exportSelectedPDF = useCallback(async () => {
     if (!hasSelectedBookings) {
@@ -290,15 +351,17 @@ const AnalyticsReport = () => {
         .map(
           item => `
             <tr>
-              <td>${escapeHtml(item?.trackingId)}</td>
-              <td>${escapeHtml(item?.listingDetails?.title?.en)}</td>
-              <td>${escapeHtml(item?.userId?._id || item?.client?._id)}</td>
+              <td>${escapeHtml(item?.trackingId || t('notAvailable'))}</td>
+              <td>${escapeHtml(getListingTitle(item))}</td>
+              <td>${escapeHtml(item?.userId?._id || item?.client?._id || t('notAvailable'))}</td>
               <td>${escapeHtml(`€${item?.pricingBreakdown?.total ?? 0}`)}</td>
               <td>${escapeHtml(formatDate(item?.createdAt))}</td>
-              <td>${escapeHtml(item?.status)}</td>
+              <td>${escapeHtml(getStatusLabel(item?.status))}</td>
               <td>${escapeHtml(`${item?.details?.duration?.totalHours ?? 0}h`)}</td>
               <td>${escapeHtml(
-                item?.eventLocation || item?.details?.eventLocation,
+                item?.eventLocation ||
+                  item?.details?.eventLocation ||
+                  t('notAvailable'),
               )}</td>
             </tr>
           `,
@@ -330,26 +393,26 @@ const AnalyticsReport = () => {
                 <div class="logoBox">E</div>
                 <div class="brandName">Evenlyo</div>
               </div>
-              <div class="reportTitle">Selected Bookings Report</div>
+              <div class="reportTitle">${escapeHtml(t('Selected Bookings Report'))}</div>
             </div>
-            <div class="sectionTitle">Report Summary</div>
+            <div class="sectionTitle">${escapeHtml(t('Report Summary'))}</div>
             <table class="summary">
-              <tr><td class="summaryLabel">Report Date</td><td>${reportDate}</td></tr>
-              <tr><td class="summaryLabel">Item Type</td><td>Booking</td></tr>
-              <tr><td class="summaryLabel">Total Items</td><td>${selectedBookings.length}</td></tr>
+              <tr><td class="summaryLabel">${escapeHtml(t('Report Date'))}</td><td>${escapeHtml(reportDate)}</td></tr>
+              <tr><td class="summaryLabel">${escapeHtml(t('Item Type'))}</td><td>${escapeHtml(t('Booking'))}</td></tr>
+              <tr><td class="summaryLabel">${escapeHtml(t('Total Items'))}</td><td>${selectedBookings.length}</td></tr>
             </table>
-            <div class="sectionTitle">Selected Bookings</div>
+            <div class="sectionTitle">${escapeHtml(t('Selected Bookings'))}</div>
             <table>
               <thead>
                 <tr>
-                  <th>Tracking ID</th>
-                  <th>Service Name</th>
-                  <th>Customer ID</th>
-                  <th>Total Cost</th>
-                  <th>Booking Date</th>
-                  <th>Status</th>
-                  <th>Duration</th>
-                  <th>Location</th>
+                  <th>${escapeHtml(t('Tracking ID'))}</th>
+                  <th>${escapeHtml(t('Service Name'))}</th>
+                  <th>${escapeHtml(t('Customer ID'))}</th>
+                  <th>${escapeHtml(t('Total Cost'))}</th>
+                  <th>${escapeHtml(t('Booking Date'))}</th>
+                  <th>${escapeHtml(t('Status'))}</th>
+                  <th>${escapeHtml(t('Duration'))}</th>
+                  <th>${escapeHtml(t('Location'))}</th>
                 </tr>
               </thead>
               <tbody>
@@ -357,8 +420,8 @@ const AnalyticsReport = () => {
               </tbody>
             </table>
             <div class="footer">
-              <span>Generated on: ${generatedAt}</span>
-              <span>Page 1</span>
+              <span>${escapeHtml(t('Generated on:'))} ${escapeHtml(generatedAt)}</span>
+              <span>${escapeHtml(t('Page 1'))}</span>
             </div>
           </body>
         </html>
@@ -372,7 +435,7 @@ const AnalyticsReport = () => {
 
       const generatedPath = normalizeFilePath(pdf?.filePath);
       if (!generatedPath || !(await RNFS.exists(generatedPath))) {
-        throw new Error('PDF file was not created');
+        throw new Error(t('PDF file was not created'));
       }
 
       const destinationPath = `${RNFS.DocumentDirectoryPath}/${fileName}.pdf`;
@@ -390,21 +453,28 @@ const AnalyticsReport = () => {
           await RNFS.unlink(androidPath);
         }
         await RNFS.copyFile(destinationPath, androidPath);
-        Alert.alert('Success', 'Selected PDF saved to Downloads folder.');
+        Alert.alert(t('Success'), t('Selected PDF saved to Downloads folder.'));
       } else {
         await shareFileOnIos(destinationPath, {
           type: 'application/pdf',
-          title: 'Selected Bookings PDF',
+          title: t('Selected Bookings PDF'),
         });
       }
     } catch (error) {
       console.log('PDF export error:', error);
       Alert.alert(
-        'Error',
-        error?.message || 'Failed to export PDF. Please try again.',
+        t('Error'),
+        error?.message || t('Failed to export PDF. Please try again.'),
       );
     }
-  }, [hasSelectedBookings, selectedBookings]);
+  }, [
+    hasSelectedBookings,
+    selectedBookings,
+    formatDate,
+    getListingTitle,
+    getStatusLabel,
+    t,
+  ]);
 
   // Render filter button - memoized for smoothness
   const renderFilterButton = useCallback(
@@ -413,11 +483,16 @@ const AnalyticsReport = () => {
         disabled={disabled}
         onPress={onPress}
         style={[styles.filterButton, disabled && styles.filterButtonDisabled]}>
-        <Image source={icon} resizeMode="contain" style={styles.filterIcon} />
-        <Text
-          style={[styles.filterText, disabled && styles.filterTextDisabled]}>
-          {text}
-        </Text>
+        <View style={styles.filterButtonInner}>
+          <Image source={icon} resizeMode="contain" style={styles.filterIcon} />
+          <Text
+            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+            style={[styles.filterText, disabled && styles.filterTextDisabled]}>
+            {text}
+          </Text>
+        </View>
       </TouchableOpacity>
     ),
     [],
@@ -449,7 +524,7 @@ const AnalyticsReport = () => {
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader
-        headingText="Analytics & Report"
+        headingText={t('Analytics & Report')}
         leftIcon={ICONS.drawerIcon}
         rightIcon={ICONS.notificationIcon}
         onLeftIconPress={() => navigation.openDrawer()}
@@ -488,7 +563,7 @@ const AnalyticsReport = () => {
 
             <View style={styles.totalEarningCard}>
               <View style={styles.totalEarningHeader}>
-                <Text style={styles.totalEarningLabel}>Total Earning</Text>
+                <Text style={styles.totalEarningLabel}>{t('Total Earning:')}</Text>
                 <View style={styles.totalEarningIconContainer}>
                   <Image
                     source={ICONS.incrimentIcon}
@@ -509,7 +584,7 @@ const AnalyticsReport = () => {
                 //     ? 'Booking Earnings'
                 //     : 'Sale Earnings'
                 // }
-                labelll={'Orders Overview'}
+                labelll={t('Orders Overview')}
                 data={analyticsReport?.monthlyEarnings || []}
               />
             </View>
@@ -518,8 +593,8 @@ const AnalyticsReport = () => {
               <PieChartComponent
                 labelll={
                   activeTab === 'Booking Items'
-                    ? 'Booking Earnings'
-                    : 'Sale Earnings'
+                    ? t('Booking Earnings')
+                    : t('Sale Earnings')
                 }
                 data={analyticsReport?.earningsByCategory || []}
                 loading={refreshing}
@@ -528,18 +603,18 @@ const AnalyticsReport = () => {
             <View style={styles.filterRow}>
               {renderFilterButton(
                 ICONS.filterIcon,
-                'Filter',
+                t('Filter'),
                 handleFilterPress,
               )}
               {renderFilterButton(
                 ICONS.blackDownloadIcon,
-                `Export CSV (${selectedBookings.length})`,
+                t('Export CSV ({{count}})', {count: selectedBookings.length}),
                 exportSelectedCSV,
                 !hasSelectedBookings,
               )}
               {renderFilterButton(
                 ICONS.blackDownloadIcon,
-                `Export PDF (${selectedBookings.length})`,
+                t('Export PDF ({{count}})', {count: selectedBookings.length}),
                 exportSelectedPDF,
                 !hasSelectedBookings,
               )}
@@ -643,27 +718,44 @@ const styles = StyleSheet.create({
   },
   filterRow: {
     flexDirection: 'row',
+    alignItems: 'stretch',
     justifyContent: 'space-between',
-    margin: width(3),
+    gap: width(1.25),
+    marginHorizontal: width(3),
+    marginTop: width(2),
+    marginBottom: width(1),
   },
   filterButton: {
-    width: width(30),
+    flex: 1,
+    minWidth: 0,
+    minHeight: width(18),
     borderWidth: 1,
     borderColor: COLORS.border,
-    flexDirection: 'row',
+    paddingVertical: width(2),
+    paddingHorizontal: width(1),
+    borderRadius: width(3),
+    justifyContent: 'center',
+  },
+  filterButtonInner: {
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: width(3),
-    borderRadius: width(3),
+    gap: width(1),
   },
   filterButtonDisabled: {
     backgroundColor: '#F4F4F4',
   },
-  filterIcon: {height: 10, width: 10, marginRight: width(3)},
+  filterIcon: {
+    height: width(3.5),
+    width: width(3.5),
+  },
   filterText: {
+    width: '100%',
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
     color: COLORS.textLight,
-    fontSize: 10,
+    fontSize: 9,
+    textAlign: 'center',
+    lineHeight: 12,
   },
   filterTextDisabled: {
     color: '#B5B5B5',

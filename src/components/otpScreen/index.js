@@ -2,8 +2,10 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {OtpInput} from 'react-native-otp-entry';
 import {fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 
-export default function OTPInputScreen({onResendPress ,setOtp}) {
+export default function OTPInputScreen({onResendPress, setOtp}) {
+  const {t} = useTranslation();
   const [timer, setTimer] = useState(30);
 
 
@@ -29,10 +31,12 @@ export default function OTPInputScreen({onResendPress ,setOtp}) {
           pinCodeTextStyle: styles.otpText,
         }}
       />
-      <Text style={styles.timerText}>{timer} Sec</Text>
+      <Text style={styles.timerText}>
+        {t('otpTimerSeconds', {seconds: timer})}
+      </Text>
       {timer == 0 && (
         <TouchableOpacity onPress={onResendPress}>
-          <Text style={styles.timerText2}>Resend Code</Text>
+          <Text style={styles.timerText2}>{t('resendCode')}</Text>
         </TouchableOpacity>
       )}
     </View>

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   KeyboardAvoidingView,
   ScrollView,
@@ -9,34 +9,59 @@ import {
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
+import CommonAlert from '../../../components/commanAlert';
 import TextField from '../../../components/textInput';
 import {COLORS, fontFamly, SIZES} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 
+const MIN_PASSWORD_LENGTH = 6;
+
 const SecurityTab = ({enteredPass, onPressBack, handleNextStep}) => {
   const {t} = useTranslation();
+  const modalRef = useRef(null);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (enteredPass) {
-      setPassword(enteredPass?.password);
-      setConfirmPassword(enteredPass?.confirmPassword);
+      setPassword(enteredPass?.password || '');
+      setConfirmPassword(enteredPass?.confirmPassword || '');
     }
   }, [enteredPass]);
+
+  const showError = message => {
+    modalRef.current?.show({status: 'error', message});
+  };
+
+  const handleContinue = () => {
+    const trimmedPassword = password.trim();
+    const trimmedConfirm = confirmPassword.trim();
+
+    if (!trimmedPassword) {
+      return showError(t('passwordRequired'));
+    }
+    if (!trimmedConfirm) {
+      return showError(t('confirmPasswordRequired'));
+    }
+    if (trimmedPassword.length < MIN_PASSWORD_LENGTH) {
+      return showError(t('passwordTooShort'));
+    }
+    if (trimmedPassword !== trimmedConfirm) {
+      return showError(t('passwordsDontMatch'));
+    }
+
+    handleNextStep({
+      password: trimmedPassword,
+      confirmPassword: trimmedConfirm,
+    });
+  };
 
   return (
     <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
       <View style={styles.form}>
-        <Text
-          style={{
-            fontSize: 20,
-            fontFamily: fontFamly.PlusJakartaSansBold,
-            color: COLORS.black,
-            textAlign: 'center',
-          }}>
-          Security
-        </Text>
+        <Text style={styles.titleText}>{t('vendorSecurityTitle')}</Text>
         <KeyboardAvoidingView>
           <TextField
             label={t('Set Password')}
@@ -44,18 +69,22 @@ const SecurityTab = ({enteredPass, onPressBack, handleNextStep}) => {
             bgColor={COLORS.white}
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
+            secure={!showPassword}
             autoCapitalize="none"
+            endIcon={ICONS.eyeIcon}
+            onEndIconPress={() => setShowPassword(prev => !prev)}
           />
-          <View style={{height: 10}} />
+          <View style={styles.fieldGap} />
           <TextField
             label={t('Re Enter Password')}
-            placeholder={t('Re Enter Password')}
+            placeholder={t('confirmPasswordPlaceholder')}
             bgColor={COLORS.white}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
-            secureTextEntry
+            secure={!showConfirmPassword}
             autoCapitalize="none"
+            endIcon={ICONS.eyeIcon}
+            onEndIconPress={() => setShowConfirmPassword(prev => !prev)}
           />
 
           <View style={styles.buttonContainer}>
@@ -73,7 +102,7 @@ const SecurityTab = ({enteredPass, onPressBack, handleNextStep}) => {
 
             <GradientButton
               text={t('continue')}
-              onPress={() => handleNextStep({password, confirmPassword})}
+              onPress={handleContinue}
               type="filled"
               gradientColors={['#FF295D', '#E31B95', '#C817AE']}
               styleProps={{flex: 1}}
@@ -82,117 +111,28 @@ const SecurityTab = ({enteredPass, onPressBack, handleNextStep}) => {
           </View>
         </KeyboardAvoidingView>
       </View>
+      <CommonAlert ref={modalRef} />
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
   form: {
     marginBottom: SIZES.lg,
     marginTop: 10,
     paddingHorizontal: SIZES.lg,
   },
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: SIZES.lg,
-    paddingTop: SIZES.xl,
-    paddingBottom: SIZES.lg,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    textAlign: 'center',
-    marginBottom: SIZES.sm,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.textLight,
-    textAlign: 'center',
-    marginBottom: SIZES.xl,
-  },
-  form: {
-    marginBottom: SIZES.lg,
-    marginTop: 20,
-  },
-  input: {
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: 12,
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.md,
-    fontSize: 16,
-    color: COLORS.text,
-    marginBottom: SIZES.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  roleTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: SIZES.md,
-    marginTop: SIZES.sm,
-  },
-  roleContainer: {
-    marginBottom: SIZES.lg,
-  },
-  roleButton: {
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: 12,
-    padding: SIZES.md,
-    marginBottom: SIZES.sm,
-    borderWidth: 2,
-    borderColor: COLORS.border,
-  },
-  roleButtonSelected: {
-    borderColor: COLORS.primary,
-    backgroundColor: `${COLORS.primary}10`,
-  },
-  roleButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: width(1),
-  },
-  roleButtonTextSelected: {
-    color: COLORS.primary,
-  },
-  roleDescription: {
-    fontSize: 14,
-    color: COLORS.textLight,
-  },
-  registerButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    paddingVertical: SIZES.md,
-    marginTop: SIZES.md,
-  },
-  registerButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '600',
+  titleText: {
+    fontSize: 20,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.black,
     textAlign: 'center',
   },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: width(2),
-  },
-  footerText: {
-    color: COLORS.textLight,
-    fontSize: 14,
-  },
-  signInText: {
-    color: COLORS.primary,
-    fontSize: 14,
-    fontWeight: '600',
+  fieldGap: {
+    height: 10,
   },
   buttonContainer: {
     flexDirection: 'row',

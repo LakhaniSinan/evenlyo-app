@@ -56,7 +56,9 @@ const CategoryItem = memo(({item, isSelected, onSelect, currentLanguage}) => {
       </View>
 
       <Text style={styles.categoryName}>
-        {currentLanguage === 'en' ? item?.name?.en : item?.name?.nl}
+        {currentLanguage === 'en'
+          ? item?.name?.en || item?.name?.nl
+          : item?.name?.nl || item?.name?.en}
       </Text>
     </TouchableOpacity>
   );
@@ -101,9 +103,9 @@ const Categories = ({selectedCat, onPressBack, handleNextStep}) => {
 
   const handleContinue = () => {
     if (!selectedCategories?.length) {
-      return modalRef.current.show({
+      return modalRef.current?.show({
         status: 'error',
-        message: 'Please select at least one category.',
+        message: t('validationSelectAtLeastOneCategory'),
       });
     }
     handleNextStep(selectedCategories);
@@ -114,10 +116,10 @@ const Categories = ({selectedCat, onPressBack, handleNextStep}) => {
       {isFetching ? (
         <>
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Fetching categories...</Text>
+          <Text style={styles.loadingText}>{t('fetchingCategories')}</Text>
         </>
       ) : (
-        <Text style={styles.emptyText}>No categories found.</Text>
+        <Text style={styles.emptyText}>{t('noCategoriesFound')}</Text>
       )}
     </View>
   );

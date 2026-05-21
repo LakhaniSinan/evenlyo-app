@@ -1,16 +1,27 @@
 import moment from 'moment';
-import React from 'react';
+import 'moment/locale/nl';
+import React, {useMemo} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
 import {COLORS, fontFamly} from '../../constants';
-import useTranslation from '../../hooks/useTranslation';
+import {useTranslation} from '../../hooks';
 
 const ReviewsCard = ({item}) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
 
   const ratingValue = Number(item?.rating || 0);
   const user = item?.userId;
+
+  const reviewDateLabel = useMemo(() => {
+    if (!item?.createdAt) {
+      return '';
+    }
+    const locale = currentLanguage === 'nl' ? 'nl' : 'en';
+    return moment(item.createdAt).locale(locale).format('DD MMM YYYY');
+  }, [item?.createdAt, currentLanguage]);
+
+  const reviewBody = item?.review || item?.comment;
 
   return (
     <View style={styles.card}>
@@ -19,8 +30,9 @@ const ReviewsCard = ({item}) => {
         <View style={styles.userInfo}>
           <Text style={styles.userName}>
             {user
-              ? `${user?.firstName || ''} ${user?.lastName || ''}`
-              : t('Anonymous')}
+              ? `${user?.firstName || ''} ${user?.lastName || ''}`.trim() ||
+                t('reviewAnonymous')
+              : t('reviewAnonymous')}
           </Text>
 
           {user?.email && <Text style={styles.emailText}>{user.email}</Text>}
@@ -37,22 +49,24 @@ const ReviewsCard = ({item}) => {
               tintColor={COLORS.white}
               ratingBackgroundColor="#E0E0E0"
             />
-            <Text style={styles.ratingText}>{ratingValue.toFixed(1)} /5</Text>
+            <Text style={styles.ratingText}>
+              {t('reviewRatingFraction', {
+                value: ratingValue.toFixed(1),
+              })}
+            </Text>
           </View>
         </View>
 
         {/* DATE */}
         <View style={styles.dateContainer}>
-          <Text style={styles.reviewDate}>
-            {moment(item?.createdAt).format('DD MMM YYYY')}
-          </Text>
+          <Text style={styles.reviewDate}>{reviewDateLabel}</Text>
         </View>
       </View>
 
       {/* REVIEW TEXT */}
-      {item?.review && (
+      {!!reviewBody && (
         <View style={styles.reviewTextContainer}>
-          <Text style={styles.reviewText}>{item.review}</Text>
+          <Text style={styles.reviewText}>{reviewBody}</Text>
         </View>
       )}
     </View>

@@ -1,5 +1,6 @@
 import moment from 'moment';
-import React, {useCallback, useEffect, useState} from 'react';
+import 'moment/locale/nl';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   FlatList,
   Image,
@@ -17,17 +18,103 @@ import AppHeader from '../../../components/appHeader';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {getBookingByStatus} from '../../../services/BookingItem';
+import {normalizeStatusKey} from '../../../utils/translatePricingBreakdownLabel';
+
+const BOOKING_STATUS_I18N = {
+  pending: 'statusPending',
+  accepted: 'statusAccepted',
+  rejected: 'statusRejected',
+  on_the_way: 'statusOnTheWay',
+  received: 'statusReceived',
+  finished: 'statusFinished',
+  picked_up: 'statusPickedUp',
+  received_back: 'statusReceivedBack',
+  completed: 'statusCompleted',
+  cancelled: 'statusCancelled',
+  claim: 'statusClaim',
+};
+
+const getStatusLabel = (status, t) => {
+  const key = BOOKING_STATUS_I18N[normalizeStatusKey(status)];
+  if (key) {
+    return t(key);
+  }
+  const raw = String(status || '').trim();
+  return raw || t('bookings');
+};
+
+const resolveLocationLine = (address, eventLocation, lang) => {
+  if (address != null && address !== '') {
+    if (typeof address === 'string') {
+      return address.trim();
+    }
+    if (typeof address === 'object') {
+      return lang === 'nl'
+        ? String(address.nl || address.en || '').trim()
+        : String(address.en || address.nl || '').trim();
+    }
+  }
+  if (eventLocation != null && eventLocation !== '') {
+    if (typeof eventLocation === 'string') {
+      return eventLocation.trim();
+    }
+    if (typeof eventLocation === 'object') {
+      return lang === 'nl'
+        ? String(eventLocation.nl || eventLocation.en || '').trim()
+        : String(eventLocation.en || eventLocation.nl || '').trim();
+    }
+  }
+  return '';
+};
 
 const BookingsByStatus = ({navigation, route}) => {
   const {t, currentLanguage} = useTranslation();
   const event = route.params;
-  console.log(event, 'titletitletitletitletitletitle');
-
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab] = useState(0);
   const [listingCartData, setListingCartData] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const {user} = useSelector(state => state.LoginSlice);
+
+  const statusParam = useMemo(
+    () =>
+      event?.status?.toLowerCase() ||
+      event?.statusKey?.toLowerCase() ||
+      event?.title?.toLowerCase() ||
+      '',
+    [event?.status, event?.statusKey, event?.title],
+  );
+
+  const headerStatusLabel = useMemo(
+    () => getStatusLabel(event?.status || event?.statusKey || event?.title, t),
+    [event?.status, event?.statusKey, event?.title, t],
+  );
+
+  const pageTitle = useMemo(
+    () => t('bookingsByStatusPageTitle', {status: headerStatusLabel}),
+    [t, headerStatusLabel],
+  );
+
+  const emptyMessage = useMemo(
+    () => t('bookingsByStatusEmpty', {status: headerStatusLabel}),
+    [t, headerStatusLabel],
+  );
+
+  const dateLocale = currentLanguage === 'nl' ? 'nl' : 'en';
+
+  const formatListingDate = useCallback(
+    value => {
+      if (!value) {
+        return t('notAvailable');
+      }
+      const m = moment(value);
+      if (!m.isValid()) {
+        return t('notAvailable');
+      }
+      return m.locale(dateLocale).format('LL');
+    },
+    [dateLocale, t],
+  );
 
   const handleGetCartListing = useCallback(async () => {
     try {
@@ -35,26 +122,23 @@ const BookingsByStatus = ({navigation, route}) => {
       setLoading(true);
 
       const response = await getBookingByStatus({
-        status:
-          event?.status?.toLowerCase() ||
-          event?.statusKey?.toLowerCase() ||
-          event?.title?.toLowerCase(),
+        status: statusParam,
         vendorId: user?.id,
       });
 
       if (response?.status === 200 || response?.status === 201) {
-        let data = response?.data?.data || [];
-        setListingCartData(data);
+        const data = response?.data?.data || [];
+        setListingCartData(Array.isArray(data) ? data : []);
       } else {
-        console.log('Fetch failed:', response?.data?.message);
+        setListingCartData([]);
       }
     } catch (error) {
-      console.log('Error fetching bookingssddsdsds:', error);
+      setListingCartData([]);
     } finally {
       setRefreshing(false);
       setLoading(false);
     }
-  }, []);
+  }, [statusParam, user?.id]);
 
   useEffect(() => {
     handleGetCartListing();
@@ -64,76 +148,93 @@ const BookingsByStatus = ({navigation, route}) => {
     handleGetCartListing();
   }, [handleGetCartListing]);
 
-  const BookingCard = ({item}) => {
-    return (
-      <View style={styles.card}>
-        <View style={styles.cardImageWrapper}>
-          <Image
-            source={{
-              uri: item?.listingDetails?.images[0] || '',
-            }}
-            resizeMode="cover"
-            style={styles.cardImage}
-          />
-        </View>
+  const renderBookingCard = useCallback(
+    ({item}) => {
+      const titleObj = item?.listingDetails?.title;
+      const listingTitle =
+        currentLanguage === 'nl'
+          ? titleObj?.nl || titleObj?.en
+          : titleObj?.en || titleObj?.nl;
 
-        <View style={styles.cardDetails}>
-          {/* 🏷️ Title */}
-          <Text style={styles.title}>
-            {currentLanguage == 'en'
-              ? item?.listingDetails?.title?.en
-              : item?.listingDetails?.title?.nl || 'Untitled'}
-          </Text>
+      const locationLine = resolveLocationLine(
+        item?.listingDetails?.location?.address,
+        item?.details?.eventLocation,
+        currentLanguage,
+      );
 
-          <Text numberOfLines={2} style={styles.bookingId}>
-            Location:{' '}
-            {item?.listingDetails?.location?.address ||
-              item?.details?.eventLocation}
-          </Text>
+      const startRaw =
+        item?.details?.startDate ||
+        item?.bookingDateTime?.start ||
+        item?.startDate;
+      const endRaw =
+        item?.details?.endDate ||
+        item?.bookingDateTime?.end ||
+        item?.endDate ||
+        startRaw;
 
-          <Text style={styles.bookingId}>
-            Booking ID: {item?.trackingId || 'N/A'}
-          </Text>
-
-          <View style={styles.dateTimeWrapper}>
-            <Text style={styles.dateTime}>
-              Start: {moment(item?.details?.startDate).format('MMMM DD, YYYY')}
-            </Text>
-            <Text style={styles.dateTime}>
-              End: {moment(item?.details?.startDate).format('MMMM DD, YYYY')}
-            </Text>
+      return (
+        <View style={styles.card}>
+          <View style={styles.cardImageWrapper}>
+            <Image
+              source={{
+                uri: item?.listingDetails?.images?.[0] || '',
+              }}
+              resizeMode="cover"
+              style={styles.cardImage}
+            />
           </View>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('BookingDetails', {...item, tab: activeTab})
-            }
-            style={styles.button}>
-            <Text style={[styles.buttonText, {color: COLORS.black}]}>
-              {t('View Details')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
 
-  // if (loading) {
-  //   return (
-  //     <View style={styles.loaderContainer}>
-  //       <ActivityIndicator size="large" color={COLORS.primary} />
-  //     </View>
-  //   );
-  // }
+          <View style={styles.cardDetails}>
+            <Text style={styles.title}>
+              {(listingTitle || '').trim() || t('Untitled')}
+            </Text>
+
+            <Text numberOfLines={2} style={styles.bookingId}>
+              {`${t('bookingsByStatusLocationLabel')}: `}
+              {locationLine.trim() || t('notAvailable')}
+            </Text>
+
+            <Text style={styles.bookingId}>
+              {`${t('bookingsByStatusBookingIdLabel')}: `}
+              {item?.trackingId || t('N/A')}
+            </Text>
+
+            <View style={styles.dateTimeWrapper}>
+              <Text style={styles.dateTime}>
+                {`${t('bookingsByStatusStartLabel')}: `}
+                {formatListingDate(startRaw)}
+              </Text>
+              <Text style={styles.dateTime}>
+                {`${t('bookingsByStatusEndLabel')}: `}
+                {formatListingDate(endRaw)}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('BookingDetails', {...item, tab: activeTab})
+              }
+              style={styles.button}>
+              <Text style={[styles.buttonText, {color: COLORS.black}]}>
+                {t('View Details')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    },
+    [
+      activeTab,
+      currentLanguage,
+      formatListingDate,
+      navigation,
+      t,
+    ],
+  );
 
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader
-        headingText={`${
-          event?.status?.charAt(0)?.toUpperCase() +
-            event?.status?.slice(1)?.toLowerCase() ||
-          event?.title?.charAt(0)?.toUpperCase() +
-            event?.title?.slice(1)?.toLowerCase()
-        } Booking`}
+        headingText={pageTitle}
         leftIcon={ICONS.leftArrowIcon}
         rightIcon={ICONS.notificationIcon}
         onLeftIconPress={() => navigation.goBack()}
@@ -142,20 +243,17 @@ const BookingsByStatus = ({navigation, route}) => {
 
       <FlatList
         data={listingCartData}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({item}) => <BookingCard item={item} />}
+        keyExtractor={(item, index) =>
+          item?._id?.toString() || item?.trackingId || String(index)
+        }
+        renderItem={renderBookingCard}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <Text style={styles.emptyText}>
-            No items found for "
-            {event?.status?.charAt(0).toUpperCase() +
-              event?.status?.slice(1).toLowerCase() ||
-              event?.title?.charAt(0).toUpperCase() +
-                event?.title?.slice(1).toLowerCase()}
-            " in {activeTab}.
-          </Text>
+          !loading ? (
+            <Text style={styles.emptyText}>{emptyMessage}</Text>
+          ) : null
         }
         contentContainerStyle={{paddingBottom: 20}}
       />

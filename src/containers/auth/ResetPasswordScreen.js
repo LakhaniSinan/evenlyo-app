@@ -16,7 +16,7 @@ import { globalStyles } from '../../styles/globalStyle';
 const ResetPasswordScreen = ({ route, navigation }) => {
   console.log(route.params,'route.paramsroute.paramsroute.params');
   
-  const { type, resetToken, email } = route.params;
+  const { userType, resetToken, email } = route.params;
   const { t, currentLanguage } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef(null);
@@ -53,7 +53,7 @@ const ResetPasswordScreen = ({ route, navigation }) => {
         setIsLoading(false);
         if (response?.status == 200 || response?.status == 201) {
           navigation.navigate('AuthSuccess', {
-            type: type,
+            userType,
             message: response?.data?.message?.en
               ? currentLanguage == 'en'
                 ? response?.data?.message?.en

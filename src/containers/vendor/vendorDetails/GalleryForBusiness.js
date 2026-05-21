@@ -1,6 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
-  Alert,
   Image,
   PermissionsAndroid,
   Platform,
@@ -14,6 +13,7 @@ import {width} from 'react-native-dimension';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
+import CommonAlert from '../../../components/commanAlert';
 import Loader from '../../../components/loder';
 import {COLORS, fontFamly} from '../../../constants';
 import {helper} from '../../../helper';
@@ -24,6 +24,7 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
   const [bannerImage, setBannerImage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const {t} = useTranslation();
+  const modalRef = useRef(null);
 
   useEffect(() => {
     if (media) {
@@ -32,13 +33,17 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
     }
   }, [media]);
 
+  const showError = message => {
+    modalRef.current?.show({status: 'error', message});
+  };
+
   const requestStoragePermission = async () => {
     if (Platform.OS === 'android') {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
         {
-          title: 'Storage Permission Required',
-          message: 'App needs access to your storage to select media',
+          title: t('storagePermissionTitle'),
+          message: t('storagePermissionMessage'),
         },
       );
       return granted === PermissionsAndroid.RESULTS.GRANTED;
@@ -48,17 +53,21 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
 
   const handleUpload = async setter => {
     const hasPermission = await requestStoragePermission();
-    if (!hasPermission) {return;}
+    if (!hasPermission) {
+      return;
+    }
 
     launchImageLibrary({mediaType: 'photo'}, async response => {
       if (response.didCancel || response.errorCode) {
         if (response.errorMessage) {
-          Alert.alert('Error', response.errorMessage);
+          showError(response.errorMessage);
         }
         return;
       }
       const asset = response?.assets[0];
-      if (!asset) {return;}
+      if (!asset) {
+        return;
+      }
       const file = {
         uri: asset.uri,
         type: asset.type,
@@ -70,11 +79,11 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
         if (uploadRes?.secure_url) {
           setter(uploadRes?.secure_url);
         } else {
-          Alert.alert('Error', 'Image upload failed. Please try again.');
+          showError(t('imageUploadFailed'));
         }
       } catch (err) {
         console.log('Upload error:', err);
-        Alert.alert('Error', 'Something went wrong during upload.');
+        showError(t('Something went wrong'));
       } finally {
         setIsLoading(false);
       }
@@ -91,15 +100,6 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
   );
 
   const handleContinue = () => {
-    // if (!businessLogo) {
-    //   Alert.alert('Error', 'Please upload your business logo.');
-    //   return;
-    // }
-    // if (!bannerImage) {
-    //   Alert.alert('Error', 'Please upload your banner image.');
-    //   return;
-    // }
-
     handleNextStep({
       businessLogo,
       bannerImage,
@@ -109,21 +109,11 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>
-        Upload Your Media{' '}
-        <Text
-          style={[
-            styles.title,
-            {
-              fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-              fontSize: 12,
-              marginLeft: width(2),
-            },
-          ]}>
-          (Oplional)
-        </Text>
+        {t('vendorUploadMediaTitle')}{' '}
+        <Text style={styles.optionalText}>{t('vendorUploadMediaOptional')}</Text>
       </Text>
 
-      <Text style={styles.sectionTitle}>Logo</Text>
+      <Text style={styles.sectionTitle}>{t('vendorLogoSection')}</Text>
       {businessLogo ? (
         <View style={styles.logoPreviewContainer}>
           <Image
@@ -142,11 +132,11 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
           </TouchableOpacity>
         </View>
       ) : (
-        renderUploadBox('Click to upload business logo', () =>
+        renderUploadBox(t('vendorClickUploadLogo'), () =>
           handleUpload(setBusinessLogo),
         )
       )}
-      <Text style={styles.sectionTitle}>Banner Image</Text>
+      <Text style={styles.sectionTitle}>{t('vendorBannerSection')}</Text>
       {bannerImage ? (
         <View style={styles.logoPreviewContainer}>
           <Image
@@ -165,7 +155,7 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
           </TouchableOpacity>
         </View>
       ) : (
-        renderUploadBox('Click to upload banner image', () =>
+        renderUploadBox(t('vendorClickUploadBanner'), () =>
           handleUpload(setBannerImage),
         )
       )}
@@ -193,6 +183,7 @@ const MultipleMediaUpload = ({media, onPressBack, handleNextStep}) => {
         />
       </View>
       <Loader isLoading={isLoading} />
+      <CommonAlert ref={modalRef} />
     </ScrollView>
   );
 };
@@ -208,6 +199,10 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
     marginVertical: width(4),
     textAlign: 'center',
+  },
+  optionalText: {
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    fontSize: 12,
   },
   sectionTitle: {
     fontSize: 14,
@@ -252,9 +247,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     right: 6,
-    backgroundColor: COLORS.black,
-    borderRadius: 20,
     backgroundColor: COLORS.white,
+    borderRadius: 20,
     padding: 2,
   },
   removeIcon: {

@@ -1,4 +1,5 @@
 import moment from 'moment';
+import 'moment/locale/nl';
 import React, {useMemo, useRef, useState} from 'react';
 import {ScrollView, Text, View} from 'react-native';
 import {LineChart} from 'react-native-chart-kit';
@@ -7,27 +8,31 @@ import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import CustomPicker from '../customPicker';
 
-const LineChartComponent = ({labelll = 'Overview', data = []}) => {
-  const {t} = useTranslation();
+const FILTER_MONTHLY = 'Monthly';
+const FILTER_SIX_MONTHS = '6 Months';
+const FILTER_YEARLY = 'Yearly';
+
+const LineChartComponent = ({data = []}) => {
+  const {t, currentLanguage} = useTranslation();
   const selectSizeRef = useRef();
-  const [filterType, setFilterType] = useState('Monthly');
+  const [filterType, setFilterType] = useState(FILTER_MONTHLY);
 
-  const monthLabels = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
+  const filterOptions = useMemo(
+    () => [
+      {name: FILTER_MONTHLY, label: t('chartFilterMonthly')},
+      {name: FILTER_SIX_MONTHS, label: t('chartFilterSixMonths')},
+      {name: FILTER_YEARLY, label: t('chartFilterYearly')},
+    ],
+    [t, currentLanguage],
+  );
 
-  // 🧠 Detect data type dynamically
+  const monthLabels = useMemo(() => {
+    const locale = currentLanguage === 'nl' ? 'nl' : 'en';
+    return Array.from({length: 12}, (_, i) =>
+      moment().month(i).locale(locale).format('MMM'),
+    );
+  }, [currentLanguage]);
+
   const isEarnings = data?.some(item => item.totalEarnings !== undefined);
   const valueKey = isEarnings ? 'totalEarnings' : 'totalOrders';
   const chartLabel = isEarnings
@@ -38,8 +43,7 @@ const LineChartComponent = ({labelll = 'Overview', data = []}) => {
     let labels = [];
     let dataset = [];
 
-    if (filterType === 'Monthly') {
-      // 🗓 Daily breakdown for current month
+    if (filterType === FILTER_MONTHLY) {
       const daysInMonth = moment().daysInMonth();
       labels = Array.from({length: daysInMonth}, (_, i) => (i + 1).toString());
 
@@ -50,13 +54,11 @@ const LineChartComponent = ({labelll = 'Overview', data = []}) => {
         );
         return found ? found[valueKey] || 0 : 0;
       });
-    } else if (filterType === '6 Months') {
-      // 🗓 Last 6 months data
+    } else if (filterType === FILTER_SIX_MONTHS) {
       const last6 = data?.slice(-6) || [];
       labels = monthLabels.slice(-6);
       dataset = last6.map(item => item[valueKey] || 0);
-    } else if (filterType === 'Yearly') {
-      // 🗓 Full 12-month overview
+    } else if (filterType === FILTER_YEARLY) {
       labels = monthLabels;
       dataset = data?.map(item => item[valueKey] || 0);
     }
@@ -71,7 +73,7 @@ const LineChartComponent = ({labelll = 'Overview', data = []}) => {
         },
       ],
     };
-  }, [filterType, data]);
+  }, [filterType, data, monthLabels, valueKey]);
 
   const chartConfig = {
     backgroundGradientFrom: COLORS.backgroundLight,
@@ -92,8 +94,12 @@ const LineChartComponent = ({labelll = 'Overview', data = []}) => {
     setFilterType(value?.name || value);
   };
 
+  const selectedFilterLabel =
+    filterOptions.find(option => option.name === filterType)?.label ||
+    t('chartFilterMonthly');
+
   const chartWidth =
-    filterType === 'Monthly'
+    filterType === FILTER_MONTHLY
       ? Math.max(width(89), 40 * moment().daysInMonth())
       : width(100);
 
@@ -117,9 +123,9 @@ const LineChartComponent = ({labelll = 'Overview', data = []}) => {
         <View style={{width: width(40)}}>
           <CustomPicker
             ref={selectSizeRef}
-            labelll={t('Orders Overview')}
+            labelll={selectedFilterLabel}
             value={filterType}
-            listData={[{name: 'Monthly'}, {name: '6 Months'}, {name: 'Yearly'}]}
+            listData={filterOptions}
             name="filterType"
             handleSelectValue={handleSelectValue}
             dropdownContainerStyle={{backgroundColor: COLORS.white}}

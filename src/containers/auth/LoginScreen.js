@@ -60,6 +60,13 @@ const LoginScreen = ({navigation, route}) => {
     setFcm(fcmToken);
   };
 
+  const handleBackToOnboarding = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'Onboarding'}],
+    });
+  };
+
   const navigateToRegister = () => {
     if (type == 'client') {
       navigation.navigate('Register');
@@ -225,8 +232,14 @@ const LoginScreen = ({navigation, route}) => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
         <View style={styles.column}>
-          <Header languageModal={true} />
-          <Text style={globalStyles.title}>{t('loginToAccount')}</Text>
+          <Header
+            languageModal
+            showBack
+            onBackPress={handleBackToOnboarding}
+          />
+          <Text style={[globalStyles.title, styles.screenTitle]}>
+            {t('loginToAccount')}
+          </Text>
           <View style={styles.form}>
             <TextField
               label={t('email')}
@@ -356,6 +369,10 @@ const styles = StyleSheet.create({
   column: {
     width: width(90),
     alignSelf: 'center',
+  },
+  screenTitle: {
+    marginTop: width(3),
+    marginBottom: width(2),
   },
   container: {
     flex: 1,

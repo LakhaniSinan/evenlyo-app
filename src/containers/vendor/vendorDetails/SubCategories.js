@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState, memo} from 'react';
 import {
-  Alert,
   FlatList,
   StyleSheet,
   Text,
@@ -24,7 +23,9 @@ const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
 const SubCategoryItem = memo(
   ({subItem, isSelected, toggleSelect, currentLanguage}) => {
     const name =
-      currentLanguage === 'en' ? subItem?.name?.en : subItem?.name?.nl;
+      currentLanguage === 'en'
+        ? subItem?.name?.en || subItem?.name?.nl
+        : subItem?.name?.nl || subItem?.name?.en;
 
     const containerStyle = isSelected
       ? styles.activeContainer
@@ -78,6 +79,21 @@ const SubCategories = ({
   const {t, currentLanguage} = useTranslation();
   const modalRef = useRef(null);
 
+  const resolveApiMessage = useCallback(
+    message => {
+      if (!message) {
+        return t('Something went wrong');
+      }
+      if (typeof message === 'string') {
+        return message;
+      }
+      return currentLanguage === 'en'
+        ? message?.en || message?.nl || t('Something went wrong')
+        : message?.nl || message?.en || t('Something went wrong');
+    },
+    [currentLanguage, t],
+  );
+
   const [selectedItems, setSelectedItems] = useState(new Set(selectedSubCat));
   const [isLoading, setIsLoading] = useState(false);
   const [allSubCategories, setAllSubCategories] = useState([]);
@@ -98,18 +114,18 @@ const SubCategories = ({
       } else {
         modalRef.current?.show({
           status: 'error',
-          message: response?.data?.message,
+          message: resolveApiMessage(response?.data?.message),
         });
       }
     } catch (error) {
       modalRef.current?.show({
         status: 'error',
-        message: 'Failed to load subcategories.',
+        message: t('failedToLoadSubcategories'),
       });
     } finally {
       setIsLoading(false);
     }
-  }, [categoriesSelected]);
+  }, [categoriesSelected, resolveApiMessage, t]);
 
   useEffect(() => {
     handleGetAllSubCategories();
@@ -130,7 +146,10 @@ const SubCategories = ({
 
   const renderItem = useCallback(
     ({item}) => {
-      const title = currentLanguage === 'en' ? item?.name?.en : item?.name?.nl;
+      const title =
+        currentLanguage === 'en'
+          ? item?.name?.en || item?.name?.nl
+          : item?.name?.nl || item?.name?.en;
 
       return (
         <View style={styles.categoryBox}>
@@ -157,10 +176,10 @@ const SubCategories = ({
 
   const handleContinue = () => {
     if (selectedItems.size === 0) {
-      Alert.alert(
-        'Error',
-        'Please select at least one category or subcategory.',
-      );
+      modalRef.current?.show({
+        status: 'error',
+        message: t('validationSelectAtLeastOneSubcategory'),
+      });
       return;
     }
 
@@ -171,7 +190,7 @@ const SubCategories = ({
 
   return (
     <View style={styles.form}>
-      <Text style={styles.headerText}>Select Your Subcategories</Text>
+      <Text style={styles.headerText}>{t('vendorSelectSubcategories')}</Text>
 
       <FlatList
         data={allSubCategories}

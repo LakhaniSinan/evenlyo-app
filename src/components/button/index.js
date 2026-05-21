@@ -9,6 +9,7 @@ import {
   fontFamly,
 } from '../../constants';
 import GradientText from '../gradiantText';
+import useTranslation from '../../hooks/useTranslation';
 
 const OUTLINE_RING_PX = 2;
 const OUTLINE_OUTER_RADIUS = width(4);
@@ -28,6 +29,10 @@ const GradientButton = ({
   textStyle,
   styleContainer,
 }) => {
+  const {t} = useTranslation();
+  const displayText =
+    React.isValidElement(text) || typeof text !== 'string' ? text : t(text);
+
   const threeStopLocations =
     gradientColors.length === 3 ? BRAND_BUTTON_GRADIENT_LOCATIONS : undefined;
 
@@ -50,12 +55,14 @@ const GradientButton = ({
               style={[{ width: 19, height: 19, marginRight: width(2) }, iconStyle]}
             />
           )}
-          {React.isValidElement(text) ? (
-            text
+          {React.isValidElement(displayText) ? (
+            displayText
           ) : useGradient ? (
-            <GradientText text={text} customStyles={textStyle} />
+            <GradientText text={displayText} customStyles={textStyle} />
           ) : (
-            <Text style={textStyle ? textStyle : styles.filledText}>{text}</Text>
+            <Text style={textStyle ? textStyle : styles.filledText}>
+              {displayText}
+            </Text>
           )}
         </TouchableOpacity>
       </LinearGradient>
@@ -92,10 +99,10 @@ const GradientButton = ({
             resizeMode="contain"
           />
         )}
-        {React.isValidElement(text) ? (
-          text
+        {React.isValidElement(displayText) ? (
+          displayText
         ) : useGradient ? (
-          <GradientText text={text} customStyles={textStyle} />
+          <GradientText text={displayText} customStyles={textStyle} />
         ) : (
           <Text
             style={[
@@ -106,7 +113,7 @@ const GradientButton = ({
               },
               textStyle,
             ]}>
-            {text}
+            {displayText}
           </Text>
         )}
       </TouchableOpacity>

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
@@ -10,6 +10,7 @@ import {
   COLORS,
   fontFamly,
 } from '../../../constants';
+import {useTranslation} from '../../../hooks';
 const VENDOR_PAGE_KEYS = {
   DASHBOARD: 'dashboard',
   ANALYTICS_REPORTS: 'analytics_reports',
@@ -19,6 +20,7 @@ const VENDOR_PAGE_KEYS = {
 
 const CustomDrawer = ({navigation}) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const {t, currentLanguage} = useTranslation();
 
   const {user} = useSelector(state => state.LoginSlice);
   const allowedPages = (user?.pages || []).map(page => page?.toLowerCase());
@@ -26,9 +28,9 @@ const CustomDrawer = ({navigation}) => {
   const hasPageAccess = pageKey =>
     hasRoleBasedPages ? allowedPages.includes(pageKey) : true;
 
-  const iconsToRender = [
+  const iconsToRender = useMemo(() => [
     hasPageAccess(VENDOR_PAGE_KEYS.DASHBOARD) && {
-      label: 'Dashboard',
+      label: t('dashboard'),
       onPress: () => {
         navigation.reset({
           index: 0,
@@ -45,7 +47,7 @@ const CustomDrawer = ({navigation}) => {
       },
     },
     hasPageAccess(VENDOR_PAGE_KEYS.ANALYTICS_REPORTS) && {
-      label: 'Analytics',
+      label: t('analytics'),
       onPress: () => {
         navigation.navigate('Dashboard', {
           screen: 'Home',
@@ -54,7 +56,7 @@ const CustomDrawer = ({navigation}) => {
       },
     },
     hasPageAccess(VENDOR_PAGE_KEYS.CHAT) && {
-      label: 'Messages',
+      label: t('messages'),
       onPress: () => {
         navigation.navigate('Dashboard', {
           screen: 'Home',
@@ -64,12 +66,12 @@ const CustomDrawer = ({navigation}) => {
       // badge: 6, // example notification
     },
     hasPageAccess(VENDOR_PAGE_KEYS.PAYMENT_MANAGEMENT) && {
-      label: 'Payment Management',
+      label: t('paymentManagement'),
       onPress: () => {
         navigation.navigate('VendorPaymentManagement');
       },
     },
-  ].filter(Boolean);
+  ].filter(Boolean), [currentLanguage, hasRoleBasedPages, allowedPages.join(','), navigation, t]);
 
   return (
     <View style={styles.drawerContent}>

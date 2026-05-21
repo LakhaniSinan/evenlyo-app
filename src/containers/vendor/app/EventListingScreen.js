@@ -433,8 +433,8 @@ const EventListingScreen = ({navigation}) => {
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
               {activeTab === 'Booking Items'
-                ? 'No booking items found'
-                : 'No sale items found'}
+                ? t('No booking items found')
+                : t('No sale items found')}
             </Text>
           </View>
         )}

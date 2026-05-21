@@ -3,10 +3,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '../../services/i18n';
 
 const initialState = {
-  currentLanguage: 'en',
+  currentLanguage: 'nl',
   availableLanguages: [
-    {code: 'en', name: 'English', nativeName: 'English'},
     {code: 'nl', name: 'Dutch', nativeName: 'Nederlands'},
+    {code: 'en', name: 'English', nativeName: 'English'},
   ],
 };
 
@@ -45,10 +45,9 @@ export const changeLanguage = (languageCode) => async (dispatch) => {
 export const initializeLanguageFromStorage = () => async (dispatch) => {
   try {
     const savedLanguage = await AsyncStorage.getItem('@app_language');
-    if (savedLanguage) {
-      await i18n.changeLanguage(savedLanguage);
-      dispatch(initializeLanguage(savedLanguage));
-    }
+    const language = savedLanguage || 'nl';
+    await i18n.changeLanguage(language);
+    dispatch(initializeLanguage(language));
   } catch (error) {
     console.error('Error initializing language:', error);
   }

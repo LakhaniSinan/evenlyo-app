@@ -112,7 +112,7 @@ const AppHeader = ({
             color: COLORS.textDark,
             fontFamily: fontFamly.PlusJakartaSansBold,
           }}>
-          {headingText}
+          {typeof headingText === 'string' ? t(headingText) : headingText}
         </Text>
       </View>
       {!isMenu && rightIcon && (

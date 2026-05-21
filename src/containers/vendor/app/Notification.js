@@ -1,5 +1,14 @@
+import moment from 'moment';
+import 'moment/locale/nl';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {width} from 'react-native-dimension';
 
 import {ICONS} from '../../../assets';
@@ -8,7 +17,6 @@ import FilterModal from '../../../components/modals/FilterModal';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {getVendorNotifications} from '../../../services/Notifications';
-import {getTimeAgoStatus} from '../../../utils';
 
 const Notification = ({navigation}) => {
   const [isModalVisible, setModalVisible] = useState(false);
@@ -20,6 +28,69 @@ const Notification = ({navigation}) => {
 
   const {t, currentLanguage} = useTranslation();
   const skeletonData = useMemo(() => Array(6).fill({}), []);
+
+  const getLocalizedField = useCallback(
+    field => {
+      if (!field) {
+        return '';
+      }
+      if (typeof field === 'string') {
+        return field.trim();
+      }
+      const primary =
+        currentLanguage === 'en' ? field?.en : field?.nl;
+      const fallback =
+        currentLanguage === 'en' ? field?.nl : field?.en;
+      return String(primary || fallback || '').trim();
+    },
+    [currentLanguage],
+  );
+
+  const resolveApiMessage = useCallback(
+    message => {
+      if (!message) {
+        return t('Something went wrong');
+      }
+      if (typeof message === 'string') {
+        return message;
+      }
+      return getLocalizedField(message) || t('Something went wrong');
+    },
+    [getLocalizedField, t],
+  );
+
+  const getRelativeTime = useCallback(
+    timestamp => {
+      if (!timestamp) {
+        return '';
+      }
+      const locale = currentLanguage === 'nl' ? 'nl' : 'en';
+      const now = moment();
+      const time = moment(timestamp).locale(locale);
+
+      const diffInMinutes = now.diff(time, 'minutes');
+      const diffInHours = now.diff(time, 'hours');
+      const diffInDays = now.diff(time, 'days');
+
+      if (diffInMinutes < 1) {
+        return t('timeRelativeJustNow');
+      }
+      if (diffInMinutes < 60) {
+        return t('timeRelativeMinutesAgo', {count: diffInMinutes});
+      }
+      if (diffInHours < 24) {
+        return t('timeRelativeHoursAgo', {count: diffInHours});
+      }
+      if (diffInDays === 1) {
+        return t('timeRelativeYesterday');
+      }
+      if (diffInDays < 7) {
+        return t('timeRelativeDaysAgo', {count: diffInDays});
+      }
+      return time.format('MMM D, YYYY');
+    },
+    [currentLanguage, t],
+  );
 
   useEffect(() => {
     handlGetVendorNotifications();
@@ -35,11 +106,15 @@ const Notification = ({navigation}) => {
       } else {
         modalRef.current?.show({
           status: 'error',
-          message: response?.data?.message,
+          message: resolveApiMessage(response?.data?.message),
         });
       }
     } catch (error) {
       console.log('Notification error:', error);
+      modalRef.current?.show({
+        status: 'error',
+        message: t('Something went wrong'),
+      });
     } finally {
       setIsLoading(false);
     }
@@ -51,75 +126,79 @@ const Notification = ({navigation}) => {
     setRefreshing(false);
   }, []);
 
-  const renderItem = useCallback(({item}) => {
-    if (isLoading) {
+  const renderItem = useCallback(
+    ({item}) => {
+      if (isLoading) {
+        return (
+          <View style={styles.itemContainer}>
+            <View style={[styles.imageWrapper, styles.skeletonCircle]} />
+            <View style={styles.messageContainer}>
+              <View style={styles.skeletonTitle} />
+              <View style={styles.skeletonMessage} />
+            </View>
+          </View>
+        );
+      }
+
       return (
         <View style={styles.itemContainer}>
-          <View style={[styles.imageWrapper, styles.skeletonCircle]} />
-          <View style={styles.messageContainer}>
-            <View style={styles.skeletonTitle} />
-            <View style={styles.skeletonMessage} />
+          <View style={styles.leftContainer}>
+            <View style={styles.imageWrapper}>
+              <Image
+                style={styles.image}
+                source={ICONS.notificationIcon}
+                resizeMode="contain"
+              />
+              {!item?.isRead && <View style={styles.statusDot} />}
+            </View>
+
+            <View style={styles.messageContainer}>
+              <View style={styles.titleRow}>
+                <Text style={styles.titleText}>
+                  {getLocalizedField(item?.title)}
+                </Text>
+                <View style={styles.rightContainer}>
+                  <Text style={styles.timeText}>
+                    {getRelativeTime(item?.createdAt)}
+                  </Text>
+                  <Image
+                    source={ICONS.bellIcon}
+                    style={styles.bellIcon}
+                    tintColor={COLORS.black}
+                  />
+                </View>
+              </View>
+              <Text style={styles.subHeading}>
+                {getLocalizedField(item?.message)}
+              </Text>
+            </View>
           </View>
         </View>
       );
-    }
-
-    return (
-      <View style={styles.itemContainer}>
-        <View style={styles.leftContainer}>
-          <View style={styles.imageWrapper}>
-            <Image
-              style={styles.image}
-              source={ICONS.notificationIcon}
-              resizeMode="contain"
-            />
-            {!item?.isRead && <View style={styles.statusDot} />}
-          </View>
-
-          <View style={styles.messageContainer}>
-            <View style={styles.titleRow}>
-              <Text style={styles.titleText}>
-                {currentLanguage === 'en' ? item?.title?.en : item?.title?.nl}
-              </Text>
-              <View style={styles.rightContainer}>
-                <Text style={styles.timeText}>{getTimeAgoStatus(item?.createdAt)}</Text>
-                <Image
-                  source={ICONS.bellIcon}
-                  style={styles.bellIcon}
-                  tintColor={COLORS.black}
-                />
-              </View>
-            </View>
-            <Text style={styles.subHeading}>
-              {currentLanguage === 'en' ? item?.message?.en : item?.message?.nl}
-            </Text>
-          </View>
-        </View>
-      </View>
-    );
-  }, [currentLanguage, isLoading]);
+    },
+    [getLocalizedField, getRelativeTime, isLoading],
+  );
 
   return (
     <>
+      <View style={styles.headerContainer}>
+        <View style={styles.headerTop}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Image
+              resizeMode="contain"
+              style={styles.backIcon}
+              source={ICONS.leftArrowIcon}
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t('Notifications')}</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+      </View>
       <FlatList
         keyExtractor={(item, index) => item?._id || index.toString()}
-        ListHeaderComponent={
-          <View style={styles.headerContainer}>
-            <View style={styles.headerTop}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Image
-                  resizeMode="contain"
-                  style={styles.backIcon}
-                  source={ICONS.leftArrowIcon}
-                />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>{t('Notifications')}</Text>
-              <View style={styles.headerSpacer} />
-            </View>
-          </View>
-        }
         data={isLoading ? skeletonData : vendorNotifications}
         renderItem={renderItem}
+        extraData={currentLanguage}
         contentContainerStyle={styles.listContent}
         refreshing={refreshing}
         onRefresh={onRefresh}

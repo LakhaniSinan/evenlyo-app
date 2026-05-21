@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import moment from 'moment';
+import 'moment/locale/nl';
 import React, {
   useCallback,
   useContext,
@@ -29,18 +30,13 @@ import {setActiveChat} from '../../../redux/slice/chat';
 import {checkIsChatedBefore, conversationService} from '../../../services/Chat';
 
 const Messages = ({navigation}) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.LoginSlice);
   const {activeChat} = useSelector(state => state.activeChat);
   const {socket} = useContext(SocketContext);
   const [refreshing, setRefreshing] = useState(false);
   const [allConversations, setAllConversations] = useState([]);
-
-  console.log(
-    allConversations,
-    'allConversatiasdsdasdasdasdasd',
-  );
 
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -276,34 +272,38 @@ const Messages = ({navigation}) => {
   }, [allConversations, searchQuery]);
 
   // ✅ Relative time helper
-  const getRelativeTime = useCallback(timestamp => {
-    if (!timestamp) {
-      return '';
-    }
-    const now = moment();
-    const time = moment(timestamp);
+  const getRelativeTime = useCallback(
+    timestamp => {
+      if (!timestamp) {
+        return '';
+      }
+      const locale = currentLanguage === 'nl' ? 'nl' : 'en';
+      const now = moment();
+      const time = moment(timestamp).locale(locale);
 
-    const diffInMinutes = now.diff(time, 'minutes');
-    const diffInHours = now.diff(time, 'hours');
-    const diffInDays = now.diff(time, 'days');
+      const diffInMinutes = now.diff(time, 'minutes');
+      const diffInHours = now.diff(time, 'hours');
+      const diffInDays = now.diff(time, 'days');
 
-    if (diffInMinutes < 1) {
-      return 'Just now';
-    }
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} min${diffInMinutes > 1 ? 's' : ''} ago`;
-    }
-    if (diffInHours < 24) {
-      return `${diffInHours} hr${diffInHours > 1 ? 's' : ''} ago`;
-    }
-    if (diffInDays === 1) {
-      return 'Yesterday';
-    }
-    if (diffInDays < 7) {
-      return `${diffInDays} days ago`;
-    }
-    return time.format('MMM D, YYYY');
-  }, []);
+      if (diffInMinutes < 1) {
+        return t('timeRelativeJustNow');
+      }
+      if (diffInMinutes < 60) {
+        return t('timeRelativeMinutesAgo', {count: diffInMinutes});
+      }
+      if (diffInHours < 24) {
+        return t('timeRelativeHoursAgo', {count: diffInHours});
+      }
+      if (diffInDays === 1) {
+        return t('timeRelativeYesterday');
+      }
+      if (diffInDays < 7) {
+        return t('timeRelativeDaysAgo', {count: diffInDays});
+      }
+      return time.format('MMM D, YYYY');
+    },
+    [currentLanguage, t],
+  );
 
   // ✅ Select chat
   const handleSelectChat = useCallback(
@@ -338,7 +338,9 @@ const Messages = ({navigation}) => {
 
         <View style={styles.chatContent}>
           <View style={styles.chatHeader}>
-            <Text style={styles.chatName}>{chats?.name || 'Unknown User'}</Text>
+            <Text style={styles.chatName}>
+              {chats?.name || t('messagesUnknownUser')}
+            </Text>
 
             <View style={styles.rightSection}>
               <Text style={styles.timeText}>
@@ -358,7 +360,7 @@ const Messages = ({navigation}) => {
           </View>
 
           <Text style={styles.lastMessage} numberOfLines={1}>
-            {item?.lastMessage || 'No messages yet'}
+            {item?.lastMessage || t('messagesNoMessagesYet')}
           </Text>
         </View>
       </TouchableOpacity>
@@ -404,9 +406,9 @@ const Messages = ({navigation}) => {
               style={styles.emptyImage}
               resizeMode="contain"
             />
-            <Text style={styles.emptyTitle}>No Conversations Yet</Text>
+            <Text style={styles.emptyTitle}>{t('messagesEmptyTitle')}</Text>
             <Text style={styles.emptySubtitle}>
-              When you receive messages from customers, they'll appear here.
+              {t('messagesEmptySubtitle')}
             </Text>
           </View>
         }

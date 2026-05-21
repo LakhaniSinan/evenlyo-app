@@ -8,22 +8,35 @@ import {COLORS} from '../../constants';
 import {useTranslation} from '../../hooks';
 import {globalStyles} from '../../styles/globalStyle';
 
+const resolveLoginType = (userType, type) => {
+  if (userType === 'client' || userType === 'vendor') {
+    return userType;
+  }
+  if (type === 'client') {
+    return 'client';
+  }
+  return 'vendor';
+};
+
 const AuthSuccess = ({route, navigation}) => {
-  const {type, message} = route.params;
+  const {type, userType, message} = route.params;
   const {t} = useTranslation();
+  const loginType = resolveLoginType(userType, type);
+
   useEffect(() => {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       navigation.reset({
         index: 0,
         routes: [
           {
             name: 'Login',
-            params: {type: type},
+            params: {type: loginType},
           },
         ],
       });
     }, 3000);
-  }, []);
+    return () => clearTimeout(timer);
+  }, [loginType, navigation]);
 
   return (
     <Background>
