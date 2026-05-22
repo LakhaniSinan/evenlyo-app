@@ -197,6 +197,10 @@ export default {
 
   // Home and Search
   'searchEvent': 'Zoek naar evenementen...',
+  explore: 'Ontdek',
+  Items: 'Items',
+  Sale: 'Verkoop',
+  'Other Sale': 'Overige verkoop',
   'popular': 'Populair',
   'nearYou': 'Bij jou in de buurt',
   'relevant': 'Relevant',
@@ -369,7 +373,14 @@ export default {
   'End Date': 'Einddatum',
   'DD/MM/YYYY': 'DD/MM/JJJJ',
   'Reset All': 'Alles resetten',
+  'Reset Filter': 'Filter resetten',
   'Apply Filters': 'Filters toepassen',
+  searchSubCategory: 'Zoek subcategorie',
+  typeToSearch: 'Typ om te zoeken...',
+  searchYourLocation: 'Zoek je locatie',
+  searchLocation: 'Locatie zoeken',
+  searchRadius: 'Zoekradius',
+  selectRadius: 'Selecteer radius',
   'selectDate': 'Selecteer datum',
 
   // Profile Management
@@ -731,6 +742,11 @@ export default {
 
   // Home & Cart specific
   noRelevantVendors: 'Geen relevante leveranciers gevonden!',
+  noBookingItemsFound: 'Geen boekingsitems gevonden!',
+  itemAlreadyInCart: 'Item staat al in je winkelwagen',
+  itemAddedToCart: 'Item succesvol aan winkelwagen toegevoegd!',
+  somethingWentWrongAddingToCart:
+    'Er ging iets mis bij het toevoegen aan de winkelwagen',
   confirmRemoveFromWishlist:
     'Weet je zeker dat je dit item uit de verlanglijst wilt verwijderen?',
   noBookingItemsInCart: 'Geen boekingsitems in winkelwagen',

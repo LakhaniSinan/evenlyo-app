@@ -11,9 +11,19 @@ import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
-const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
-  console.log(data, 'datadatadatadatadatadata');
+const getLocalizedField = (field, currentLanguage) => {
+  if (!field) {
+    return '';
+  }
+  if (typeof field === 'string') {
+    return field;
+  }
+  return currentLanguage === 'en'
+    ? field.en || field.nl || ''
+    : field.nl || field.en || '';
+};
 
+const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
   const {t, currentLanguage} = useTranslation();
   const [isActiveHeart, setIsActiveHeart] = useState(
     data?.isFavourite || false,
@@ -26,6 +36,7 @@ const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
       keyExtractor={(item, index) => index.toString()}
       contentContainerStyle={{paddingHorizontal: 10}}
       showsHorizontalScrollIndicator={false}
+      extraData={currentLanguage}
       renderItem={({item, index}) => {
         return (
           <TouchableOpacity
@@ -80,7 +91,7 @@ const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
                     fontSize: 8,
                     color: COLORS.green,
                   }}>
-                  Available
+                  {t('Available')}
                 </Text>
               </View>
               <TouchableOpacity
@@ -107,30 +118,12 @@ const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
             <View style={styles.blurContainer}>
               <View style={styles.textContainer}>
                 <Text numberOfLines={2} style={styles.text}>
-                  {t(
-                    `${
-                      currentLanguage == 'en'
-                        ? item?.title?.en
-                        : item?.title?.nl
-                    }`,
-                  )}
+                  {getLocalizedField(item?.title, currentLanguage)}
                 </Text>
                 <Text numberOfLines={2} style={styles.text2}>
-                  {t(
-                    `${
-                      currentLanguage == 'en'
-                        ? item?.description?.en
-                        : item?.description?.nl
-                    }`,
-                  )}{' '}
+                  {getLocalizedField(item?.description, currentLanguage)}{' '}
                   <Text numberOfLines={2} style={styles.text}>
-                    {t(
-                      `${
-                        currentLanguage == 'en'
-                          ? item?.subtitle?.en
-                          : item?.subtitle?.nl
-                      }`,
-                    )}
+                    {getLocalizedField(item?.subtitle, currentLanguage)}
                   </Text>
                 </Text>
               </View>
@@ -152,7 +145,7 @@ const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
               fontSize: 12,
               color: COLORS.textLight,
             }}>
-            No Relevant Vendors Found!
+            {t('noBookingItemsFound')}
           </Text>
         </View>
       )}

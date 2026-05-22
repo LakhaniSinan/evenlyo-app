@@ -197,6 +197,10 @@ export default {
 
   // Home and Search
   'searchEvent': 'Search for events...',
+  explore: 'Explore',
+  Items: 'Items',
+  Sale: 'Sale',
+  'Other Sale': 'Other Sale',
   'popular': 'Popular',
   'nearYou': 'Near You',
   'relevant': 'Relevant',
@@ -369,7 +373,14 @@ export default {
   'End Date': 'End Date',
   'DD/MM/YYYY': 'DD/MM/YYYY',
   'Reset All': 'Reset All',
+  'Reset Filter': 'Reset Filter',
   'Apply Filters': 'Apply Filters',
+  searchSubCategory: 'Search Sub Category',
+  typeToSearch: 'Type to search...',
+  searchYourLocation: 'Search Your Location',
+  searchLocation: 'Search Location',
+  searchRadius: 'Search Radius',
+  selectRadius: 'Select Radius',
   'selectDate': 'Select Date',
 
   // Profile Management
@@ -727,6 +738,11 @@ export default {
 
   // Home & Cart specific
   noRelevantVendors: 'No Relevant Vendors Found!',
+  noBookingItemsFound: 'No booking items found!',
+  itemAlreadyInCart: 'Item already exists in your cart',
+  itemAddedToCart: 'Item added to cart successfully!',
+  somethingWentWrongAddingToCart:
+    'Something went wrong while adding to cart',
   confirmRemoveFromWishlist:
     'Are you sure you want to remove this item from the wishlist?',
   noBookingItemsInCart: 'No Booking Item In Cart',

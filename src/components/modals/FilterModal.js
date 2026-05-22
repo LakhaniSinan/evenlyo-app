@@ -217,12 +217,12 @@ const FilterModal = ({
 
           {/* SubCategory Search */}
           <View style={styles.searchWrapper}>
-            <Text style={styles.label}>Search Sub Category</Text>
+            <Text style={styles.label}>{t('searchSubCategory')}</Text>
 
             <View style={styles.searchBox}>
               <TextInput
                 value={subCatQuery}
-                placeholder="Type to search..."
+                placeholder={t('typeToSearch')}
                 placeholderTextColor={COLORS.textLight}
                 onChangeText={handleSubCatSearch}
                 style={styles.input}
@@ -238,12 +238,16 @@ const FilterModal = ({
                       onPress={() => {
                         setSelectedSubCategory(item);
                         setSubCatQuery(
-                          currentLanguage?.en ? item.name?.en : item.name?.nl,
+                          currentLanguage === 'en'
+                            ? item.name?.en
+                            : item.name?.nl,
                         );
                         setSubCatList([]);
                       }}>
                       <Text style={styles.dropdownText}>
-                        {currentLanguage?.en ? item.name?.en : item.name?.nl}
+                        {currentLanguage === 'en'
+                          ? item.name?.en
+                          : item.name?.nl}
                       </Text>
                     </TouchableOpacity>
 
@@ -259,10 +263,10 @@ const FilterModal = ({
           <GooglePlacesInput
             selectedLocation={address.fullAddress}
             setSelectedLocation={onLocationSelect}
-            placeholder="Search Your Location"
+            placeholder={t('searchYourLocation')}
             bgcolor={COLORS.backgroundLight}
             showRightIcon={ICONS.locationIcon}
-            lable="Search Location"
+            lable={t('searchLocation')}
             onEndIconPress={() => {
               setAddress({fullAddress: '', lat: 0, lng: 0});
             }}
@@ -272,7 +276,7 @@ const FilterModal = ({
             <View style={{flex: 1}}>
               <DateSelector
                 date={dates.startDate}
-                placeholder="Start Date"
+                placeholder={t('Start Date')}
                 onDateChange={date =>
                   setDates(prev => ({...prev, startDate: date}))
                 }
@@ -282,13 +286,13 @@ const FilterModal = ({
 
           <CustomPicker
             ref={radiusRef}
-            label="Search Radius"
-            labelll="Search Radius"
+            label={t('searchRadius')}
+            labelll={t('searchRadius')}
             value={radius ? `${radius}` : ''}
             listData={RADIUS_OPTIONS}
             name="radius"
             handleOpenModal={() =>
-              radiusRef?.current?.show({title: 'Select Radius'})
+              radiusRef?.current?.show({title: t('selectRadius')})
             }
             handleSelectValue={(key, value) => setRadius(value)}
           />
