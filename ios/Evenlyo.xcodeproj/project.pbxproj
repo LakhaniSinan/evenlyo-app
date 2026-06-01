@@ -26,6 +26,7 @@
 		F244AAB3358B4EF09A6A64ED /* PlusJakartaSans-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B1F9ECD0F02743AF931BCD47 /* PlusJakartaSans-MediumItalic.ttf */; };
 		F57927C4460F5CCF18D9FA1A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		FB2B2FC51EFB4F419A0011F1 /* PlusJakartaSans-ExtraLightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 59A84393E55A4C3F93118E56 /* PlusJakartaSans-ExtraLightItalic.ttf */; };
+		F1A2B3C71A68108700A75B9A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F1A2B3C61A68108700A75B9A /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,9 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Evenlyo/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Evenlyo/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = Evenlyo/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		F1A2B3C41A68108700A75B9A /* Evenlyo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Evenlyo.entitlements; path = Evenlyo/Evenlyo.entitlements; sourceTree = "<group>"; };
+		F1A2B3C51A68108700A75B9A /* GoogleService-Info.plist.example */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist.example"; path = "Evenlyo/GoogleService-Info.plist.example"; sourceTree = "<group>"; };
+		F1A2B3C61A68108700A75B9A /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Evenlyo/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		36085E2A58124E1EBF77D0FC /* PlusJakartaSans-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-Medium.ttf"; path = "../src/assets/fonts/PlusJakartaSans-Medium.ttf"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-Evenlyo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Evenlyo.debug.xcconfig"; path = "Target Support Files/Pods-Evenlyo/Pods-Evenlyo.debug.xcconfig"; sourceTree = "<group>"; };
 		47D07A3D59314F08AC80503F /* PlusJakartaSans-SemiBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-SemiBoldItalic.ttf"; path = "../src/assets/fonts/PlusJakartaSans-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
@@ -72,6 +76,9 @@
 			children = (
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
+				F1A2B3C41A68108700A75B9A /* Evenlyo.entitlements */,
+				F1A2B3C61A68108700A75B9A /* GoogleService-Info.plist */,
+				F1A2B3C51A68108700A75B9A /* GoogleService-Info.plist.example */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
@@ -183,6 +190,11 @@
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1120;
+						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -226,6 +238,7 @@
 				4AC45534991A4EA0A3FAD742 /* PlusJakartaSans-SemiBold.ttf in Resources */,
 				391A1A8988804C7181191F34 /* PlusJakartaSans-SemiBoldItalic.ttf in Resources */,
 				F57927C4460F5CCF18D9FA1A /* PrivacyInfo.xcprivacy in Resources */,
+				F1A2B3C71A68108700A75B9A /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,6 +350,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Evenlyo/Evenlyo.entitlements;
 				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = BZQ47283L9;
 				ENABLE_BITCODE = NO;
@@ -366,6 +380,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Evenlyo/Evenlyo.entitlements;
 				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = BZQ47283L9;
 				INFOPLIST_FILE = Evenlyo/Info.plist;

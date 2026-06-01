@@ -13,6 +13,8 @@ import {getMessagingOrNull} from '../utils/firebaseMessagingSafe';
 const CLOUD_NAME = 'dv0imczul';
 const UPLOAD_PRESET = 'Evenlyo';
 
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 export const helper = {
   async checkLocation() {
     if (Platform.OS == 'android') {
@@ -81,14 +83,43 @@ export const helper = {
     }
   },
 
+  async getFCMTokenWithRetry(maxAttempts = 6, delayMs = 800) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      const token = await this.getFCMToken();
+      if (token) {
+        return token;
+      }
+      if (Platform.OS !== 'ios' || attempt === maxAttempts) {
+        break;
+      }
+      await sleep(delayMs);
+    }
+    return null;
+  },
+
   async getFCMToken() {
     try {
       const msg = getMessagingOrNull();
       if (!msg) {
+        if (Platform.OS === 'ios') {
+          console.log(
+            '❌ Firebase not configured on iOS. Add GoogleService-Info.plist from Firebase Console (bundle: com.evenlyoapp).',
+          );
+        }
         return null;
       }
-      // iOS ke liye required
+
       await msg.registerDeviceForRemoteMessages();
+
+      if (Platform.OS === 'ios') {
+        let apnsToken = await msg.getAPNSToken();
+        let apnsAttempts = 0;
+        while (!apnsToken && apnsAttempts < 12) {
+          await sleep(500);
+          apnsToken = await msg.getAPNSToken();
+          apnsAttempts += 1;
+        }
+      }
 
       const fcmToken = await msg.getToken();
 

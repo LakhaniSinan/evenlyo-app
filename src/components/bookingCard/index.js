@@ -13,9 +13,21 @@ import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import StatusBadge from '../statusComponent';
 
+const getLocalizedField = (field, currentLanguage) => {
+  if (!field) {
+    return '';
+  }
+  if (typeof field === 'string') {
+    return field;
+  }
+  return currentLanguage === 'en'
+    ? field.en || field.nl || ''
+    : field.nl || field.en || '';
+};
+
 const BookingCard = ({item}) => {
   const navigation = useNavigation();
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
 
   return (
     <View style={styles.card}>
@@ -29,7 +41,7 @@ const BookingCard = ({item}) => {
             <StatusBadge status={item?.status} />
           </View>
           <Text style={styles.name} numberOfLines={2}>
-            {item?.listingDetails?.title?.en}
+            {getLocalizedField(item?.listingDetails?.title, currentLanguage)}
           </Text>
           <Text style={styles.location} numberOfLines={1}>
             📍 {item?.eventLocation}
@@ -59,22 +71,12 @@ const BookingList = ({bookings, activeTab, refreshControl}) => {
   const {t} = useTranslation();
 
   const getFilteredData = () => {
-    if (activeTab === t('All Order')) {
+    if (!activeTab || activeTab === 'all') {
       return bookings;
-    } else if (activeTab === t('pending')) {
-      return bookings.filter(item => item.status === t('pending'));
-    } else if (activeTab === t('accepted')) {
-      return bookings.filter(item => item.status === t('accepted'));
-    } else if (activeTab === t('completed')) {
-      return bookings.filter(item => item.status === t('completed'));
-    } else if (activeTab === t('rejected')) {
-      return bookings.filter(item => item.status === t('rejected'));
-    } else if (activeTab === t('paid')) {
-      return bookings.filter(item => item.status === t('paid'));
-    } else if (activeTab === t('finished')) {
-      return bookings.filter(item => item.status === t('finished'));
     }
-    return bookings;
+    return bookings.filter(
+      item => item?.status?.toLowerCase() === activeTab.toLowerCase(),
+    );
   };
 
   const filteredData = getFilteredData();
@@ -98,7 +100,7 @@ const BookingList = ({bookings, activeTab, refreshControl}) => {
               fontSize: 12,
               color: COLORS.textLight,
             }}>
-            No bookings found right now!
+            {t('No bookings found right now!')}
           </Text>
         </View>
       }

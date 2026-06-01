@@ -26,6 +26,7 @@ import {
   SIZES,
 } from '../../constants';
 import {helper} from '../../helper';
+import {ensureFcmTokenForAuth} from '../../utils/fcmToken';
 import useTranslation from '../../hooks/useTranslation';
 import {setUserData} from '../../redux/slice/auth';
 import {loginClient, loginVendor, socialLogin} from '../../services/Auth';
@@ -56,8 +57,8 @@ const LoginScreen = ({navigation, route}) => {
   };
 
   const getFCMToken = async () => {
-    const fcmToken = await helper.getFCMToken();
-    setFcm(fcmToken);
+    const fcmToken = await helper.getFCMTokenWithRetry();
+    setFcm(fcmToken || '');
   };
 
   const handleBackToOnboarding = () => {
@@ -99,11 +100,12 @@ const LoginScreen = ({navigation, route}) => {
       });
     } else {
       try {
+        const fcmToken = (await ensureFcmTokenForAuth()) || fcm;
         let payload = {
           email: email,
           password: password,
           userType: type,
-          fcm,
+          fcm: fcmToken || '',
         };
         setIsLoading(true);
         const response =

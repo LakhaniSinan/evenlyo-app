@@ -119,7 +119,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const { currentLanguage } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const modalRef = useRef(null);
   const [responeData, setResponeData] = useState(null);
   const [isLoadding, setIsLoadding] = useState(false);
@@ -730,7 +730,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
             fontFamily: fontFamly.PlusJakartaSansBold,
             fontSize: 12,
           }}>
-          Description:
+          {t('Description')}:
         </Text>
         <Text
           numberOfLines={4}

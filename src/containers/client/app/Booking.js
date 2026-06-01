@@ -34,36 +34,52 @@ import {
 } from '../../../services/ListingsItem';
 import {getInvoiceHtml} from '../../../utils/htmlComtent';
 
-/* -------------------- CONSTANTS -------------------- */
+const MAIN_TAB_BOOKING = 'booking';
+const MAIN_TAB_SALE = 'sale';
 
-const MAIN_TABS = ['Booking Items', 'Sale Items'];
-
-const BOOKING_TABS = [
-  'all order',
-  'pending',
-  'accepted',
-  'completed',
-  'paid',
-  'finished',
-  'rejected',
+const BOOKING_FILTER_TABS = [
+  {id: 'all', labelKey: 'All Order'},
+  {id: 'pending', labelKey: 'statusPending'},
+  {id: 'accepted', labelKey: 'statusAccepted'},
+  {id: 'completed', labelKey: 'statusCompleted'},
+  {id: 'paid', labelKey: 'Paid'},
+  {id: 'finished', labelKey: 'statusFinished'},
+  {id: 'rejected', labelKey: 'statusRejected'},
 ];
 
-const SALE_TABS = ['All', 'Order Placed', 'On the way', 'Delivered'];
+const SALE_FILTER_TABS = [
+  {id: 'All', labelKey: 'saleStatusAll'},
+  {id: 'Order Placed', labelKey: 'saleStatusOrderPlaced'},
+  {id: 'On the way', labelKey: 'saleStatusOnTheWay'},
+  {id: 'Delivered', labelKey: 'saleStatusDelivered'},
+];
 
-/* -------------------- TAB ITEM -------------------- */
-const capitalizeFirstLetter = text => {
-  if (!text) return '';
-  return text.charAt(0).toUpperCase() + text.slice(1);
+const SALE_STATUS_I18N = {
+  All: 'saleStatusAll',
+  'Order Placed': 'saleStatusOrderPlaced',
+  'On the way': 'saleStatusOnTheWay',
+  Delivered: 'saleStatusDelivered',
+};
+
+const getLocalizedField = (field, currentLanguage) => {
+  if (!field) {
+    return '';
+  }
+  if (typeof field === 'string') {
+    return field;
+  }
+  return currentLanguage === 'en'
+    ? field.en || field.nl || ''
+    : field.nl || field.en || '';
 };
 
 const TabItem = React.memo(({label, active, onPress}) => {
-  const displayLabel = capitalizeFirstLetter(label);
   const tabLabel = (
     <Text
       style={active ? styles.activeText : styles.inactiveText}
       numberOfLines={1}
       ellipsizeMode="tail">
-      {displayLabel}
+      {label}
     </Text>
   );
 
@@ -80,60 +96,21 @@ const TabItem = React.memo(({label, active, onPress}) => {
           {tabLabel}
         </View>
       ) : (
-        <View style={styles.inactiveTab}>
-          {tabLabel}
-        </View>
+        <View style={styles.inactiveTab}>{tabLabel}</View>
       )}
     </TouchableOpacity>
   );
 });
 
-const renderTabs = () => {
-  const tabs = [
-    {id: 'bookingItem', label: t('Booking Items')},
-    {id: 'saleItem', label: t('Sale Items')},
-  ];
-
-  return (
-    <View style={styles.tabContainer}>
-      {tabs.map(({id, label}) => {
-        const isActive = activeTab === id;
-        const colors = isActive
-          ? ['#FF295D', '#E31B95', '#C817AE']
-          : ['#F6F6F6', '#F6F6F6', '#F6F6F6'];
-
-        return (
-          <LinearGradient
-            key={id}
-            colors={colors}
-            style={[styles.tabGradient, isActive && styles.activeGradient]}
-            start={{x: 0, y: 0}}
-            end={{x: 0, y: 1}}>
-            <TouchableOpacity
-              activeOpacity={0.9}
-              style={styles.tab}
-              onPress={() => setActiveTab(id)}>
-              <Text style={[styles.tabText, isActive && styles.activeTabText]}>
-                {label}
-              </Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        );
-      })}
-    </View>
-  );
-};
-
 const BooKings = () => {
   const navigation = useNavigation();
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const modalRef = useRef(null);
   const {user} = useSelector(state => state.LoginSlice);
   const [searchTrackingId, setSearchTrackingId] = useState('');
 
-  const [mainTab, setMainTab] = useState('Booking Items');
-
-  const [bookingStatusTab, setBookingStatusTab] = useState('all order');
+  const [mainTab, setMainTab] = useState(MAIN_TAB_BOOKING);
+  const [bookingStatusTab, setBookingStatusTab] = useState('all');
   const [saleStatusTab, setSaleStatusTab] = useState('All');
 
   const [bookingHistory, setBookingHistory] = useState([]);
@@ -166,19 +143,13 @@ const BooKings = () => {
 
   useFocusEffect(
     useCallback(() => {
-      console.log('FOCUS EFFECT RUN');
-    }, []),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
       if (!user?.id) return;
 
       let isActive = true;
       setIsLoading(true);
 
       const loadData =
-        mainTab === 'Booking Items' ? fetchBookingHistory : fetchSaleOrders;
+        mainTab === MAIN_TAB_BOOKING ? fetchBookingHistory : fetchSaleOrders;
 
       loadData()
         .catch(() => {})
@@ -189,12 +160,12 @@ const BooKings = () => {
       return () => {
         isActive = false;
       };
-    }, [user?._id, mainTab]),
+    }, [user?._id, mainTab, fetchBookingHistory, fetchSaleOrders]),
   );
 
   const onRefresh = async () => {
     setRefreshing(true);
-    if (mainTab === 'Booking Items') {
+    if (mainTab === MAIN_TAB_BOOKING) {
       await fetchBookingHistory();
     } else {
       await fetchSaleOrders();
@@ -246,9 +217,8 @@ const BooKings = () => {
         await RNFS.copyFile(pdf.filePath, destinationPath);
         modalRef.current?.show({
           status: 'ok',
-          message: 'PDF saved to Downloads folder.',
+          message: t('PDF saved to Downloads folder.'),
         });
-        console.log('Saved to Android Downloads:', destinationPath);
       } else {
         const destinationPath = `${RNFS.DocumentDirectoryPath}/Report_${timeStamp}.pdf`;
         await RNFS.moveFile(pdf.filePath, destinationPath);
@@ -256,48 +226,43 @@ const BooKings = () => {
         await Share.share({
           url: `file://${destinationPath}`,
           type: 'application/pdf',
-          title: 'Share your Report PDF',
+          title: t('Share your Report PDF'),
         });
       }
     } catch (error) {
       console.log('Error generating PDF:', error);
       modalRef.current?.show({
         status: 'error',
-        message: 'Failed to generate PDF. Please try again.',
+        message: t('Failed to generate PDF. Please try again.'),
       });
     }
   };
-  const renderMainTab = tab => (
-    <TabItem
-      key={tab}
-      label={tab}
-      active={mainTab === tab}
-      onPress={() => setMainTab(tab)}
-    />
-  );
 
   const renderBookingTab = ({item}) => (
     <TabItem
-      label={item}
-      active={bookingStatusTab === item}
-      onPress={() => setBookingStatusTab(item)}
+      label={t(item.labelKey)}
+      active={bookingStatusTab === item.id}
+      onPress={() => setBookingStatusTab(item.id)}
     />
   );
 
   const renderSaleTab = ({item}) => (
     <TabItem
-      label={item}
-      active={saleStatusTab === item}
-      onPress={() => setSaleStatusTab(item)}
+      label={t(item.labelKey)}
+      active={saleStatusTab === item.id}
+      onPress={() => setSaleStatusTab(item.id)}
     />
   );
 
   const renderSaleItem = ({item}) => {
+    const statusLabelKey = SALE_STATUS_I18N[item.status];
+    const statusLabel = statusLabelKey ? t(statusLabelKey) : item.status;
+
     return (
       <View style={styles.saleCard}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.trackingLabel}>Tracking ID</Text>
+            <Text style={styles.trackingLabel}>{t('Tracking ID')}</Text>
             <Text style={styles.trackingId}>{item.trackingId}</Text>
           </View>
 
@@ -306,7 +271,7 @@ const BooKings = () => {
               styles.statusChip,
               {backgroundColor: STATUS_COLORS[item.status] || '#999'},
             ]}>
-            <Text style={styles.statusText}>{item.status}</Text>
+            <Text style={styles.statusText}>{statusLabel}</Text>
           </View>
         </View>
 
@@ -315,10 +280,14 @@ const BooKings = () => {
             <Image source={{uri: p.image}} style={styles.image} />
 
             <View style={{flex: 1}}>
-              <Text style={styles.title}>{p.title?.en}</Text>
+              <Text style={styles.title}>
+                {getLocalizedField(p.title, currentLanguage)}
+              </Text>
 
               <View style={styles.metaRow}>
-                <Text style={styles.metaText}>Qty: {p.quantity}</Text>
+                <Text style={styles.metaText}>
+                  {t('qtyLabel', {count: p.quantity})}
+                </Text>
                 <Text style={styles.metaText}>$ {p.price}</Text>
               </View>
             </View>
@@ -326,26 +295,26 @@ const BooKings = () => {
         ))}
 
         <View style={styles.addressCard}>
-          <Text style={styles.addressTitle}>Pickup</Text>
+          <Text style={styles.addressTitle}>{t('Pickup')}</Text>
           <Text style={styles.addressText}>
             {item.itemLocation?.fullAddress}
           </Text>
 
           <View style={styles.addressDivider} />
 
-          <Text style={styles.addressTitle}>Drop</Text>
+          <Text style={styles.addressTitle}>{t('Drop')}</Text>
           <Text style={styles.addressText}>
             {item.deliveryLocation?.fullAddress}
           </Text>
         </View>
 
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total Amount</Text>
+          <Text style={styles.totalLabel}>{t('Total Amount')}</Text>
           <Text style={styles.amount}>$ {item.totalAmount}</Text>
         </View>
         <View style={styles.buttonContainer}>
           <GradientButton
-            text="Download Invoice"
+            text={t('Download Invoice')}
             onPress={() => handleDownloadInvoice(item)}
             type="filled"
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}
@@ -358,28 +327,31 @@ const BooKings = () => {
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader
-        headingText="History"
+        headingText={t('History')}
         rightIcon={ICONS.chatIcon}
         onRightIconPress={() => navigation.navigate('MessagesScreen')}
       />
       <FlatList
         ListHeaderComponent={
           <>
-            {/* <View style={styles.mainTabWrapper}>
-              {MAIN_TABS.map(renderMainTab)}
-            </View> */}
             <FlatList
-              data={mainTab === 'Booking Items' ? BOOKING_TABS : SALE_TABS}
+              data={
+                mainTab === MAIN_TAB_BOOKING
+                  ? BOOKING_FILTER_TABS
+                  : SALE_FILTER_TABS
+              }
               horizontal
               renderItem={
-                mainTab === 'Booking Items' ? renderBookingTab : renderSaleTab
+                mainTab === MAIN_TAB_BOOKING
+                  ? renderBookingTab
+                  : renderSaleTab
               }
-              keyExtractor={item => item}
+              keyExtractor={item => item.id}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.tabContainer}
               removeClippedSubviews={false}
             />
-            {mainTab === 'Booking Items' && (
+            {mainTab === MAIN_TAB_BOOKING && (
               <View style={styles.listWrapper}>
                 <BookingList
                   bookings={bookingHistory}
@@ -394,11 +366,11 @@ const BooKings = () => {
               </View>
             )}
 
-            {mainTab === 'Sale Items' && (
+            {mainTab === MAIN_TAB_SALE && (
               <View style={styles.searchBox}>
                 <Image source={ICONS.search} style={styles.searchIcon} />
                 <TextInput
-                  placeholder="Search by Tracking ID"
+                  placeholder={t('Search by Tracking ID')}
                   placeholderTextColor="#999"
                   value={searchTrackingId}
                   onChangeText={setSearchTrackingId}
@@ -409,15 +381,15 @@ const BooKings = () => {
             )}
           </>
         }
-        data={mainTab === 'Sale Items' ? filteredSaleItems : []}
-        renderItem={mainTab === 'Sale Items' ? renderSaleItem : null}
+        data={mainTab === MAIN_TAB_SALE ? filteredSaleItems : []}
+        renderItem={mainTab === MAIN_TAB_SALE ? renderSaleItem : null}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          mainTab === 'Sale Items' ? (
+          mainTab === MAIN_TAB_SALE ? (
             <View style={styles.emptyCenterBox}>
-              <Text style={styles.emptyText}>No sale items found</Text>
+              <Text style={styles.emptyText}>{t('No sale items found')}</Text>
             </View>
           ) : null
         }
@@ -453,12 +425,6 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
     fontSize: 14,
     fontFamily: fontFamly.PlusJakartaSansMedium,
-  },
-
-  mainTabWrapper: {
-    marginTop: width(3),
-    flexDirection: 'row',
-    justifyContent: 'center',
   },
 
   tabContainer: {
@@ -587,7 +553,6 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
 
-  /* ---------- ADDRESS ---------- */
   addressCard: {
     marginTop: 14,
     backgroundColor: COLORS.white,

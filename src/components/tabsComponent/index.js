@@ -7,12 +7,17 @@ import {COLORS, fontFamly} from '../../constants';
 const gradientColors = ['#FF295D', '#E31B95', '#C817AE'];
 
 const TabItem = ({item, isActive, onPress, type}) => {
+  const isSaleItem = type === 'saleItem';
+
   return (
     <TouchableOpacity
       onPress={() => onPress(item.id)}
-      style={[styles.tabTouchable, type === 'saleItem' ? styles.saleTab : null]}>
+      style={[
+        styles.tabTouchable,
+        isSaleItem ? styles.saleTab : styles.flexTab,
+      ]}>
       {isActive ? (
-        <View style={styles.activeTab}>
+        <View style={[styles.activeTab, isSaleItem && styles.saleTabInner]}>
           <LinearGradient
             colors={gradientColors}
             start={{x: 0, y: 0}}
@@ -24,16 +29,23 @@ const TabItem = ({item, isActive, onPress, type}) => {
             style={styles.iconActive}
             resizeMode="contain"
           />
-          <Text style={styles.textActive}>{item.title}</Text>
+          <Text style={styles.textActive} numberOfLines={1} ellipsizeMode="tail">
+            {item.title}
+          </Text>
         </View>
       ) : (
-        <View style={styles.inactiveTab}>
+        <View style={[styles.inactiveTab, isSaleItem && styles.saleTabInner]}>
           <Image
             source={item.inactiveIcon}
             style={styles.iconInactive}
             resizeMode="contain"
           />
-          <Text style={styles.textInactive}>{item.title}</Text>
+          <Text
+            style={styles.textInactive}
+            numberOfLines={1}
+            ellipsizeMode="tail">
+            {item.title}
+          </Text>
         </View>
       )}
     </TouchableOpacity>
@@ -42,12 +54,20 @@ const TabItem = ({item, isActive, onPress, type}) => {
 
 const styles = StyleSheet.create({
   tabTouchable: {
-    marginHorizontal: width(2),
     borderRadius: width(5),
     overflow: 'hidden',
   },
+  flexTab: {
+    flex: 1,
+    minWidth: 0,
+    marginHorizontal: width(1),
+  },
   saleTab: {
     width: '45%',
+    marginHorizontal: width(1),
+  },
+  saleTabInner: {
+    paddingHorizontal: width(3),
   },
   activeTab: {
     flexDirection: 'row',
@@ -55,7 +75,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: width(12),
     borderRadius: width(5),
-    paddingHorizontal: width(5),
+    paddingHorizontal: width(2),
     overflow: 'hidden',
   },
   activeGradient: {
@@ -69,7 +89,7 @@ const styles = StyleSheet.create({
     height: width(12),
     backgroundColor: 'transparent',
     borderRadius: width(5),
-    paddingHorizontal: width(5),
+    paddingHorizontal: width(2),
   },
   iconActive: {
     width: 16,
@@ -84,13 +104,15 @@ const styles = StyleSheet.create({
     tintColor: COLORS.black,
   },
   textActive: {
+    flexShrink: 1,
     color: COLORS.white,
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
   textInactive: {
+    flexShrink: 1,
     color: COLORS.black,
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansMedium,
   },
 });

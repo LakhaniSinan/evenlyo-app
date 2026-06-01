@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from '../../../hooks';
 import {
   Alert,
   Image,
@@ -290,7 +290,7 @@ const PersonalInfo = ({ navigation }) => {
         {/* Save Button */}
         <View style={styles.btnContainer}>
           <GradientButton
-            text={t('Save Change')}
+            text={t('saveChanges')}
             onPress={handleSave}
             disabled={isLoading}
           />

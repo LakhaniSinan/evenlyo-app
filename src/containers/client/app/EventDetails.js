@@ -97,10 +97,11 @@ const EventDetails = ({route, navigation}) => {
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: width(3),
+          width: '100%',
+          paddingHorizontal: width(2),
+          paddingVertical: width(2),
         }}>
-        {tabsData.map((item, index) => (
+        {tabsData.map(item => (
           <TabItem
             type={data?.type}
             key={item.id}
@@ -118,7 +119,7 @@ const EventDetails = ({route, navigation}) => {
       <ScrollView>
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
-          headingText={'Details'}
+          headingText={t('Details')}
           rightIcon={ICONS.notificationIcon}
           onRightIconPress={() => navigation.navigate('Notifications')}
           onLeftIconPress={() => navigation.goBack()}

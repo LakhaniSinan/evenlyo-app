@@ -53,16 +53,16 @@ const CustomerSupport = ({isVisible, onClose}) => {
       propagateSwipe={true}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>{t('Support')}</Text>
+          <Text style={styles.title}>{t('supportModalTitle')}</Text>
           <TouchableOpacity onPress={onClose}>
             <Icon name="close" size={24} color="#333" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>{t('Your email')}</Text>
+          <Text style={styles.label}>{t('supportYourEmail')}</Text>
           <TextField
-            placeholder={t('Your email')}
+            placeholder={t('supportEmailPlaceholder')}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -70,9 +70,9 @@ const CustomerSupport = ({isVisible, onClose}) => {
           />
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>{t('Your message')}</Text>
+          <Text style={styles.label}>{t('supportYourMessage')}</Text>
           <TextField
-            placeholder={t('Your message')}
+            placeholder={t('supportMessagePlaceholder')}
             value={message}
             onChangeText={setMessage}
             multiline={true}

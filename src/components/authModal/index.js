@@ -26,6 +26,7 @@ import GradientText from '../gradiantText';
 import Loader from '../loder';
 import TextField from '../textInput';
 import {helper} from '../../helper';
+import {ensureFcmTokenForAuth} from '../../utils/fcmToken';
 
 const LoginModal = ({onClose, isVisible, handlePressFun}) => {
   const {t} = useTranslation();
@@ -50,8 +51,8 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
   };
 
   const getFCMToken = async () => {
-    const fcmToken = await helper.getFCMToken();
-    setFcm(fcmToken);
+    const fcmToken = await helper.getFCMTokenWithRetry();
+    setFcm(fcmToken || '');
   };
 
   const handleInputChange = useCallback((key, value) => {
@@ -90,7 +91,8 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
 
     try {
       setIsLoading(true);
-      const payload = {email, password, fcm};
+      const fcmToken = (await ensureFcmTokenForAuth()) || fcm;
+      const payload = {email, password, fcm: fcmToken || ''};
 
       const response =
         user?.type === 'vendor'

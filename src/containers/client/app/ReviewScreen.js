@@ -10,19 +10,21 @@ import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
 import ReviewsCard from '../../../components/reviewsCard';
 import {COLORS, fontFamly} from '../../../constants';
+import {useTranslation} from '../../../hooks';
 
 const RatingSummary = ({
   averageRating = 0,
   totalRatings = 0,
   starCounts = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0},
 }) => {
+  const {t} = useTranslation();
   const total = Object.values(starCounts).reduce((a, b) => a + b, 0);
 
   const getPercentage = count => (total > 0 ? (count / total) * 100 : 0);
 
   return (
     <View style={styles.ratingContainer}>
-      <Text style={styles.title}>Rating & Reviews</Text>
+      <Text style={styles.title}>{t('reviewsRatingAndReviews')}</Text>
 
       <View style={styles.topSection}>
         <View style={styles.leftSection}>
@@ -36,7 +38,9 @@ const RatingSummary = ({
             showRating={false}
             startingValue={Number(averageRating || 0)}
           />
-          <Text style={styles.totalText}>{totalRatings} Ratings</Text>
+          <Text style={styles.totalText}>
+            {t('reviewsTotalRatings', {count: totalRatings})}
+          </Text>
         </View>
 
         <View style={styles.rightSection}>
@@ -61,6 +65,7 @@ const RatingSummary = ({
 };
 
 const AllReviews = ({data}) => {
+  const {t} = useTranslation();
   const reviewsFromApi = data?.reviews?.reviews || [];
   const reviews = reviewsFromApi.map((review, index) => ({
     _id: review?._id || `review-${index}`,
@@ -111,7 +116,7 @@ const AllReviews = ({data}) => {
               starCounts={starCounts}
             />
             <View style={styles.recentHeadingWrapper}>
-              <Text style={styles.recentHeadingText}>Most Recent</Text>
+              <Text style={styles.recentHeadingText}>{t('mostRecent')}</Text>
               <Text style={styles.recentCountText}>({reviews.length})</Text>
             </View>
           </>
@@ -125,7 +130,7 @@ const AllReviews = ({data}) => {
         )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No Review Found!</Text>
+            <Text style={styles.emptyText}>{t('reviewsNoReviewFound')}</Text>
           </View>
         }
       />
