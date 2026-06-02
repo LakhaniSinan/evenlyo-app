@@ -9,8 +9,23 @@ import {
 } from 'react-native';
 import {height, width} from 'react-native-dimension';
 import {COLORS} from '../../constants';
+import {useTranslation} from '../../hooks';
 
 const ReportUserModal = ({visible, onClose, onSubmit, userName}) => {
+  const {currentLanguage} = useTranslation();
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    reportUser: isDutch ? 'Gebruiker melden' : 'Report User',
+    report: isDutch ? 'Melden' : 'Report',
+    reportReasonLabel: isDutch
+      ? 'Reden van melding'
+      : 'Reason for reporting',
+    reportPlaceholder: isDutch
+      ? 'Beschrijf waarom je deze gebruiker meldt...'
+      : 'Please describe why you are reporting this user...',
+    characters: isDutch ? 'tekens' : 'characters',
+    cancel: isDutch ? 'Annuleren' : 'Cancel',
+  };
   const [reason, setReason] = useState('');
 
   const handleReport = () => {
@@ -35,8 +50,10 @@ const ReportUserModal = ({visible, onClose, onSubmit, userName}) => {
                 <Text style={styles.flagIcon}>🚩</Text>
               </View>
               <View>
-                <Text style={styles.title}>Report User</Text>
-                <Text style={styles.subtitle}>Report {userName}</Text>
+                <Text style={styles.title}>{localizedText.reportUser}</Text>
+                <Text style={styles.subtitle}>
+                  {localizedText.report} {userName}
+                </Text>
               </View>
             </View>
             <TouchableOpacity onPress={onClose}>
@@ -45,9 +62,9 @@ const ReportUserModal = ({visible, onClose, onSubmit, userName}) => {
           </View>
 
           {/* Input Field */}
-          <Text style={styles.label}>Reason for reporting</Text>
+          <Text style={styles.label}>{localizedText.reportReasonLabel}</Text>
           <TextInput
-            placeholder="Please describe why you are reporting this user..."
+            placeholder={localizedText.reportPlaceholder}
             placeholderTextColor={COLORS.textLight}
             value={reason}
             onChangeText={setReason}
@@ -55,12 +72,14 @@ const ReportUserModal = ({visible, onClose, onSubmit, userName}) => {
             multiline
             style={styles.textArea}
           />
-          <Text style={styles.charCount}>{reason.length}/500 characters</Text>
+          <Text style={styles.charCount}>
+            {reason.length}/500 {localizedText.characters}
+          </Text>
 
           {/* Buttons */}
           <View style={styles.btnContainer}>
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-              <Text style={styles.cancelText}>Cancel</Text>
+              <Text style={styles.cancelText}>{localizedText.cancel}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -69,7 +88,7 @@ const ReportUserModal = ({visible, onClose, onSubmit, userName}) => {
               ]}
               onPress={handleReport}
               disabled={!reason.trim().length}>
-              <Text style={styles.reportText}>Report</Text>
+              <Text style={styles.reportText}>{localizedText.report}</Text>
             </TouchableOpacity>
           </View>
         </View>

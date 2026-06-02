@@ -2,6 +2,44 @@
 
 import moment from "moment";
 
+const DAY_KEY_ALIASES = {
+  mon: 'mon',
+  monday: 'mon',
+  maandag: 'mon',
+  tue: 'tue',
+  tues: 'tue',
+  tuesday: 'tue',
+  dinsdag: 'tue',
+  wed: 'wed',
+  wednesday: 'wed',
+  woensdag: 'wed',
+  thu: 'thu',
+  thur: 'thu',
+  thurs: 'thu',
+  thursday: 'thu',
+  donderdag: 'thu',
+  fri: 'fri',
+  friday: 'fri',
+  vrijdag: 'fri',
+  sat: 'sat',
+  saturday: 'sat',
+  zaterdag: 'sat',
+  sun: 'sun',
+  sunday: 'sun',
+  zondag: 'sun',
+};
+
+const normalizeDayKey = day => {
+  const key = String(day || '').trim().toLowerCase();
+  return DAY_KEY_ALIASES[key] || null;
+};
+
+const getDayKeyFromMoment = dateMoment => {
+  const isoDay = dateMoment.isoWeekday();
+  const dayMap = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  return dayMap[isoDay - 1] || null;
+};
+
 export const formatDate = (date, format = 'short') => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
 
@@ -219,12 +257,14 @@ export const getInitialMarkedDates = (availableDays, referenceDate = moment()) =
   const marked = {};
   const start = referenceDate.clone();
   const end = referenceDate.clone().add(6, 'months');
+  const normalizedDays = (availableDays || []).map(normalizeDayKey).filter(Boolean);
+  const availableDaysSet = new Set(normalizedDays);
 
   for (let m = start.clone(); m.isBefore(end); m.add(1, 'day')) {
-    const dayName = m.format('ddd').toLowerCase();
+    const dayName = getDayKeyFromMoment(m);
     const dateStr = m.format('YYYY-MM-DD');
     const isPast = m.isBefore(referenceDate, 'day');
-    const isAvailable = availableDays.includes(dayName);
+    const isAvailable = availableDaysSet.has(dayName);
 
     marked[dateStr] =
       isPast || !isAvailable
@@ -269,6 +309,8 @@ export const calculateAvailableDaysWithHours = ({
 
   const start = moment(startDate);
   const end = endDate ? moment(endDate) : moment(startDate);
+  const normalizedDays = (availableDays || []).map(normalizeDayKey).filter(Boolean);
+  const availableDaysSet = new Set(normalizedDays);
 
   let totalSelectedDays = 0;
   let availableSelectedDays = 0;
@@ -288,10 +330,10 @@ export const calculateAvailableDaysWithHours = ({
   while (curr.isSameOrBefore(end)) {
     totalSelectedDays++;
 
-    const dayName = curr.format('ddd').toLowerCase();
+    const dayName = getDayKeyFromMoment(curr);
     const dateStr = curr.format('YYYY-MM-DD');
 
-    if (availableDays.includes(dayName)) {
+    if (availableDaysSet.has(dayName)) {
       availableSelectedDays++;
       availableDates.push(dateStr);
     } else {

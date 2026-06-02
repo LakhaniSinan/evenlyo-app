@@ -71,11 +71,12 @@ const STATUS_COLORS = {
 /*                            SMALL COMPONENTS                                 */
 /* -------------------------------------------------------------------------- */
 
-const StatusBadge = React.memo(({text}) => {
-  const colors = STATUS_COLORS[normalizeStatus(text)] || STATUS_COLORS.default;
+const StatusBadge = React.memo(({rawStatus, label}) => {
+  const colors =
+    STATUS_COLORS[normalizeStatus(rawStatus || label)] || STATUS_COLORS.default;
   return (
     <View style={[styles.badge, {backgroundColor: colors.bg}]}>
-      <Text style={[styles.badgeText, {color: colors.text}]}>{text}</Text>
+      <Text style={[styles.badgeText, {color: colors.text}]}>{label}</Text>
     </View>
   );
 });
@@ -87,11 +88,10 @@ const InfoRow = React.memo(({label, value}) => (
   </View>
 ));
 
-const RenderCards = React.memo(({type, data}) => {
-  const isCheckIn = type === 'Check In';
+const RenderCards = React.memo(({title, isCheckIn, data}) => {
   return (
     <View style={styles.checkCard}>
-      <GradientText text={type} customStyles={{textAlign: 'left'}} />
+      <GradientText text={title} customStyles={{textAlign: 'left'}} />
       <Text style={styles.checkDate}>
         {formatDate(isCheckIn ? data?.start : data?.end)}
       </Text>
@@ -108,6 +108,38 @@ const RenderCards = React.memo(({type, data}) => {
 
 const BookingDetails = ({route, navigation}) => {
   const {currentLanguage} = useTranslation();
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    booking: isDutch ? 'Boeking' : 'Booking',
+    checkIn: isDutch ? 'Inchecken' : 'Check In',
+    checkOut: isDutch ? 'Uitchecken' : 'Check Out',
+    description: isDutch ? 'Beschrijving' : 'Description',
+    orderDetails: isDutch ? 'Bestelgegevens' : 'Order Details',
+    trackingId: isDutch ? 'Tracking-ID' : 'Tracking ID',
+    orderStatus: isDutch ? 'Bestelstatus' : 'Order Status',
+    paymentStatus: isDutch ? 'Betaalstatus' : 'Payment Status',
+    startDate: isDutch ? 'Startdatum' : 'Start Date',
+    endDate: isDutch ? 'Einddatum' : 'End Date',
+    security: isDutch ? 'Borg' : 'Security',
+    totalPrice: isDutch ? 'Totale prijs' : 'Total Price',
+    cancel: isDutch ? 'Annuleren' : 'Cancel',
+    received: isDutch ? 'Ontvangen' : 'Received',
+    addReview: isDutch ? 'Beoordeling toevoegen' : 'Add Review',
+    complete: isDutch ? 'Voltooien' : 'Complete',
+    complain: isDutch ? 'Klacht indienen' : 'Complain',
+    trackBooking: isDutch ? 'Boeking volgen' : 'Track Booking',
+  };
+  const statusLabelMap = {
+    pending: isDutch ? 'IN AFWACHTING' : 'PENDING',
+    accepted: isDutch ? 'GEACCEPTEERD' : 'ACCEPTED',
+    on_the_way: isDutch ? 'ONDERWEG' : 'ON THE WAY',
+    received: isDutch ? 'ONTVANGEN' : 'RECEIVED',
+    completed: isDutch ? 'VOLTOOID' : 'COMPLETED',
+    finished: isDutch ? 'AFGEROND' : 'FINISHED',
+    cancelled: isDutch ? 'GEANNULEERD' : 'CANCELLED',
+    rejected: isDutch ? 'AFGEWEZEN' : 'REJECTED',
+    claim: isDutch ? 'CLAIM' : 'CLAIM',
+  };
   const modalRef = useRef(null);
   const mapRef = useRef(null);
   const {user} = useSelector(state => state.LoginSlice);
@@ -349,7 +381,7 @@ const BookingDetails = ({route, navigation}) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
-          headingText="Booking"
+          headingText={localizedText.booking}
           rightIcon={ICONS.chatIcon}
           onLeftIconPress={() => navigation.goBack()}
           onRightIconPress={handleOpenChat}
@@ -365,9 +397,17 @@ const BookingDetails = ({route, navigation}) => {
 
         {/* CHECK IN / OUT */}
         <View style={styles.checkRow}>
-          <RenderCards type="Check In" data={bookingData?.bookingDateTime} />
+          <RenderCards
+            title={localizedText.checkIn}
+            isCheckIn
+            data={bookingData?.bookingDateTime}
+          />
           <Image style={styles.arrowIcon} source={ICONS.arrowIcon} />
-          <RenderCards type="Check Out" data={bookingData?.bookingDateTime} />
+          <RenderCards
+            title={localizedText.checkOut}
+            isCheckIn={false}
+            data={bookingData?.bookingDateTime}
+          />
         </View>
         <EventListingReviewsSection
           data={{
@@ -382,7 +422,7 @@ const BookingDetails = ({route, navigation}) => {
               fontSize: 12,
               color: COLORS.black,
             }}>
-            Description:
+            {localizedText.description}:
           </Text>
           <Text
             style={{
@@ -397,41 +437,56 @@ const BookingDetails = ({route, navigation}) => {
         </View>
         {/* ORDER DETAILS */}
         <View style={styles.card}>
-          <Text style={styles.heading}>Order Details</Text>
+          <Text style={styles.heading}>{localizedText.orderDetails}</Text>
 
           <Text style={styles.label}>
-            Tracking ID: {bookingData?.trackingId}
+            {localizedText.trackingId}: {bookingData?.trackingId}
           </Text>
 
           <View style={styles.row}>
-            <Text style={styles.label}>Order Status</Text>
-            <StatusBadge text={bookingData?.status?.toUpperCase()} />
+            <Text style={styles.label}>{localizedText.orderStatus}</Text>
+            <StatusBadge
+              rawStatus={bookingData?.status}
+              label={
+                statusLabelMap[normalizeStatus(bookingData?.status)] ||
+                String(bookingData?.status || '').toUpperCase()
+              }
+            />
           </View>
 
           <View style={styles.row}>
-            <Text style={styles.label}>Payment Status</Text>
-            <StatusBadge text={bookingData?.paymentStatus?.toUpperCase()} />
+            <Text style={styles.label}>{localizedText.paymentStatus}</Text>
+            <StatusBadge
+              rawStatus={bookingData?.paymentStatus}
+              label={
+                statusLabelMap[normalizeStatus(bookingData?.paymentStatus)] ||
+                String(bookingData?.paymentStatus || '').toUpperCase()
+              }
+            />
           </View>
 
           <InfoRow
-            label="Start Date"
+            label={localizedText.startDate}
             value={`${formatDate(bookingData?.bookingDateTime?.start)} ${
               bookingData?.bookingDateTime?.startTime || ''
             }`}
           />
 
           <InfoRow
-            label="End Date"
+            label={localizedText.endDate}
             value={`${formatDate(bookingData?.bookingDateTime?.end)} ${
               bookingData?.bookingDateTime?.endTime || ''
             }`}
           />
           <InfoRow
-            label="Security"
+            label={localizedText.security}
             value={`€${bookingData?.pricingBreakdown?.securityFee}`}
           />
 
-          <InfoRow label="Total Price" value={`€${bookingData?.totalPrice}`} />
+          <InfoRow
+            label={localizedText.totalPrice}
+            value={`€${bookingData?.totalPrice}`}
+          />
         </View>
         {/* LOCATION
         {hasLocation && (
@@ -472,7 +527,7 @@ const BookingDetails = ({route, navigation}) => {
           }}>
           <GradientButton
             onPress={() => setOpenCancelModal(true)}
-            text={'Cancel'}
+            text={localizedText.cancel}
             type="outline"
             useGradient={true}
             styleProps={{}}
@@ -493,7 +548,7 @@ const BookingDetails = ({route, navigation}) => {
           }}>
           <GradientButton
             onPress={handleMarkAsRecived}
-            text={'Recived'}
+            text={localizedText.received}
             type="outline"
             useGradient={true}
             styleProps={{}}
@@ -514,7 +569,7 @@ const BookingDetails = ({route, navigation}) => {
           }}>
           <GradientButton
             onPress={() => setReviewModal(true)}
-            text={'Add Review'}
+            text={localizedText.addReview}
             type="outline"
             useGradient={true}
             styleProps={{}}
@@ -538,7 +593,7 @@ const BookingDetails = ({route, navigation}) => {
           <View style={{width: width(45)}}>
             <GradientButton
               onPress={handleMarkAsComplete}
-              text={'Complete'}
+              text={localizedText.complete}
               type="outline"
               useGradient={true}
               styleProps={{}}
@@ -550,7 +605,7 @@ const BookingDetails = ({route, navigation}) => {
           </View>
           <View style={{width: width(42)}}>
             <GradientButton
-              text={'Complain'}
+              text={localizedText.complain}
               type="filled"
               onPress={onClaimaedPress}
             />
@@ -567,7 +622,7 @@ const BookingDetails = ({route, navigation}) => {
         }}>
         <View style={{width: '100%'}}>
           <GradientButton
-            text={'Track Booking'}
+            text={localizedText.trackBooking}
             type="filled"
             onPress={() =>
               navigation.navigate('TrackDirections', {

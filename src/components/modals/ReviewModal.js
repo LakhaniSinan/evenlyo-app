@@ -11,9 +11,26 @@ import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
 
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 
 const ReviewModal = ({visible, onClose, onConfirm}) => {
+  const {currentLanguage} = useTranslation();
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    pleaseGiveRating: isDutch ? 'Geef een beoordeling' : 'Please give rating',
+    pleaseWriteReview: isDutch
+      ? 'Schrijf je beoordeling'
+      : 'Please write your review',
+    rateExperience: isDutch ? 'Beoordeel je ervaring' : 'Rate Your Experience',
+    tapToRate: isDutch ? 'Tik om te beoordelen' : 'Tap to rate',
+    writeReview: isDutch ? 'Schrijf een beoordeling' : 'Write a Review',
+    shareExperience: isDutch
+      ? 'Deel je ervaring...'
+      : 'Share your experience...',
+    cancel: isDutch ? 'Annuleren' : 'Cancel',
+    submit: isDutch ? 'Versturen' : 'Submit',
+  };
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
 
@@ -30,12 +47,12 @@ const ReviewModal = ({visible, onClose, onConfirm}) => {
 
   const handleConfirm = () => {
     if (!rating) {
-      alert('Please give rating');
+      alert(localizedText.pleaseGiveRating);
       return;
     }
 
     if (!review.trim()) {
-      alert('Please write your review');
+      alert(localizedText.pleaseWriteReview);
       return;
     }
 
@@ -57,7 +74,7 @@ const ReviewModal = ({visible, onClose, onConfirm}) => {
       <View style={styles.overlay}>
         <View style={styles.container}>
           {/* Title */}
-          <Text style={styles.title}>Rate Your Experience</Text>
+          <Text style={styles.title}>{localizedText.rateExperience}</Text>
 
           {/* Rating */}
           <Rating
@@ -70,14 +87,14 @@ const ReviewModal = ({visible, onClose, onConfirm}) => {
 
           {/* Rating Label */}
           <Text style={styles.ratingText}>
-            {rating ? `${rating} / 5` : 'Tap to rate'}
+            {rating ? `${rating} / 5` : localizedText.tapToRate}
           </Text>
 
           {/* Review Input */}
-          <Text style={styles.label}>Write a Review</Text>
+          <Text style={styles.label}>{localizedText.writeReview}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Share your experience..."
+            placeholder={localizedText.shareExperience}
             placeholderTextColor={COLORS.textLight}
             value={review}
             onChangeText={setReview}
@@ -88,7 +105,7 @@ const ReviewModal = ({visible, onClose, onConfirm}) => {
           <View style={styles.buttonRow}>
             <View style={{width: width(38)}}>
               <GradientButton
-                text="Cancel"
+                text={localizedText.cancel}
                 type="outline"
                 useGradient
                 onPress={handleClose}
@@ -97,7 +114,7 @@ const ReviewModal = ({visible, onClose, onConfirm}) => {
 
             <View style={{width: width(38)}}>
               <GradientButton
-                text="Submit"
+                text={localizedText.submit}
                 onPress={handleConfirm}
                 disabled={!rating || !review.trim()}
               />

@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import {COLORS, fontFamly} from '../../../constants';
+import {useTranslation} from '../../../hooks';
 
 const parseFiniteNumber = value => {
   const parsed = Number(value);
@@ -17,6 +18,13 @@ const DEFAULT_MAP_COORDINATE = {
 };
 
 const TrackDirections = ({navigation, route}) => {
+  const {currentLanguage} = useTranslation();
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    trackDetail: isDutch ? 'Volgdetails' : 'Track Detail',
+    eventLocation: isDutch ? 'Evenementlocatie' : 'Event Location',
+    event: isDutch ? 'Evenement' : 'Event',
+  };
   const data = route.params;
   const mapRef = useRef(null);
   const rawLatitude =
@@ -62,7 +70,7 @@ const TrackDirections = ({navigation, route}) => {
       <View style={styles.headerWrapper}>
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
-          headingText="Track Detail"
+          headingText={localizedText.trackDetail}
           rightIcon={ICONS.notificationIcon}
           onRightIconPress={() => navigation.navigate('Notifications')}
           onLeftIconPress={() => navigation.goBack()}
@@ -80,7 +88,7 @@ const TrackDirections = ({navigation, route}) => {
           {hasValidCoordinates && (
             <Marker
               coordinate={{latitude, longitude}}
-              title="Event Location"
+              title={localizedText.eventLocation}
               description={data?.eventLocation}
             />
           )}
@@ -101,7 +109,7 @@ const TrackDirections = ({navigation, route}) => {
             resizeMode="cover"
           />
           <View style={styles.vendorInfo}>
-            <Text style={styles.serviceType}>Event</Text>
+            <Text style={styles.serviceType}>{localizedText.event}</Text>
             <Text style={styles.vendorName}>{data?.firstName}</Text>
             <View style={styles.locationContainer}>
               <Icon

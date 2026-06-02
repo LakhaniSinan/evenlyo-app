@@ -51,9 +51,13 @@ const getTabsData = t => [
 const EventDetails = ({route, navigation}) => {
   const data = route?.params;
   console.log(data, 'datadatadatadatadatadatadataas');
-
-  const {cartData} = useSelector(state => state.CartSlice);
-  const {t} = useTranslation();
+  const {currentLanguage} = useTranslation();
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    details: isDutch ? 'Details' : 'Details',
+    gallery: isDutch ? 'Galerij' : 'Gallery',
+    reviews: isDutch ? 'Beoordelingen' : 'Reviews',
+  };
   const modalRef = useRef();
   const [selectedDates, setSelectedDates] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -119,14 +123,33 @@ const EventDetails = ({route, navigation}) => {
       <ScrollView>
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
-          headingText={t('Details')}
+          headingText={localizedText.details}
           rightIcon={ICONS.notificationIcon}
           onRightIconPress={() => navigation.navigate('Notifications')}
           onLeftIconPress={() => navigation.goBack()}
         />
         {/* data?.type == 'saleItem' ? getSaleItemsTabs(t) : */}
         <Tabs
-          tabsData={getTabsData(t)}
+          tabsData={[
+            {
+              id: 'details',
+              title: localizedText.details,
+              activeIcon: ICONS.infoIconActive,
+              inactiveIcon: ICONS.infoIconInActive,
+            },
+            {
+              id: 'gallery',
+              title: localizedText.gallery,
+              activeIcon: ICONS.galleryIconActive,
+              inactiveIcon: ICONS.galleryIconInActive,
+            },
+            {
+              id: 'reviews',
+              title: localizedText.reviews,
+              activeIcon: ICONS.starIconActive,
+              inactiveIcon: ICONS.starIconInActive,
+            },
+          ]}
           selectedTab={selectedTab}
           onPress={setSelectedTab}
         />

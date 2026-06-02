@@ -1,8 +1,8 @@
 import {endPoints, requestType} from '../constants/Variable';
 import Api from './index';
 
-export const getVendorDetails = id => {
-  return Api(`${endPoints.vendorDetailsById}/${id}`, null, requestType.GET);
+export const getVendorDetails = (id, params) => {
+  return Api(`${endPoints.vendorDetailsById}/${id}`, params, requestType.POST);
 };
 export const getVendorProfile = () => {
   return Api(endPoints.getVendor, null, requestType.GET);

@@ -54,6 +54,51 @@ const ChatDetail = ({navigation, route}) => {
   const [visible, setVisible] = useState(false);
   const [isError, setIsError] = useState(false);
   const {t, currentLanguage} = useTranslation();
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    vendor: isDutch ? 'Leverancier' : 'Vendor',
+    sending: isDutch ? 'Verzenden...' : 'Sending...',
+    pdfDocument: isDutch ? 'PDF-document' : 'PDF Document',
+    customOffer: isDutch ? 'Aangepaste offerte' : 'Custom Offer',
+    status: isDutch ? 'Status' : 'Status',
+    total: isDutch ? 'Totaal' : 'Total',
+    validFor24Hours: isDutch ? '24 uur geldig' : 'Valid for 24 hours',
+    accepted: isDutch ? 'GEACCEPTEERD' : 'ACCEPTED',
+    viewAcceptOffer: isDutch ? 'Bekijk & accepteer offerte' : 'View & Accept Offer',
+    storagePermissionTitle: isDutch
+      ? 'Opslagtoestemming vereist'
+      : 'Storage Permission Required',
+    storagePermissionMsg: isDutch
+      ? 'App heeft toegang nodig tot je opslag om media te selecteren'
+      : 'App needs access to your storage to select media',
+    error: isDutch ? 'Fout' : 'Error',
+    fileSelected: isDutch ? 'Bestand geselecteerd' : 'File Selected',
+    selectFileFailed: isDutch ? 'Selecteren van bestand mislukt' : 'Failed to select file',
+    deleteChat: isDutch ? 'Chat verwijderen' : 'Delete Chat',
+    blockVendor: isDutch ? 'Leverancier blokkeren' : 'Block Vendor',
+    unblockVendor: isDutch ? 'Leverancier deblokkeren' : 'Unblock Vendor',
+    reportVendor: isDutch ? 'Leverancier melden' : 'Report Vendor',
+    deleteChatConfirm: isDutch
+      ? 'Weet je zeker dat je deze chat wilt verwijderen? Alle berichten in dit gesprek worden permanent verwijderd en kunnen niet worden hersteld.'
+      : 'Are you sure you want to delete this chat? All messages in this conversation will be permanently deleted and cannot be recovered.',
+    blockVendorConfirm: isDutch
+      ? 'Weet je zeker dat je deze leverancier wilt blokkeren? Je kunt geen berichten meer verzenden of ontvangen totdat je deblokkert.'
+      : 'Are you sure you want to block this vendor? You will no longer be able to send or receive messages from them until you unblock.',
+    unblockVendorConfirm: isDutch
+      ? 'Wil je deze leverancier deblokkeren? Je kunt weer berichten verzenden en ontvangen.'
+      : 'Do you want to unblock this vendor? You will be able to send and receive messages again.',
+    blockedByMe: isDutch
+      ? 'Je hebt deze leverancier geblokkeerd. Je kunt geen berichten verzenden.'
+      : 'You have blocked this vendor. You can’t send messages.',
+    blockedByVendor: isDutch
+      ? 'Dit gesprek is geblokkeerd door de leverancier.'
+      : 'This conversation has been blocked by vendor.',
+    remove: isDutch ? 'Verwijderen' : 'Remove',
+    messageToVendor: isDutch ? 'Bericht aan leverancier' : 'Message to vendor',
+    todayAt: isDutch ? 'Vandaag om' : 'Today at',
+    yesterdayAt: isDutch ? 'Gisteren om' : 'Yesterday at',
+    at: isDutch ? 'om' : 'at',
+  };
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [commentType, setCommentType] = useState('');
@@ -81,7 +126,7 @@ const ChatDetail = ({navigation, route}) => {
       .replace(/\s+/g, ' ')
       .trim();
 
-    return normalized || 'Vendor';
+    return normalized || localizedText.vendor;
   }, [conversation?.participants?.vendor?.name]);
 
   useEffect(() => {
@@ -363,23 +408,25 @@ const ChatDetail = ({navigation, route}) => {
 
     // Agar same din ka message hai
     if (messageTime.isSame(now, 'day')) {
-      return `Today at ${messageTime.format('hh:mm A')}`;
+      return `${localizedText.todayAt} ${messageTime.format('hh:mm A')}`;
     }
 
     // Agar kal ka message hai
     if (messageTime.isSame(moment().subtract(1, 'day'), 'day')) {
-      return `Yesterday at ${messageTime.format('hh:mm A')}`;
+      return `${localizedText.yesterdayAt} ${messageTime.format('hh:mm A')}`;
     }
 
     // Agar iss week me hai
     if (messageTime.isAfter(moment().subtract(7, 'days'))) {
-      return `${messageTime.format('dddd')} at ${messageTime.format(
+      return `${messageTime.format('dddd')} ${localizedText.at} ${messageTime.format(
         'hh:mm A',
       )}`;
     }
 
     // Agar purana hai
-    return messageTime.format('MMM DD, YYYY [at] hh:mm A');
+    return messageTime.format(
+      `MMM DD, YYYY [${localizedText.at}] hh:mm A`,
+    );
   };
 
   const onViewOffer = offerObject => {
@@ -601,12 +648,12 @@ const ChatDetail = ({navigation, route}) => {
                   />
                   <View style={styles.myMessageBubbleContent}>
                     {item?.isPending ? (
-                      <Text style={styles.sendingText}>Sending...</Text>
+                      <Text style={styles.sendingText}>{localizedText.sending}</Text>
                     ) : isPDF ? (
                       <View style={styles.myMessagePdf}>
                         <Icon name="file-pdf-box" size={28} color="#FF0000" />
                         <Text style={styles.myMessagePdfName} numberOfLines={1}>
-                          {item?.attachment?.name || 'PDF Document'}
+                          {item?.attachment?.name || localizedText.pdfDocument}
                         </Text>
                       </View>
                     ) : (
@@ -642,7 +689,7 @@ const ChatDetail = ({navigation, route}) => {
                         maxWidth: width(60),
                       }}
                       numberOfLines={1}>
-                      {item?.attachment?.name || 'PDF Document'}
+                      {item?.attachment?.name || localizedText.pdfDocument}
                     </Text>
                   </View>
                 )}
@@ -662,7 +709,7 @@ const ChatDetail = ({navigation, route}) => {
                         />
                       </View>
                       <Text style={styles.offerMessageHeaderText}>
-                        Custom Offer
+                        {localizedText.customOffer}
                       </Text>
                     </View>
 
@@ -682,29 +729,31 @@ const ChatDetail = ({navigation, route}) => {
                           €{Number(offerDisplayPrice || 0).toFixed(0)}
                         </Text>
                         <Text style={styles.offerMessageItemStatus}>
-                          Status: {offerStatus}
+                          {localizedText.status}: {offerStatus}
                         </Text>
                       </View>
                     </View>
 
                     <View style={styles.offerMessageDivider} />
                     <View style={styles.offerMessageTotalRow}>
-                      <Text style={styles.offerMessageTotalLabel}>Total</Text>
+                      <Text style={styles.offerMessageTotalLabel}>
+                        {localizedText.total}
+                      </Text>
                       <Text style={styles.offerMessageTotalAmount}>
                         €{Number(offerFinalTotal || 0).toFixed(0)}
                       </Text>
                     </View>
                     <Text style={styles.offerMessageSubText}>
-                      Valid for 24 hours
+                      {localizedText.validFor24Hours}
                     </Text>
                     <Text style={styles.offerMessageSubText}>
-                      Status: {offerStatus}
+                      {localizedText.status}: {offerStatus}
                     </Text>
 
                     {offerStatus === 'ACCEPTED' ? (
                       <View style={styles.clientOfferAcceptedBtn}>
                         <Text style={styles.clientOfferAcceptedBtnText}>
-                          ACCEPTED
+                          {localizedText.accepted}
                         </Text>
                       </View>
                     ) : (
@@ -718,7 +767,7 @@ const ChatDetail = ({navigation, route}) => {
                           style={styles.offerViewBtn}
                           onPress={() => onViewOffer(offerObjectData)}>
                           <Text style={styles.offerViewBtnText}>
-                            View & Accept Offer
+                            {localizedText.viewAcceptOffer}
                           </Text>
                         </TouchableOpacity>
                       </LinearGradient>
@@ -834,8 +883,8 @@ const ChatDetail = ({navigation, route}) => {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
         {
-          title: 'Storage Permission Required',
-          message: 'App needs access to your storage to select media',
+          title: localizedText.storagePermissionTitle,
+          message: localizedText.storagePermissionMsg,
         },
       );
       return granted === PermissionsAndroid.RESULTS.GRANTED;
@@ -852,7 +901,7 @@ const ChatDetail = ({navigation, route}) => {
     launchImageLibrary({mediaType: 'photo'}, response => {
       if (response.didCancel || response.errorCode) {
         if (response.errorMessage) {
-          Alert.alert('Error', response.errorMessage);
+          Alert.alert(localizedText.error, response.errorMessage);
         }
         return;
       }
@@ -888,14 +937,14 @@ const ChatDetail = ({navigation, route}) => {
         };
 
         setAttachedFile(selectedFile);
-        Alert.alert('File Selected', selectedFile.name);
+        Alert.alert(localizedText.fileSelected, selectedFile.name);
       }
     } catch (error) {
       if (error?.message?.includes('canceled')) {
         return;
       }
       console.log('Document Picker Error:', error);
-      Alert.alert('Error', 'Failed to select file');
+      Alert.alert(localizedText.error, localizedText.selectFileFailed);
     }
   }, []);
 
@@ -903,46 +952,48 @@ const ChatDetail = ({navigation, route}) => {
     conversation?.blockedBy && conversation?.blockedByRefrence === 'User';
 
   const menuContent = [
-    {icon: ICONS.deleteIcon, title: 'Delete Chat'},
+    {icon: ICONS.deleteIcon, title: localizedText.deleteChat},
     {
       icon: ICONS.viewIcon,
-      title: isBlockedByMe ? 'Unblock Vendor' : 'Block Vendor',
+      title: isBlockedByMe
+        ? localizedText.unblockVendor
+        : localizedText.blockVendor,
     },
-    {icon: ICONS.editGridientIcon, title: 'Report Vendor'},
+    {icon: ICONS.editGridientIcon, title: localizedText.reportVendor},
   ];
 
   const handleSelectOption = type => {
-    if (type === 'Delete Chat') {
+    if (type === localizedText.deleteChat) {
       modalRef.current.show({
         status: 'alert',
         message:
-          'Are you sure you want to delete this chat? All messages in this conversation will be permanently deleted and cannot be recovered.',
+          localizedText.deleteChatConfirm,
         handlePressOk: () => {
           modalRef.current.hide();
           handleDeleteChat();
         },
       });
-    } else if (type === 'Block Vendor') {
+    } else if (type === localizedText.blockVendor) {
       modalRef.current.show({
         status: 'alert',
         message:
-          'Are you sure you want to block this vendor? You will no longer be able to send or receive messages from them until you unblock.',
+          localizedText.blockVendorConfirm,
         handlePressOk: () => {
           modalRef.current.hide();
           handleBlockConversation();
         },
       });
-    } else if (type === 'Unblock Vendor') {
+    } else if (type === localizedText.unblockVendor) {
       modalRef.current.show({
         status: 'alert',
         message:
-          'Do you want to unblock this vendor? You will be able to send and receive messages again.',
+          localizedText.unblockVendorConfirm,
         handlePressOk: () => {
           modalRef.current.hide();
           handleUnblockConversation();
         },
       });
-    } else if (type === 'Report Vendor') {
+    } else if (type === localizedText.reportVendor) {
       setVisible(true);
     }
   };
@@ -1123,8 +1174,8 @@ const ChatDetail = ({navigation, route}) => {
                 fontSize: 13,
               }}>
               {isBlockedByMe
-                ? 'You have blocked this vendor. You can’t send messages.'
-                : 'This conversation has been blocked by vendor.'}
+                ? localizedText.blockedByMe
+                : localizedText.blockedByVendor}
             </Text>
           </View>
         ) : (
@@ -1162,7 +1213,7 @@ const ChatDetail = ({navigation, route}) => {
                   {attachedFile.name}
                 </Text>
                 <TouchableOpacity onPress={() => setAttachedFile(null)}>
-                  <Text style={{color: 'red'}}>Remove</Text>
+                  <Text style={{color: 'red'}}>{localizedText.remove}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -1205,7 +1256,7 @@ const ChatDetail = ({navigation, route}) => {
 
                 <View style={styles.inputInner}>
                   <TextInput
-                    placeholder={'Message to vendor'}
+                    placeholder={localizedText.messageToVendor}
                     placeholderTextColor={COLORS.textLight}
                     value={messageText}
                     onChangeText={setMessageText}

@@ -12,79 +12,113 @@ import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
 import {COLORS, fontFamly} from '../../../constants';
+import {useTranslation} from '../../../hooks';
 
 const TrackingDetails = ({navigation}) => {
+  const {currentLanguage} = useTranslation();
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    trackDetails: isDutch ? 'Volgdetails' : 'Track Details',
+    orderMapping: isDutch ? 'Besteloverzicht - TRK001' : 'Order Mapping - TRK001',
+    downloadPdf: isDutch ? 'PDF downloaden' : 'Download PDF',
+    orderInformation: isDutch ? 'Bestelinformatie' : 'Order Information',
+    orderId: isDutch ? 'Bestel-ID:' : 'Order ID:',
+    clientName: isDutch ? 'Klantnaam:' : 'Client Name:',
+    phone: isDutch ? 'Telefoon:' : 'Phone:',
+    total: isDutch ? 'Totaal:' : 'Total:',
+    orderTimeline: isDutch ? 'Besteltijdlijn' : 'Order Timeline',
+    progressNotes: isDutch ? 'Voortgangsnotities' : 'Progress Notes',
+    progressNotesDesc: isDutch
+      ? 'Bestelling is in uitvoering. De volgende fase wordt als voltooid gemarkeerd zodra de huidige stap klaar is.'
+      : 'Order Is In Progress. Next Phase Will Be Marked As Completed Once The Current Step Is Finished.',
+    direction: isDutch ? 'Route' : 'Direction',
+    requestSent: isDutch ? 'Verzoek verzonden' : 'Request Sent',
+    requestSentDesc: isDutch ? 'Klant heeft bestelling aangevraagd' : 'Client Sent Order Request',
+    orderAccepted: isDutch ? 'Bestelling geaccepteerd' : 'Order Accepted',
+    orderAcceptedDesc: isDutch ? 'Leverancier heeft bestelling geaccepteerd' : 'Vendor Accepted The Order',
+    pickedUp: isDutch ? 'Opgehaald' : 'Picked Up',
+    pickedUpDesc: isDutch ? 'Bestelling opgehaald van locatie' : 'Order Picked Up From Location',
+    delivered: isDutch ? 'Afgeleverd' : 'Delivered',
+    received: isDutch ? 'Ontvangen' : 'Received',
+    receivedDesc: isDutch ? 'Klant heeft ontvangst bevestigd' : 'Client Confirmed Receipt',
+    completed: isDutch ? 'Voltooid' : 'Completed',
+    completedDesc: isDutch ? 'Totale prijs: $2100.00' : 'Total Price: $2100.00',
+    pending: isDutch ? 'In afwachting' : 'Pending',
+    onTheWay: isDutch ? 'Onderweg' : 'On the way',
+    vendor: isDutch ? 'Leverancier' : 'Vendor',
+    driver: isDutch ? 'Bezorger' : 'Driver',
+  };
   const [orderData] = useState({
     orderId: 'ORD-003',
     clientName: 'Global Supply Co',
     phone: '+1-234-567-8903',
     total: '$1,074.00',
-    status: 'On the way',
+    status: localizedText.onTheWay,
   });
 
   const [timelineData] = useState([
     {
       id: 1,
-      status: 'Request Sent',
-      description: 'Client Sent Order Request',
+      status: localizedText.requestSent,
+      description: localizedText.requestSentDesc,
       time: '2025-01-07/07:45',
       icon: 'time',
-      badge: 'On the way',
+      badge: localizedText.onTheWay,
       badgeColor: '#FFE5E5',
       textColor: '#FF6B6B',
       completed: true,
     },
     {
       id: 2,
-      status: 'Order Accepted',
-      description: 'Vendor Accepted The Order',
+      status: localizedText.orderAccepted,
+      description: localizedText.orderAcceptedDesc,
       time: '2025-01-07/07:45',
       icon: 'checkmark-circle',
-      badge: 'Vendor',
+      badge: localizedText.vendor,
       badgeColor: '#FFF3E0',
       textColor: '#FF9800',
       completed: true,
     },
     {
       id: 3,
-      status: 'Picked Up',
-      description: 'Order Picked Up From Location',
+      status: localizedText.pickedUp,
+      description: localizedText.pickedUpDesc,
       time: '2025-01-07/07:45',
       icon: 'cube',
-      badge: 'Driver',
+      badge: localizedText.driver,
       badgeColor: '#E8F5E8',
       textColor: '#4CAF50',
       completed: true,
     },
     {
       id: 4,
-      status: 'Delivered',
+      status: localizedText.delivered,
       description: '',
       time: '',
       icon: 'car',
-      badge: 'Pending',
+      badge: localizedText.pending,
       badgeColor: '#F5F5F5',
       textColor: '#9E9E9E',
       completed: false,
     },
     {
       id: 5,
-      status: 'Received',
-      description: 'Client Confirmed Receipt',
+      status: localizedText.received,
+      description: localizedText.receivedDesc,
       time: '',
       icon: 'person',
-      badge: 'Pending',
+      badge: localizedText.pending,
       badgeColor: '#F5F5F5',
       textColor: '#9E9E9E',
       completed: false,
     },
     {
       id: 6,
-      status: 'Completed',
-      description: 'Total Price: $2100.00',
+      status: localizedText.completed,
+      description: localizedText.completedDesc,
       time: '',
       icon: 'checkmark-circle',
-      badge: 'Pending',
+      badge: localizedText.pending,
       badgeColor: '#F5F5F5',
       textColor: '#9E9E9E',
       completed: false,
@@ -106,7 +140,7 @@ const TrackingDetails = ({navigation}) => {
   return (
     <View style={styles.container}>
       <AppHeader
-        headingText={'Track Details'}
+        headingText={localizedText.trackDetails}
         leftIcon={ICONS.leftArrowIcon}
         rightIcon={ICONS.notificationIcon}
         onLeftIconPress={() => navigation.goBack()}
@@ -120,11 +154,11 @@ const TrackingDetails = ({navigation}) => {
           justifyContent: 'space-between',
           padding: width(5),
         }}>
-        <Text style={styles.headerTitle}>Order Mapping - TRK001</Text>
+        <Text style={styles.headerTitle}>{localizedText.orderMapping}</Text>
         <View style={{width: width(45)}}>
           <GradientButton
             icon={ICONS.downloadIcon}
-            text="Download PDF"
+            text={localizedText.downloadPdf}
             onPress={handleDownloadPDF}
             textStyle={{
               fontSize: 12,
@@ -140,7 +174,7 @@ const TrackingDetails = ({navigation}) => {
         showsVerticalScrollIndicator={false}>
         <View style={styles.orderInfoCard}>
           <View style={styles.orderInfoHeader}>
-            <Text style={styles.orderInfoTitle}>Order Information</Text>
+            <Text style={styles.orderInfoTitle}>{localizedText.orderInformation}</Text>
             <View style={[styles.statusBadge, {backgroundColor: '#FFE5E5'}]}>
               <Text style={[styles.statusText, {color: '#FF0092'}]}>
                 {orderData.status}
@@ -150,15 +184,15 @@ const TrackingDetails = ({navigation}) => {
 
           <View style={styles.orderDetails}>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Order ID:</Text>
+              <Text style={styles.detailLabel}>{localizedText.orderId}</Text>
               <Text style={styles.detailValue}>{orderData.orderId}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Client Name:</Text>
+              <Text style={styles.detailLabel}>{localizedText.clientName}</Text>
               <Text style={styles.detailValue}>{orderData.clientName}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Phone:</Text>
+              <Text style={styles.detailLabel}>{localizedText.phone}</Text>
               <Text style={styles.detailValue}>{orderData.phone}</Text>
             </View>
           </View>
@@ -166,13 +200,13 @@ const TrackingDetails = ({navigation}) => {
           <View style={styles.divider} />
 
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total:</Text>
+            <Text style={styles.totalLabel}>{localizedText.total}</Text>
             <Text style={styles.totalValue}>{orderData.total}</Text>
           </View>
         </View>
 
         <View style={styles.timelineSection}>
-          <Text style={styles.sectionTitle}>Order Timeline</Text>
+          <Text style={styles.sectionTitle}>{localizedText.orderTimeline}</Text>
           <View style={styles.timeline}>
             {timelineData.map((item, index) => (
               <View key={item.id} style={styles.timelineItem}>
@@ -223,7 +257,7 @@ const TrackingDetails = ({navigation}) => {
         </View>
 
         <View style={styles.progressNotesSection}>
-          <Text style={styles.progressNotesTitle}>Progress Notes</Text>
+          <Text style={styles.progressNotesTitle}>{localizedText.progressNotes}</Text>
           <View style={styles.progressNotesContent}>
             <Icon
               name="trophy"
@@ -232,8 +266,7 @@ const TrackingDetails = ({navigation}) => {
               style={{marginTop: width(2)}}
             />
             <Text style={styles.progressNotesText}>
-              Order Is In Progress. Next Phase Will Be Marked As Completed Once
-              The Current Step Is Finished.
+              {localizedText.progressNotesDesc}
             </Text>
           </View>
         </View>
@@ -245,7 +278,7 @@ const TrackingDetails = ({navigation}) => {
 
           <View style={styles.directionButtonContainer}>
             <GradientButton
-              text="Direction"
+              text={localizedText.direction}
               onPress={handleDirection}
               type="filled"
               textStyle={{

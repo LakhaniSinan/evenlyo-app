@@ -13,10 +13,26 @@ import {height, width} from 'react-native-dimension';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 import GradientText from '../gradiantText';
 
 const RequestConfirmation = ({responeData, visible, onClose}) => {
+  const {currentLanguage} = useTranslation();
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    requestSent: isDutch
+      ? 'Verzoek succesvol verzonden!'
+      : 'Request Sent Successfully!',
+    requestMessagePrefix: isDutch
+      ? 'Je verzoek is verzonden naar leverancier'
+      : 'Our request has been sent to vendor',
+    requestMessageSuffix: isDutch
+      ? '. Wacht op hun bevestiging.'
+      : '. Please wait for their confirmation.',
+    copyTrackingId: isDutch ? 'Tracking-ID kopieren *' : 'Copy Tracking Id *',
+    backToListing: isDutch ? 'Terug naar overzicht' : 'Back To Listing',
+  };
   const navigation = useNavigation();
   const handleBackToListing = () => {
     onClose();
@@ -39,7 +55,7 @@ const RequestConfirmation = ({responeData, visible, onClose}) => {
         <View style={styles.modalContainer}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Request Sent Successfully!</Text>
+            <Text style={styles.title}>{localizedText.requestSent}</Text>
             <TouchableOpacity onPress={onClose}>
               <Icon name="close" size={24} color={COLORS.textDark} />
             </TouchableOpacity>
@@ -48,17 +64,17 @@ const RequestConfirmation = ({responeData, visible, onClose}) => {
           {/* Main Message */}
           <View style={styles.messageContainer}>
             <Text style={styles.messageText}>
-              Our request has been sent to vendor{' '}
+              {localizedText.requestMessagePrefix}{' '}
               <Text style={styles.vendorCode}>
                 #{responeData?.vendorId?.businessName}
               </Text>
-              . Please wait for their confirmation.
+              {localizedText.requestMessageSuffix}
             </Text>
           </View>
 
           {/* Location Input Field */}
           <View style={styles.locationSection}>
-            <Text style={styles.locationLabel}>Copy Tracking Id *</Text>
+            <Text style={styles.locationLabel}>{localizedText.copyTrackingId}</Text>
             <View style={styles.locationInputContainer}>
               <Text style={styles.locationInputText}>
                 {responeData?.trackingId}
@@ -78,7 +94,7 @@ const RequestConfirmation = ({responeData, visible, onClose}) => {
             <TouchableOpacity
               style={styles.backToListingButton}
               onPress={handleBackToListing}>
-              <GradientText text="Back To Listing" />
+              <GradientText text={localizedText.backToListing} />
             </TouchableOpacity>
 
             {/* <View style={styles.trackBookingButton}>

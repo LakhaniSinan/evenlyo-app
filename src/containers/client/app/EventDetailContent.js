@@ -1,13 +1,19 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Image, InteractionManager, Text, TouchableOpacity, View } from 'react-native';
-import { Calendar } from 'react-native-calendars';
-import { width } from 'react-native-dimension';
-import MapView, { Marker } from 'react-native-maps';
-import { Rating } from 'react-native-ratings';
-import { useDispatch, useSelector } from 'react-redux';
-import { ICONS } from '../../../assets';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {
+  Image,
+  InteractionManager,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {Calendar} from 'react-native-calendars';
+import {width} from 'react-native-dimension';
+import MapView, {Marker} from 'react-native-maps';
+import {Rating} from 'react-native-ratings';
+import {useDispatch, useSelector} from 'react-redux';
+import {ICONS} from '../../../assets';
 import LoginModal from '../../../components/authModal';
 import ForgotModal from '../../../components/authModal/ForgotModal';
 import RegistrationModal from '../../../components/authModal/RegistrationModal';
@@ -18,15 +24,15 @@ import GradientText from '../../../components/gradiantText';
 import Loader from '../../../components/loder';
 import OrderBooking from '../../../components/modals/OrderBookingModal';
 import RequestConfirmation from '../../../components/modals/RequestConfirmation';
-import { COLORS, fontFamly } from '../../../constants';
-import { useTranslation } from '../../../hooks';
-import { setCartData } from '../../../redux/slice/cart';
-import { createConnection } from '../../../services/Chat';
+import {COLORS, fontFamly} from '../../../constants';
+import {useTranslation} from '../../../hooks';
+import {setCartData} from '../../../redux/slice/cart';
+import {createConnection} from '../../../services/Chat';
 import {
   listingAddToCart,
   sendBookingRequest,
 } from '../../../services/ListingsItem';
-import { getDistance } from '../../../utils';
+import {getDistance} from '../../../utils';
 
 const AUTH_MODAL_SWITCH_MS = 480;
 
@@ -34,10 +40,50 @@ const DEFAULT_MAP_COORDINATE = {
   latitude: 24.860966,
   longitude: 67.001137,
 };
+const DAY_KEYS_BY_ISO = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+const DAY_KEY_ALIASES = {
+  mon: 'mon',
+  monday: 'mon',
+  maandag: 'mon',
+  tue: 'tue',
+  tues: 'tue',
+  tuesday: 'tue',
+  dinsdag: 'tue',
+  wed: 'wed',
+  wednesday: 'wed',
+  woensdag: 'wed',
+  thu: 'thu',
+  thur: 'thu',
+  thurs: 'thu',
+  thursday: 'thu',
+  donderdag: 'thu',
+  fri: 'fri',
+  friday: 'fri',
+  vrijdag: 'fri',
+  sat: 'sat',
+  saturday: 'sat',
+  zaterdag: 'sat',
+  sun: 'sun',
+  sunday: 'sun',
+  zondag: 'sun',
+};
 
 const parseFiniteNumber = value => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+};
+
+const normalizeDayKey = day => {
+  const key = String(day || '')
+    .trim()
+    .toLowerCase();
+  return DAY_KEY_ALIASES[key] || null;
+};
+
+const getDayKeyFromMoment = dateMoment => {
+  const isoDay = dateMoment.isoWeekday();
+  return DAY_KEYS_BY_ISO[isoDay - 1] || null;
 };
 
 const getResolvedMapCoordinates = listingData => {
@@ -77,59 +123,84 @@ const getResolvedMapCoordinates = listingData => {
     return DEFAULT_MAP_COORDINATE;
   }
 
-  return { latitude, longitude };
+  return {latitude, longitude};
 };
 
 const getInitialMarkedDates = availableDays => {
   let marked = {};
   const start = moment();
   const end = moment().add(6, 'months');
+  const availableSet = new Set(availableDays);
 
   for (let m = start.clone(); m.isBefore(end); m.add(1, 'day')) {
-    const dayName = m.format('ddd').toLowerCase();
+    const dayName = getDayKeyFromMoment(m);
     const dateStr = m.format('YYYY-MM-DD');
     const isPast = m.isBefore(moment(), 'day');
-    const isAvailable = availableDays.includes(dayName);
+    const isAvailable = availableSet.has(dayName);
 
     marked[dateStr] =
       isPast || !isAvailable
         ? {
-          disabled: true,
-          disableTouchEvent: true,
-          customStyles: {
-            container: { backgroundColor: '#f0f0f0' },
-            text: { color: '#999' },
-          },
-        }
+            disabled: true,
+            disableTouchEvent: true,
+            customStyles: {
+              container: {backgroundColor: '#f0f0f0'},
+              text: {color: '#999'},
+            },
+          }
         : {
-          disabled: false,
-          customStyles: {
-            container: { backgroundColor: '#fff' },
-            text: { color: '#000' },
-          },
-        };
+            disabled: false,
+            customStyles: {
+              container: {backgroundColor: '#fff'},
+              text: {color: '#000'},
+            },
+          };
   }
   return marked;
 };
 
-const DetailsContent = ({ data, selectedTab, navigation }) => {
-  const { cartData } = useSelector(state => state.CartSlice);
-  const { user } = useSelector(state => state.LoginSlice);
+const DetailsContent = ({data, selectedTab, navigation}) => {
+  const {cartData} = useSelector(state => state.CartSlice);
+  const {user} = useSelector(state => state.LoginSlice);
   const dispatch = useDispatch(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const { t, currentLanguage } = useTranslation();
+  const {t, currentLanguage} = useTranslation();
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    selectedDateRange: isDutch
+      ? 'Geselecteerd datumbereik:'
+      : 'Selected Date Range:',
+    noDateSelected: isDutch ? 'Geen datum geselecteerd' : 'No date selected',
+    noDescription: isDutch ? 'Geen beschrijving' : 'No Description',
+    addToWishlist: isDutch ? 'Toevoegen aan verlanglijst' : 'Add To Wishlist',
+    bookNow: isDutch ? 'Nu boeken' : 'Book Now',
+    selectAvailableDateFirst: isDutch
+      ? 'Selecteer eerst een beschikbare datum!'
+      : 'Please select any available date first!',
+    addToCart: isDutch ? 'Toevoegen aan winkelwagen' : 'Add To Cart',
+    itemAlreadyInCart: isDutch
+      ? 'Item bestaat al in je winkelwagen'
+      : 'Item already exists in your cart',
+    itemAddedToCart: isDutch
+      ? 'Item is succesvol toegevoegd aan je winkelwagen!'
+      : 'Item added to cart successfully!',
+    addToCartError: isDutch
+      ? 'Er is iets misgegaan bij toevoegen aan winkelwagen'
+      : 'Something went wrong while adding to cart',
+  };
   const modalRef = useRef(null);
   const [responeData, setResponeData] = useState(null);
   const [isLoadding, setIsLoadding] = useState(false);
   const mapCoordinates = useMemo(() => getResolvedMapCoordinates(data), [data]);
 
-  const { latitude, longitude } = mapCoordinates;
+  const {latitude, longitude} = mapCoordinates;
   const markerCoordinate = useMemo(
     () => ({
       latitude: parseFiniteNumber(latitude) ?? DEFAULT_MAP_COORDINATE.latitude,
-      longitude: parseFiniteNumber(longitude) ?? DEFAULT_MAP_COORDINATE.longitude,
+      longitude:
+        parseFiniteNumber(longitude) ?? DEFAULT_MAP_COORDINATE.longitude,
     }),
     [latitude, longitude],
   );
@@ -145,7 +216,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
 
   const availableDays = useMemo(() => {
     const days = data?.availability?.availableDays || data?.availableDays || [];
-    return days.map(d => String(d).toLowerCase());
+    return days.map(normalizeDayKey).filter(Boolean);
   }, [data]);
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -207,7 +278,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
   const handleDayPress = day => {
     const date = day.dateString;
     const m = moment(date, 'YYYY-MM-DD');
-    const dayName = m.format('ddd').toLowerCase();
+    const dayName = getDayKeyFromMoment(m);
     const isPast = m.isBefore(moment(), 'day');
     const isAvailable = availableDays.includes(dayName);
 
@@ -239,7 +310,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
       const range = [];
       let curr = moment(newStartDate);
       while (curr.isSameOrBefore(newEndDate)) {
-        const currDayName = curr.format('ddd').toLowerCase();
+        const currDayName = getDayKeyFromMoment(curr);
         const currDateStr = curr.format('YYYY-MM-DD');
         if (availableDays.includes(currDayName)) {
           range.push(currDateStr);
@@ -252,20 +323,20 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
           updatedMarked[d] = {
             ...updatedMarked[d],
             customStyles: {
-              container: { backgroundColor: '#FF295D', borderRadius: 5 },
-              text: { color: '#fff', fontWeight: 'bold' },
+              container: {backgroundColor: '#FF295D', borderRadius: 5},
+              text: {color: '#fff', fontWeight: 'bold'},
             },
           };
         }
       });
     } else if (newStartDate && !newEndDate) {
-      const startDayName = moment(newStartDate).format('ddd').toLowerCase();
+      const startDayName = getDayKeyFromMoment(moment(newStartDate));
       if (availableDays.includes(startDayName)) {
         updatedMarked[newStartDate] = {
           ...updatedMarked[newStartDate],
           customStyles: {
-            container: { backgroundColor: '#FF295D', borderRadius: 5 },
-            text: { color: '#fff', fontWeight: 'bold' },
+            container: {backgroundColor: '#FF295D', borderRadius: 5},
+            text: {color: '#fff', fontWeight: 'bold'},
           },
         };
       }
@@ -277,8 +348,8 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
     startDate && endDate
       ? `${startDate} → ${endDate}`
       : startDate
-        ? `${startDate}`
-        : 'No date selected';
+      ? `${startDate}`
+      : localizedText.noDateSelected;
 
   const handleSendBookingRequest = async details => {
     try {
@@ -338,7 +409,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
         if (alreadyExists) {
           modalRef.current.show({
             status: 'error',
-            message: 'Item already exists in your cart',
+            message: localizedText.itemAlreadyInCart,
           });
           return;
         } else {
@@ -359,13 +430,13 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
 
       modalRef.current.show({
         status: 'ok',
-        message: 'Item added to cart successfully!',
+        message: localizedText.itemAddedToCart,
       });
     } catch (error) {
       console.log('Add to Cart Error:', error);
       modalRef.current.show({
         status: 'error',
-        message: 'Something went wrong while adding to cart',
+        message: localizedText.addToCartError,
       });
     }
   };
@@ -394,6 +465,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
         };
         setIsLoadding(true);
         const response = await listingAddToCart(payload);
+        console.log(response, 'responseresponseresponseresponseresponse456');
 
         setIsLoadding(false);
         if (response.status == 200 || response.status == 201) {
@@ -425,13 +497,13 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
 
   const locationData = useSelector(state => state.LocationSlice);
 
-  const { coords } = locationData;
+  const {coords} = locationData;
   let coLatLng = {
     latitude: data?.location?.coordinates?.latitude,
     longitude: data?.location?.coordinates?.longitude,
   };
 
-  const { distance } = getDistance(coLatLng, coords);
+  const {distance} = getDistance(coLatLng, coords);
   const averageRating = Number(
     data?.reviews?.averageRating ?? data?.rating?.average ?? 0,
   );
@@ -441,7 +513,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
 
   const formatParticipants = participantsData => {
     const participants = {};
-    participantsData?.forEach(({ role, refPath, userId }) => {
+    participantsData?.forEach(({role, refPath, userId}) => {
       const normalizedRole = String(role || '').toLowerCase();
       const normalizedRefPath = String(refPath || '').toLowerCase();
       const isVendorParticipant =
@@ -557,14 +629,14 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
             disableAllTouchEventsForDisabledDays
           />
 
-          <View style={{ marginHorizontal: 20, marginTop: 10 }}>
+          <View style={{marginHorizontal: 20, marginTop: 10}}>
             <Text
               style={{
                 fontFamily: fontFamly.PlusJakartaSansSemiBold,
                 fontSize: 12,
                 color: COLORS.black,
               }}>
-              Selected Date Range:
+              {localizedText.selectedDateRange}
             </Text>
             <Text
               style={{
@@ -577,7 +649,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
           </View>
         </>
       )}
-      <View style={{ marginHorizontal: 10, marginTop: width(3) }}>
+      <View style={{marginHorizontal: 10, marginTop: width(3)}}>
         <View
           style={{
             flexDirection: 'row',
@@ -585,7 +657,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
             justifyContent: 'space-between',
             paddingHorizontal: width(3),
           }}>
-          <View style={{ width: width(60) }}>
+          <View style={{width: width(60)}}>
             <Text
               style={{
                 fontFamily: fontFamly.PlusJakartaSansSemiBold,
@@ -686,19 +758,19 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
               alignItems: 'center',
             }}>
             <Image
-              style={{ width: 30, height: 30, borderRadius: 100 }}
+              style={{width: 30, height: 30, borderRadius: 100}}
               source={ICONS.userIcon}
               resizeMode="contain"
             />
           </View>
         ) : (
           <Image
-            style={{ width: 55, height: 55, borderRadius: 100 }}
-            source={{ uri: data?.vendor?.businessLogo }}
+            style={{width: 55, height: 55, borderRadius: 100}}
+            source={{uri: data?.vendor?.businessLogo}}
             resizeMode="contain"
           />
         )}
-        <View style={{ marginLeft: 10, justifyContent: 'center' }}>
+        <View style={{marginLeft: 10, justifyContent: 'center'}}>
           <Text
             style={{
               color: COLORS.black,
@@ -723,7 +795,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
         </TouchableOpacity> */}
       </View>
 
-      <View style={{ paddingVertical: width(3), marginHorizontal: 20 }}>
+      <View style={{paddingVertical: width(3), marginHorizontal: 20}}>
         <Text
           style={{
             color: COLORS.black,
@@ -743,12 +815,12 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
             ? currentLanguage == 'en'
               ? data?.description?.en
               : data?.description?.nl
-            : 'No Description'}
+            : localizedText.noDescription}
         </Text>
       </View>
 
       {data?.type !== 'saleItem' ? (
-        <View style={{ paddingVertical: width(3), marginHorizontal: 20 }}>
+        <View style={{paddingVertical: width(3), marginHorizontal: 20}}>
           {/* <Text
             style={{
               color: COLORS.black,
@@ -814,14 +886,13 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}>
-                <GradientText text={'Add To Wishlist'} />
+                <GradientText text={localizedText.addToWishlist} />
               </TouchableOpacity>
-              <View style={{ width: width(44) }}>
+              <View style={{width: width(44)}}>
                 <GradientButton
-                  text={'Book Now'}
+                  text={localizedText.bookNow}
                   type="filled"
                   onPress={async () => {
-
                     const userToken = await AsyncStorage.getItem('token');
                     if (userToken == null) {
                       setShowLoginModal(true);
@@ -830,7 +901,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
                     if (startDate == null) {
                       return modalRef.current.show({
                         status: 'error',
-                        message: 'Please select any available date first!',
+                        message: localizedText.selectAvailableDateFirst,
                       });
                     }
 
@@ -848,7 +919,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
             marginHorizontal: width(3),
           }}>
           <GradientButton
-            text={'Add To Cart'}
+            text={localizedText.addToCart}
             type="filled"
             onPress={handleAddToCart}
           />
@@ -859,7 +930,7 @@ const DetailsContent = ({ data, selectedTab, navigation }) => {
         data={data}
         isVisible={modalVisible}
         type={'add'}
-        selectedDate={{ startDate, endDate }}
+        selectedDate={{startDate, endDate}}
         onClose={() => setModalVisible(false)}
         handleAddToWishList={handleAddToWishList}
         handleSendBookingRequest={handleSendBookingRequest}

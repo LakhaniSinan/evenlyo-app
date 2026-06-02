@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
@@ -23,18 +22,46 @@ import PopularCard from '../../../components/popularCard';
 import ReviewsCard from '../../../components/reviewsCard';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {setCartData} from '../../../redux/slice/cart';
 import {checkIsChatedBefore, createConnection} from '../../../services/Chat';
 import {listingAddToCart} from '../../../services/ListingsItem';
 import {getVendorDetails} from '../../../services/Vendor';
-import {setCartData} from '../../../redux/slice/cart';
 
 function VendorDetails({navigation, route}) {
   const item = route.params;
   const modalRef = useRef();
   const dispatch = useDispatch();
-  const {t, currentLanguage} = useTranslation();
+  const {currentLanguage} = useTranslation();
   const {user} = useSelector(state => state.LoginSlice);
-  console.log(user, 'useruseruseruseruseruseruseruseraa');
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    vendorProfile: isDutch ? 'Leveranciersprofiel' : 'Vendor Profile',
+    employees: isDutch ? 'medewerkers' : 'employees',
+    noReviews: isDutch ? 'Geen beoordelingen' : 'No Reviews',
+    review: isDutch ? 'Beoordeling' : 'Review',
+    reviews: isDutch ? 'Beoordelingen' : 'Reviews',
+    connectToSupplier: isDutch
+      ? 'Verbinden met leverancier'
+      : 'Connect To Supplier',
+    notAvailable: isDutch ? 'Niet beschikbaar' : 'Not Available',
+    call: isDutch ? 'Bellen' : 'Call',
+    email: isDutch ? 'E-mail' : 'Email',
+    aboutUs: isDutch ? 'Over ons' : 'About Us',
+    description: isDutch ? 'Beschrijving' : 'Description',
+    vendorListing: isDutch ? 'Leverancierslijst' : 'Vendor Listing',
+    popularItems: isDutch ? 'Populaire items' : 'Popular Items',
+    noPopularItems: isDutch
+      ? 'Geen populaire items beschikbaar'
+      : 'No Popular Items Available',
+    mostRecentReviews: isDutch
+      ? 'Meest recente beoordelingen'
+      : 'Most Recent Reviews',
+    noRecentReviews: isDutch
+      ? 'Geen recente beoordelingen'
+      : 'No Recent Reviews',
+    viewLess: isDutch ? 'Minder bekijken' : 'View Less',
+    viewAll: isDutch ? 'Alles bekijken' : 'View All',
+  };
 
   const [isLoading, setIsLoading] = useState(false);
   const [vendorDetail, setVendorDetails] = useState(null);
@@ -107,9 +134,8 @@ function VendorDetails({navigation, route}) {
   const getVendorDetailsByID = async () => {
     try {
       setIsLoading(true);
-      const responce = await getVendorDetails(item?.userId);
+      const responce = await getVendorDetails(item?.userId, {userId: user?.id});
       console.log(responce, 'responceresponceresponceresponce');
-
       setIsLoading(false);
       if (responce?.status == 200 || responce.status == 201) {
         let data = responce?.data?.data;
@@ -212,12 +238,20 @@ function VendorDetails({navigation, route}) {
         if (response.status == 200 || response.status == 201) {
           modalRef.current.show({
             status: 'ok',
-            message: response?.data?.message,
+            message: response?.data?.message?.en
+              ? currentLanguage == 'en'
+                ? response?.data?.message?.en
+                : response?.data?.message?.nl
+              : response?.data?.message,
           });
         } else {
           modalRef.current.show({
             status: 'error',
-            message: response?.data?.message,
+            message: response?.data?.message?.en
+              ? currentLanguage == 'en'
+                ? response?.data?.message?.en
+                : response?.data?.message?.nl
+              : response?.data?.message,
           });
         }
       } catch (error) {
@@ -238,12 +272,30 @@ function VendorDetails({navigation, route}) {
 
   const formatRatingText = () => {
     if (!totalReviews) {
-      return t('No Reviews');
+      return localizedText.noReviews;
     }
 
-    return `${averageRating.toFixed(1)} (${totalReviews} ${t(
-      totalReviews === 1 ? 'Review' : 'Reviews',
-    )})`;
+    return `${averageRating.toFixed(1)} (${totalReviews} ${
+      totalReviews === 1 ? localizedText.review : localizedText.reviews
+    })`;
+  };
+
+  const getDisplayValue = value => {
+    if (
+      value === null ||
+      value === undefined ||
+      (typeof value === 'string' && value.trim() === '')
+    ) {
+      return localizedText.notAvailable;
+    }
+    return value;
+  };
+
+  const getImageSource = imageUrl => {
+    if (typeof imageUrl === 'string' && imageUrl.trim() !== '') {
+      return {uri: imageUrl};
+    }
+    return ICONS.personalIcon;
   };
 
   const handleAddToCart = async item => {
@@ -314,13 +366,22 @@ function VendorDetails({navigation, route}) {
     }
   };
 
+  const hasCoverImage = Boolean(
+    vendorDetail?.businessDetails?.businessImage &&
+      String(vendorDetail?.businessDetails?.businessImage).trim(),
+  );
+  const hasProfileImage = Boolean(
+    vendorDetail?.businessDetails?.businessLogo &&
+      String(vendorDetail?.businessDetails?.businessLogo).trim(),
+  );
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <Loader isLoading={isLoading} />
       <CommonAlert ref={modalRef} />
       <AppHeader
         leftIcon={ICONS.leftArrowIcon}
-        headingText={t('Vendor Profile')}
+        headingText={localizedText.vendorProfile}
         rightIcon={ICONS.chatIcon}
         onLeftIconPress={() => navigation.goBack()}
         setModalVisible={() => {}}
@@ -332,14 +393,24 @@ function VendorDetails({navigation, route}) {
       <ScrollView style={{flex: 1, backgroundColor: COLORS.white}}>
         <ImageBackground
           resizeMode="cover"
-          source={{uri: vendorDetail?.businessDetails?.businessImage}}
+          source={getImageSource(vendorDetail?.businessDetails?.businessImage)}
           style={{
             height: width(55),
             width: width(100),
             padding: width(2),
             position: 'relative',
             borderRadius: 20,
+            backgroundColor: COLORS.white,
+            justifyContent: 'center',
+            alignItems: 'center',
           }}>
+          {!hasCoverImage && (
+            <Image
+              source={ICONS.personalIcon}
+              resizeMode="contain"
+              style={{height: width(20), width: width(20)}}
+            />
+          )}
           <View
             style={{
               flexDirection: 'row',
@@ -358,11 +429,22 @@ function VendorDetails({navigation, route}) {
                 height: width(25),
                 width: width(25),
                 marginBottom: width(5),
+                backgroundColor: COLORS.white,
+                justifyContent: 'center',
+                alignItems: 'center',
               }}>
               <Image
-                source={{uri: vendorDetail?.businessDetails?.businessLogo}}
-                resizeMode="cover"
-                style={{height: width(25), width: width(25)}}
+                source={
+                  hasProfileImage
+                    ? {uri: vendorDetail?.businessDetails?.businessLogo}
+                    : ICONS.personalIcon
+                }
+                resizeMode={hasProfileImage ? 'cover' : 'contain'}
+                style={
+                  hasProfileImage
+                    ? {height: width(25), width: width(25)}
+                    : {height: width(14), width: width(14)}
+                }
               />
             </View>
             <View style={{marginLeft: width(5)}}>
@@ -375,7 +457,8 @@ function VendorDetails({navigation, route}) {
                 {vendorDetail?.businessDetails?.businessName}
               </Text>
               <Text style={{color: COLORS.textLight, fontSize: 14}}>
-                {vendorDetail?.businessDetails?.employees} {t('employees')}
+                {vendorDetail?.businessDetails?.employees}{' '}
+                {localizedText.employees}
               </Text>
               <View
                 style={{
@@ -414,7 +497,7 @@ function VendorDetails({navigation, route}) {
             marginHorizontal: width(5),
           }}>
           <GradientButton
-            text={chatData === null ? t('contactMe') : t('Chat with Vendor')}
+            text={localizedText.connectToSupplier}
             onPress={handleConnect}
             type="filled"
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}
@@ -448,7 +531,10 @@ function VendorDetails({navigation, route}) {
               color: COLORS.textLight,
               marginTop: width(2),
             }}>
-            📞 {t('call')}: {`+${vendorDetail?.businessDetails?.phone}`}
+            📞 {localizedText.call}:{' '}
+            {vendorDetail?.businessDetails?.phone
+              ? `+${vendorDetail?.businessDetails?.phone}`
+              : localizedText.notAvailable}
           </Text>
           <Text
             style={{
@@ -457,7 +543,8 @@ function VendorDetails({navigation, route}) {
               color: COLORS.textLight,
               marginTop: width(2),
             }}>
-            ✉️ {t('email')}: {vendorDetail?.businessDetails?.email}
+            ✉️ {localizedText.email}:{' '}
+            {getDisplayValue(vendorDetail?.businessDetails?.email)}
           </Text>
           <Text
             style={{
@@ -479,7 +566,8 @@ function VendorDetails({navigation, route}) {
               fontFamily: fontFamly.PlusJakartaSansSemiBold,
               color: COLORS.black,
             }}>
-            {t('aboutUs')} {vendorDetail?.businessDetails?.businessName}
+            {localizedText.aboutUs}{' '}
+            {vendorDetail?.businessDetails?.businessName}
           </Text>
           <Text
             style={{
@@ -488,7 +576,7 @@ function VendorDetails({navigation, route}) {
               fontSize: 12,
               fontFamily: fontFamly.PlusJakartaSansBold,
             }}>
-            {t('description')} :
+            {localizedText.description} :
           </Text>
           <Text
             style={{
@@ -504,7 +592,7 @@ function VendorDetails({navigation, route}) {
 
         <View>
           <HeadingComponent
-            heading={t('Vendor Listing')}
+            heading={localizedText.vendorListing}
             gradientText={`(${vendorDetail?.listingItems?.length || 0})`}
             onPress={() => {}}
           />
@@ -516,20 +604,32 @@ function VendorDetails({navigation, route}) {
             handleAddToWishList={handleAddToWishList}
           />
         </View>
-        {/* <View>
+        <View>
           <HeadingComponent
-            heading={t('Sale Item')}
-            gradientText={`(${vendorDetail?.saleItems?.length || 0})`}
-            rightArrow={true}
-            onPress={() => {}}
+            heading={localizedText.popularItems}
+            gradientText={`(${vendorDetail?.popularItems?.length || 0})`}
           />
         </View>
         <View style={{}}>
-          <PopularCard
-            data={vendorDetail?.saleItems || []}
-            handleAddToCart={handleAddToCart}
-          />
-        </View> */}
+          {(vendorDetail?.popularItems || []).length > 0 ? (
+            <PopularCard
+              data={vendorDetail?.popularItems || []}
+              handleAddToCart={handleAddToCart}
+            />
+          ) : (
+            <Text
+              style={{
+                width: '100%',
+                marginTop: width(2),
+                color: COLORS.textLight,
+                fontSize: 12,
+                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                textAlign: 'center',
+              }}>
+              {localizedText.noPopularItems}
+            </Text>
+          )}
+        </View>
         <View
           style={{
             marginTop: width(5),
@@ -543,9 +643,23 @@ function VendorDetails({navigation, route}) {
                 fontSize: 12,
                 fontFamily: fontFamly.PlusJakartaSansSemiBold,
               }}>
-              {t('mostRecent')} ({`${vendorDetail?.reviews?.length}`})
+              {localizedText.mostRecentReviews} (
+              {`${vendorDetail?.reviews?.length}`})
             </Text>
           </View>
+          {displayedReviews?.length === 0 && (
+            <Text
+              style={{
+                width: '100%',
+                marginTop: width(2),
+                color: COLORS.textLight,
+                fontSize: 12,
+                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+                textAlign: 'center',
+              }}>
+              {localizedText.noRecentReviews}
+            </Text>
+          )}
           {displayedReviews?.map((review, index) => (
             <ReviewsCard key={index} item={review} />
           ))}
@@ -558,7 +672,7 @@ function VendorDetails({navigation, route}) {
                 justifyContent: 'center',
               }}>
               <GradientButton
-                text={showAll ? t('View Less') : t('viewAll')}
+                text={showAll ? localizedText.viewLess : localizedText.viewAll}
                 onPress={() => setShowAll(!showAll)}
                 type="outline"
                 useGradient={true}

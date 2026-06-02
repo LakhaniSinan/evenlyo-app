@@ -9,8 +9,24 @@ import { COLORS, fontFamly } from '../../../constants';
 import GradientText from '../../../components/gradiantText';
 import CarouselComponent from '../../../components/carousel';
 import GradientButton from '../../../components/button';
+import {useTranslation} from '../../../hooks';
 
 const NotificationDetails = () => {
+  const {currentLanguage} = useTranslation();
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    notifications: isDutch ? 'Meldingen' : 'Notifications',
+    perEvent: isDutch ? '/Per evenement' : '/Per Event',
+    description: isDutch ? 'Beschrijving:' : 'Description:',
+    bookNow: isDutch ? 'Nu boeken' : 'Book Now',
+    kmAway: isDutch ? '12.6 km afstand' : '12.6 Km away',
+    title: isDutch
+      ? 'Ochtenddate in een verborgen kunstgalerij'
+      : 'Morning Date at a Hidden Art Gallery',
+    descriptionText: isDutch
+      ? 'Met meer dan 7 jaar ervaring in evenementen staat DJ RayBeatz bekend om energieke dansvloeren, vloeiende overgangen en publieksfavorieten.'
+      : 'With over 7 years of event experience, DJ RayBeatz is known for high-energy dance floors, seamless transitions, and crowd-pleasing remixes.',
+  };
   const navigation = useNavigation();
   const data = [1, 2, 3, 4, 5];
   const [activeSlide, setActiveSlide] = useState(0);
@@ -21,7 +37,7 @@ const NotificationDetails = () => {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <AppHeader
         leftIcon={ICONS.leftArrowIcon}
-        headingText={'Notifications'}
+        headingText={localizedText.notifications}
         onLeftIconPress={() => navigation.goBack()}
       />
       <CarouselComponent data={data} />
@@ -47,7 +63,7 @@ const NotificationDetails = () => {
               color: COLORS.textDark,
               fontSize: 15,
             }}>
-            Morning Date at a Hidden Art Gallery
+            {localizedText.title}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Image
@@ -63,7 +79,7 @@ const NotificationDetails = () => {
                 color: COLORS.semiLightText,
                 fontSize: 11,
               }}>
-              12.6 Km away
+              {localizedText.kmAway}
             </Text>
           </View>
         </View>
@@ -98,7 +114,7 @@ const NotificationDetails = () => {
               color: '#000',
               fontSize: 9,
             }}>
-            /Par Event
+            {localizedText.perEvent}
           </Text>
         </View>
       </View>
@@ -111,7 +127,7 @@ const NotificationDetails = () => {
             fontFamily: fontFamly.PlusJakartaSansBold,
             fontSize: 12,
           }}>
-          Description:
+          {localizedText.description}
         </Text>
         <Text
           numberOfLines={4}
@@ -120,15 +136,12 @@ const NotificationDetails = () => {
             fontSize: 10,
             color: COLORS.textLight,
           }}>
-          With over 7 years of event experience, DJ RayBeatz is known for
-          high-energy dance floors, seamless transitions, and crowd-pleasing
-          remixes. From desi weddings to corporate raves, he brings the perfect
-          vibe for every crow With over 7...
+          {localizedText.descriptionText}
         </Text>
       </View>
       <View style={{ marginHorizontal: 10, flex: 1, justifyContent: 'flex-end', marginBottom: 10 }}>
         <GradientButton
-          text={'Book Now'}
+          text={localizedText.bookNow}
         />
       </View>
     </SafeAreaView>

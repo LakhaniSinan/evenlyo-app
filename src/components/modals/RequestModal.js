@@ -1121,12 +1121,22 @@ const NewRequestModal = ({
                 <TouchableOpacity
                   onPress={onClose}
                   style={styles.addToWishlistButton}>
-                  <GradientText text="Reject Offer" />
+                  <GradientText
+                    text={
+                      currentLanguage === 'nl'
+                        ? 'Offerte afwijzen'
+                        : 'Reject Offer'
+                    }
+                  />
                 </TouchableOpacity>
                 <View style={{ width: width(50) }}>
                   <GradientButton
                     styleContainer={{ height: width(12.5) }}
-                    text="Accept Offer"
+                    text={
+                      currentLanguage === 'nl'
+                        ? 'Offerte accepteren'
+                        : 'Accept Offer'
+                    }
                     onPress={() => onClose()}
                     type="filled"
                     textStyle={styles.sendRequestText}
@@ -1142,7 +1152,9 @@ const NewRequestModal = ({
                 onPress={handleCancel}
                 style={styles.cancelButton}
                 activeOpacity={0.7}>
-                <GradientText text={'Cancel'} />
+                <GradientText
+                  text={currentLanguage === 'nl' ? 'Annuleren' : 'Cancel'}
+                />
               </TouchableOpacity>
             </View>
 

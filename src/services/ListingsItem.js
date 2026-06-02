@@ -31,8 +31,8 @@ export const getVendorListingsById = vendorId => {
   return Api(`${endPoints.vendorListings}/${vendorId}`, null, requestType.GET);
 };
 
-export const getVendorsBySubCategory = subCatId => {
-  return Api(`${endPoints.vendor}/${subCatId}`, null, requestType.GET);
+export const getVendorsBySubCategory = (subCatId, params) => {
+  return Api(`${endPoints.vendor}/${subCatId}`, params, requestType.POST);
 };
 
 export const getBookingDetails = Id => {

@@ -60,6 +60,44 @@ Clients are responsible for timely payments and providing accurate event details
 Neither party may hold Evenlyo liable for any performance or service issues.
 If full payment is not completed before the event, Evenlyo or the supplier reserves the right to cancel the booking without refunding the deposit.`;
 
+const DAY_KEY_ALIASES = {
+  mon: 'mon',
+  monday: 'mon',
+  maandag: 'mon',
+  tue: 'tue',
+  tues: 'tue',
+  tuesday: 'tue',
+  dinsdag: 'tue',
+  wed: 'wed',
+  wednesday: 'wed',
+  woensdag: 'wed',
+  thu: 'thu',
+  thur: 'thu',
+  thurs: 'thu',
+  thursday: 'thu',
+  donderdag: 'thu',
+  fri: 'fri',
+  friday: 'fri',
+  vrijdag: 'fri',
+  sat: 'sat',
+  saturday: 'sat',
+  zaterdag: 'sat',
+  sun: 'sun',
+  sunday: 'sun',
+  zondag: 'sun',
+};
+
+const normalizeDayKey = day => {
+  const key = String(day || '').trim().toLowerCase();
+  return DAY_KEY_ALIASES[key] || null;
+};
+
+const getDayKeyFromMoment = dateMoment => {
+  const isoDay = dateMoment.isoWeekday();
+  const map = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  return map[isoDay - 1] || null;
+};
+
 const OrderBooking = ({
   data,
   type,
@@ -85,10 +123,32 @@ const OrderBooking = ({
   const [referenceDate, setReferenceDate] = useState(moment());
   const [localStartDate, setLocalStartDate] = useState(null);
   const [localEndDate, setLocalEndDate] = useState(null);
-  let availableDays =
-    data?.availability?.availableDays ||
-    data?.listingId?.availability?.availableDays ||
+  const primaryAvailableDays = data?.availability?.availableDays;
+  const nestedAvailableDays = data?.listingId?.availability?.availableDays;
+  const availableDaysKey = Array.isArray(primaryAvailableDays)
+    ? primaryAvailableDays.join('|')
+    : Array.isArray(nestedAvailableDays)
+      ? nestedAvailableDays.join('|')
+      : '';
+  const selectedDateKey = selectedDate?.startDate || selectedDate?.endDate
+    ? `${selectedDate?.startDate || ''}|${selectedDate?.endDate || ''}`
+    : '';
+  const editPrefillKey = `${data?.startDate || ''}|${data?.endDate || ''}|${
+    data?.startTime || ''
+  }|${data?.endTime || ''}|${data?.eventLocation || ''}|${
+    data?.eventLatitude || ''
+  }|${data?.eventLongitude || ''}|${data?.evenyloProtect ? '1' : '0'}|${
+    data?.specialRequests || data?.instructions || ''
+  }`;
+  const availableDaysRaw =
+    (Array.isArray(primaryAvailableDays) ? primaryAvailableDays : null) ||
+    (Array.isArray(nestedAvailableDays) ? nestedAvailableDays : null) ||
     [];
+  const availableDays = useMemo(
+    () => availableDaysRaw.map(normalizeDayKey).filter(Boolean),
+    [availableDaysKey],
+  );
+  const availableDaysSet = useMemo(() => new Set(availableDays), [availableDays]);
 
   const [markedDates, setMarkedDates] = useState(() =>
     getInitialMarkedDates(availableDays, moment()),
@@ -172,9 +232,9 @@ const OrderBooking = ({
 
             while (start.isSameOrBefore(end)) {
               const d = start.format('YYYY-MM-DD');
-              const dayName = start.format('ddd').toLowerCase();
+              const dayName = getDayKeyFromMoment(start);
 
-              if (availableDays.includes(dayName)) {
+              if (availableDaysSet.has(dayName)) {
                 updated[d] = {
                   ...(updated[d] || {}),
                   customStyles: {
@@ -219,9 +279,9 @@ const OrderBooking = ({
 
             while (start.isSameOrBefore(end)) {
               const d = start.format('YYYY-MM-DD');
-              const dayName = start.format('ddd').toLowerCase();
+              const dayName = getDayKeyFromMoment(start);
 
-              if (availableDays.includes(dayName)) {
+              if (availableDaysSet.has(dayName)) {
                 updated[d] = {
                   ...(updated[d] || {}),
                   customStyles: {
@@ -266,7 +326,7 @@ const OrderBooking = ({
       setMarkedDates(getInitialMarkedDates(availableDays, moment()));
       setReferenceDate(moment());
     }
-  }, [isVisible, selectedDate]);
+  }, [isVisible, selectedDateKey, availableDaysKey, editPrefillKey, type]);
 
   useEffect(() => {
     const onShow = Keyboard.addListener('keyboardDidShow', () =>
@@ -297,7 +357,7 @@ const OrderBooking = ({
     setMarkedDates(getInitialMarkedDates(availableDays, moment()));
     setReferenceDate(moment());
     onClose();
-  }, [availableDays]);
+  }, [availableDaysKey]);
 
   const listingCoordinates = useMemo(() => {
     const rawCoordinates =

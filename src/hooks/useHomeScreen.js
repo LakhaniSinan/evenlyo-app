@@ -1,11 +1,13 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import useCategories from './getCategories';
-import {getStoredToken} from '../utils/authToken';
+import {useSelector} from 'react-redux';
 import {
   getHomeData,
   getVendorsBySubCategory,
   listingAddToCart,
 } from '../services/ListingsItem';
+import {useTranslation} from '../hooks';
+import {getStoredToken} from '../utils/authToken';
+import useCategories from './getCategories';
 
 const SUB_CATEGORY_DEBOUNCE_MS = 450;
 
@@ -37,12 +39,13 @@ const normalizeHomePayload = payload => {
 };
 
 const useHomeScreen = ({modalRef, navigation, openLogin}) => {
+  const {currentLanguage} = useTranslation();
   const subCategoryRequestRef = useRef(0);
   const homeDataRequestRef = useRef(0);
 
   const {categories, subCategories, fetchCategories, fetchSubCategories} =
     useCategories();
-
+  const {user} = useSelector(state => state.LoginSlice);
   const [homeData, setHomeData] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
@@ -57,14 +60,40 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
   const hasSubCategories =
     Array.isArray(subCategories) && subCategories.length > 0;
 
+  const getLocalizedMessage = useCallback(
+    message => {
+      if (!message) {
+        return '';
+      }
+      if (typeof message === 'string') {
+        return message;
+      }
+      if (typeof message === 'object') {
+        return currentLanguage === 'nl'
+          ? message?.nl || message?.en || ''
+          : message?.en || message?.nl || '';
+      }
+      return String(message);
+    },
+    [currentLanguage],
+  );
+
   const showError = useCallback(
-    message => modalRef.current?.show({status: 'error', message}),
-    [modalRef],
+    message =>
+      modalRef.current?.show({
+        status: 'error',
+        message: getLocalizedMessage(message),
+      }),
+    [modalRef, getLocalizedMessage],
   );
 
   const showAlert = useCallback(
-    (status, message) => modalRef.current?.show({status, message}),
-    [modalRef],
+    (status, message) =>
+      modalRef.current?.show({
+        status,
+        message: getLocalizedMessage(message),
+      }),
+    [modalRef, getLocalizedMessage],
   );
 
   const loadCategories = useCallback(async () => {
@@ -142,7 +171,7 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
     try {
       const [homeRes, vendorsRes] = await Promise.all([
         getHomeData({subCategoryId: selectedSubCategoryId}),
-        getVendorsBySubCategory(selectedCategoryId),
+        getVendorsBySubCategory(selectedCategoryId, {userId: user?.id}),
       ]);
 
       if (requestId !== homeDataRequestRef.current) {
@@ -215,6 +244,7 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
       try {
         setWishlistLoading(true);
         const response = await listingAddToCart({listingId});
+        console.log(response, 'responseresponseresponseresponseresponse789');
         await fetchHomeData();
 
         if (response.status === 200 || response.status === 201) {
@@ -251,7 +281,7 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
         setRefreshing(true);
         const [homeRes, vendorsRes] = await Promise.all([
           getHomeData(params),
-          getVendorsBySubCategory(selectedCategory?._id),
+          getVendorsBySubCategory(selectedCategory?._id, {userId: user?.id}),
         ]);
 
         console.log(

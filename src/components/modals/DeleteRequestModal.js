@@ -3,10 +3,21 @@ import React from 'react';
 import {Modal, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {height, width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 import GradientText from '../gradiantText';
 
 const DeleteRequestModal = ({visible, onClose, handleTrackBooking}) => {
+  const {currentLanguage} = useTranslation();
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    confirmation: isDutch ? 'Bevestiging!' : 'Confirmation!',
+    confirmDelete: isDutch
+      ? 'Weet je zeker dat je dit medewerkeraccount wilt verwijderen?'
+      : 'Are you sure you want to delete this employee account?',
+    cancel: isDutch ? 'Annuleren' : 'Cancel',
+    next: isDutch ? 'Volgende' : 'Next',
+  };
   const navigation = useNavigation();
   const handleBackToListing = () => {
     onClose();
@@ -24,12 +35,12 @@ const DeleteRequestModal = ({visible, onClose, handleTrackBooking}) => {
         onPress={onClose}>
         <View style={styles.modalContainer}>
           <View style={styles.header}>
-            <Text style={styles.title}>Confirmation !</Text>
+            <Text style={styles.title}>{localizedText.confirmation}</Text>
           </View>
 
           <View style={styles.messageContainer}>
             <Text style={styles.messageText}>
-              Are you sure you want to delete this employee account?
+              {localizedText.confirmDelete}
             </Text>
           </View>
 
@@ -37,11 +48,11 @@ const DeleteRequestModal = ({visible, onClose, handleTrackBooking}) => {
             <TouchableOpacity
               style={styles.backToListingButton}
               onPress={handleBackToListing}>
-              <GradientText text="Cancel" />
+              <GradientText text={localizedText.cancel} />
             </TouchableOpacity>
             <View style={{width: width(35)}}>
               <GradientButton
-                text="Next"
+                text={localizedText.next}
                 onPress={handleTrackBooking}
                 type="filled"
                 textStyle={{

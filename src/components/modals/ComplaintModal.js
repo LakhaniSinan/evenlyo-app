@@ -11,6 +11,7 @@ import {
 import GradientButton from '../button';
 import {COLORS, fontFamly} from '../../constants';
 import {width} from 'react-native-dimension';
+import {useTranslation} from '../../hooks';
 
 const options = [
   {label: 'Refund', value: 'refund'},
@@ -19,6 +20,26 @@ const options = [
 ];
 
 const ComplaintPopup = ({visible, onClose, onConfirm}) => {
+  const {currentLanguage} = useTranslation();
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    refund: isDutch ? 'Terugbetaling' : 'Refund',
+    servicesIssue: isDutch ? 'Serviceprobleem' : 'Services Issue',
+    other: isDutch ? 'Anders' : 'Other',
+    enterComplaint: isDutch ? 'Voer je klacht in' : 'Enter your complaint',
+    type: isDutch ? 'Type' : 'Type',
+    reason: isDutch ? 'Reden' : 'Reason',
+    complaintPlaceholder: isDutch
+      ? 'Typ je klacht hier...'
+      : 'Type your complaint here...',
+    cancel: isDutch ? 'Annuleren' : 'Cancel',
+    confirm: isDutch ? 'Bevestigen' : 'Confirm',
+  };
+  const options = [
+    {label: localizedText.refund, value: 'refund'},
+    {label: localizedText.servicesIssue, value: 'services_issue'},
+    {label: localizedText.other, value: 'other'},
+  ];
   const [note, setNote] = useState('');
   const [selectedOption, setSelectedOption] = useState(options[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -41,7 +62,7 @@ const ComplaintPopup = ({visible, onClose, onConfirm}) => {
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Text style={styles.title}>Enter your complaint</Text>
+          <Text style={styles.title}>{localizedText.enterComplaint}</Text>
           <Text
             style={{
               fontSize: 12,
@@ -49,7 +70,7 @@ const ComplaintPopup = ({visible, onClose, onConfirm}) => {
               fontFamily: fontFamly.PlusJakartaSansSemiRegular,
               marginBottom: width(2),
             }}>
-            Type
+            {localizedText.type}
           </Text>
 
           {/* Custom Dropdown */}
@@ -81,12 +102,12 @@ const ComplaintPopup = ({visible, onClose, onConfirm}) => {
               fontFamily: fontFamly.PlusJakartaSansSemiRegular,
               marginBottom: width(2),
             }}>
-            Reason
+            {localizedText.reason}
           </Text>
           <TextInput
             style={styles.input}
             placeholderTextColor={COLORS.textLight}
-            placeholder="Type your complaint here..."
+            placeholder={localizedText.complaintPlaceholder}
             value={note}
             onChangeText={setNote}
             multiline
@@ -95,7 +116,7 @@ const ComplaintPopup = ({visible, onClose, onConfirm}) => {
           <View style={styles.buttonRow}>
             <View style={{width: width(35)}}>
               <GradientButton
-                text="Cancel"
+                text={localizedText.cancel}
                 type="outline"
                 useGradient={true}
                 onPress={handleClose}
@@ -108,7 +129,7 @@ const ComplaintPopup = ({visible, onClose, onConfirm}) => {
 
             <View style={{width: width(35)}}>
               <GradientButton
-                text="Confirm"
+                text={localizedText.confirm}
                 type="filled"
                 useGradient={true}
                 onPress={handleConfirm}

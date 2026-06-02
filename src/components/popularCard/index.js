@@ -15,6 +15,12 @@ import useTranslation from '../../hooks/useTranslation';
 
 const PopularCard = ({data, onCardPress, type, handleAddToCart}) => {
   const {currentLanguage} = useTranslation();
+  const isDutch = currentLanguage === 'nl';
+  const localizedText = {
+    inStock: isDutch ? 'Op voorraad' : 'In Stock',
+    buyNow: isDutch ? 'Koop nu' : 'Buy Now',
+    noProductFound: isDutch ? 'Geen producten gevonden.' : 'No Product Found.',
+  };
   const [activeHeart, setActiveHeart] = useState(null);
 
   const renderItem = ({item, index}) => {
@@ -30,7 +36,7 @@ const PopularCard = ({data, onCardPress, type, handleAddToCart}) => {
 
           <View style={styles.stockBadge}>
             <View style={styles.dot} />
-            <Text style={styles.stockText}>In Stock</Text>
+            <Text style={styles.stockText}>{localizedText.inStock}</Text>
           </View>
 
           <TouchableOpacity
@@ -65,7 +71,7 @@ const PopularCard = ({data, onCardPress, type, handleAddToCart}) => {
               start={{x: 0, y: 0}}
               end={{x: 1, y: 0}}
               style={styles.buyBtn}>
-              <Text style={styles.buyText}>Buy Now</Text>
+              <Text style={styles.buyText}>{localizedText.buyNow}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -93,7 +99,7 @@ const PopularCard = ({data, onCardPress, type, handleAddToCart}) => {
               color: COLORS.textLight,
               textAlign: 'center',
             }}>
-            No Product Found.
+            {localizedText.noProductFound}
           </Text>
         </View>
       }
