@@ -30,3 +30,7 @@ export const resetPassword = params => {
 export const socialLogin = params => {
   return Api(endPoints.socialLogin, params, requestType.POST);
 };
+
+export const updateFcmToken = params => {
+  return Api(endPoints.updateFcmToken, params, requestType.PATCH);
+};

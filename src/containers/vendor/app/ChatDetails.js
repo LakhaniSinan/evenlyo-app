@@ -270,7 +270,7 @@ const ChatDetail = ({navigation, route}) => {
       return;
     }
 
-    socket.emit('user_connected', {userId: user.vendorId});
+    socket.emit('vendor_connected', {vendorId: user.vendorId});
 
     const handleEmitNewConversation = payload =>
       setAllConversations(prev => updateConversations(prev, payload));
@@ -492,8 +492,8 @@ const ChatDetail = ({navigation, route}) => {
       }
 
       const receiverId =
-        activeChat?.participants?.vendor?.userId ||
-        data?.participants?.vendor?.userId;
+        activeChat?.participants?.user?.userId ||
+        data?.participants?.user?.userId;
       const conversationType = 'vender-to-user';
       const tempId = `temp-${Date.now()}-${Math.random()}`;
       const tempMessage = {
@@ -501,10 +501,10 @@ const ChatDetail = ({navigation, route}) => {
         conversationId: activeChat?.conversationId || data?.conversationId,
         senderId: user?.vendorId,
         receiverId,
-        senderRole: 'user',
-        receiverRole: 'vendor',
-        senderRefrence: 'User',
-        receiverRefrence: 'Vendor',
+        senderRole: 'vendor',
+        receiverRole: 'user',
+        senderRefrence: 'Vendor',
+        receiverRefrence: 'User',
         message: messageText || '',
         conversationType,
         timestamp: new Date().toISOString(),

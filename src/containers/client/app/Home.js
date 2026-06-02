@@ -9,7 +9,6 @@ import Loader from '../../../components/loder';
 import FilterModal from '../../../components/modals/FilterModal';
 import {COLORS} from '../../../constants';
 import useAuthModals from '../../../hooks/useAuthModals';
-import useFirebaseMessaging from '../../../hooks/useFirebaseMessaging';
 import useHomeScreen from '../../../hooks/useHomeScreen';
 import useTranslation from '../../../hooks/useTranslation';
 
@@ -30,8 +29,6 @@ const Home = ({navigation}) => {
     openLogin,
     handlePressFun,
   } = useAuthModals();
-
-  useFirebaseMessaging();
 
   const {
     categories,

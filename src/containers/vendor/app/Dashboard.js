@@ -18,10 +18,8 @@ import DashboardCard from '../../../components/dashboardCard';
 import RecentBookingCards from '../../../components/recentBookingCards';
 import RecentClientsCard from '../../../components/recentClientsCard';
 import {COLORS, fontFamly} from '../../../constants';
-import {helper} from '../../../helper';
 import {getDashboard} from '../../../services/Dashboard';
 import useTranslation from '../../../hooks/useTranslation';
-import {getMessagingOrNull} from '../../../utils/firebaseMessagingSafe';
 import {useSelector} from 'react-redux';
 
 const ViewMoreButton = React.memo(
@@ -49,43 +47,6 @@ const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('Booking');
-
-  useEffect(() => {
-    const msg = getMessagingOrNull();
-    if (!msg) {
-      return undefined;
-    }
-
-    // App launch se pehle ki notification handle
-    msg
-      .getInitialNotification()
-      .then(remoteMessage => {
-        if (remoteMessage) {
-          const {title, body} = remoteMessage.notification || {};
-          console.log('Initial Notification:', title, body);
-        }
-      })
-      .catch(console.error);
-
-    // App background se open hone pe notification
-    const unsubscribeOpened = msg.onNotificationOpenedApp(remoteMessage => {
-      if (remoteMessage) {
-        const {title, body} = remoteMessage.notification || {};
-        console.log('Notification Opened:', title, body);
-      }
-    });
-
-    // App foreground me notification receive hone pe
-    const unsubscribeForeground = msg.onMessage(remoteMessage => {
-      const {title, body} = remoteMessage.notification || {};
-      helper.notificationCall(title, body, () => {});
-    });
-
-    return () => {
-      unsubscribeOpened();
-      unsubscribeForeground();
-    };
-  }, []);
 
   const dashboardStats = useMemo(
     () => [

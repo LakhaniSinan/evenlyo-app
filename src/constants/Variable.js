@@ -26,6 +26,7 @@ export const endPoints = {
   verifyForgot: '/auth/verify-forgot-otp',
   reset: '/auth/reset-password',
   socialLogin: '/auth/google',
+  updateFcmToken: '/auth/fcm-token',
 
   //Profile
   profile: '/settings/personal-info',

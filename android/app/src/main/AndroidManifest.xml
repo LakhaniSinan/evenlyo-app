@@ -1,11 +1,11 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Required Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
 
     <application
         android:name=".MainApplication"
@@ -21,14 +21,21 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAvPVhgFVY2qv4c6kvukvIP2krPJe9dZGA" />
 
-        <!-- Google Sign-In Metadata -->
+        <!-- Google Play Services -->
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
+        <!-- Firebase Notification Icon -->
         <meta-data
-        android:name="com.google.firebase.messaging.default_notification_icon"
-        android:resource="@drawable/ic_notification" />
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+
+        <!-- Firebase Notification Channel -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="evenlyo_general"
+            tools:replace="android:value" />
 
         <!-- Main Activity -->
         <activity
@@ -38,24 +45,32 @@
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize"
             android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
 
         <!-- LinkedIn / OAuth Redirect Handler -->
         <activity
             android:name="net.openid.appauth.RedirectUriReceiverActivity"
             android:exported="true">
+
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <!-- Placeholder scheme filled from build.gradle -->
-                <data android:scheme="${appAuthRedirectScheme}" android:host="oauth"/>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="${appAuthRedirectScheme}"
+                    android:host="oauth" />
             </intent-filter>
+
         </activity>
 
     </application>
+
 </manifest>

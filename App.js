@@ -1,6 +1,6 @@
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {StripeProvider} from '@stripe/stripe-react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {Platform, StatusBar} from 'react-native';
 import 'react-native-gesture-handler';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -13,8 +13,11 @@ import {
 import {Provider, useDispatch} from 'react-redux';
 import LocationInitializer from './src/components/LocationInitializer';
 import {notifications} from './src/constants/Variable';
+import {helper} from './src/helper';
 import {SocketProvider} from './src/context';
 import useNotifications from './src/hooks/notifications';
+import useFirebaseMessaging from './src/hooks/useFirebaseMessaging';
+import useSyncFcmToken from './src/hooks/useSyncFcmToken';
 import AppNavigator from './src/navigation';
 import store from './src/redux';
 import {initializeLanguageFromStorage} from './src/redux/slice/language';
@@ -23,8 +26,19 @@ import './src/services/i18n';
 const AppContent = () => {
   const dispatch = useDispatch();
   const {fetchNotifications} = useNotifications();
+  const notificationPopupRef = useRef(null);
+  useFirebaseMessaging();
+  useSyncFcmToken();
 
   useEffect(() => {
+    notifications.popup = notificationPopupRef.current;
+    return () => {
+      notifications.popup = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    helper.requestNotificationPermission().catch(() => {});
     dispatch(initializeLanguageFromStorage());
     fetchNotifications();
     // Initialize Google Signin
@@ -49,7 +63,7 @@ const AppContent = () => {
       />
       <LocationInitializer />
       <AppNavigator />
-      <NotificationPopup ref={ref => (notifications.popup = ref)} />
+      <NotificationPopup ref={notificationPopupRef} />
     </SafeAreaView>
   );
 };

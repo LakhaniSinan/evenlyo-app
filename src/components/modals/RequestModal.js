@@ -1,5 +1,5 @@
 import moment from 'moment';
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   Image,
   InteractionManager,
@@ -11,14 +11,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { width } from 'react-native-dimension';
+import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
-import { useDispatch } from 'react-redux';
+import {useDispatch} from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { ICONS, IMAGES } from '../../assets';
-import { COLORS, fontFamly } from '../../constants';
-import { useTranslation } from '../../hooks';
-import { addItem } from '../../redux/slice/offers';
+import {ICONS, IMAGES} from '../../assets';
+import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
+import {addItem} from '../../redux/slice/offers';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
 import DateRangePicker from '../customDatePicker';
@@ -37,7 +37,7 @@ const NewRequestModal = ({
   editingItem,
   settingsData,
 }) => {
-  const { t } = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const modalRef = useRef(null);
   const dispatch = useDispatch();
   const [selectedCoords, setSelectedCoords] = useState(null);
@@ -63,7 +63,7 @@ const NewRequestModal = ({
       const lng = Number(coords[0]);
       const lat = Number(coords[1]);
       if (Number.isFinite(lat) && Number.isFinite(lng)) {
-        return { latitude: lat, longitude: lng };
+        return {latitude: lat, longitude: lng};
       }
       return null;
     }
@@ -72,7 +72,7 @@ const NewRequestModal = ({
       const lat = Number(coords.latitude);
       const lng = Number(coords.longitude);
       if (Number.isFinite(lat) && Number.isFinite(lng)) {
-        return { latitude: lat, longitude: lng };
+        return {latitude: lat, longitude: lng};
       }
     }
 
@@ -80,7 +80,7 @@ const NewRequestModal = ({
       const lat = Number(coords.lat);
       const lng = Number(coords.lng);
       if (Number.isFinite(lat) && Number.isFinite(lng)) {
-        return { latitude: lat, longitude: lng };
+        return {latitude: lat, longitude: lng};
       }
     }
 
@@ -109,10 +109,10 @@ const NewRequestModal = ({
       listing.coordinates,
       listing.latLng,
       listing.latitude != null && listing.longitude != null
-        ? { latitude: listing.latitude, longitude: listing.longitude }
+        ? {latitude: listing.latitude, longitude: listing.longitude}
         : null,
       listing.eventLatitude != null && listing.eventLongitude != null
-        ? { latitude: listing.eventLatitude, longitude: listing.eventLongitude }
+        ? {latitude: listing.eventLatitude, longitude: listing.eventLongitude}
         : null,
     ];
 
@@ -153,7 +153,6 @@ const NewRequestModal = ({
   const listingCoords =
     resolveListingCoords(selectedListing) || geocodedListingCoords;
   console.log(listingCoords, 'listingCoordslistingCoordslistingCoords');
-
 
   const distanceToSelectedListingKm = React.useMemo(() => {
     const eventCoords = resolveEventCoords(selectedCoords);
@@ -196,7 +195,7 @@ const NewRequestModal = ({
     const hour = parseInt(hourRaw, 10);
     const minute = parseInt(minRaw, 10);
     if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
-    return { hour, minute };
+    return {hour, minute};
   };
 
   const getTimeOfDayHours = date => {
@@ -255,13 +254,13 @@ const NewRequestModal = ({
   const distanceCost =
     distanceToSelectedListingKm != null
       ? distanceToSelectedListingKm *
-      (selectedListing?.pricing?.pricePerKm || 0)
+        (selectedListing?.pricing?.pricePerKm || 0)
       : 0;
 
   const securityFee = Number(
     selectedListing?.pricing?.securityFee ||
-    selectedListing?.paymentPolicy?.securityDeposit ||
-    0,
+      selectedListing?.paymentPolicy?.securityDeposit ||
+      0,
   );
 
   const parsePercent = value => {
@@ -272,16 +271,16 @@ const NewRequestModal = ({
 
   const bookingItemPlatformFee = parsePercent(
     settingsData?.bookingItemPlatformFee ||
-    selectedListing?.paymentPolicy?.platformFeePercent ||
-    11,
+      selectedListing?.paymentPolicy?.platformFeePercent ||
+      11,
   );
   const bookingVatFeePercent = parsePercent(
     settingsData?.vat ||
-    settingsData?.bookingVatFee ||
-    settingsData?.vatFee ||
-    settingsData?.vatPercentage ||
-    settingsData?.vatPercent ||
-    19,
+      settingsData?.bookingVatFee ||
+      settingsData?.vatFee ||
+      settingsData?.vatPercentage ||
+      settingsData?.vatPercent ||
+      19,
   );
 
   const discountBasePrice = perDayBaseCost * selectedDaysCount;
@@ -313,11 +312,11 @@ const NewRequestModal = ({
   const discountPercent =
     discountBasePrice > 0
       ? Math.max(
-        0,
-        Math.round(
-          ((discountBasePrice - safeOfferAmount) / discountBasePrice) * 100,
-        ),
-      )
+          0,
+          Math.round(
+            ((discountBasePrice - safeOfferAmount) / discountBasePrice) * 100,
+          ),
+        )
       : 0;
 
   const isDateTimeSelected = Boolean(startDate && endDate);
@@ -361,16 +360,16 @@ const NewRequestModal = ({
   const calculateOfferFees = (offerPrice, listing, offerSettings) => {
     const platformFeePercent = parsePercent(
       offerSettings?.bookingItemPlatformFee ||
-      listing?.paymentPolicy?.platformFeePercent ||
-      5,
+        listing?.paymentPolicy?.platformFeePercent ||
+        5,
     );
     const vatFeePercent = parsePercent(
       offerSettings?.vat ||
-      offerSettings?.bookingVatFee ||
-      offerSettings?.vatFee ||
-      offerSettings?.vatPercentage ||
-      offerSettings?.vatPercent ||
-      0,
+        offerSettings?.bookingVatFee ||
+        offerSettings?.vatFee ||
+        offerSettings?.vatPercentage ||
+        offerSettings?.vatPercent ||
+        0,
     );
     const platformFee = (offerPrice * platformFeePercent) / 100;
     const vatFee = (offerPrice * vatFeePercent) / 100;
@@ -466,7 +465,7 @@ const NewRequestModal = ({
 
     setSingleDay(
       Boolean(editingItem?.startDate && editingItem?.endDate) &&
-      editingItem?.startDate === editingItem?.endDate,
+        editingItem?.startDate === editingItem?.endDate,
     );
     setStartDate(parsedStart);
     setEndDate(parsedEnd);
@@ -672,7 +671,7 @@ const NewRequestModal = ({
     const offerFees = calculateOfferFees(
       offerPrice,
       selectedListing,
-      settingsData || { bookingItemPlatformFee: 5 },
+      settingsData || {bookingItemPlatformFee: 5},
     );
     const payloadTotal = Number(
       (
@@ -774,11 +773,11 @@ const NewRequestModal = ({
             <Image
               source={
                 selectedListing?.images
-                  ? { uri: selectedListing.images[0] }
+                  ? {uri: selectedListing.images[0]}
                   : IMAGES.backgroundImage2
               }
               resizeMode="contain"
-              style={{ height: '100%', width: '100%', borderRadius: 12 }}
+              style={{height: '100%', width: '100%', borderRadius: 12}}
             />
           </View>
           <View
@@ -879,7 +878,7 @@ const NewRequestModal = ({
               marginVertical: width(2),
               padding: width(3),
             }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <Image
                 source={ICONS.calenderIcon}
                 resizeMode="contain"
@@ -1022,7 +1021,7 @@ const NewRequestModal = ({
                 name="shield-outline"
                 size={15}
                 color={COLORS.primary}
-                style={{ marginRight: 6 }}
+                style={{marginRight: 6}}
               />
               <Text style={styles.checkboxLabel}>
                 Include Security Fee (€{securityFee?.toFixed(2)})
@@ -1049,7 +1048,7 @@ const NewRequestModal = ({
                 </View>
               )}
               {vatFee > 0 && (
-                <View style={[styles.feeRow, { borderBottomWidth: 0 }]}>
+                <View style={[styles.feeRow, {borderBottomWidth: 0}]}>
                   <Text style={styles.feeLabel}>
                     VAT Fee ({bookingVatFeePercent}%)
                   </Text>
@@ -1099,7 +1098,7 @@ const NewRequestModal = ({
             <Text
               style={[
                 styles.totalText,
-                { fontSize: 12, marginBottom: width(2) },
+                {fontSize: 12, marginBottom: width(2)},
               ]}>
               Special Request (optional)
             </Text>
@@ -1129,9 +1128,9 @@ const NewRequestModal = ({
                     }
                   />
                 </TouchableOpacity>
-                <View style={{ width: width(50) }}>
+                <View style={{width: width(50)}}>
                   <GradientButton
-                    styleContainer={{ height: width(12.5) }}
+                    styleContainer={{height: width(12.5)}}
                     text={
                       currentLanguage === 'nl'
                         ? 'Offerte accepteren'
@@ -1147,7 +1146,7 @@ const NewRequestModal = ({
           </>
         ) : (
           <View style={styles.buttonRow}>
-            <View style={{ width: width(40) }}>
+            <View style={{width: width(40)}}>
               <TouchableOpacity
                 onPress={handleCancel}
                 style={styles.cancelButton}
@@ -1158,7 +1157,7 @@ const NewRequestModal = ({
               </TouchableOpacity>
             </View>
 
-            <View style={{ width: width(40) }}>
+            <View style={{width: width(40)}}>
               <GradientButton
                 text={t('Add Item')}
                 onPress={handleAddItem}
@@ -1184,10 +1183,10 @@ const NewRequestModal = ({
             </Text>
           </View>
           <View style={styles.infoModalRow}>
-            <Text style={[styles.infoModalLabel, { color: '#FF5B00' }]}>
+            <Text style={[styles.infoModalLabel, {color: '#FF5B00'}]}>
               Extra Time Cost
             </Text>
-            <Text style={[styles.infoModalValue, { color: '#FF5B00' }]}>
+            <Text style={[styles.infoModalValue, {color: '#FF5B00'}]}>
               +€{totalExtraCost.toFixed(2)}
             </Text>
           </View>
@@ -1206,7 +1205,7 @@ const NewRequestModal = ({
 };
 
 const styles = StyleSheet.create({
-  modal: { margin: 0, justifyContent: 'flex-end', backgroundColor: '#8b8b8b66' },
+  modal: {margin: 0, justifyContent: 'flex-end', backgroundColor: '#8b8b8b66'},
   container: {
     height: '90%',
     borderTopLeftRadius: 28,

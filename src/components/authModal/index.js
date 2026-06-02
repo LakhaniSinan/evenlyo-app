@@ -92,7 +92,7 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
     try {
       setIsLoading(true);
       const fcmToken = (await ensureFcmTokenForAuth()) || fcm;
-      const payload = {email, password, fcm: fcmToken || ''};
+      const payload = {email, password, appFcm: fcmToken || ''};
 
       const response =
         user?.type === 'vendor'
@@ -133,6 +133,7 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
         return;
       }
 
+      const fcmToken = await ensureFcmTokenForAuth();
       let params = {
         firstName: userData?.givenName || '',
         lastName: userData?.familyName || '',
@@ -143,7 +144,11 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
       };
       console.log(params, 'paramsparamsparamsparams');
 
-      const response = await socialLogin({userData: params, type: 'App'});
+      const response = await socialLogin({
+        userData: params,
+        type: 'App',
+        appFcm: fcmToken || '',
+      });
       console.log(response, 'responseresponseresponseresponse');
 
       if (response?.status === 200 || response?.status === 201) {

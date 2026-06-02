@@ -117,9 +117,8 @@ const OfferPreviewScreen = ({navigation, route}) => {
     };
 
     const receiverId =
-      activeChat?.participants?.vendor?.userId ||
-      route?.params?.chatParams?.participants?.vendor?.userId ||
       activeChat?.participants?.user?.userId ||
+      route?.params?.chatParams?.participants?.user?.userId ||
       activeChat?.participants?.user?.id;
     const conversationId =
       activeChat?.conversationId || route?.params?.chatParams?.conversationId;
@@ -134,11 +133,10 @@ const OfferPreviewScreen = ({navigation, route}) => {
       conversationId,
       senderId: user.vendorId,
       receiverId,
-      // Keep metadata consistent with the existing chat send payload.
-      senderRole: 'user',
-      receiverRole: 'vendor',
-      senderRefrence: 'User',
-      receiverRefrence: 'Vendor',
+      senderRole: 'vendor',
+      receiverRole: 'user',
+      senderRefrence: 'Vendor',
+      receiverRefrence: 'User',
       message: '',
       conversationType: 'vender-to-user',
       timestamp: new Date().toISOString(),

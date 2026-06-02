@@ -105,13 +105,14 @@ const LoginScreen = ({navigation, route}) => {
           email: email,
           password: password,
           userType: type,
-          fcm: fcmToken || '',
+          appFcm: fcmToken || '',
         };
         setIsLoading(true);
         const response =
           type == 'client'
             ? await loginClient(payload)
             : await loginVendor(payload);
+        console.log(response, 'responseresponseresponseresponseresponse');
 
         let data = response?.data?.user;
         setIsLoading(false);
@@ -155,6 +156,7 @@ const LoginScreen = ({navigation, route}) => {
         return;
       }
 
+      const fcmToken = await ensureFcmTokenForAuth();
       let params = {
         firstName: user?.givenName || '',
         lastName: user?.familyName || '',
@@ -163,7 +165,11 @@ const LoginScreen = ({navigation, route}) => {
         userType: type,
         picture: user?.photo,
       };
-      const response = await socialLogin({userData: params, type: 'App'});
+      const response = await socialLogin({
+        userData: params,
+        type: 'App',
+        appFcm: fcmToken || '',
+      });
       if (response?.status === 200 || response?.status === 201) {
         const data = response?.data?.user;
         console.log(data, 'datadatadatadatadatadata');
@@ -234,11 +240,7 @@ const LoginScreen = ({navigation, route}) => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
         <View style={styles.column}>
-          <Header
-            languageModal
-            showBack
-            onBackPress={handleBackToOnboarding}
-          />
+          <Header languageModal showBack onBackPress={handleBackToOnboarding} />
           <Text style={[globalStyles.title, styles.screenTitle]}>
             {t('loginToAccount')}
           </Text>

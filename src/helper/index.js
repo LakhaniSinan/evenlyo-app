@@ -2,7 +2,7 @@
 
 import messaging from '@react-native-firebase/messaging';
 import axios from 'axios';
-import {PermissionsAndroid, Platform} from 'react-native';
+import {InteractionManager, PermissionsAndroid, Platform} from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import {check, PERMISSIONS} from 'react-native-permissions';
 import {ICONS} from '../assets';
@@ -212,17 +212,28 @@ export const helper = {
     }
   },
 
-  async notificationCall(titleee, bodyyy, handlePress) {
-    return notifications?.popup?.show({
-      onPress: () => {
-        if (handlePress) handlePress();
-      },
-      appIconSource: ICONS.logoIcon,
-      appTitle: 'Evenlyo',
-      timeText: 'Now',
-      title: titleee,
-      body: bodyyy,
-      slideOutTime: 5000,
+  notificationCall(titleee, bodyyy, handlePress) {
+    const popup = notifications?.popup;
+    if (!popup?.show) {
+      return;
+    }
+
+    // Defer: react-native-push-notification-popup triggers state updates during
+    // useInsertionEffect on React 19 — causes "must not schedule updates" warning.
+    InteractionManager.runAfterInteractions(() => {
+      setTimeout(() => {
+        popup.show({
+          onPress: () => {
+            if (handlePress) handlePress();
+          },
+          appIconSource: ICONS.logoIcon,
+          appTitle: 'Evenlyo',
+          timeText: 'Now',
+          title: titleee,
+          body: bodyyy,
+          slideOutTime: 5000,
+        });
+      }, 0);
     });
   },
 };
