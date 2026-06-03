@@ -663,7 +663,11 @@ const ChatDetail = ({navigation, route}) => {
                 </View>
               )
             ) : (
-              <View style={styles.otherMessageBubble}>
+              <View
+                style={[
+                  styles.otherMessageBubble,
+                  {maxWidth: width(80), alignSelf: 'flex-start'},
+                ]}>
                 {isImage && (
                   <Image
                     source={{uri: item?.attachment?.url}}
@@ -693,10 +697,8 @@ const ChatDetail = ({navigation, route}) => {
                     </Text>
                   </View>
                 )}
-                {!item?.attachment && (
-                  <Text style={[styles.myMessageText, {color: COLORS.black}]}>
-                    {item.message}
-                  </Text>
+                {!item?.attachment && !isOfferMessage && (
+                  <Text style={styles.otherMessageText}>{item.message}</Text>
                 )}
                 {isOfferMessage && (
                   <View style={styles.offerMessageCard}>
@@ -1336,6 +1338,7 @@ const styles = StyleSheet.create({
   otherMessageContainer: {
     justifyContent: 'flex-start',
     alignSelf: 'flex-start',
+    maxWidth: '100%',
   },
   messageAvatar: {
     width: width(8),
@@ -1385,12 +1388,18 @@ const styles = StyleSheet.create({
     maxWidth: width(60),
   },
   otherMessageBubble: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.backgroundLight,
     borderRadius: width(3),
     padding: width(2.5),
+    overflow: 'hidden',
+    flexShrink: 1,
   },
-  myMessageText: {color: '#FFF', fontSize: 14},
-  otherMessageText: {color: '#333', fontSize: 14},
+  myMessageText: {color: '#FFF', fontSize: 14, flexShrink: 1},
+  otherMessageText: {
+    color: COLORS.textDark,
+    fontSize: 14,
+    flexShrink: 1,
+  },
   messageTime: {
     fontSize: 10,
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,

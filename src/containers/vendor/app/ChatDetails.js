@@ -883,7 +883,10 @@ const ChatDetail = ({navigation, route}) => {
               )
             ) : (
               <View
-                style={[styles.otherMessageBubble, {alignSelf: 'flex-start'}]}>
+                style={[
+                  styles.otherMessageBubble,
+                  {maxWidth: width(80), alignSelf: 'flex-start'},
+                ]}>
                 {isOfferMessage ? (
                   <View style={[styles.offerMessageCard]}>
                     <View style={styles.offerMessageHeader}>
@@ -1610,6 +1613,7 @@ const styles = StyleSheet.create({
   otherMessageContainer: {
     justifyContent: 'flex-start',
     alignSelf: 'flex-start',
+    maxWidth: '100%',
   },
   messageAvatar: {
     width: width(8),
@@ -1665,19 +1669,22 @@ const styles = StyleSheet.create({
     maxWidth: width(45),
   },
   otherMessageBubble: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.backgroundLight,
     borderRadius: width(3),
     padding: width(2.5),
+    overflow: 'hidden',
+    flexShrink: 1,
   },
   myMessageText: {
     color: '#FFF',
   },
   otherMessageText: {
-    color: '#333',
+    color: COLORS.textDark,
+    flexShrink: 1,
   },
   messageText: {
     fontSize: 14,
-    flexShrink: 1, // allows auto-width adjustment
+    flexShrink: 1,
   },
   messageAvatar: {
     height: width(8),

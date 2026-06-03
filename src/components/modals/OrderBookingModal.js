@@ -566,9 +566,12 @@ const OrderBooking = ({
       return;
     }
 
+    const listingOwnerUserId =
+      data?.vendor?._id || (typeof data?.vendor === 'string' ? data.vendor : null);
+
     const payload = {
       listingId: data?._id,
-      vendorId: data?.vendorId || data?.vendor?._id,
+      vendorId: listingOwnerUserId || data?.vendorId,
 
       details: {
         startDate: startDateStr,

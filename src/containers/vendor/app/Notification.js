@@ -1,6 +1,7 @@
+import {useFocusEffect} from '@react-navigation/native';
 import moment from 'moment';
 import 'moment/locale/nl';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {
   FlatList,
   Image,
@@ -92,11 +93,7 @@ const Notification = ({navigation}) => {
     [currentLanguage, t],
   );
 
-  useEffect(() => {
-    handlGetVendorNotifications();
-  }, []);
-
-  const handlGetVendorNotifications = async () => {
+  const handlGetVendorNotifications = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await getVendorNotifications();
@@ -118,13 +115,19 @@ const Notification = ({navigation}) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [resolveApiMessage, t]);
+
+  useFocusEffect(
+    useCallback(() => {
+      handlGetVendorNotifications();
+    }, [handlGetVendorNotifications]),
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    handlGetVendorNotifications();
+    await handlGetVendorNotifications();
     setRefreshing(false);
-  }, []);
+  }, [handlGetVendorNotifications]);
 
   const renderItem = useCallback(
     ({item}) => {
