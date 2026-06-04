@@ -22,6 +22,8 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
 	<key>GMSApiKey</key>
 	<string>AIzaSyAvPVhgFVY2qv4c6kvukvIP2krPJe9dZGA</string>
 	<key>LSRequiresIPhoneOS</key>
@@ -33,18 +35,14 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Evenlyo needs camera access so you can take photos to upload with your profile or events.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app needs access to location to show maps.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app uses your location to show nearby events and vendors.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Evenlyo needs camera access so you can take photos to upload with your profile or events.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Evenlyo needs access to your photo library so you can choose images to upload with your profile or events.</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
 	<key>UIAppFonts</key>
 	<array>
 		<string>PlusJakartaSans-Bold.ttf</string>
@@ -61,6 +59,10 @@
 		<string>PlusJakartaSans-Regular.ttf</string>
 		<string>PlusJakartaSans-SemiBold.ttf</string>
 		<string>PlusJakartaSans-SemiBoldItalic.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

@@ -1,6 +1,7 @@
 // helper.js
 
 import messaging from '@react-native-firebase/messaging';
+import notifee from '@notifee/react-native';
 import axios from 'axios';
 import {InteractionManager, PermissionsAndroid, Platform} from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
@@ -54,6 +55,9 @@ export const helper = {
         if (!msg) {
           return 'denied';
         }
+
+        await notifee.requestPermission();
+
         const authStatus = await msg.requestPermission();
         const enabled =
           authStatus === messaging.AuthorizationStatus.AUTHORIZED ||

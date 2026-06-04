@@ -1,5 +1,4 @@
 import {useEffect} from 'react';
-import {helper} from '../helper';
 import {displayPushNotification} from '../utils/displayNotification';
 import {getMessagingOrNull} from '../utils/firebaseMessagingSafe';
 

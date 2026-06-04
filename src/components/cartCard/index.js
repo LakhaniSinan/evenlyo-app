@@ -15,7 +15,7 @@ const CartCard = ({
   onSelectToPay,
   isSelected,
 }) => {
-  const {currentLanguage} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
 
   const title = useMemo(() => {
     const data = item?.listingId?.title || item?.listingDetails?.title;
@@ -35,38 +35,43 @@ const CartCard = ({
   const paymentRows = useMemo(
     () => [
       {
-        label: 'Total Cost',
+        key: 'totalCost',
+        label: t('Total Cost'),
         value: item?.pricingBreakdown?.total,
         color: COLORS.textLight,
       },
       {
-        label: 'Upfront Paid',
-        value: item?.isUpfrontPaid ? 'Paid' : 'Un Paid',
+        key: 'upfrontPaid',
+        label: t('Upfront Paid'),
+        value: item?.isUpfrontPaid ? t('Paid') : t('Un Paid'),
         color: COLORS.navyBlue,
       },
       {
-        label: 'Upfront Amount',
+        key: 'upfrontAmount',
+        label: t('Upfront Amount'),
         value: item?.pricingBreakdown?.upfrontFee,
         color: COLORS.navyBlue,
       },
       {
-        label: 'Total Paid Amount',
+        key: 'totalPaid',
+        label: t('Total Paid Amount'),
         value: item?.AmountPaid?.toFixed(2),
         color: item?.isUpfrontPaid ? COLORS.green : COLORS.red,
       },
       {
-        label: 'Remaining',
+        key: 'remaining',
+        label: t('Remaining'),
         value: item?.AmountLeft?.toFixed(2),
         color: COLORS.red,
       },
     ],
-    [],
+    [item, t],
   );
 
-  const renderDate = (label, date) =>
+  const renderDate = (labelKey, date) =>
     date ? (
       <Text style={styles.metaText}>
-        {label}: {moment(date).format('MM/DD/YYYY')}
+        {t(labelKey)}: {moment(date).format('MM/DD/YYYY')}
       </Text>
     ) : null;
 
@@ -108,7 +113,7 @@ const CartCard = ({
 
           <View style={styles.spaceBetween}>
             <View style={styles.row}>
-              <Text style={styles.status}>Active</Text>
+              <Text style={styles.status}>{t('Active')}</Text>
               <Image
                 source={ICONS.verifyedIcon}
                 style={styles.verifyIcon}
@@ -160,10 +165,10 @@ const CartCard = ({
           {type === 'requested' && (
             <>
               <Text style={styles.metaText}>
-                Start Time {item?.details?.startTime}
+                {t('Start Time')} {item?.details?.startTime}
               </Text>
               <Text style={styles.metaText}>
-                End Time {item?.details?.endTime}
+                {t('End Time')} {item?.details?.endTime}
               </Text>
             </>
           )}
@@ -181,14 +186,14 @@ const CartCard = ({
               if (!row?.value > 0) {
                 return;
               }
-              if (!item?.willPayUpfront && row?.label == 'Upfront Paid') {
+              if (!item?.willPayUpfront && row?.key === 'upfrontPaid') {
                 return;
               }
-              if (!item?.willPayUpfront && row?.label == 'Upfront Amount') {
+              if (!item?.willPayUpfront && row?.key === 'upfrontAmount') {
                 return;
               }
               return (
-                <View key={row.label} style={styles.spaceBetween}>
+                <View key={row.key} style={styles.spaceBetween}>
                   <Text style={[styles.metaText, {color: row.color}]}>
                     {row.label}
                   </Text>
@@ -209,19 +214,19 @@ const CartCard = ({
                 {backgroundColor: '#FEE2E2', borderColor: COLORS.red},
               ]}>
               <Text style={[styles.warningText, {color: COLORS.red}]}>
-                Full payment of €
-                {`${Number(item?.pricingBreakdown?.total)?.toFixed(2)}`}{' '}
-                required
+                {t('cartFullPaymentRequired', {
+                  amount: Number(item?.pricingBreakdown?.total)?.toFixed(2),
+                })}
               </Text>
             </View>
           ) : (
             <View style={styles.warningBox}>
               <Text style={styles.warningText}>
-                Remaining balance of{' '}
-                {item?.AmountLeft
-                  ? `€${Number(item?.AmountLeft)?.toFixed(2)}`
-                  : ''}{' '}
-                should be cleared by (one day before event).
+                {t('cartRemainingBalanceWarning', {
+                  amount: item?.AmountLeft
+                    ? `€${Number(item?.AmountLeft)?.toFixed(2)}`
+                    : '',
+                })}
               </Text>
             </View>
           )}

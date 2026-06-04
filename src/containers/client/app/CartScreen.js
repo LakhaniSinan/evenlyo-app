@@ -136,7 +136,7 @@ function CartScreen({navigation}) {
     if (!selectedData) {
       modalRef.current?.show({
         status: 'error',
-        message: 'Please select a booking first.',
+        message: t('pleaseSelectBookingFirst'),
       });
       return;
     }
@@ -267,10 +267,12 @@ function CartScreen({navigation}) {
     <SaleItemCard setIsLoading={setIsLoadding} modalRef={modalRef} />
   );
 
-  const renderSection = (title, data, onSeeAllPress) => {
+  const renderSection = (sectionKey, title, data, onSeeAllPress) => {
     if (!data?.length) {
       return null;
     }
+
+    const sectionTitle = t(title);
 
     return (
       <View style={{marginBottom: width(4)}}>
@@ -280,7 +282,7 @@ function CartScreen({navigation}) {
             justifyContent: 'space-between',
             alignItems: 'center',
           }}>
-          <Text style={styles.sectionTitle}>{t(title)}</Text>
+          <Text style={styles.sectionTitle}>{sectionTitle}</Text>
           {/* <TouchableOpacity onPress={onSeeAllPress}>
             <Text
               style={[
@@ -294,12 +296,14 @@ function CartScreen({navigation}) {
         <FlatList
           data={data}
           keyExtractor={item => item.id}
-          renderItem={(item, index) => {
-            return activeTab == 'saleItem'
-              ? renderSaleItemCart(item)
-              : title == 'Accepted Order'
-              ? renderCartItem(item)
-              : renderAcceptedItem(item);
+          renderItem={item => {
+            if (activeTab === 'saleItem') {
+              return renderSaleItemCart(item);
+            }
+            if (sectionKey === 'listingCart') {
+              return renderCartItem(item);
+            }
+            return renderAcceptedItem(item);
           }}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
@@ -387,7 +391,7 @@ function CartScreen({navigation}) {
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <AppHeader
-        headingText={t('Add To Wishlist')}
+        headingText={t('addToWishlistButton')}
         rightIcon={ICONS.chatIcon}
         onRightIconPress={() => navigation.navigate('MessagesScreen')}
       />
@@ -418,21 +422,27 @@ function CartScreen({navigation}) {
           </View>
         ) : activeTab === 'bookingItem' ? (
           <>
-            {renderSection(t('Request Add To Cart'), listingCartData, () =>
-              navigation.navigate('SeeAllRequestCart'),
+            {renderSection(
+              'listingCart',
+              'Request Add To Cart',
+              listingCartData,
+              () => navigation.navigate('SeeAllRequestCart'),
             )}
-            {renderSection(t('Accepted Order'), accepetedBookings, () =>
-              navigation.navigate('SeeAllRequestCart'),
+            {renderSection(
+              'acceptedOrder',
+              'Accepted Order',
+              accepetedBookings,
+              () => navigation.navigate('SeeAllRequestCart'),
             )}
           </>
         ) : (
-          renderSection(t('Sale Items'), saleItem)
+          renderSection('saleItem', 'Sale Items', saleItem)
         )}
       </ScrollView>
       {accepetedBookings?.length > 0 && activeTab === 'bookingItem' && (
         <View style={{margin: width(3)}}>
           <GradientButton
-            text={t('Process to Checkout')}
+            text={t('processToCheckout')}
             onPress={handlePayAmount}
             type="filled"
             gradientColors={['#FF295D', '#E31B95', '#C817AE']}

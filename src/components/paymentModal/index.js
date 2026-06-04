@@ -1,11 +1,12 @@
 import {CardField, useStripe} from '@stripe/stripe-react-native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Keyboard, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import {COLORS, fontFamly} from '../../constants';
+import {useTranslation} from '../../hooks';
 import {saveBookingOrder} from '../../services/ListingsItem';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
@@ -18,10 +19,28 @@ const PaymentModal = ({
   selectedData,
   amountToPay,
 }) => {
+  const {t} = useTranslation();
   const {confirmPayment} = useStripe();
   const [cardComplete, setCardComplete] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  const labels = useMemo(
+    () => ({
+      title: t('paymentDetailsTitle'),
+      subtitle: t('paymentDetailsSubtitle'),
+      summaryTitle: t('paymentSummaryTitle'),
+      bookingAmount: t('bookingAmountLabel'),
+      secureTitle: t('securePaymentTitle'),
+      secureSubtitle: t('securePaymentSubtitle'),
+      pay: t('payButton'),
+      processing: t('Processing'),
+      completeCard: t('pleaseCompleteCardDetails'),
+      notInitialized: t('paymentNotInitialized'),
+      paymentFailed: t('paymentFailedTryAgain'),
+    }),
+    [t],
+  );
 
   const handleBackdropPress = () => {
     if (keyboardVisible) {
@@ -49,7 +68,7 @@ const PaymentModal = ({
     if (!cardComplete) {
       modalRef.current.show({
         status: 'error',
-        message: 'Please complete card details',
+        message: labels.completeCard,
       });
       return false;
     }
@@ -57,7 +76,7 @@ const PaymentModal = ({
     if (!clientSecret) {
       modalRef.current.show({
         status: 'error',
-        message: 'Payment not initialized',
+        message: labels.notInitialized,
       });
       return false;
     }
@@ -79,7 +98,7 @@ const PaymentModal = ({
       if (error) {
         modalRef.current.show({
           status: 'error',
-          message: error?.message || 'Payment failed. Please try again.',
+          message: error?.message || labels.paymentFailed,
         });
         return;
       }
@@ -108,7 +127,6 @@ const PaymentModal = ({
               status: 'error',
               message: res?.data?.message,
             });
-            console.log(res, 'resresresresresresresres');
           }
         } catch (err) {
           console.log('PAY ERROR', err);
@@ -119,7 +137,17 @@ const PaymentModal = ({
     } finally {
       setProcessing(false);
     }
-  }, [cardComplete, clientSecret, processing, confirmPayment]);
+  }, [
+    cardComplete,
+    clientSecret,
+    processing,
+    confirmPayment,
+    labels,
+    selectedData,
+    amountToPay,
+    modalRef,
+    onClose,
+  ]);
 
   return (
     <Modal
@@ -131,8 +159,8 @@ const PaymentModal = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Payment Details</Text>
-            <Text style={styles.subTitle}>Complete your booking payment</Text>
+            <Text style={styles.title}>{labels.title}</Text>
+            <Text style={styles.subTitle}>{labels.subtitle}</Text>
           </View>
 
           <TouchableOpacity onPress={onClose}>
@@ -141,18 +169,16 @@ const PaymentModal = ({
         </View>
 
         <View style={styles.amountBox}>
-          <Text style={styles.amountTitle}>Payment Summary</Text>
+          <Text style={styles.amountTitle}>{labels.summaryTitle}</Text>
 
           <View style={styles.amountRow}>
-            <Text style={styles.amountLabel}>Booking Amount</Text>
+            <Text style={styles.amountLabel}>{labels.bookingAmount}</Text>
             <Text style={styles.amountValue}>€ {amountToPay}</Text>
           </View>
         </View>
 
-        <Text style={styles.title}>Secure Payment</Text>
-        <Text style={styles.subTitle}>
-          Your card information is encrypted and secure
-        </Text>
+        <Text style={styles.title}>{labels.secureTitle}</Text>
+        <Text style={styles.subTitle}>{labels.secureSubtitle}</Text>
         <View style={{height: width(3)}} />
         <CardField
           postalCodeEnabled={false}
@@ -169,7 +195,7 @@ const PaymentModal = ({
 
         {!keyboardVisible && (
           <GradientButton
-            text={processing ? 'Processing...' : 'Pay'}
+            text={processing ? labels.processing : labels.pay}
             onPress={onPay}
             disabled={processing}
             type="filled"

@@ -47,5 +47,13 @@ export async function displayPushNotification({title, body, data = {}}) {
     title: safeTitle,
     body: safeBody,
     data,
+    ios: {
+      foregroundPresentationOptions: {
+        banner: true,
+        sound: true,
+        badge: true,
+        list: true,
+      },
+    },
   });
 }
