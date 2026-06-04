@@ -770,7 +770,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                 </View>
                 <View style={{width: width(40), marginTop: width(3)}}>
                   <TextField
-                    label={t('Cost')}
+                    label={t('Cost(€) Ex VAT')}
                     placeholder={t('Enter Cost')}
                     bgColor={COLORS.white}
                     value={formData.cost}
