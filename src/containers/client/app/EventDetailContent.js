@@ -353,8 +353,11 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
 
   const handleSendBookingRequest = async details => {
     try {
-      setIsLoadding(true);
+      // setIsLoadding(true);
       const response = await sendBookingRequest(details);
+      console.log(response, 'responseresponseresponseresponseresponse');
+
+      // return;
       if (response.status == 200 || response.status == 201) {
         setResponeData(response?.data?.data?.bookingRequest);
         setStartDate(null);

@@ -6,10 +6,7 @@ import 'react-native-gesture-handler';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {Provider as PaperProvider} from 'react-native-paper';
 import NotificationPopup from 'react-native-push-notification-popup';
-import {
-  SafeAreaProvider,
-  SafeAreaView,
-} from 'react-native-safe-area-context';
+import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {Provider, useDispatch} from 'react-redux';
 import LocationInitializer from './src/components/LocationInitializer';
 import {notifications} from './src/constants/Variable';
