@@ -46,6 +46,105 @@ import {helper} from '../../../helper';
 import {useTranslation} from '../../../hooks';
 import {conversationService, messageService} from '../../../services/Chat';
 
+const IMAGE_EXT_REGEX = /\.(jpg|jpeg|png|gif|webp|bmp|heic)(\?.*)?$/i;
+
+const normalizeMessageAttachment = message => {
+  if (!message) {
+    return null;
+  }
+
+  let attachment = message.attachment ?? message.attachments;
+
+  if (typeof attachment === 'string') {
+    const trimmed = attachment.trim();
+    if (!trimmed) {
+      return null;
+    }
+    try {
+      attachment = JSON.parse(trimmed);
+    } catch {
+      return {
+        url: trimmed,
+        type: IMAGE_EXT_REGEX.test(trimmed) ? 'image' : 'file',
+        name: 'attachment',
+      };
+    }
+  }
+
+  if (Array.isArray(attachment)) {
+    attachment = attachment[0];
+  }
+
+  if (!attachment || typeof attachment !== 'object') {
+    return null;
+  }
+
+  const url = String(
+    attachment.url ||
+      attachment.secure_url ||
+      attachment.secureUrl ||
+      attachment.uri ||
+      '',
+  ).trim();
+
+  if (!url) {
+    return null;
+  }
+
+  let type = attachment.type || attachment.mimeType || attachment.format || '';
+  if (typeof type === 'string') {
+    const lowerType = type.toLowerCase();
+    if (lowerType.startsWith('image/') || lowerType === 'image') {
+      type = 'image';
+    } else if (lowerType.includes('pdf') || lowerType === 'file') {
+      type = 'file';
+    }
+  }
+
+  if (!type) {
+    if (IMAGE_EXT_REGEX.test(url) || url.includes('/image/upload')) {
+      type = 'image';
+    } else if (url.endsWith('.pdf')) {
+      type = 'file';
+    }
+  }
+
+  return {
+    url,
+    type: type || 'image',
+    name: attachment.name || attachment.original_filename || 'file',
+    size: attachment.size || null,
+  };
+};
+
+const normalizeChatMessage = message => {
+  if (!message) {
+    return message;
+  }
+  const attachment = normalizeMessageAttachment(message);
+  if (!attachment) {
+    return message;
+  }
+  return {...message, attachment};
+};
+
+const isMessageImage = attachment => {
+  if (!attachment?.url) {
+    return false;
+  }
+  return (
+    attachment.type?.startsWith?.('image') ||
+    attachment.type === 'image' ||
+    IMAGE_EXT_REGEX.test(attachment.url) ||
+    attachment.url.includes('/image/upload')
+  );
+};
+
+const isMessagePdf = attachment =>
+  attachment?.type === 'file' ||
+  attachment?.type?.includes?.('pdf') ||
+  attachment?.url?.toLowerCase?.().endsWith('.pdf');
+
 const ChatDetail = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
   const modalRef = useRef();
@@ -108,6 +207,8 @@ const ChatDetail = ({navigation, route}) => {
   const [offerObject, setOfferObject] = useState(null);
   const {user} = useSelector(state => state.LoginSlice);
   const [attachedFile, setAttachedFile] = useState(null);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
   const [conversation, setConversation] = useState(data);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -146,7 +247,7 @@ const ChatDetail = ({navigation, route}) => {
 
     if (findIndex !== -1) {
       const newMessages = [...allMessages];
-      newMessages[findIndex] = data;
+      newMessages[findIndex] = normalizeChatMessage(data);
       setAllMessages(newMessages);
       toast.success('Offer accepted!');
     }
@@ -172,7 +273,7 @@ const ChatDetail = ({navigation, route}) => {
     newMessage => {
       setIsTyping(false);
       if (newMessage.conversationId === currentConversationId) {
-        setAllMessages(prev => [...prev, newMessage]);
+        setAllMessages(prev => [...prev, normalizeChatMessage(newMessage)]);
         setTimeout(scrollToBottom, 100);
       }
     },
@@ -383,7 +484,7 @@ const ChatDetail = ({navigation, route}) => {
         Array.isArray(response);
 
       if (isValidMessagesResponse) {
-        setAllMessages(responseMessages);
+        setAllMessages(responseMessages.map(normalizeChatMessage));
         setIsError(false);
         setTimeout(() => {
           scrollToBottom();
@@ -534,7 +635,7 @@ const ChatDetail = ({navigation, route}) => {
         );
         if (response?.success) {
           const latestMessages = response?.data || [];
-          setAllMessages(latestMessages);
+          setAllMessages(latestMessages.map(normalizeChatMessage));
           const acceptedOfferMessage = latestMessages.find(
             msg =>
               msg?.offerObject?.uniqueId === targetOfferId &&
@@ -580,15 +681,12 @@ const ChatDetail = ({navigation, route}) => {
         firstOfferItem?.image ||
         firstOfferItem?.featuredImage;
 
-      const isImage =
-        item?.attachment?.type?.startsWith?.('image') ||
-        item?.attachment?.type === 'image' ||
-        item?.attachment?.url?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
-      const isPDF =
-        item?.attachment?.type === 'file' ||
-        item?.attachment?.url?.endsWith('.pdf');
-
-      console.log(item, 'itemitemitemitemitemitemitem');
+      const attachment = normalizeMessageAttachment(item) || item?.attachment;
+      const isImage = isMessageImage(attachment);
+      const isSending =
+        item?.isPending && attachment && !isImage;
+      const isPDF = isMessagePdf(attachment);
+      const imageUri = attachment?.url;
 
       return (
         <>
@@ -615,14 +713,19 @@ const ChatDetail = ({navigation, route}) => {
             )}
 
             {isOwn ? (
-              isImage && item?.attachment?.url && !item?.isPending ? (
-                <View
+              isImage && imageUri ? (
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => {
+                    setPreviewImage(imageUri);
+                    setPreviewVisible(true);
+                  }}
                   style={[
                     styles.myMessageImageWrap,
                     {maxWidth: width(80), alignSelf: 'flex-end'},
                   ]}>
                   <Image
-                    source={{uri: item.attachment.url}}
+                    source={{uri: imageUri}}
                     resizeMode="cover"
                     style={styles.myMessageImage}
                   />
@@ -631,7 +734,7 @@ const ChatDetail = ({navigation, route}) => {
                       {item.message}
                     </Text>
                   ) : null}
-                </View>
+                </TouchableOpacity>
               ) : (
                 <View
                   style={[
@@ -647,13 +750,13 @@ const ChatDetail = ({navigation, route}) => {
                     style={styles.myMessageBubbleGradient}
                   />
                   <View style={styles.myMessageBubbleContent}>
-                    {item?.isPending ? (
+                    {isSending ? (
                       <Text style={styles.sendingText}>{localizedText.sending}</Text>
                     ) : isPDF ? (
                       <View style={styles.myMessagePdf}>
                         <Icon name="file-pdf-box" size={28} color="#FF0000" />
                         <Text style={styles.myMessagePdfName} numberOfLines={1}>
-                          {item?.attachment?.name || localizedText.pdfDocument}
+                          {attachment?.name || localizedText.pdfDocument}
                         </Text>
                       </View>
                     ) : (
@@ -668,14 +771,24 @@ const ChatDetail = ({navigation, route}) => {
                   styles.otherMessageBubble,
                   {maxWidth: width(80), alignSelf: 'flex-start'},
                 ]}>
-                {isImage && (
-                  <Image
-                    source={{uri: item?.attachment?.url}}
-                    resizeMode="contain"
-                    style={{height: 180, width: '100%', borderRadius: width(5)}}
-                  />
-                )}
-                {isPDF && (
+                {isImage && imageUri ? (
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    onPress={() => {
+                      setPreviewImage(imageUri);
+                      setPreviewVisible(true);
+                    }}>
+                    <Image
+                      source={{uri: imageUri}}
+                      resizeMode="cover"
+                      style={styles.otherMessageImage}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+                {isImage && item?.message ? (
+                  <Text style={styles.otherMessageText}>{item.message}</Text>
+                ) : null}
+                {isPDF && imageUri && (
                   <View
                     style={{
                       flexDirection: 'row',
@@ -693,11 +806,11 @@ const ChatDetail = ({navigation, route}) => {
                         maxWidth: width(60),
                       }}
                       numberOfLines={1}>
-                      {item?.attachment?.name || localizedText.pdfDocument}
+                      {attachment?.name || localizedText.pdfDocument}
                     </Text>
                   </View>
                 )}
-                {!item?.attachment && !isOfferMessage && (
+                {!attachment && !isOfferMessage && (
                   <Text style={styles.otherMessageText}>{item.message}</Text>
                 )}
                 {isOfferMessage && (
@@ -832,10 +945,16 @@ const ChatDetail = ({navigation, route}) => {
       conversationType,
       timestamp: new Date().toISOString(),
       isPending: true,
-      ...(attachedFile && {attachment: {name: attachedFile.name}}),
+      ...(attachedFile && {
+        attachment: {
+          name: attachedFile.name,
+          url: attachedFile.uri,
+          type: attachedFile.type?.startsWith?.('image') ? 'image' : 'file',
+        },
+      }),
     };
 
-    setAllMessages(prev => [...prev, tempMessage]);
+    setAllMessages(prev => [...prev, normalizeChatMessage(tempMessage)]);
 
     setTimeout(() => {
       scrollToBottom();
@@ -848,23 +967,35 @@ const ChatDetail = ({navigation, route}) => {
       let fileUrl = null;
 
       if (attachedFile) {
-        fileUrl = await helper.uploadMediaToCloudinary(attachedFile);
+        const uploadRes = await helper.uploadMediaToCloudinary(attachedFile);
+        if (uploadRes && (uploadRes.url || uploadRes.secure_url)) {
+          fileUrl = {
+            url: uploadRes.url || uploadRes.secure_url,
+            format:
+              uploadRes.format ||
+              (uploadRes.secure_url && uploadRes.secure_url.split('.').pop()),
+            name:
+              uploadRes.name ||
+              uploadRes.original_filename ||
+              attachedFile.name,
+            size: uploadRes.bytes || uploadRes.size || attachedFile.size,
+          };
+        }
       }
 
-      const finalMessage = {
+      const finalMessage = normalizeChatMessage({
         ...tempMessage,
         attachment: fileUrl
           ? {
-              url: fileUrl?.url,
-              type: fileUrl?.format === 'pdf' ? 'file' : 'image',
-              name: fileUrl?.name,
-              size: fileUrl?.size,
+              url: fileUrl.url,
+              type: fileUrl.format === 'pdf' ? 'file' : 'image',
+              name: fileUrl.name,
+              size: fileUrl.size,
             }
           : undefined,
         isPending: false,
-      };
+      });
 
-      // Send via socket
       socket.emit('send_message', finalMessage);
 
       setAllMessages(prev =>
@@ -1319,6 +1450,20 @@ const ChatDetail = ({navigation, route}) => {
         emojis={commonEmojis}
         onSelectEmoji={handleSelectEmoji}
       />
+      {previewVisible && previewImage ? (
+        <View style={styles.fullScreenModal}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setPreviewVisible(false)}>
+            <Text style={styles.closeText}>×</Text>
+          </TouchableOpacity>
+          <Image
+            source={{uri: previewImage}}
+            style={styles.fullScreenImage}
+            resizeMode="contain"
+          />
+        </View>
+      ) : null}
     </View>
   );
 };
@@ -1393,6 +1538,43 @@ const styles = StyleSheet.create({
     padding: width(2.5),
     overflow: 'hidden',
     flexShrink: 1,
+  },
+  otherMessageImage: {
+    height: width(55),
+    width: width(70),
+    borderRadius: width(3),
+    marginBottom: width(1),
+  },
+  fullScreenModal: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: '100%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 48,
+    right: 20,
+    zIndex: 10000,
+  },
+  closeText: {
+    color: COLORS.white,
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+  sendingText: {
+    fontSize: 13,
+    color: COLORS.textLight,
+    fontStyle: 'italic',
   },
   myMessageText: {color: '#FFF', fontSize: 14, flexShrink: 1},
   otherMessageText: {

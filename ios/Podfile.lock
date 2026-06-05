@@ -1489,7 +1489,7 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
-  - react-native-app-auth (8.2.0):
+  - react-native-app-auth (8.4.0):
     - AppAuth (>= 1.7.6)
     - React-Core
   - react-native-blur (4.4.1):
@@ -2343,7 +2343,12 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNPermissions (5.5.1):
+  - RNNotifee (9.1.8):
+    - React-Core
+    - RNNotifee/NotifeeCore (= 9.1.8)
+  - RNNotifee/NotifeeCore (9.1.8):
+    - React-Core
+  - RNPermissions (5.5.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2835,6 +2840,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
   - RNLocalize (from `../node_modules/react-native-localize`)
+  - "RNNotifee (from `../node_modules/@notifee/react-native`)"
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -3064,6 +3070,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-google-signin/google-signin"
   RNLocalize:
     :path: "../node_modules/react-native-localize"
+  RNNotifee:
+    :path: "../node_modules/@notifee/react-native"
   RNPermissions:
     :path: "../node_modules/react-native-permissions"
   RNReanimated:
@@ -3139,7 +3147,7 @@ SPEC CHECKSUMS:
   React-logger: 85fa3509931497c72ccd2547fcc91e7299d8591e
   React-Mapbuffer: 96a2f2a176268581733be182fa6eebab1c0193be
   React-microtasksnativemodule: bda561d2648e1e52bd9e5a87f8889836bdbde2e2
-  react-native-app-auth: a492f1a49104ffd63e34ee914c6490fcc059faf0
+  react-native-app-auth: e25699baefe53d43c81dc3e3f1f4f19f8e782ab2
   react-native-blur: 06d0f9906ecd6cde3a42de16c6cd829a2bf0710c
   react-native-date-picker: e687e018f66da4734b3db3ddf3d323e930425d56
   react-native-document-picker: 493b6fa99574e9548901acc64af14e3d89022977
@@ -3192,7 +3200,8 @@ SPEC CHECKSUMS:
   RNGestureHandler: e461a062892cd8b3b3dbfc55d0e86fb0281f111b
   RNGoogleSignin: fa5e389a0dea463d2d7a5b697dbfeeb805a703b8
   RNLocalize: 0b5b54ce69778d4cd8c1f42b40d11ff5a9eef2ab
-  RNPermissions: 6f40701bf48b89d6ce9ec317a99ddb5ecf24f3fe
+  RNNotifee: 5e3b271e8ea7456a36eec994085543c9adca9168
+  RNPermissions: 4bc8bf797396fc2b56f99e70a791bdb6d00a3338
   RNReanimated: aeca78e794b87ec881a55fde810a4b23825feb2e
   RNScreens: 482e9707f9826230810c92e765751af53826d509
   RNShare: 3f6f18e00a073202649091f966e0f45e0492c019
