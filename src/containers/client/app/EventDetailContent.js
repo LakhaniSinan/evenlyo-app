@@ -468,13 +468,16 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         };
         setIsLoadding(true);
         const response = await listingAddToCart(payload);
-        console.log(response, 'responseresponseresponseresponseresponse456');
 
         setIsLoadding(false);
         if (response.status == 200 || response.status == 201) {
           modalRef.current.show({
             status: 'ok',
-            message: response?.data?.message,
+            message: response?.data?.message?.en
+              ? currentLanguage == 'en'
+                ? response?.data?.message?.en
+                : response?.data?.message?.nl
+              : response?.data?.message,
             handlePressOk: () => {
               modalRef.current.hide();
               setModalVisible(false);
@@ -488,7 +491,11 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         } else {
           modalRef.current.show({
             status: 'error',
-            message: response?.data?.message,
+            message: response?.data?.message?.en
+              ? currentLanguage == 'en'
+                ? response?.data?.message?.en
+                : response?.data?.message?.nl
+              : response?.data?.message,
           });
         }
       } catch (error) {
@@ -603,7 +610,11 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: responce?.data?.message,
+          message: responce?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? responce?.data?.message?.en
+              : responce?.data?.message?.nl
+            : responce?.data?.message,
         });
       }
     } catch (error) {

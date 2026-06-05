@@ -143,7 +143,11 @@ function VendorDetails({navigation, route}) {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: responce?.data?.message,
+          message: responce?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? responce?.data?.message?.en
+              : responce?.data?.message?.nl
+            : responce?.data?.message,
         });
       }
     } catch (error) {
@@ -171,7 +175,11 @@ function VendorDetails({navigation, route}) {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: responce?.data?.message,
+          message: responce?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? responce?.data?.message?.en
+              : responce?.data?.message?.nl
+            : responce?.data?.message,
         });
       }
     } catch (error) {
@@ -210,7 +218,11 @@ function VendorDetails({navigation, route}) {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: responce?.data?.message,
+          message: responce?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? responce?.data?.message?.en
+              : responce?.data?.message?.nl
+            : responce?.data?.message,
         });
       }
     } catch (error) {

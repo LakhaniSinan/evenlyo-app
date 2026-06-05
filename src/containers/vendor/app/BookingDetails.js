@@ -147,6 +147,7 @@ function BookingDetails({route}) {
     try {
       setIsLoading(true);
       const response = await acceptBooking(booking?._id);
+      console.log(response, 'responseresponseresponseresponseresponse');
 
       if (response?.status === 200 || response?.status === 201) {
         showAlert(
@@ -154,6 +155,7 @@ function BookingDetails({route}) {
           currentLanguage === 'en'
             ? response?.data?.message?.en
             : response?.data?.message?.nl,
+
           () => {
             alertRef.current?.hide();
             fetchBookingDetails();
@@ -283,7 +285,9 @@ function BookingDetails({route}) {
       <Image source={ICONS.clockIcon} style={styles.iconSmall} />
       <View style={styles.infoText}>
         <Text style={styles.infoTitle}>{t(labelKey)}</Text>
-        <Text style={styles.infoValue}>{moment(date).format('YYYY-MM-DD')}</Text>
+        <Text style={styles.infoValue}>
+          {moment(date).format('YYYY-MM-DD')}
+        </Text>
         <Text style={styles.infoSubValue}>{time}</Text>
       </View>
     </View>
@@ -402,11 +406,7 @@ function BookingDetails({route}) {
             booking?.details?.endTime,
           )}
 
-          {renderInfoRow(
-            ICONS.ticketIcon,
-            'Tracking ID',
-            booking?.trackingId,
-          )}
+          {renderInfoRow(ICONS.ticketIcon, 'Tracking ID', booking?.trackingId)}
           {renderInfoRow(
             ICONS.ticketIcon,
             'Payment Status',
