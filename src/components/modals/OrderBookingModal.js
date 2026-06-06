@@ -22,6 +22,7 @@ import {
   calculateAvailableDaysWithHours,
   getDistance,
   getInitialMarkedDates,
+  resolveAvailableDays,
 } from '../../utils';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
@@ -109,6 +110,7 @@ const OrderBooking = ({
 }) => {
   const { t } = useTranslation();
   const modalRef = useRef(null);
+  const isSubmittingRef = useRef(false);
   const [isLoadding, setIsLoadding] = useState(false);
   const [selectedCoords, setSelectedCoords] = useState(null);
   const [instructions, setInstructions] = useState('');
@@ -123,13 +125,13 @@ const OrderBooking = ({
   const [referenceDate, setReferenceDate] = useState(moment());
   const [localStartDate, setLocalStartDate] = useState(null);
   const [localEndDate, setLocalEndDate] = useState(null);
-  const primaryAvailableDays = data?.availability?.availableDays;
-  const nestedAvailableDays = data?.listingId?.availability?.availableDays;
-  const availableDaysKey = Array.isArray(primaryAvailableDays)
-    ? primaryAvailableDays.join('|')
-    : Array.isArray(nestedAvailableDays)
-      ? nestedAvailableDays.join('|')
-      : '';
+  const availabilitySource =
+    data?.availability ?? data?.listingId?.availability ?? null;
+  const fallbackAvailableDays =
+    data?.availableDays ?? data?.listingId?.availableDays;
+  const availableDaysKey = availabilitySource
+    ? JSON.stringify(availabilitySource?.availableDays ?? fallbackAvailableDays)
+    : 'all-days';
   const selectedDateKey = selectedDate?.startDate || selectedDate?.endDate
     ? `${selectedDate?.startDate || ''}|${selectedDate?.endDate || ''}`
     : '';
@@ -140,13 +142,9 @@ const OrderBooking = ({
   }|${data?.eventLongitude || ''}|${data?.evenyloProtect ? '1' : '0'}|${
     data?.specialRequests || data?.instructions || ''
   }`;
-  const availableDaysRaw =
-    (Array.isArray(primaryAvailableDays) ? primaryAvailableDays : null) ||
-    (Array.isArray(nestedAvailableDays) ? nestedAvailableDays : null) ||
-    [];
   const availableDays = useMemo(
-    () => availableDaysRaw.map(normalizeDayKey).filter(Boolean),
-    [availableDaysKey],
+    () => resolveAvailableDays(availabilitySource, fallbackAvailableDays),
+    [availabilitySource, fallbackAvailableDays],
   );
   const availableDaysSet = useMemo(() => new Set(availableDays), [availableDays]);
 
@@ -313,6 +311,8 @@ const OrderBooking = ({
         setLocalEndDate(null);
       }
     } else {
+      isSubmittingRef.current = false;
+      setIsLoadding(false);
       setSelectedCoords(null);
       setInstructions('');
       setIsChecked(false);
@@ -533,7 +533,11 @@ const OrderBooking = ({
     endTime,
   ]);
 
-  const handleBooking = useCallback(() => {
+  const handleBooking = useCallback(async () => {
+    if (isSubmittingRef.current) {
+      return;
+    }
+
     if (!selectedCoords) {
       modalRef.current?.show({
         status: 'error',
@@ -668,7 +672,17 @@ const OrderBooking = ({
       },
     };
 
-    handleSendBookingRequest(payload);
+    isSubmittingRef.current = true;
+    setIsLoadding(true);
+
+    try {
+      await handleSendBookingRequest(payload);
+    } catch (error) {
+      console.log(error, 'handleBooking error');
+    } finally {
+      isSubmittingRef.current = false;
+      setIsLoadding(false);
+    }
   }, [
     selectedCoords,
     startDateStr,
@@ -1333,7 +1347,9 @@ const OrderBooking = ({
                 />
               </TouchableOpacity>
 
-              <View style={{ width: width(50) }}>
+              <View
+                style={{width: width(50), opacity: isLoadding ? 0.6 : 1}}
+                pointerEvents={isLoadding ? 'none' : 'auto'}>
                 <GradientButton
                   text={t('sendBookingRequest')}
                   onPress={handleBooking}

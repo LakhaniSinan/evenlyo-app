@@ -32,7 +32,7 @@ import {
   listingAddToCart,
   sendBookingRequest,
 } from '../../../services/ListingsItem';
-import {getDistance} from '../../../utils';
+import {getDistance, resolveAvailableDays} from '../../../utils';
 
 const AUTH_MODAL_SWITCH_MS = 480;
 
@@ -214,10 +214,10 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     [markerCoordinate],
   );
 
-  const availableDays = useMemo(() => {
-    const days = data?.availability?.availableDays || data?.availableDays || [];
-    return days.map(normalizeDayKey).filter(Boolean);
-  }, [data]);
+  const availableDays = useMemo(
+    () => resolveAvailableDays(data?.availability, data?.availableDays),
+    [data?.availability, data?.availableDays],
+  );
 
   const [modalVisible, setModalVisible] = useState(false);
   const [resuestModalVisible, setResuestModalVisible] = useState(false);

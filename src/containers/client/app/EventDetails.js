@@ -13,26 +13,6 @@ import {getBookingDetails} from '../../../services/ListingsItem';
 import DetailsContent from './EventDetailContent';
 import AllReviews from './ReviewScreen';
 
-const getTabsData = t => [
-  {
-    id: 'details',
-    title: t('Details'),
-    activeIcon: ICONS.infoIconActive,
-    inactiveIcon: ICONS.infoIconInActive,
-  },
-  {
-    id: 'gallery',
-    title: t('Gallery'),
-    activeIcon: ICONS.galleryIconActive,
-    inactiveIcon: ICONS.galleryIconInActive,
-  },
-  {
-    id: 'reviews',
-    title: t('Reviews'),
-    activeIcon: ICONS.starIconActive,
-    inactiveIcon: ICONS.starIconInActive,
-  },
-];
 // const getSaleItemsTabs = t => [
 //   {
 //     id: 'gallery',

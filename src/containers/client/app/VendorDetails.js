@@ -40,9 +40,7 @@ function VendorDetails({navigation, route}) {
     noReviews: isDutch ? 'Geen beoordelingen' : 'No Reviews',
     review: isDutch ? 'Beoordeling' : 'Review',
     reviews: isDutch ? 'Beoordelingen' : 'Reviews',
-    connectToSupplier: isDutch
-      ? 'Verbinden met leverancier'
-      : 'Connect To Supplier',
+    connectToSupplier: isDutch ? 'Stuur ons een bericht' : 'Send us a message',
     notAvailable: isDutch ? 'Niet beschikbaar' : 'Not Available',
     call: isDutch ? 'Bellen' : 'Call',
     email: isDutch ? 'E-mail' : 'Email',

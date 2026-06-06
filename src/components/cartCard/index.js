@@ -22,6 +22,11 @@ const CartCard = ({
     return currentLanguage === 'en' ? data?.en : data?.nl;
   }, [item, currentLanguage]);
 
+  const activeStatusText = useMemo(
+    () => (currentLanguage === 'nl' ? 'Actief' : 'Active'),
+    [currentLanguage],
+  );
+
   const imageUri = useMemo(
     () => item?.listingDetails?.featuredImage || item?.listingId?.images?.[0],
     [item],
@@ -79,7 +84,7 @@ const CartCard = ({
     <View style={styles.card}>
       <View style={styles.row}>
         <View style={styles.row}>
-          {type === 'requested' && (
+          {type !== 'requested' && (
             <TouchableOpacity
               onPress={() => onSelectToPay?.(item)}
               style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
@@ -105,7 +110,7 @@ const CartCard = ({
         <View
           style={[
             styles.info,
-            {width: type === 'requested' ? width(60) : width(67)},
+            {width: type !== 'requested' ? width(60) : width(67)},
           ]}>
           <Text numberOfLines={1} style={styles.title}>
             {title}
@@ -113,7 +118,7 @@ const CartCard = ({
 
           <View style={styles.spaceBetween}>
             <View style={styles.row}>
-              <Text style={styles.status}>{t('Active')}</Text>
+              <Text style={styles.status}>{activeStatusText}</Text>
               <Image
                 source={ICONS.verifyedIcon}
                 style={styles.verifyIcon}
@@ -121,7 +126,7 @@ const CartCard = ({
               />
             </View>
 
-            {type !== 'requested' && (
+            {type === 'requested' && (
               <View style={styles.row}>
                 <TouchableOpacity
                   onPress={() => onEditData?.(item)}
@@ -162,7 +167,7 @@ const CartCard = ({
           {renderDate('Start Date', item?.details?.startDate)}
           {renderDate('End Date', item?.details?.endDate)}
 
-          {type === 'requested' && (
+          {type !== 'requested' && (
             <>
               <Text style={styles.metaText}>
                 {t('Start Time')} {item?.details?.startTime}
@@ -175,7 +180,7 @@ const CartCard = ({
         </View>
       </View>
 
-      {type == 'requested' && (
+      {type !== 'requested' && (
         <>
           <View style={styles.bottom}>
             <Text style={styles.metaText}>

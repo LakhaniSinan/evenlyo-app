@@ -34,10 +34,24 @@ const normalizeDayKey = day => {
   return DAY_KEY_ALIASES[key] || null;
 };
 
+const ALL_WEEK_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
 const getDayKeyFromMoment = dateMoment => {
   const isoDay = dateMoment.isoWeekday();
-  const dayMap = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-  return dayMap[isoDay - 1] || null;
+  return ALL_WEEK_DAYS[isoDay - 1] || null;
+};
+
+export const resolveAvailableDays = (availability, fallbackDays) => {
+  if (availability == null) {
+    return [...ALL_WEEK_DAYS];
+  }
+
+  const days = availability?.availableDays ?? fallbackDays;
+  if (!Array.isArray(days) || days.length === 0) {
+    return [...ALL_WEEK_DAYS];
+  }
+
+  return days.map(normalizeDayKey).filter(Boolean);
 };
 
 export const formatDate = (date, format = 'short') => {
