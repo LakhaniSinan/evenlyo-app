@@ -67,39 +67,33 @@ const BookingCard = ({item}) => {
   );
 };
 
-const BookingList = ({bookings, activeTab, refreshControl}) => {
+const BookingList = ({
+  bookings,
+  refreshControl,
+  onEndReached,
+  onEndReachedThreshold = 0.4,
+  loadingMore = false,
+}) => {
   const {t} = useTranslation();
-
-  const getFilteredData = () => {
-    if (!activeTab || activeTab === 'all') {
-      return bookings;
-    }
-    return bookings.filter(
-      item => item?.status?.toLowerCase() === activeTab.toLowerCase(),
-    );
-  };
-
-  const filteredData = getFilteredData();
 
   return (
     <FlatList
-      data={filteredData}
-      keyExtractor={item => item.id}
+      data={bookings}
+      keyExtractor={item => String(item?._id || item?.id)}
       renderItem={({item}) => <BookingCard item={item} />}
       refreshControl={refreshControl}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={onEndReachedThreshold}
+      ListFooterComponent={
+        loadingMore ? (
+          <View style={styles.footerLoader}>
+            <Text style={styles.footerLoaderText}>{t('Loading more...')}</Text>
+          </View>
+        ) : null
+      }
       ListEmptyComponent={
-        <View
-          style={{
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <Text
-            style={{
-              fontFamily: fontFamly.PlusJakartaSansBold,
-              fontSize: 12,
-              color: COLORS.textLight,
-            }}>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>
             {t('No bookings found right now!')}
           </Text>
         </View>
@@ -110,9 +104,30 @@ const BookingList = ({bookings, activeTab, refreshControl}) => {
   );
 };
 
+export {BookingCard};
 export default BookingList;
 
 const styles = StyleSheet.create({
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 12,
+    color: COLORS.textLight,
+  },
+  footerLoader: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  footerLoaderText: {
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+    fontSize: 12,
+    color: COLORS.textLight,
+  },
   card: {
     backgroundColor: COLORS.backgroundLight,
     padding: width(3),

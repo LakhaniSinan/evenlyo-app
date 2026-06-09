@@ -52,9 +52,18 @@ const DateSelector = ({
         <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
       </TouchableOpacity>
 
-      <Modal visible={showCalendar} transparent animationType="slide">
+      <Modal
+        visible={showCalendar}
+        transparent
+        animationType="slide"
+        onRequestClose={closeCalendar}>
         <View style={styles.modalContainer}>
           <View style={styles.calendarWrapper}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={closeCalendar} style={styles.closeButton}>
+                <Text style={styles.closeButtonText}>X</Text>
+              </TouchableOpacity>
+            </View>
             <Calendar
               markedDates={markedDates}
               onDayPress={onDayPress}
@@ -109,5 +118,18 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 20,
     padding: 10,
+  },
+  modalHeader: {
+    alignItems: 'flex-end',
+    marginBottom: width(1),
+  },
+  closeButton: {
+    paddingHorizontal: width(2),
+    paddingVertical: width(1),
+  },
+  closeButtonText: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 14,
+    color: COLORS.textDark,
   },
 });

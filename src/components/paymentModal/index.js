@@ -13,6 +13,7 @@ import CommonAlert from '../commanAlert';
 
 const PaymentModal = ({
   onClose,
+  onPaymentSuccess,
   modalRef,
   isVisible,
   clientSecret,
@@ -118,6 +119,7 @@ const PaymentModal = ({
               handlePressOk: () => {
                 modalRef.current?.hide();
                 setTimeout(() => {
+                  onPaymentSuccess?.();
                   onClose();
                 }, 500);
               },
@@ -147,6 +149,7 @@ const PaymentModal = ({
     amountToPay,
     modalRef,
     onClose,
+    onPaymentSuccess,
   ]);
 
   return (

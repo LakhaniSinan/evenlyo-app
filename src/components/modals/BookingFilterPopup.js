@@ -223,8 +223,8 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: COLORS.backgroundLight,
-    paddingVertical: 16,
-    borderRadius: 20,
+    paddingVertical: 12,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },

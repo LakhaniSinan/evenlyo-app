@@ -6,17 +6,40 @@ import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 
+const PRICING_TYPE_LABEL_KEYS = {
+  perhour: 'Per Hour',
+  perday: 'Per Day',
+  perevent: 'Per Event',
+};
+
+const getPricingTypeLabel = (type, translate) => {
+  if (!type) {
+    return '';
+  }
+  const normalized = String(type).toLowerCase().replace(/\s+/g, '');
+  const labelKey = PRICING_TYPE_LABEL_KEYS[normalized];
+  if (labelKey) {
+    return `/${translate(labelKey)}`;
+  }
+  return `/${String(type).toUpperCase()}`;
+};
+
 const ListingCard = ({item, navigation}) => {
-  const {currentLanguage} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
 
   console.log(item, 'itemitemitemitemitem');
 
   const title =
-    currentLanguage == 'en' ? item?.title?.en : item?.title?.nl || 'Untitled';
-  const subtitle = item?.subtitle?.en || '';
-  const location = item?.location?.userAddress || 'Unknown';
+    currentLanguage === 'en'
+      ? item?.title?.en || item?.title?.nl || t('Untitled')
+      : item?.title?.nl || item?.title?.en || t('Untitled');
+  const subtitle =
+    currentLanguage === 'en'
+      ? item?.subtitle?.en || item?.subtitle?.nl || ''
+      : item?.subtitle?.nl || item?.subtitle?.en || '';
+  const location = item?.location?.userAddress || t('Unknown');
   const price = item?.pricing?.amount || 0;
-  const priceUnit = item?.pricing?.type || '';
+  const priceUnit = getPricingTypeLabel(item?.pricing?.type, t);
   const rating = item?.rating?.average || 0;
   const reviews = item?.rating?.totalReviews || 0;
   const vendorName = item?.vendor?.businessName || item?.vendor?.fullName;
@@ -172,7 +195,7 @@ const ListingCard = ({item, navigation}) => {
                 color: COLORS.textDark,
                 fontFamily: fontFamly.PlusJakartaSansSemiRegular,
               }}>
-              Book Now
+              {t('Book Now')}
             </Text>
           </TouchableOpacity>
 
@@ -192,7 +215,7 @@ const ListingCard = ({item, navigation}) => {
                   color: COLORS.textLight,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                /{priceUnit?.toUpperCase()}
+                {priceUnit}
               </Text>
             ) : null}
           </View>

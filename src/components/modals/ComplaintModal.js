@@ -114,25 +114,24 @@ const ComplaintPopup = ({visible, onClose, onConfirm}) => {
           />
 
           <View style={styles.buttonRow}>
-            <View style={{width: width(35)}}>
+            <View style={styles.buttonWrapper}>
               <GradientButton
                 text={localizedText.cancel}
                 type="outline"
-                useGradient={true}
+                useGradient
                 onPress={handleClose}
-                outlineButtonStyle={{
-                  backgroundColor: COLORS.backgroundLight,
-                  borderColor: COLORS.border,
-                }}
+                outlineButtonStyle={styles.cancelButton}
+                textStyle={styles.cancelText}
               />
             </View>
 
-            <View style={{width: width(35)}}>
+            <View style={styles.buttonWrapper}>
               <GradientButton
                 text={localizedText.confirm}
                 type="filled"
-                useGradient={true}
                 onPress={handleConfirm}
+                styleContainer={styles.buttonHeight}
+                textStyle={styles.confirmText}
               />
             </View>
           </View>
@@ -201,7 +200,32 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+    gap: width(3),
+  },
+  buttonWrapper: {
+    flex: 1,
+  },
+  buttonHeight: {
+    height: width(12),
+  },
+  cancelButton: {
+    backgroundColor: COLORS.backgroundLight,
+    minHeight: width(11),
+    paddingVertical: width(2.5),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelText: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  confirmText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansBold,
   },
 });
 

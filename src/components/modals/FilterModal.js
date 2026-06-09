@@ -72,6 +72,7 @@ const FilterModal = ({
     lat: 0,
     lng: 0,
   });
+  const [formKey, setFormKey] = useState(0);
 
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () =>
@@ -117,6 +118,17 @@ const FilterModal = ({
     setFilters(prev => ({...prev, [key]: value?.name || value}));
   }, []);
 
+  const handleReset = useCallback(() => {
+    setFilters(INITIAL_FILTERS);
+    setDates(INITIAL_DATES);
+    setAddress({fullAddress: '', lat: 0, lng: 0});
+    setRadius(null);
+    setSubCatQuery('');
+    setSubCatList([]);
+    setSelectedSubCategory(null);
+    setFormKey(prev => prev + 1);
+  }, []);
+
   const handleApply = useCallback(() => {
     const payload = {
       startDate: dates.startDate,
@@ -129,17 +141,8 @@ const FilterModal = ({
     };
 
     onApplyPress(payload);
-  }, [dates, address, radius, selectedSubCategory]);
-
-  const handleReset = useCallback(() => {
-    setFilters(INITIAL_FILTERS);
-    setDates(INITIAL_DATES);
-    setAddress({fullAddress: '', lat: 0, lng: 0});
-    setRadius(null);
-    setSubCatQuery('');
-    setSubCatList([]);
-    setSelectedSubCategory(null);
-  }, []);
+    handleReset();
+  }, [dates, address, radius, selectedSubCategory, onApplyPress, handleReset]);
 
   const onLocationSelect = useCallback(item => {
     setAddress({
@@ -261,6 +264,7 @@ const FilterModal = ({
           </View>
 
           <GooglePlacesInput
+            key={`location-${formKey}`}
             selectedLocation={address.fullAddress}
             setSelectedLocation={onLocationSelect}
             placeholder={t('searchYourLocation')}

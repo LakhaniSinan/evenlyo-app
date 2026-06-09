@@ -37,6 +37,16 @@ const CartCard = ({
     [item],
   );
 
+  const isUpfrontPaid = useMemo(
+    () =>
+      Boolean(
+        item?.isUpfrontPaid ||
+          item?.paymentStatus === 'upfront_paid' ||
+          item?.paymentStatus === 'paid',
+      ),
+    [item?.isUpfrontPaid, item?.paymentStatus],
+  );
+
   const paymentRows = useMemo(
     () => [
       {
@@ -48,7 +58,7 @@ const CartCard = ({
       {
         key: 'upfrontPaid',
         label: t('Upfront Paid'),
-        value: item?.isUpfrontPaid ? t('Paid') : t('Un Paid'),
+        value: isUpfrontPaid ? t('Paid') : t('Un Paid'),
         color: COLORS.navyBlue,
       },
       {
@@ -61,7 +71,7 @@ const CartCard = ({
         key: 'totalPaid',
         label: t('Total Paid Amount'),
         value: item?.AmountPaid?.toFixed(2),
-        color: item?.isUpfrontPaid ? COLORS.green : COLORS.red,
+        color: isUpfrontPaid ? COLORS.green : COLORS.red,
       },
       {
         key: 'remaining',
@@ -70,7 +80,7 @@ const CartCard = ({
         color: COLORS.red,
       },
     ],
-    [item, t],
+    [item, t, isUpfrontPaid],
   );
 
   const renderDate = (labelKey, date) =>

@@ -16,6 +16,13 @@ import useCategories from './getCategories';
 
 const SUB_CATEGORY_DEBOUNCE_MS = 450;
 
+const EMPTY_HOME_DATA = {
+  bookingItems: [],
+  saleItems: [],
+  otherSaleItemms: [],
+  releventVendors: [],
+};
+
 const normalizeHomePayload = payload => {
   if (!payload) {
     return {
@@ -241,6 +248,11 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
     }
   }, [selectedCategoryId, selectedSubCategoryId, fetchHomeData]);
 
+  useEffect(() => {
+    setHomeData(EMPTY_HOME_DATA);
+    setPlatformFeePercentage(0);
+  }, [selectedCategoryId, selectedSubCategoryId]);
+
   const handleCategorySelect = useCallback(item => {
     const nextId = item?._id || item?.id;
 
@@ -255,7 +267,16 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
     });
 
     setSelectedSubCategory(null);
+    setHomeData(EMPTY_HOME_DATA);
+    setPlatformFeePercentage(0);
 
+    homeDataRequestRef.current += 1;
+  }, []);
+
+  const handleSubCategorySelect = useCallback(subCategory => {
+    setSelectedSubCategory(subCategory);
+    setHomeData(EMPTY_HOME_DATA);
+    setPlatformFeePercentage(0);
     homeDataRequestRef.current += 1;
   }, []);
 
@@ -418,7 +439,7 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
 
     selectedSubCategory,
 
-    setSelectedSubCategory,
+    setSelectedSubCategory: handleSubCategorySelect,
 
     platformFeePercentage,
 

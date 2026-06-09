@@ -519,119 +519,81 @@ const BookingDetails = ({route, navigation}) => {
 
       {(bookingData?.status == 'pending' ||
         bookingData?.status == 'accepted') && (
-        <View
-          style={{
-            backgroundColor: COLORS.white,
-            paddingVertical: width(3),
-            paddingHorizontal: width(4),
-          }}>
+        <View style={styles.footerButtonSection}>
           <GradientButton
             onPress={() => setOpenCancelModal(true)}
             text={localizedText.cancel}
             type="outline"
-            useGradient={true}
-            styleProps={{}}
-            outlineButtonStyle={{
-              backgroundColor: COLORS.backgroundLight,
-              borderColor: COLORS.border,
-            }}
+            useGradient
+            outlineButtonStyle={styles.outlineActionButton}
+            textStyle={styles.outlineActionText}
           />
         </View>
       )}
 
       {bookingData?.status == 'on_the_way' && (
-        <View
-          style={{
-            backgroundColor: COLORS.white,
-            paddingVertical: width(3),
-            paddingHorizontal: width(4),
-          }}>
+        <View style={styles.footerButtonSection}>
           <GradientButton
             onPress={handleMarkAsRecived}
             text={localizedText.received}
             type="outline"
-            useGradient={true}
-            styleProps={{}}
-            outlineButtonStyle={{
-              backgroundColor: COLORS.backgroundLight,
-              borderColor: COLORS.border,
-            }}
+            useGradient
+            outlineButtonStyle={styles.outlineActionButton}
+            textStyle={styles.outlineActionText}
           />
         </View>
       )}
 
       {!bookingData?.isReviewed && bookingData?.status == 'completed' && (
-        <View
-          style={{
-            backgroundColor: COLORS.white,
-            paddingVertical: width(3),
-            paddingHorizontal: width(4),
-          }}>
+        <View style={styles.footerButtonSection}>
           <GradientButton
             onPress={() => setReviewModal(true)}
             text={localizedText.addReview}
             type="outline"
-            useGradient={true}
-            styleProps={{}}
-            outlineButtonStyle={{
-              backgroundColor: COLORS.backgroundLight,
-              borderColor: COLORS.border,
-            }}
+            useGradient
+            outlineButtonStyle={styles.outlineActionButton}
+            textStyle={styles.outlineActionText}
           />
         </View>
       )}
 
       {bookingData?.status === 'received' && (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: width(4),
-            marginVertical: width(2),
-          }}>
-          <View style={{width: width(45)}}>
+        <View style={[styles.footerButtonSection, styles.actionButtonRow]}>
+          <View style={styles.actionButtonWrapper}>
             <GradientButton
               onPress={handleMarkAsComplete}
               text={localizedText.complete}
               type="outline"
-              useGradient={true}
-              styleProps={{}}
-              outlineButtonStyle={{
-                backgroundColor: COLORS.backgroundLight,
-                borderColor: COLORS.border,
-              }}
+              useGradient
+              outlineButtonStyle={styles.outlineActionButton}
+              textStyle={styles.outlineActionText}
             />
           </View>
-          <View style={{width: width(42)}}>
+          <View style={styles.actionButtonWrapper}>
             <GradientButton
               text={localizedText.complain}
               type="filled"
               onPress={onClaimaedPress}
+              styleContainer={styles.filledActionButton}
+              textStyle={styles.filledActionText}
             />
           </View>
         </View>
       )}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: width(4),
-          marginVertical: width(2),
-        }}>
-        <View style={{width: '100%'}}>
-          <GradientButton
-            text={localizedText.trackBooking}
-            type="filled"
-            onPress={() =>
-              navigation.navigate('TrackDirections', {
-                ...bookingData,
-                ...bookingData?.vendorDetails,
-              })
-            }
-          />
-        </View>
+
+      <View style={styles.footerButtonSection}>
+        <GradientButton
+          text={localizedText.trackBooking}
+          type="filled"
+          onPress={() =>
+            navigation.navigate('TrackDirections', {
+              ...bookingData,
+              ...bookingData?.vendorDetails,
+            })
+          }
+          styleContainer={styles.filledActionButton}
+          textStyle={styles.filledActionText}
+        />
       </View>
       <CancelBookingModal
         visible={openCancelModal}
@@ -764,5 +726,39 @@ const styles = StyleSheet.create({
   locateIcon: {
     width: 20,
     height: 20,
+  },
+
+  footerButtonSection: {
+    paddingHorizontal: width(4),
+    paddingVertical: width(2),
+  },
+  actionButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: width(3),
+  },
+  actionButtonWrapper: {
+    flex: 1,
+  },
+  outlineActionButton: {
+    backgroundColor: COLORS.backgroundLight,
+    minHeight: width(11),
+    paddingVertical: width(2.5),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  outlineActionText: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  filledActionButton: {
+    height: width(12),
+  },
+  filledActionText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansBold,
   },
 });

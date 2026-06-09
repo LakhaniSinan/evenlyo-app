@@ -22,7 +22,7 @@ import {useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
 import RNFS from 'react-native-fs';
 import AppHeader from '../../../components/appHeader';
-import BookingList from '../../../components/bookingCard';
+import {BookingCard} from '../../../components/bookingCard';
 import GradientButton from '../../../components/button';
 import CommonAlert from '../../../components/commanAlert';
 import Loader from '../../../components/loder';
@@ -60,6 +60,8 @@ const SALE_STATUS_I18N = {
   'On the way': 'saleStatusOnTheWay',
   Delivered: 'saleStatusDelivered',
 };
+
+const BOOKING_PAGE_LIMIT = 10;
 
 const getLocalizedField = (field, currentLanguage) => {
   if (!field) {
@@ -115,20 +117,44 @@ const BooKings = () => {
 
   const [bookingHistory, setBookingHistory] = useState([]);
   const [saleItems, setSaleItems] = useState([]);
+  const [bookingPage, setBookingPage] = useState(1);
+  const [hasMoreBookings, setHasMoreBookings] = useState(true);
 
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const fetchBookingHistory = useCallback(async () => {
-    try {
-      const res = await getAllBookingHistory('', 1, 10);
-      if (res?.status === 200 || res?.status === 201) {
-        setBookingHistory(res?.data?.data?.bookings || []);
+  const fetchBookingHistory = useCallback(
+    async (page = 1, reset = false) => {
+      try {
+        const status =
+          bookingStatusTab === 'all' ? '' : bookingStatusTab;
+        const res = await getAllBookingHistory(
+          status,
+          page,
+          BOOKING_PAGE_LIMIT,
+        );
+
+        if (res?.status === 200 || res?.status === 201) {
+          const newBookings = res?.data?.data?.bookings || [];
+          const pagination = res?.data?.data?.pagination;
+
+          setBookingHistory(prev =>
+            reset ? newBookings : [...prev, ...newBookings],
+          );
+          setBookingPage(page);
+          setHasMoreBookings(
+            pagination
+              ? page < pagination.pages
+              : newBookings.length === BOOKING_PAGE_LIMIT,
+          );
+        }
+      } catch (e) {
+        console.log('BOOKING ERROR', e);
       }
-    } catch (e) {
-      console.log('BOOKING ERROR', e);
-    }
-  }, []);
+    },
+    [bookingStatusTab],
+  );
 
   const fetchSaleOrders = useCallback(async () => {
     try {
@@ -149,7 +175,13 @@ const BooKings = () => {
       setIsLoading(true);
 
       const loadData =
-        mainTab === MAIN_TAB_BOOKING ? fetchBookingHistory : fetchSaleOrders;
+        mainTab === MAIN_TAB_BOOKING
+          ? () => {
+              setBookingPage(1);
+              setHasMoreBookings(true);
+              return fetchBookingHistory(1, true);
+            }
+          : fetchSaleOrders;
 
       loadData()
         .catch(() => {})
@@ -160,13 +192,40 @@ const BooKings = () => {
       return () => {
         isActive = false;
       };
-    }, [user?._id, mainTab, fetchBookingHistory, fetchSaleOrders]),
+    }, [user?.id, mainTab, bookingStatusTab, fetchBookingHistory, fetchSaleOrders]),
   );
+
+  const loadMoreBookings = useCallback(async () => {
+    if (
+      mainTab !== MAIN_TAB_BOOKING ||
+      loadingMore ||
+      !hasMoreBookings ||
+      isLoading
+    ) {
+      return;
+    }
+
+    setLoadingMore(true);
+    try {
+      await fetchBookingHistory(bookingPage + 1, false);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [
+    mainTab,
+    loadingMore,
+    hasMoreBookings,
+    isLoading,
+    bookingPage,
+    fetchBookingHistory,
+  ]);
 
   const onRefresh = async () => {
     setRefreshing(true);
     if (mainTab === MAIN_TAB_BOOKING) {
-      await fetchBookingHistory();
+      setBookingPage(1);
+      setHasMoreBookings(true);
+      await fetchBookingHistory(1, true);
     } else {
       await fetchSaleOrders();
     }
@@ -254,6 +313,8 @@ const BooKings = () => {
     />
   );
 
+  const renderBookingItem = ({item}) => <BookingCard item={item} />;
+
   const renderSaleItem = ({item}) => {
     const statusLabelKey = SALE_STATUS_I18N[item.status];
     const statusLabel = statusLabelKey ? t(statusLabelKey) : item.status;
@@ -332,6 +393,17 @@ const BooKings = () => {
         onRightIconPress={() => navigation.navigate('MessagesScreen')}
       />
       <FlatList
+        data={
+          mainTab === MAIN_TAB_BOOKING
+            ? bookingHistory
+            : filteredSaleItems
+        }
+        renderItem={
+          mainTab === MAIN_TAB_BOOKING
+            ? renderBookingItem
+            : renderSaleItem
+        }
+        keyExtractor={item => String(item?._id || item?.id || item?.trackingId)}
         ListHeaderComponent={
           <>
             <FlatList
@@ -351,20 +423,6 @@ const BooKings = () => {
               contentContainerStyle={styles.tabContainer}
               removeClippedSubviews={false}
             />
-            {mainTab === MAIN_TAB_BOOKING && (
-              <View style={styles.listWrapper}>
-                <BookingList
-                  bookings={bookingHistory}
-                  activeTab={bookingStatusTab}
-                  refreshControl={
-                    <RefreshControl
-                      refreshing={refreshing}
-                      onRefresh={onRefresh}
-                    />
-                  }
-                />
-              </View>
-            )}
 
             {mainTab === MAIN_TAB_SALE && (
               <View style={styles.searchBox}>
@@ -381,19 +439,34 @@ const BooKings = () => {
             )}
           </>
         }
-        data={mainTab === MAIN_TAB_SALE ? filteredSaleItems : []}
-        renderItem={mainTab === MAIN_TAB_SALE ? renderSaleItem : null}
+        onEndReached={
+          mainTab === MAIN_TAB_BOOKING ? loadMoreBookings : undefined
+        }
+        onEndReachedThreshold={0.4}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        ListEmptyComponent={
-          mainTab === MAIN_TAB_SALE ? (
-            <View style={styles.emptyCenterBox}>
-              <Text style={styles.emptyText}>{t('No sale items found')}</Text>
+        ListFooterComponent={
+          mainTab === MAIN_TAB_BOOKING && loadingMore ? (
+            <View style={styles.footerLoader}>
+              <Text style={styles.footerLoaderText}>
+                {t('Loading more...')}
+              </Text>
             </View>
           ) : null
         }
-        contentContainerStyle={{flexGrow: 1, paddingBottom: 30}}
+        ListEmptyComponent={
+          !isLoading ? (
+            <View style={styles.emptyCenterBox}>
+              <Text style={styles.emptyText}>
+                {mainTab === MAIN_TAB_BOOKING
+                  ? t('No bookings found right now!')
+                  : t('No sale items found')}
+              </Text>
+            </View>
+          ) : null
+        }
+        contentContainerStyle={styles.listContent}
       />
 
       <Loader isLoading={isLoading} />
@@ -410,9 +483,21 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
 
-  listWrapper: {
-    flex: 1,
-    padding: width(2),
+  listContent: {
+    flexGrow: 1,
+    paddingBottom: 30,
+    paddingHorizontal: width(2),
+  },
+
+  footerLoader: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+
+  footerLoaderText: {
+    fontSize: 12,
+    color: COLORS.textLight,
+    fontFamily: fontFamly.PlusJakartaSansMedium,
   },
 
   emptyCenterBox: {

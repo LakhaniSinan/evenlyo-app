@@ -99,7 +99,7 @@ const EventListingScreen = ({navigation}) => {
               fontFamily: fontFamly.PlusJakartaSansBold,
               color: COLORS.black,
             }}>
-            All Booking Items
+            {t('All Booking Items')}
           </Text>
 
           <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>

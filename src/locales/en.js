@@ -751,6 +751,7 @@ export default {
 
   // Home & Cart specific
   noRelevantVendors: 'No Relevant Vendors Found!',
+  noListingAvailable: 'No listing available',
   noBookingItemsFound: 'No booking items found!',
   itemAlreadyInCart: 'Item already exists in your cart',
   itemAddedToCart: 'Item added to cart successfully!',
@@ -930,6 +931,7 @@ export default {
     'Failed to upload images. Please try again.',
 
   // All Bookings screen
+  'All Booking Items': 'All Booking Items',
   'All Bookings': 'All Bookings',
   'Completed Bookings': 'Completed Bookings',
   'Request Booking': 'Request Booking',

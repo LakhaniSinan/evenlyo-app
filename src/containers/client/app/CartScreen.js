@@ -237,10 +237,24 @@ function CartScreen({navigation}) {
   };
 
   const handleSelectToPay = item => {
-    if (selectedItemId === item?._id) return;
-    setSelectedItemId(item);
+    const itemId = item?._id;
+    if (!itemId) {
+      return;
+    }
+    if (selectedItemId === itemId) {
+      setSelectedItemId(null);
+      setSelectedData(null);
+      return;
+    }
+    setSelectedItemId(itemId);
     setSelectedData(item);
   };
+
+  const handlePaymentSuccess = useCallback(() => {
+    setSelectedItemId(null);
+    setSelectedData(null);
+    void handleGetCartListing();
+  }, [handleGetCartListing]);
 
   const renderCartItem = ({item}) => (
     <CartCard
@@ -248,7 +262,7 @@ function CartScreen({navigation}) {
       onEditData={handleBookNow}
       onRemoveItemFromCart={handleRemoveFromCart}
       onSelectToPay={handleSelectToPay}
-      isSelected={selectedItemId?._id === item._id}
+      isSelected={selectedItemId === item._id}
     />
   );
 
@@ -259,7 +273,7 @@ function CartScreen({navigation}) {
       onEditData={handleBookNow}
       onRemoveItemFromCart={handleRemoveFromCart}
       onSelectToPay={handleSelectToPay}
-      isSelected={selectedItemId === item.id}
+      isSelected={selectedItemId === item._id}
     />
   );
 
@@ -283,19 +297,10 @@ function CartScreen({navigation}) {
             alignItems: 'center',
           }}>
           <Text style={styles.sectionTitle}>{sectionTitle}</Text>
-          {/* <TouchableOpacity onPress={onSeeAllPress}>
-            <Text
-              style={[
-                styles.sectionTitle,
-                {fontSize: 10, color: COLORS.primary},
-              ]}>
-              See All
-            </Text>
-          </TouchableOpacity> */}
         </View>
         <FlatList
           data={data}
-          keyExtractor={item => item.id}
+          keyExtractor={item => String(item._id || item.id)}
           renderItem={item => {
             if (activeTab === 'saleItem') {
               return renderSaleItemCart(item);
@@ -344,43 +349,6 @@ function CartScreen({navigation}) {
     } finally {
       setIsLoadding(false);
     }
-  };
-
-  const renderTabs = () => {
-    const tabs = [
-      {id: 'bookingItem', label: t('Booking Items')},
-      {id: 'saleItem', label: t('Sale Items')},
-    ];
-
-    return (
-      <View style={styles.tabContainer}>
-        {tabs.map(({id, label}) => {
-          const isActive = activeTab === id;
-          const colors = isActive
-            ? ['#FF295D', '#E31B95', '#C817AE']
-            : ['#F6F6F6', '#F6F6F6', '#F6F6F6'];
-
-          return (
-            <LinearGradient
-              key={id}
-              colors={colors}
-              style={[styles.tabGradient, isActive && styles.activeGradient]}
-              start={{x: 0, y: 0}}
-              end={{x: 0, y: 1}}>
-              <TouchableOpacity
-                activeOpacity={0.9}
-                style={styles.tab}
-                onPress={() => setActiveTab(id)}>
-                <Text
-                  style={[styles.tabText, isActive && styles.activeTabText]}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            </LinearGradient>
-          );
-        })}
-      </View>
-    );
   };
 
   const isEmpty =
@@ -492,6 +460,7 @@ function CartScreen({navigation}) {
         isVisible={payModalVisible}
         setCardDetails={setCardDetails}
         clientSecret={clientSecret}
+        onPaymentSuccess={handlePaymentSuccess}
         onClose={() => {
           setPayModalVisible(false);
           setClientSecret(null);

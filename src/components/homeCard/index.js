@@ -145,7 +145,7 @@ const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
               fontSize: 12,
               color: COLORS.textLight,
             }}>
-            {t('noBookingItemsFound')}
+            {t('noListingAvailable')}
           </Text>
         </View>
       )}

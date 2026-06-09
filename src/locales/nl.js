@@ -755,6 +755,7 @@ export default {
 
   // Home & Cart specific
   noRelevantVendors: 'Geen relevante leveranciers gevonden!',
+  noListingAvailable: 'Geen listing beschikbaar',
   noBookingItemsFound: 'Geen boekingsitems gevonden!',
   itemAlreadyInCart: 'Item staat al in je winkelwagen',
   itemAddedToCart: 'Item succesvol aan winkelwagen toegevoegd!',
@@ -934,6 +935,7 @@ export default {
     'Afbeeldingen uploaden mislukt. Probeer het opnieuw.',
 
   // All Bookings screen
+  'All Booking Items': 'Alle boekingsitems',
   'All Bookings': 'Alle boekingen',
   'Completed Bookings': 'Voltooide boekingen',
   'Request Booking': 'Boekingsaanvraag',
