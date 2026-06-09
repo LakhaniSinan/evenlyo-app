@@ -1,84 +1,54 @@
 import {Image, StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
-import LinearGradient from 'react-native-linear-gradient';
-import {
-  BRAND_BUTTON_GRADIENT_COLORS,
-  BRAND_BUTTON_GRADIENT_LOCATIONS,
-  COLORS,
-  fontFamly,
-} from '../../constants';
+import {COLORS, fontFamly} from '../../constants';
 
 const DashboardCard = ({item}) => {
-  const isGradient = item?.id === 'totalItems';
-
   return (
     <View style={styles.cardOuter}>
-      {isGradient ? (
-        <View style={styles.gradientCard}>
-          <LinearGradient
-            colors={BRAND_BUTTON_GRADIENT_COLORS}
-            locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 0}}
-            style={styles.gradientFill}
-          />
-          <CardContent item={item} isDark />
-        </View>
-      ) : (
-        <View style={styles.plainCard}>
-          <CardContent item={item} />
-        </View>
-      )}
-    </View>
-  );
-};
-
-const CardContent = ({item, isDark = false}) => {
-  return (
-    <>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          width: '100%',
-          justifyContent: 'space-between',
-        }}>
-        <Text
-          style={{
-            fontFamily: fontFamly.PlusJakartaSansSemiBold,
-            fontSize: 10,
-            color: isDark ? COLORS.white : COLORS.textDark,
-          }}>
-          {item?.title}
-        </Text>
+      <View style={styles.plainCard}>
         <View
           style={{
-            width: 22.32,
-            height: 22.32,
-            borderRadius: 6,
-            borderWidth: 2,
-            borderColor: COLORS.border,
-            justifyContent: 'center',
+            flexDirection: 'row',
             alignItems: 'center',
-            backgroundColor:
-              item?.id === 'totalItems' ? 'transparent' : COLORS.white,
+            width: '100%',
+            justifyContent: 'space-between',
           }}>
-          <Image
-            source={item.icon}
-            resizeMode="contain"
-            style={{width: 10, height: 10}}
-          />
+          <Text
+            style={{
+              fontFamily: fontFamly.PlusJakartaSansSemiBold,
+              fontSize: 10,
+              color: COLORS.textDark,
+            }}>
+            {item?.title}
+          </Text>
+          <View
+            style={{
+              width: 22.32,
+              height: 22.32,
+              borderRadius: 6,
+              borderWidth: 2,
+              borderColor: COLORS.border,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: COLORS.white,
+            }}>
+            <Image
+              source={item.icon}
+              resizeMode="contain"
+              style={{width: 10, height: 10}}
+            />
+          </View>
         </View>
+        <Text
+          style={{
+            fontFamily: fontFamly.PlusJakartaSansBold,
+            fontSize: 16,
+            color: COLORS.textDark,
+          }}>
+          {item?.value}
+        </Text>
       </View>
-      <Text
-        style={{
-          fontFamily: fontFamly.PlusJakartaSansBold,
-          fontSize: 16,
-          color: isDark ? COLORS.white : COLORS.textDark,
-        }}>
-        {item?.value}
-      </Text>
-    </>
+    </View>
   );
 };
 
@@ -100,16 +70,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-  },
-  gradientCard: {
-    flex: 1,
-    padding: width(2),
-    borderRadius: width(3),
-    overflow: 'hidden',
-  },
-  gradientFill: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: width(3),
   },
   plainCard: {
     flex: 1,

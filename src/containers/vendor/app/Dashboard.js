@@ -2,6 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   FlatList,
+  Image,
   RefreshControl,
   ScrollView,
   Text,
@@ -35,6 +36,18 @@ const ViewMoreButton = React.memo(
   ),
 );
 
+const DashboardEmptyState = React.memo(({icon, title, subtitle}) => (
+  <View style={styles.emptyStateContainer}>
+    {icon ? (
+      <Image source={icon} resizeMode="contain" style={styles.emptyStateIcon} />
+    ) : null}
+    <Text style={styles.emptyStateTitle}>{title}</Text>
+    {subtitle ? (
+      <Text style={styles.emptyStateSubtitle}>{subtitle}</Text>
+    ) : null}
+  </View>
+));
+
 const Dashboard = () => {
   const navigation = useNavigation();
   const {t, currentLanguage} = useTranslation();
@@ -51,26 +64,29 @@ const Dashboard = () => {
   const dashboardStats = useMemo(
     () => [
       {
-        id: 'allClients',
-        title: t('All Clients'),
+        id: 'totalClients',
+        title: t('Total Clients'),
         icon: ICONS.groupIcon,
         value: dashboardData?.stats?.totalClients ?? 0,
       },
       {
-        id: 'totalItems',
-        title: t('Total Items'),
-        icon: ICONS.whiteCartIcon,
-        value: dashboardData?.stats?.totalItemsListed ?? 0,
+        id: 'totalBookings',
+        title: t('Total Bookings'),
+        icon: ICONS.cartIcon,
+        value:
+          dashboardData?.stats?.totalBookings ??
+          dashboardData?.stats?.totalBookingsCount ??
+          0,
       },
       {
-        id: 'completeBookings',
-        title: t('Complete Bookings'),
+        id: 'completedBookings',
+        title: t('Completed Bookings'),
         icon: ICONS.checkIcon,
         value: dashboardData?.stats?.completedBookingsCount ?? 0,
       },
       {
-        id: 'monthlyRevenue',
-        title: t('Monthly Revenue'),
+        id: 'revenue',
+        title: t('Revenue'),
         icon: ICONS.earningIcon,
         value: dashboardData?.stats?.monthlyRevenue ?? 0,
       },
@@ -208,68 +224,89 @@ const Dashboard = () => {
           />
         </View>
 
-        {dashboardData?.recentBookings?.length > 0 && (
-          <View style={styles.sectionContainer}>
-            <ViewMoreButton
-              heading={t('recentBookingOffers')}
-              viewAllLabel={t('viewAll')}
-              showViewAll={dashboardData?.recentBookings?.length > 3}
-              onPress={() =>
-                navigation.navigate(
-                  'AllRecentBookings',
-                  dashboardData?.recentBookings,
-                )
-              }
-            />
-            <FlatList
-              data={dashboardData?.recentBookings?.slice(0, 3) || []}
-              renderItem={renderRecentBookings}
-              extraData={currentLanguage}
-              keyExtractor={(item, index) => index.toString()}
-            />
-          </View>
-        )}
+        {dashboardData !== null && (
+          <>
+            <View style={styles.sectionContainer}>
+              <ViewMoreButton
+                heading={t('recentBookingOffers')}
+                viewAllLabel={t('viewAll')}
+                showViewAll={(dashboardData?.recentBookings?.length ?? 0) > 3}
+                onPress={() =>
+                  navigation.navigate(
+                    'AllRecentBookings',
+                    dashboardData?.recentBookings ?? [],
+                  )
+                }
+              />
+              {(dashboardData?.recentBookings?.length ?? 0) > 0 ? (
+                <FlatList
+                  data={dashboardData.recentBookings.slice(0, 3)}
+                  renderItem={renderRecentBookings}
+                  extraData={currentLanguage}
+                  keyExtractor={(item, index) => index.toString()}
+                  scrollEnabled={false}
+                />
+              ) : (
+                <DashboardEmptyState
+                  icon={ICONS.calenderIcon}
+                  title={t('dashboardNoBookingsYet')}
+                  subtitle={t('dashboardNoBookingsSubtitle')}
+                />
+              )}
+            </View>
 
-        {dashboardData?.activityLog?.length > 0 && (
-          <View style={styles.sectionContainer}>
-            <ViewMoreButton
-              showViewAll={dashboardData?.activityLog?.length > 3}
-              heading={t('activityLog')}
-              viewAllLabel={t('viewAll')}
-              onPress={() =>
-                navigation.navigate(
-                  'AllActivityLog',
-                  dashboardData?.activityLog,
-                )
-              }
-            />
-            <FlatList
-              data={dashboardData?.activityLog?.slice(0, 3)}
-              renderItem={renderActivityLog}
-              keyExtractor={(item, index) => index.toString()}
-            />
-          </View>
-        )}
+            <View style={styles.sectionContainer}>
+              <ViewMoreButton
+                showViewAll={(dashboardData?.activityLog?.length ?? 0) > 3}
+                heading={t('activityLog')}
+                viewAllLabel={t('viewAll')}
+                onPress={() =>
+                  navigation.navigate(
+                    'AllActivityLog',
+                    dashboardData?.activityLog ?? [],
+                  )
+                }
+              />
+              {(dashboardData?.activityLog?.length ?? 0) > 0 ? (
+                <FlatList
+                  data={dashboardData.activityLog.slice(0, 3)}
+                  renderItem={renderActivityLog}
+                  keyExtractor={(item, index) => index.toString()}
+                  scrollEnabled={false}
+                />
+              ) : (
+                <DashboardEmptyState title={t('dashboardNoActivity')} />
+              )}
+            </View>
 
-        {dashboardData?.recentClients?.length > 0 && (
-          <View style={styles.sectionContainer}>
-            <ViewMoreButton
-              showViewAll={dashboardData?.recentClients?.length > 3}
-              heading={t('recentlyJoinedClients')}
-              viewAllLabel={t('viewAll')}
-              onPress={() =>
-                navigation.navigate(
-                  'AllRecentClients',
-                  dashboardData?.recentClients,
-                )
-              }
-            />
-            <FlatList
-              data={dashboardData?.recentClients?.slice(0, 3) || []}
-              renderItem={renderRecentClients}
-              keyExtractor={(item, index) => index.toString()}
-            />
-          </View>
+            <View style={styles.sectionContainer}>
+              <ViewMoreButton
+                showViewAll={(dashboardData?.recentClients?.length ?? 0) > 3}
+                heading={t('recentlyJoinedClients')}
+                viewAllLabel={t('viewAll')}
+                onPress={() =>
+                  navigation.navigate(
+                    'AllRecentClients',
+                    dashboardData?.recentClients ?? [],
+                  )
+                }
+              />
+              {(dashboardData?.recentClients?.length ?? 0) > 0 ? (
+                <FlatList
+                  data={dashboardData.recentClients.slice(0, 3)}
+                  renderItem={renderRecentClients}
+                  keyExtractor={(item, index) => index.toString()}
+                  scrollEnabled={false}
+                />
+              ) : (
+                <DashboardEmptyState
+                  icon={ICONS.groupIcon}
+                  title={t('dashboardNoClientsYet')}
+                  subtitle={t('dashboardNoClientsSubtitle')}
+                />
+              )}
+            </View>
+          </>
         )}
 
         <CommonAlert ref={modalRef} />
@@ -350,5 +387,32 @@ const styles = {
     color: COLORS.primary,
     textDecorationColor: 'underline',
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
+  },
+  emptyStateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: width(6),
+    paddingVertical: width(8),
+  },
+  emptyStateIcon: {
+    width: width(14),
+    height: width(14),
+    marginBottom: width(3),
+    opacity: 0.45,
+    tintColor: COLORS.textLight,
+  },
+  emptyStateTitle: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 13,
+    color: COLORS.textDark,
+    textAlign: 'center',
+    marginBottom: width(1.5),
+  },
+  emptyStateSubtitle: {
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+    fontSize: 11,
+    color: COLORS.textLight,
+    textAlign: 'center',
+    lineHeight: 16,
   },
 };

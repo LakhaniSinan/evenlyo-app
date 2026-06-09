@@ -5,12 +5,14 @@ import {
   Image,
   Keyboard,
   Modal as NativeTermsModal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import DatePicker from 'react-native-date-picker';
 import {width} from 'react-native-dimension';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -78,6 +80,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
   console.log(toEditData, 'toEditDatatoEditDatatoEditDatatoEditDatatoEditData');
 
   const {t, currentLanguage} = useTranslation();
+  const insets = useSafeAreaInsets();
   const [formData, setFormData] = useState({
     title: {en: '', nl: ''},
     subTitle: {en: '', nl: ''},
@@ -100,7 +103,6 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
   const [allSubCategories, setAllSubCategories] = useState([]);
   const {user} = useSelector(state => state.LoginSlice);
   const [isCheck, setIsCheck] = useState(false);
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [vendorsCategories, setVendorsCategory] = useState(null);
   const [availableDays, setAvailableDays] = useState([]);
   const [startTime, setStartTime] = useState(null);
@@ -118,19 +120,6 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       })),
     [t],
   );
-
-  useEffect(() => {
-    const show = Keyboard.addListener('keyboardDidShow', () =>
-      setKeyboardVisible(true),
-    );
-    const hide = Keyboard.addListener('keyboardDidHide', () =>
-      setKeyboardVisible(false),
-    );
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
 
   useEffect(() => {
     if (!isVisible) {
@@ -183,7 +172,10 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
             subCategory: selectedSubCat || null,
             pricingType: priceType?.name || '',
             cost: toEditData?.pricing?.amount?.toString() || '',
-            extraTimeCost: toEditData?.pricing?.extratimeCost?.toString() || '',
+            extraTimeCost:
+              priceType?.name === 'Per Hour'
+                ? ''
+                : toEditData?.pricing?.extratimeCost?.toString() || '',
             perKm: toEditData?.pricing?.pricePerKm?.toString() || '',
             securityFeeAmount:
               toEditData?.pricing?.securityFee?.toString() || '',
@@ -286,6 +278,12 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       if (value?._id) {
         handleGetAllSubCategories([value._id]);
       }
+    } else if (key === 'pricingType') {
+      setFormData(prev => ({
+        ...prev,
+        pricingType: value,
+        extraTimeCost: value === 'Per Hour' ? '' : prev.extraTimeCost,
+      }));
     } else {
       setFormData(prev => ({...prev, [key]: value}));
     }
@@ -371,8 +369,9 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       );
     }
     if (
-      !isNonEmpty(extraTimeCost) ||
-      !isValidAmount(extraTimeCost, {allowZero: true})
+      pricingType !== 'Per Hour' &&
+      (!isNonEmpty(extraTimeCost) ||
+        !isValidAmount(extraTimeCost, {allowZero: true}))
     ) {
       return showError(
         t('Extra Time Cost is required and must be a valid number'),
@@ -410,7 +409,8 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       pricing: {
         type: pricingType,
         amount: Number(cost),
-        extratimeCost: Number(extraTimeCost) || '',
+        extratimeCost:
+          pricingType === 'Per Hour' ? '' : Number(extraTimeCost) || '',
         pricePerKm: Number(perKm) || '',
         securityFee: isCheck ? Number(securityFeeAmount) : 0,
       },
@@ -637,7 +637,11 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         useNativeDriverForBackdrop
         hideModalContentWhileAnimating
         statusBarTranslucent>
-        <View style={styles.container}>
+        <View
+          style={[
+            styles.container,
+            {paddingBottom: Math.max(insets.bottom, Platform.OS === 'android' ? 16 : 12)},
+          ]}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>{t('Add New Listing')}</Text>
@@ -647,7 +651,11 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
           </View>
 
           {/* ScrollView */}
-          <ScrollView style={{flex: 1}}>
+          <ScrollView
+            style={{flex: 1}}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
             {/* Basic Information */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>{t('Basic Information')}</Text>
@@ -779,13 +787,15 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                 </View>
               </View>
 
-              <TextField
-                label={t('Extra Time Cost')}
-                placeholder={t('Extra Time Cost')}
-                bgColor={COLORS.white}
-                value={formData.extraTimeCost}
-                onChangeText={v => handleTextChange('extraTimeCost', v)}
-              />
+              {formData.pricingType !== 'Per Hour' && (
+                <TextField
+                  label={t('Extra Time Cost')}
+                  placeholder={t('Extra Time Cost')}
+                  bgColor={COLORS.white}
+                  value={formData.extraTimeCost}
+                  onChangeText={v => handleTextChange('extraTimeCost', v)}
+                />
+              )}
 
               <TextField
                 label={t('Per km (1)')}
@@ -903,7 +913,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                   );
                 })}
               </View>
-              <Text style={styles.sectionTitle}>{t('Available Days')}</Text>
+              <Text style={styles.sectionTitle}>{t('Available Time')}</Text>
               <View
                 style={{
                   flexDirection: 'row',
@@ -994,26 +1004,27 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
           </ScrollView>
 
           {/* Buttons */}
-          {!isKeyboardVisible && (
-            <View style={styles.buttonRow}>
+          <View style={styles.buttonRow}>
+            <View style={styles.buttonRowItem}>
               <TouchableOpacity
                 onPress={closeModal}
                 activeOpacity={0.8}
-                style={[styles.cancelButton, styles.buttonRowItem]}>
+                style={styles.cancelButton}>
                 <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
               </TouchableOpacity>
-              <View style={styles.buttonRowItem}>
-                <GradientButton
-                  icon={ICONS.uploadIcon}
-                  iconTintColor={COLORS.white}
-                  text={toEditData ? t('Update Listing') : t('Add Listing')}
-                  onPress={handleSubmit}
-                  type="filled"
-                  textStyle={styles.applyText}
-                />
-              </View>
             </View>
-          )}
+            <View style={styles.buttonRowItem}>
+              <GradientButton
+                icon={ICONS.uploadIcon}
+                iconTintColor={COLORS.white}
+                text={toEditData ? t('Update Listing') : t('Add Listing')}
+                onPress={handleSubmit}
+                type="filled"
+                textStyle={styles.applyText}
+                styleContainer={styles.submitButtonContainer}
+              />
+            </View>
+          </View>
         </View>
         <DatePicker
           modal
@@ -1217,8 +1228,13 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     backgroundColor: COLORS.white,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
     elevation: 5,
+    flexDirection: 'column',
+  },
+  scrollContent: {
+    paddingBottom: width(2),
   },
   header: {
     flexDirection: 'row',
@@ -1278,13 +1294,16 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     flexDirection: 'row',
-    alignItems: 'stretch',
-    gap: 10,
-    paddingVertical: width(2),
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: width(2),
   },
   buttonRowItem: {
-    flex: 1,
-    minWidth: 0,
+    width: width(43),
+  },
+  submitButtonContainer: {
+    width: '100%',
+    height: width(11),
   },
   cancelButton: {
     backgroundColor: COLORS.backgroundLight,
@@ -1292,6 +1311,7 @@ const styles = StyleSheet.create({
     height: width(11),
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
   },
   cancelButtonText: {
     fontSize: 13,

@@ -4,11 +4,8 @@ import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
 import Background from '../../components/background';
 import GradientButton from '../../components/button';
-import {
-  BRAND_BUTTON_GRADIENT_COLORS,
-  COLORS,
-  fontFamly,
-} from '../../constants';
+import Header from '../../components/header';
+import {BRAND_BUTTON_GRADIENT_COLORS, COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
 
 const Onboarding = ({navigation}) => {
@@ -16,6 +13,7 @@ const Onboarding = ({navigation}) => {
 
   return (
     <Background>
+      <Header languageModal />
       <View style={styles.screen}>
         <View style={styles.logoContainer}>
           <Image

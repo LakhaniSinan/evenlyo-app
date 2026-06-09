@@ -786,8 +786,10 @@ export default {
   vendorDashboardOverview:
     "Role: Vendor • Here's an overview of your business performance",
   'All Clients': 'All Clients',
+  'Total Clients': 'Total Clients',
   'Complete Bookings': 'Complete Bookings',
   'Monthly Revenue': 'Monthly Revenue',
+  Revenue: 'Revenue',
   'Orders Overview': 'Orders Overview',
   chartFilterMonthly: 'Monthly',
   chartFilterSixMonths: '6 Months',
@@ -800,6 +802,13 @@ export default {
   recentBookingOffers: 'Recent Bookings Offers',
   activityLog: 'Activity Log',
   recentlyJoinedClients: 'Recently Joined Clients',
+  dashboardNoBookingsYet: 'No bookings yet',
+  dashboardNoBookingsSubtitle:
+    'When you receive bookings, they will appear here.',
+  dashboardNoClientsYet: 'No clients yet',
+  dashboardNoClientsSubtitle:
+    'When you join clients, they will appear here.',
+  dashboardNoActivity: 'No recent activity',
 
   // Order booking modal & booking flow
   pleaseAddAddressFirst: 'Please add address first.',
@@ -890,6 +899,7 @@ export default {
   'Click to upload work Images': 'Click to upload work Images',
   'Booking Date/Time ': 'Booking Date/Time ',
   'Available Days': 'Available Days',
+  'Available Time': 'Available Time',
   'Select Time': 'Select Time',
   'I agree to the': 'I agree to the',
   'Update Listing': 'Update Listing',

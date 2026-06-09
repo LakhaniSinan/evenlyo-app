@@ -790,8 +790,10 @@ export default {
   vendorDashboardOverview:
     'Rol: Leverancier • Hier is een overzicht van je bedrijfsresultaten',
   'All Clients': 'Alle klanten',
+  'Total Clients': 'Totaal klanten',
   'Complete Bookings': 'Voltooide boekingen',
   'Monthly Revenue': 'Maandelijkse omzet',
+  Revenue: 'Omzet',
   'Orders Overview': 'Overzicht bestellingen',
   chartFilterMonthly: 'Maandelijks',
   chartFilterSixMonths: '6 maanden',
@@ -804,6 +806,13 @@ export default {
   recentBookingOffers: 'Recente boekingsaanbiedingen',
   activityLog: 'Activiteitenlogboek',
   recentlyJoinedClients: 'Onlangs toegetreden klanten',
+  dashboardNoBookingsYet: 'Nog geen boekingen',
+  dashboardNoBookingsSubtitle:
+    'Wanneer je boekingen ontvangt, verschijnen ze hier.',
+  dashboardNoClientsYet: 'Nog geen klanten',
+  dashboardNoClientsSubtitle:
+    'Wanneer klanten zich aansluiten, verschijnen ze hier.',
+  dashboardNoActivity: 'Geen recente activiteit',
 
   // Order booking modal & booking flow
   pleaseAddAddressFirst: 'Voeg eerst een adres toe.',
@@ -894,6 +903,7 @@ export default {
   'Click to upload work Images': 'Klik om werkafbeeldingen te uploaden',
   'Booking Date/Time ': 'Boekingsdatum/-tijd ',
   'Available Days': 'Beschikbare dagen',
+  'Available Time': 'Beschikbare tijd',
   'Select Time': 'Selecteer tijd',
   'I agree to the': 'Ik ga akkoord met de',
   'Update Listing': 'Vermelding bijwerken',

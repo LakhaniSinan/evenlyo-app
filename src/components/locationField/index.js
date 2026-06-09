@@ -29,7 +29,7 @@ const GooglePlacesInput = ({
   lable,
   bgcolor,
 }) => {
-  const googleAPIKey = 'AIzaSyAvPVhgFVY2qv4c6kvukvIP2krPJe9dZGA';
+  const googleAPIKey = 'AIzaSyAZgyAHxugn3hINdg4b9vJUHJtUHpJYw2U';
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
 
