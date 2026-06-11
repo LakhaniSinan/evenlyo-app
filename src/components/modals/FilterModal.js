@@ -225,7 +225,7 @@ const FilterModal = ({
             <View style={styles.searchBox}>
               <TextInput
                 value={subCatQuery}
-                placeholder={t('typeToSearch')}
+                placeholder={t('typeToSearch')} 
                 placeholderTextColor={COLORS.textLight}
                 onChangeText={handleSubCatSearch}
                 style={styles.input}

@@ -20,7 +20,7 @@ const useLocation = () => {
       const address = await helper.getLocationAddress(
         position.coords.latitude,
         position.coords.longitude,
-        'AIzaSyAZgyAHxugn3hINdg4b9vJUHJtUHpJYw2U',
+        'AIzaSyC6ekBoPRfJYPUFXwSD6J_vZKrmmlzuT3c',
       );
 
       dispatch(

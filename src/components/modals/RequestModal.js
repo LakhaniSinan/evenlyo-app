@@ -53,7 +53,7 @@ const NewRequestModal = ({
   const [priceError, setPriceError] = useState('');
   const [showOfferInfoModal, setShowOfferInfoModal] = useState(false);
 
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyAZgyAHxugn3hINdg4b9vJUHJtUHpJYw2U';
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyC6ekBoPRfJYPUFXwSD6J_vZKrmmlzuT3c';
 
   const normalizeCoords = coords => {
     if (!coords) return null;

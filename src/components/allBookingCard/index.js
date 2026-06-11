@@ -1,41 +1,35 @@
 import {StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
-import LinearGradient from 'react-native-linear-gradient';
-import {
-  BRAND_BUTTON_GRADIENT_COLORS,
-  BRAND_BUTTON_GRADIENT_LOCATIONS,
-  COLORS,
-  fontFamly,
-} from '../../constants';
-import {useTranslation} from '../../hooks';
+import {COLORS, fontFamly} from '../../constants';
+
+const getCardAccentColor = cardId => {
+  switch (cardId) {
+    case 'total':
+      return COLORS.navyBlue;
+    case 'completed':
+      return COLORS.primary;
+    case 'request':
+      return COLORS.green;
+    case 'inProcess':
+      return COLORS.yellow;
+    default:
+      return COLORS.textDark;
+  }
+};
 
 const AllBookingCard = ({item}) => {
-  const isGradient = item?.id === 'completed';
-
   return (
     <View style={styles.cardOuter}>
-      {isGradient ? (
-        <View style={styles.gradientCard}>
-          <LinearGradient
-            colors={BRAND_BUTTON_GRADIENT_COLORS}
-            locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 0}}
-            style={styles.gradientFill}
-          />
-          <CardContent item={item} isDark />
-        </View>
-      ) : (
-        <View style={styles.plainCard}>
-          <CardContent item={item} />
-        </View>
-      )}
+      <View style={styles.plainCard}>
+        <CardContent item={item} />
+      </View>
     </View>
   );
 };
 
-const CardContent = ({item, isDark = false}) => {
-  const {t} = useTranslation();
+const CardContent = ({item}) => {
+  const accentColor = getCardAccentColor(item?.id);
+
   return (
     <>
       <View
@@ -49,7 +43,7 @@ const CardContent = ({item, isDark = false}) => {
           style={{
             fontFamily: fontFamly.PlusJakartaSansSemiBold,
             fontSize: 10,
-            color: isDark ? COLORS.white : COLORS.textDark,
+            color: COLORS.textDark,
           }}>
           {item?.title}
         </Text>
@@ -60,14 +54,7 @@ const CardContent = ({item, isDark = false}) => {
             borderRadius: 10,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor:
-              item?.title === t('Total Bookings')
-                ? COLORS.navyBlue
-                : item?.title == t('Request Booking')
-                ? COLORS.green
-                : item?.title == t('In Process')
-                ? COLORS.yellow
-                : COLORS.white,
+            backgroundColor: accentColor,
           }}
         />
       </View>
@@ -75,14 +62,7 @@ const CardContent = ({item, isDark = false}) => {
         style={{
           fontFamily: fontFamly.PlusJakartaSansBold,
           fontSize: 16,
-          color:
-            item?.title === t('Total Bookings')
-              ? COLORS.navyBlue
-              : item?.title == t('Request Booking')
-              ? COLORS.green
-              : item?.title == t('In Process')
-              ? COLORS.yellow
-              : COLORS.white,
+          color: accentColor,
         }}>
         {item?.value}
       </Text>
@@ -108,16 +88,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-  },
-  gradientCard: {
-    flex: 1,
-    padding: width(2),
-    borderRadius: width(3),
-    overflow: 'hidden',
-  },
-  gradientFill: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: width(3),
   },
   plainCard: {
     flex: 1,

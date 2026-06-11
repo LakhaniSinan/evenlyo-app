@@ -70,6 +70,78 @@ const SALE_STATUS_I18N = {
 };
 
 /* -------------------- COMPONENT -------------------- */
+const IN_PROCESS_STATUSES = [
+  'accepted',
+  'paid',
+  'on_the_way',
+  'received',
+  'picked_up',
+];
+
+const parseBookingDate = value => {
+  if (!value) {
+    return null;
+  }
+  const parsed = moment(value);
+  return parsed.isValid() ? parsed.startOf('day') : null;
+};
+
+const bookingOverlapsDateRange = (booking, startDate, endDate) => {
+  const bookingStart = parseBookingDate(booking?.startDate);
+  const bookingEnd = parseBookingDate(booking?.endDate || booking?.startDate);
+  if (!bookingStart && !bookingEnd) {
+    return false;
+  }
+
+  const startPoint = bookingStart || bookingEnd;
+  const endPoint = bookingEnd || bookingStart;
+  const startBoundary = parseBookingDate(startDate);
+  const endBoundary = (
+    parseBookingDate(endDate) || parseBookingDate(startDate)
+  )?.endOf('day');
+
+  if (!startBoundary && !endBoundary) {
+    return true;
+  }
+
+  return (
+    startPoint?.isSameOrBefore(endBoundary) &&
+    endPoint?.isSameOrAfter(startBoundary)
+  );
+};
+
+const applyBookingFilters = (bookings = [], filters = {}) => {
+  let result = bookings;
+
+  if (filters.startDate || filters.endDate) {
+    result = result.filter(item =>
+      bookingOverlapsDateRange(item, filters.startDate, filters.endDate),
+    );
+  }
+
+  if (filters.status) {
+    const normalizedStatus = filters.status.trim().toLowerCase();
+    result = result.filter(
+      item => item?.status?.trim()?.toLowerCase() === normalizedStatus,
+    );
+  }
+
+  return result;
+};
+
+const computeStatsFromBookings = (bookings = []) => ({
+  totalBookings: bookings.length,
+  completedBookings: bookings.filter(
+    item => item?.status?.trim()?.toLowerCase() === 'completed',
+  ).length,
+  requestBookings: bookings.filter(
+    item => item?.status?.trim()?.toLowerCase() === 'pending',
+  ).length,
+  inProcessBookings: bookings.filter(item =>
+    IN_PROCESS_STATUSES.includes(item?.status?.trim()?.toLowerCase()),
+  ).length,
+});
+
 const countBookingsByStatus = (bookings = []) => {
   const statusCounts = {
     pending: 0,
@@ -111,12 +183,13 @@ function AllBookingScreen() {
   const [activeTab, setActiveTab] = useState(TABS[0]);
   const [selectedDate, setSelectedDate] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
-  const [listingCartData, setListingCartData] = useState([]);
-
-  /* Booking */
-  const [stats, setStats] = useState(null);
-  const [bookings, setBookings] = useState([]);
-  const [statusCounts, setStatusCounts] = useState({});
+  const [allBookings, setAllBookings] = useState([]);
+  const [apiStats, setApiStats] = useState(null);
+  const [bookingFilters, setBookingFilters] = useState({
+    startDate: '',
+    endDate: '',
+    status: '',
+  });
 
   /* Sale Items */
   const [saleOrders, setSaleOrders] = useState([]);
@@ -144,10 +217,8 @@ function AllBookingScreen() {
         const filteredBookings = bookings.filter(
           item => item?.status && item?.startDate,
         );
-        setStats(stats);
-        setListingCartData(filteredBookings);
-        const counts = countBookingsByStatus(filteredBookings);
-        setStatusCounts(counts);
+        setApiStats(stats);
+        setAllBookings(filteredBookings);
       } else {
         console.log('Fetch failed:', response?.data?.message);
       }
@@ -160,6 +231,33 @@ function AllBookingScreen() {
   }, []);
 
   /* -------------------- MEMOS -------------------- */
+
+  const hasActiveBookingFilters = useMemo(
+    () =>
+      Boolean(
+        bookingFilters.startDate ||
+          bookingFilters.endDate ||
+          bookingFilters.status,
+      ),
+    [bookingFilters],
+  );
+
+  const listingCartData = useMemo(
+    () => applyBookingFilters(allBookings, bookingFilters),
+    [allBookings, bookingFilters],
+  );
+
+  const stats = useMemo(() => {
+    if (!hasActiveBookingFilters) {
+      return apiStats;
+    }
+    return computeStatsFromBookings(listingCartData);
+  }, [apiStats, hasActiveBookingFilters, listingCartData]);
+
+  const statusCounts = useMemo(
+    () => countBookingsByStatus(listingCartData),
+    [listingCartData],
+  );
 
   const dashboardData = useMemo(
     () => [
@@ -226,15 +324,36 @@ function AllBookingScreen() {
     return marks;
   }, [listingCartData]);
 
+  const buildBookingsRouteParams = useCallback(
+    params => ({
+      ...params,
+      dateFilters: {
+        startDate: bookingFilters.startDate,
+        endDate: bookingFilters.endDate,
+      },
+      statusFilter: bookingFilters.status,
+    }),
+    [bookingFilters],
+  );
+
+  const handleApplyBookingFilters = useCallback(filters => {
+    setBookingFilters({
+      startDate: filters?.startDate || '',
+      endDate: filters?.endDate || '',
+      status: filters?.status || '',
+    });
+    setSelectedDate('');
+  }, []);
+
+  const handleResetBookingFilters = useCallback(() => {
+    setBookingFilters({startDate: '', endDate: '', status: ''});
+    setSelectedDate('');
+  }, []);
+
   const handleDaySelect = day => {
     const dateStr = day.dateString;
     if (markedDates[dateStr]) {
       setSelectedDate(dateStr);
-      const booking = listingCartData.find(
-        b => moment(b.startDate).format('YYYY-MM-DD') === dateStr,
-      );
-
-      console.log(booking, 'bookingbookingbookingbooking');
     } else {
       Alert.alert(
         t('Not Allowed'),
@@ -565,8 +684,10 @@ function AllBookingScreen() {
       <AppHeader
         headingText={t('All Bookings')}
         leftIcon={ICONS.drawerIcon}
+        filterIcon={ICONS.filters}
         rightIcon={ICONS.notificationIcon}
         onLeftIconPress={() => navigation.openDrawer()}
+        onFilterPress={() => setModalVisible(true)}
         onRightIconPress={() => navigation.navigate('Notifications')}
       />
 
@@ -646,9 +767,10 @@ function AllBookingScreen() {
               goBack={() => setSelectedDate('')}
               selectedDate={selectedDate}
               onEventPress={event => {
-                console.log(event, 'eventeventeventevent');
-
-                navigation.navigate('BookingsByStatus', event);
+                navigation.navigate(
+                  'BookingsByStatus',
+                  buildBookingsRouteParams(event),
+                );
               }}
             />
           )}
@@ -669,11 +791,15 @@ function AllBookingScreen() {
             <TouchableOpacity
               key={item.statusKey || index}
               onPress={() =>
-                navigation.navigate('BookingsByStatus', {
-                  status: item.statusKey,
-                  title: item.title,
-                  value: item.value,
-                })
+                navigation.navigate(
+                  'BookingsByStatus',
+                  buildBookingsRouteParams({
+                    status: item.statusKey,
+                    statusKey: item.statusKey,
+                    title: item.title,
+                    value: item.value,
+                  }),
+                )
               }
               style={{
                 flexDirection: 'row',
@@ -853,6 +979,9 @@ function AllBookingScreen() {
       <BookingFilterModal
         isVisible={modalVisible}
         onClose={() => setModalVisible(false)}
+        onApplyFilters={handleApplyBookingFilters}
+        onResetFilters={handleResetBookingFilters}
+        filters={bookingFilters}
       />
 
       {/* Status Update Modal */}

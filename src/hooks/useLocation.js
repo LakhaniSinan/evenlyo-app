@@ -39,7 +39,7 @@ export const useLocation = () => {
       if (position) {
         try {
           const response = await fetch(
-            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.coords.latitude},${position.coords.longitude}&key=AIzaSyAZgyAHxugn3hINdg4b9vJUHJtUHpJYw2U`,
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.coords.latitude},${position.coords.longitude}&key=AIzaSyC6ekBoPRfJYPUFXwSD6J_vZKrmmlzuT3c`,
           );
           const data = await response.json();
 

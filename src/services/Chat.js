@@ -13,9 +13,10 @@ export const createConnection = params => {
 };
 
 export const messageService = {
-  getAllMessages: async (id, userId) => {
+  getAllMessages: async (id, userId, preferredLanguage = 'en') => {
+    const lang = preferredLanguage === 'nl' ? 'nl' : 'en';
     const response = await Api(
-      endPoints.messages.all(id, userId),
+      `${endPoints.messages.all(id, userId)}?preferredLanguage=${lang}`,
       null,
       requestType.GET,
     );

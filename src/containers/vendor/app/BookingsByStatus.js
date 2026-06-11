@@ -43,6 +43,50 @@ const getStatusLabel = (status, t) => {
   return raw || t('bookings');
 };
 
+const parseBookingDate = value => {
+  if (!value) {
+    return null;
+  }
+  const parsed = moment(value);
+  return parsed.isValid() ? parsed.startOf('day') : null;
+};
+
+const bookingOverlapsDateRange = (booking, startDate, endDate) => {
+  const bookingStart = parseBookingDate(
+    booking?.details?.startDate ||
+      booking?.bookingDateTime?.start ||
+      booking?.startDate,
+  );
+  const bookingEnd = parseBookingDate(
+    booking?.details?.endDate ||
+      booking?.bookingDateTime?.end ||
+      booking?.endDate ||
+      booking?.details?.startDate ||
+      booking?.bookingDateTime?.start ||
+      booking?.startDate,
+  );
+
+  if (!bookingStart && !bookingEnd) {
+    return false;
+  }
+
+  const startPoint = bookingStart || bookingEnd;
+  const endPoint = bookingEnd || bookingStart;
+  const startBoundary = parseBookingDate(startDate);
+  const endBoundary = (
+    parseBookingDate(endDate) || parseBookingDate(startDate)
+  )?.endOf('day');
+
+  if (!startBoundary && !endBoundary) {
+    return true;
+  }
+
+  return (
+    startPoint?.isSameOrBefore(endBoundary) &&
+    endPoint?.isSameOrAfter(startBoundary)
+  );
+};
+
 const resolveLocationLine = (address, eventLocation, lang) => {
   if (address != null && address !== '') {
     if (typeof address === 'string') {
@@ -71,10 +115,13 @@ const BookingsByStatus = ({navigation, route}) => {
   const {t, currentLanguage} = useTranslation();
   const event = route.params;
   const [activeTab] = useState(0);
-  const [listingCartData, setListingCartData] = useState([]);
+  const [rawListingData, setRawListingData] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const {user} = useSelector(state => state.LoginSlice);
+
+  const dateFilters = event?.dateFilters || {};
+  const statusFilter = event?.statusFilter || '';
 
   const statusParam = useMemo(
     () =>
@@ -128,12 +175,12 @@ const BookingsByStatus = ({navigation, route}) => {
 
       if (response?.status === 200 || response?.status === 201) {
         const data = response?.data?.data || [];
-        setListingCartData(Array.isArray(data) ? data : []);
+        setRawListingData(Array.isArray(data) ? data : []);
       } else {
-        setListingCartData([]);
+        setRawListingData([]);
       }
     } catch (error) {
-      setListingCartData([]);
+      setRawListingData([]);
     } finally {
       setRefreshing(false);
       setLoading(false);
@@ -147,6 +194,29 @@ const BookingsByStatus = ({navigation, route}) => {
   const onRefresh = useCallback(() => {
     handleGetCartListing();
   }, [handleGetCartListing]);
+
+  const listingCartData = useMemo(() => {
+    let result = rawListingData;
+
+    if (dateFilters?.startDate || dateFilters?.endDate) {
+      result = result.filter(item =>
+        bookingOverlapsDateRange(
+          item,
+          dateFilters.startDate,
+          dateFilters.endDate,
+        ),
+      );
+    }
+
+    if (statusFilter) {
+      const normalizedStatus = statusFilter.trim().toLowerCase();
+      result = result.filter(
+        item => item?.status?.trim()?.toLowerCase() === normalizedStatus,
+      );
+    }
+
+    return result;
+  }, [dateFilters?.endDate, dateFilters?.startDate, rawListingData, statusFilter]);
 
   const renderBookingCard = useCallback(
     ({item}) => {

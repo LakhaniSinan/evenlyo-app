@@ -67,7 +67,7 @@ const ChatDetail = ({navigation, route}) => {
   const {socket} = useContext(SocketContext);
   const {user} = useSelector(state => state.LoginSlice);
   const {activeChat} = useSelector(state => state.activeChat);
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const modalRef = useRef();
   const [attachedFile, setAttachedFile] = useState(null);
   console.log(
@@ -317,6 +317,7 @@ const ChatDetail = ({navigation, route}) => {
         const response = await messageService.getAllMessages(
           data.conversationId,
           user.vendorId,
+          currentLanguage,
         );
         if (response?.success) {
           if (isMountedRef.current) {

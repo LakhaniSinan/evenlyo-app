@@ -75,7 +75,6 @@ const AnalyticsReport = () => {
         icon: ICONS.dollerSignIcon,
         value: analyticsReport?.stats?.lastWeekEarnings,
         percentage: 10,
-        isGradient: true,
       },
     ],
     [analyticsReport],

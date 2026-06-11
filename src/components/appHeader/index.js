@@ -10,10 +10,12 @@ const AppHeader = ({
   isMenu,
   leftIcon,
   rightIcon,
+  filterIcon,
   menuContent,
   headingText,
   onLeftIconPress,
   onRightIconPress,
+  onFilterPress,
   chatHeaderData,
   isShowMenuIcon,
   setCommentType,
@@ -115,16 +117,36 @@ const AppHeader = ({
           {typeof headingText === 'string' ? t(headingText) : headingText}
         </Text>
       </View>
-      {!isMenu && rightIcon && (
-        <TouchableOpacity
-          style={{position: 'absolute', right: width(3), top: width(4)}}
-          onPress={() => onRightIconPress()}>
-          <Image
-            resizeMode="contain"
-            style={{width: 40, height: 40}}
-            source={rightIcon}
-          />
-        </TouchableOpacity>
+      {!isMenu && (filterIcon || rightIcon) && (
+        <View
+          style={{
+            position: 'absolute',
+            right: width(3),
+            top: width(4),
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}>
+          {filterIcon && (
+            <TouchableOpacity
+              onPress={onFilterPress}
+              style={{marginRight: rightIcon ? 10 : 0}}>
+              <Image
+                resizeMode="contain"
+                style={{width: 40, height: 40}}
+                source={filterIcon}
+              />
+            </TouchableOpacity>
+          )}
+          {rightIcon && (
+            <TouchableOpacity onPress={() => onRightIconPress()}>
+              <Image
+                resizeMode="contain"
+                style={{width: 40, height: 40}}
+                source={rightIcon}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
       )}
       {isMenu && (
         <TouchableOpacity

@@ -1,7 +1,7 @@
-// FilterModal.js
-import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
+import moment from 'moment';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
+  Alert,
   Image,
   Keyboard,
   ScrollView,
@@ -21,199 +21,214 @@ import CustomCalendar from '../customCalendar';
 import CustomPicker from '../customPicker';
 import GradientText from '../gradiantText';
 
-const BookingFilterModal = ({isVisible, onClose, nestedFilter}) => {
+const BOOKING_STATUS_I18N = {
+  pending: 'statusPending',
+  accepted: 'statusAccepted',
+  rejected: 'statusRejected',
+  on_the_way: 'statusOnTheWay',
+  received: 'statusReceived',
+  finished: 'statusFinished',
+  picked_up: 'statusPickedUp',
+  received_back: 'statusReceivedBack',
+  completed: 'statusCompleted',
+  claim: 'statusClaim',
+};
+
+const BookingFilterModal = ({
+  isVisible,
+  onClose,
+  onApplyFilters,
+  onResetFilters,
+  filters,
+}) => {
   const {t} = useTranslation();
+  const statusPickerRef = useRef(null);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [activeField, setActiveField] = useState(null);
   const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-  const navigation = useNavigation();
-  const status = useRef(null);
-  const statusProgress = useRef(null);
-  const [inputVal, setInputVal] = useState({
-    status: '',
-    statusProgress: '',
-    holderType: '',
-    priceRange: '',
-    location: '',
-    dateRange: '',
-    timeRange: '',
-  });
+
+  const statusOptions = useMemo(
+    () => [
+      {_id: '', name: t('All Statuses')},
+      ...Object.entries(BOOKING_STATUS_I18N).map(([statusKey, i18nKey]) => ({
+        _id: statusKey,
+        name: t(i18nKey),
+      })),
+    ],
+    [t],
+  );
 
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      () => {
-        setKeyboardVisible(true);
-      },
+    const showListener = Keyboard.addListener('keyboardDidShow', () =>
+      setKeyboardVisible(true),
     );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setKeyboardVisible(false);
-      },
+    const hideListener = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardVisible(false),
     );
 
     return () => {
-      keyboardDidHideListener?.remove();
-      keyboardDidShowListener?.remove();
+      hideListener?.remove();
+      showListener?.remove();
     };
   }, []);
-  const handleDateSelect = date => {
-    console.log(date, 'handleDateSelecthandleDateSelect');
-    setShowCalendar(false);
-  };
-  const handleOpenSubCategory = params => {
-    console.log('handleOpenMainCategory called with:', params);
-    if (statusProgress?.current) {
-      statusProgress.current.show(params);
-    } else {
-      console.warn('main Category ref is not available');
+
+  useEffect(() => {
+    if (!isVisible) {
+      return;
     }
-  };
-  const handleOpenSelectStatus = params => {
-    console.log('handleOpenMainCategory called with:', params);
-    if (status?.current) {
-      status.current.show(params);
+    setStartDate(filters?.startDate || '');
+    setEndDate(filters?.endDate || '');
+    setSelectedStatus(filters?.status || '');
+  }, [filters?.endDate, filters?.startDate, filters?.status, isVisible]);
+
+  const formatDateLabel = dateValue =>
+    dateValue ? moment(dateValue).format('DD/MM/YYYY') : t('DD/MM/YYYY');
+
+  const handleDateSelect = date => {
+    const selected = date?.format ? date.format('YYYY-MM-DD') : '';
+    if (!selected) {
+      return;
+    }
+
+    if (activeField === 'endDate') {
+      setEndDate(selected);
     } else {
-      console.warn('main Category ref is not available');
+      setStartDate(selected);
     }
   };
 
-  const handleSelectValue = (name, value) => {
-    console.log('handleSelectValue called:', name, value);
-    if (setInputVal && typeof setInputVal === 'function') {
-      setInputVal(prevState => ({
-        ...prevState,
-        [name]: value?.name || value,
-      }));
-    }
+  const handleStatusSelect = (name, value) => {
+    const statusKey =
+      typeof value === 'object'
+        ? value?._id ?? value?.id ?? value?.name ?? ''
+        : value;
+    setSelectedStatus(statusKey || '');
   };
+
+  const handleApply = () => {
+    if (
+      startDate &&
+      endDate &&
+      moment(endDate).isBefore(moment(startDate), 'day')
+    ) {
+      Alert.alert(t('Error'), t('analyticsFilterEndBeforeStart'));
+      return;
+    }
+
+    onApplyFilters?.({
+      startDate,
+      endDate,
+      status: selectedStatus,
+    });
+    onClose?.();
+  };
+
+  const handleReset = () => {
+    setStartDate('');
+    setEndDate('');
+    setSelectedStatus('');
+    onResetFilters?.();
+    onClose?.();
+  };
+
   return (
     <Modal
       isVisible={isVisible}
       onBackdropPress={onClose}
       style={styles.modal}
       backdropOpacity={0.5}
-      avoidKeyboard={true}
-      propagateSwipe={true}>
+      avoidKeyboard
+      propagateSwipe>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>{t('filter')}</Text>
-          <TouchableOpacity onPress={onClose}>
+          <Text style={styles.title}>{t('Filter')}</Text>
+          <TouchableOpacity
+            onPress={onClose}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
             <Icon name="close" size={24} color="#333" />
           </TouchableOpacity>
         </View>
-        <ScrollView style={{flex: 1}}>
-          <View style={{}}>
-            <Text
-              style={{
-                fontFamily: fontFamly.PlusJakartaSansBold,
-                fontSize: 12,
-                color: COLORS.black,
-              }}>
-              By Date
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowCalendar(true)}
-              style={{
-                marginTop: width(2),
-                height: width(13),
-                borderRadius: 12,
-                backgroundColor: COLORS.backgroundLight,
-                justifyContent: 'center',
-                paddingHorizontal: width(4),
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexDirection: 'row',
-                paddingHorizontal: width(3),
-              }}>
-              <Text
-                style={{
-                  fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                  color: COLORS.textLight,
-                }}>
-                DD/MM/YYYY
-              </Text>
-              <Image
-                source={ICONS.calenderIcon}
-                style={{height: 20, width: 20}}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-          </View>
+
+        <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+          <Text style={styles.fieldLabel}>{t('Start Date')}</Text>
+          <TouchableOpacity
+            onPress={() => {
+              setActiveField('startDate');
+              setShowCalendar(true);
+            }}
+            style={styles.dateField}>
+            <Text style={styles.dateFieldText}>{formatDateLabel(startDate)}</Text>
+            <Image
+              source={ICONS.calenderIcon}
+              style={styles.calendarIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+
+          <Text style={[styles.fieldLabel, styles.endDateLabel]}>
+            {t('End Date')}
+          </Text>
+          <TouchableOpacity
+            onPress={() => {
+              setActiveField('endDate');
+              setShowCalendar(true);
+            }}
+            style={styles.dateField}>
+            <Text style={styles.dateFieldText}>{formatDateLabel(endDate)}</Text>
+            <Image
+              source={ICONS.calenderIcon}
+              style={styles.calendarIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+
           <CustomPicker
-            ref={statusProgress}
-            label="By Status progress"
-            labelll="Select Status"
-            handleOpenModal={handleOpenSubCategory}
-            value={inputVal?.statusProgress || ''}
-            listData={[
-              {name: 'Completed'},
-              {name: 'New Request'},
-              {name: 'In Progress'},
-              {name: 'Issue / Complain'},
-            ]}
-            name="statusProgress"
-            handleSelectValue={handleSelectValue}
-          />
-          <CustomPicker
-            ref={status}
-            label="By Status progress"
-            labelll="Select Status"
-            handleOpenModal={handleOpenSelectStatus}
-            value={inputVal?.status || ''}
-            listData={[{name: 'Deliver'}, {name: 'Received'}]}
+            ref={statusPickerRef}
+            label={t('By Status')}
+            labelll={t('Select Status')}
+            value={selectedStatus}
+            listData={statusOptions}
             name="status"
-            handleSelectValue={handleSelectValue}
+            handleOpenModal={() =>
+              statusPickerRef?.current?.show({title: t('Select Status')})
+            }
+            handleSelectValue={handleStatusSelect}
           />
         </ScrollView>
-        {!isKeyboardVisible && !nestedFilter && (
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginTop: width(4),
-            }}>
-            <View style={{width: width(43)}}>
-              <TouchableOpacity
-                onPress={() => onClose()}
-                style={{
-                  backgroundColor: COLORS.backgroundLight,
-                  paddingVertical: 16,
-                  paddingHorizontal: 24,
-                  borderRadius: 20,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                activeOpacity={0.7}>
-                <GradientText text={'Reset All'} />
-              </TouchableOpacity>
-            </View>
-            <View style={{width: width(40)}}>
+
+        {!isKeyboardVisible && (
+          <View style={styles.footer}>
+            <TouchableOpacity
+              onPress={handleReset}
+              style={styles.resetButton}
+              activeOpacity={0.7}>
+              <GradientText text={t('Reset All')} />
+            </TouchableOpacity>
+            <View style={styles.applyButtonWrap}>
               <GradientButton
-                text={t('applyFilters')}
-                onPress={() => {
-                  onClose();
-                }}
+                text={t('Apply Filters')}
+                onPress={handleApply}
                 type="filled"
-                textStyle={{
-                  fontSize: 12,
-                  fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                  color: 'white',
-                }}
+                styleContainer={styles.applyButtonContainer}
+                textStyle={styles.applyButtonText}
               />
             </View>
           </View>
         )}
       </View>
+
       <CustomCalendar
         isVisible={showCalendar}
         onClose={() => setShowCalendar(false)}
         onDateSelect={handleDateSelect}
-        selectedStartDate={startDate}
+        selectedStartDate={activeField === 'endDate' ? endDate : startDate}
         selectedEndDate={null}
         mode="single"
-        title={t('selectDate') || 'Select Date'}
+        title={t('selectDate')}
+        allowPastDates
       />
     </Modal>
   );
@@ -226,11 +241,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#8b8b8b66',
   },
   container: {
-    height: '80%',
+    height: '50%',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     backgroundColor: COLORS.white,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -238,7 +255,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-
     elevation: 5,
   },
   header: {
@@ -253,19 +269,68 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontFamily: fontFamly.PlusJakartaSansBold,
+    color: COLORS.black,
   },
-  subTitleDescription: {
+  scroll: {
+    flex: 1,
+  },
+  fieldLabel: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 12,
+    color: COLORS.black,
+  },
+  endDateLabel: {
+    marginTop: width(4),
+  },
+  dateField: {
+    marginTop: width(2),
+    height: width(13),
+    borderRadius: 12,
+    backgroundColor: COLORS.backgroundLight,
+    paddingHorizontal: width(3),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateFieldText: {
+    flex: 1,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: COLORS.textLight,
+    marginRight: width(2),
+  },
+  calendarIcon: {
+    height: 20,
+    width: 20,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: width(3),
+    marginTop: width(4),
+    paddingTop: width(2),
+  },
+  resetButton: {
+    flex: 1,
+    minHeight: width(12),
+    backgroundColor: COLORS.backgroundLight,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  applyButtonWrap: {
+    flex: 1,
+    minWidth: 0,
+  },
+  applyButtonContainer: {
+    flex: 1,
+    minHeight: width(12),
+  },
+  applyButtonText: {
     fontSize: 12,
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-    color: COLORS.textGray,
-  },
-  subTitle: {
-    fontSize: 14,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-  },
-
-  switch: {
-    transform: [{scaleX: 1.1}, {scaleY: 1.1}],
+    color: COLORS.white,
   },
 });
 

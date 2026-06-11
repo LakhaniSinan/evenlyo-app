@@ -470,6 +470,7 @@ const ChatDetail = ({navigation, route}) => {
       const response = await messageService.getAllMessages(
         currentConversationId,
         user?.id,
+        currentLanguage,
       );
 
       const responseMessages = Array.isArray(response?.data)
@@ -632,6 +633,7 @@ const ChatDetail = ({navigation, route}) => {
         const response = await messageService.getAllMessages(
           currentConversationId,
           user?.id,
+          currentLanguage,
         );
         if (response?.success) {
           const latestMessages = response?.data || [];
