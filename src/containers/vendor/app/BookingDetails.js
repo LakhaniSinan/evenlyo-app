@@ -412,6 +412,13 @@ function BookingDetails({route}) {
             'Payment Status',
             getPaymentStatusLabel(booking?.paymentStatus, t),
           )}
+          {renderInfoRow(
+            ICONS.ticketIcon,
+            'Special Requests',
+            currentLanguage === 'en'
+              ? booking?.details?.specialRequests?.en
+              : booking?.details?.specialRequests?.nl,
+          )}
 
           <Text style={styles.sectionLabel}>{t('Buyer Details')}</Text>
 

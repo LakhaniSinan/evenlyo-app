@@ -347,6 +347,7 @@ export default {
   'Connect your Stripe account to receive payouts from your bookings and sales. You will complete verification securely on Stripe.':
     'Connect your Stripe account to receive payouts from your bookings and sales. You will complete verification securely on Stripe.',
   'Stripe account': 'Stripe account',
+  'Stripe connection Status': 'Stripe connection Status',
   'Checking…': 'Checking…',
   Connected: 'Connected',
   'Not connected': 'Not connected',

@@ -74,7 +74,7 @@ const App = () => {
             <PaperProvider>
               <StripeProvider
                 publishableKey={
-                  'pk_test_51S5mMXIUXgoWiMw14oUpuKyQawd4L7FDZNzS7O99qwoERe5PBh9lTVlc38G3AMKDvHIdMmIQa6NHfs5IvG8zacPy00P8gvRAl9'
+                  'pk_live_51S5mMXIUXgoWiMw1lnJ0ilJdqqDt1WzHxBx0RvkBpQVIu9chtsm6KeyLWk6DO27Rrni3sJfFODQR9jqN8nOhr6aC00tSOTFSpx'
                 }>
                 <AppContent />
               </StripeProvider>

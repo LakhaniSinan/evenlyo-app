@@ -27,11 +27,17 @@ import {
 
 const VendorStripeConnectScreen = () => {
   const navigation = useNavigation();
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const alertRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
   const [connected, setConnected] = useState(false);
+  const [stripeConnection, setStripeConnection] = useState(null);
+  console.log(
+    stripeConnection,
+    'stripeConnectionstripeConnectionstripeConnection',
+  );
+
   const [onboardingUrl, setOnboardingUrl] = useState(null);
   const [webVisible, setWebVisible] = useState(false);
   const [statusSyncing, setStatusSyncing] = useState(false);
@@ -40,6 +46,8 @@ const VendorStripeConnectScreen = () => {
     try {
       setStatusLoading(true);
       const res = await vendorStripeOnboardingStatus();
+      console.log(res, 'resresresresresres321123');
+      setStripeConnection(res?.data);
       setConnected(res?.data?.onboarded);
     } finally {
       setStatusLoading(false);
@@ -56,6 +64,8 @@ const VendorStripeConnectScreen = () => {
     try {
       setStatusSyncing(true);
       const res = await vendorStripeOnboardingStatus();
+      console.log(res, 'resresresresresres321123asdw');
+      setStripeConnection(res?.data);
       setConnected(res?.data?.onboarded);
       await fetchStatus();
     } finally {
@@ -126,13 +136,15 @@ const VendorStripeConnectScreen = () => {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
-          <Text style={styles.title}>{t('Stripe account')}</Text>
+          <Text style={styles.title}>{t('Stripe connection Status')}</Text>
           <Text style={styles.status}>
             {statusLoading
               ? t('Checking…')
               : connected
               ? t('Connected')
-              : t('Not connected')}
+              : currentLanguage === 'en'
+              ? stripeConnection?.message?.en
+              : stripeConnection?.message?.nl}
           </Text>
         </View>
         <View style={{height: width(10)}} />
@@ -177,6 +189,7 @@ const styles = StyleSheet.create({
   card: {
     padding: width(4),
     borderRadius: 12,
+    marginBottom: width(2),
     backgroundColor: COLORS.backgroundLight,
   },
   title: {
