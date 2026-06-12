@@ -359,7 +359,10 @@ const TrackingBookingDetails = ({navigation, route}) => {
         participants: formatedParticipants(conversation?.participants),
       };
       dispatch(setActiveChat(finalChatData));
-      navigation.navigate('ChatDetails', finalChatData);
+      navigation.navigate('ChatFlow', {
+        screen: 'ChatDetails',
+        params: finalChatData,
+      });
     } catch (e) {
       Alert.alert(t('Error'), t('Could not open chat. Please try again.'));
     }

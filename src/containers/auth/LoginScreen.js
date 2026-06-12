@@ -262,7 +262,7 @@ const LoginScreen = ({navigation, route}) => {
               keyboardType="default"
               autoCapitalize="none"
               secure={showPassword}
-              endIcon={ICONS.eyeIcon}
+              passwordToggle
               onEndIconPress={() => setShowPassword(!showPassword)}
             />
             <View style={{height: 10}} />

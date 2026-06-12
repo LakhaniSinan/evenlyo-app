@@ -770,6 +770,13 @@ function ProfileManagement({navigation, route}) {
             mainCategories: categoryIdsForPayload,
             subCategories: subCategoryIdsForPayload,
             businessName: dataToUse.companyName || user?.businessName,
+            vendorDetails: {
+              ...(user?.vendorDetails || {}),
+              businessLogo:
+                dataToUse.businessLogo ||
+                user?.vendorDetails?.businessLogo ||
+                null,
+            },
           };
           dispatch(setUserData(updatedUser));
           await AsyncStorage.setItem('userData', JSON.stringify(updatedUser));

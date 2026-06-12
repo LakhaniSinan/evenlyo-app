@@ -173,9 +173,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
             pricingType: priceType?.name || '',
             cost: toEditData?.pricing?.amount?.toString() || '',
             extraTimeCost:
-              priceType?.name === 'Per Hour'
-                ? ''
-                : toEditData?.pricing?.extratimeCost?.toString() || '',
+              toEditData?.pricing?.extratimeCost?.toString() || '',
             perKm: toEditData?.pricing?.pricePerKm?.toString() || '',
             securityFeeAmount:
               toEditData?.pricing?.securityFee?.toString() || '',
@@ -282,7 +280,6 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       setFormData(prev => ({
         ...prev,
         pricingType: value,
-        extraTimeCost: value === 'Per Hour' ? '' : prev.extraTimeCost,
       }));
     } else {
       setFormData(prev => ({...prev, [key]: value}));
@@ -369,7 +366,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       );
     }
     if (
-      pricingType !== 'Per Hour' &&
+      pricingType === 'Per Hour' &&
       (!isNonEmpty(extraTimeCost) ||
         !isValidAmount(extraTimeCost, {allowZero: true}))
     ) {
@@ -410,7 +407,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         type: pricingType,
         amount: Number(cost),
         extratimeCost:
-          pricingType === 'Per Hour' ? '' : Number(extraTimeCost) || '',
+          pricingType === 'Per Hour' ? Number(extraTimeCost) || 0 : 0,
         pricePerKm: Number(perKm) || '',
         securityFee: isCheck ? Number(securityFeeAmount) : 0,
       },
@@ -557,10 +554,8 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         <TouchableOpacity
           style={styles.removeButton}
           onPress={() => {
-            setter(prev => {
-              const updated = prev.filter((_, i) => i !== index);
-              return [...updated];
-            });
+            const updated = mediaList.filter((_, i) => i !== index);
+            setter(updated);
           }}>
           <Image
             source={ICONS.redcross}
@@ -644,7 +639,9 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
           ]}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>{t('Add New Listing')}</Text>
+            <Text style={styles.title}>
+              {toEditData ? t('Update Listing') : t('Add New Listing')}
+            </Text>
             <TouchableOpacity onPress={closeModal}>
               <Icon name="close" size={24} color="#333" />
             </TouchableOpacity>
@@ -787,7 +784,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                 </View>
               </View>
 
-              {formData.pricingType !== 'Per Hour' && (
+              {formData.pricingType === 'Per Hour' && (
                 <TextField
                   label={t('Extra Time Cost')}
                   placeholder={t('Extra Time Cost')}

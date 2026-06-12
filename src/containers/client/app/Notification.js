@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   FlatList,
   Image,
@@ -6,40 +6,97 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from 'react-native';
-import { width } from 'react-native-dimension';
-import { ICONS, IMAGES } from '../../../assets';
-import FilterModal from '../../../components/modals/FilterModal';
-import TextField from '../../../components/textInput';
-import { COLORS, fontFamly } from '../../../constants';
-import { useTranslation } from '../../../hooks';
+import {width} from 'react-native-dimension';
+import {ICONS} from '../../../assets';
+import {COLORS, fontFamly} from '../../../constants';
+import {useTranslation} from '../../../hooks';
 import useNotifications from '../../../hooks/notifications';
-import { formatRelativeTime } from '../../../utils';
+import {markClientNotificationAsRead} from '../../../services/Notifications';
+import {formatRelativeTime} from '../../../utils';
 
-const Notification = ({ navigation }) => {
-  const [isModalVisible, setModalVisible] = useState(false);
-  const { t, currentLanguage } = useTranslation();
-  const { fetchNotifications, loading, notification } = useNotifications();
+const Notification = ({navigation}) => {
+  const {t, currentLanguage} = useTranslation();
+  const {fetchNotifications, loading, notification, setNotificaiton} =
+    useNotifications();
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Skeleton items for loading
   const skeletonData = useMemo(() => Array(6).fill({}), []);
 
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  const handleItemPress = useCallback(
-    () => navigation.navigate('NotificationDetails'),
-    [navigation],
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchNotifications({isRefresh: true});
+    setRefreshing(false);
+  }, [fetchNotifications]);
+
+  const getLocalizedField = useCallback(
+    (field, language = currentLanguage) => {
+      if (!field) {
+        return '';
+      }
+      if (typeof field === 'string') {
+        return field.trim();
+      }
+      const primary = language === 'en' ? field?.en : field?.nl;
+      const fallback = language === 'en' ? field?.nl : field?.en;
+      return String(primary || fallback || '').trim();
+    },
+    [currentLanguage],
+  );
+
+  const handleNotificationPress = useCallback(
+    async item => {
+      if (!item?._id) {
+        return;
+      }
+
+      const isRead = Boolean(item?.isClientRead ?? item?.isRead);
+
+      if (!isRead) {
+        setNotificaiton(prev =>
+          prev.map(notificationItem =>
+            notificationItem._id === item._id
+              ? {...notificationItem, isClientRead: true, isRead: true}
+              : notificationItem,
+          ),
+        );
+
+        try {
+          await markClientNotificationAsRead(item._id);
+        } catch (error) {
+          console.log('markClientNotificationAsRead error:', error);
+        }
+      }
+
+      const bookingId = item?.bookingId;
+      if (!bookingId) {
+        return;
+      }
+
+      const parent = navigation.getParent?.();
+      if (parent) {
+        parent.navigate('Calendar', {
+          screen: 'BookingDetails',
+          params: {_id: String(bookingId)},
+        });
+        return;
+      }
+
+      navigation.navigate('BookingDetails', {_id: String(bookingId)});
+    },
+    [navigation, setNotificaiton],
   );
 
   const renderItem = useCallback(
-    ({ item, index }) => {
+    ({item}) => {
       if (loading) {
         return (
           <View style={styles.itemContainer}>
-            <View style={[styles.imageWrapper, { backgroundColor: '#eee' }]} />
+            <View style={[styles.imageWrapper, {backgroundColor: '#eee'}]} />
             <View style={styles.messageContainer}>
               <View
                 style={{
@@ -63,8 +120,13 @@ const Notification = ({ navigation }) => {
         );
       }
 
+      const isUnread = !(item?.isClientRead ?? item?.isRead);
+
       return (
-        <View style={styles.itemContainer} onPress={handleItemPress}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={styles.itemContainer}
+          onPress={() => handleNotificationPress(item)}>
           <View style={styles.leftContainer}>
             <View style={styles.imageWrapper}>
               <Image
@@ -72,13 +134,13 @@ const Notification = ({ navigation }) => {
                 source={ICONS.notificationIcon}
                 resizeMode="contain"
               />
-              {!item?.isRead && <View style={styles.statusDot} />}
+              {isUnread && <View style={styles.statusDot} />}
             </View>
 
             <View style={styles.messageContainer}>
               <View style={styles.titleRow}>
                 <Text style={styles.titleText}>
-                  {currentLanguage === 'en' ? item?.title?.en : item?.title?.nl}
+                  {getLocalizedField(item?.title)}
                 </Text>
                 <View style={styles.rightContainer}>
                   <Text style={styles.timeText}>
@@ -92,65 +154,47 @@ const Notification = ({ navigation }) => {
                 </View>
               </View>
               <Text style={styles.subHeading}>
-                {currentLanguage === 'en'
-                  ? item?.message?.en
-                  : item?.message?.nl}
+                {getLocalizedField(item?.message)}
               </Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       );
     },
-    [handleItemPress, loading, currentLanguage],
+    [getLocalizedField, handleNotificationPress, loading],
   );
 
   return (
-    <>
-      <FlatList
-        keyExtractor={(_, index) => index.toString()}
-        ListHeaderComponent={
-          <View style={styles.headerContainer}>
-            <View style={styles.headerTop}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Image
-                  resizeMode="contain"
-                  style={styles.backIcon}
-                  source={ICONS.leftArrowIcon}
-                />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>{t('Notifications')}</Text>
-              <View style={styles.headerSpacer} />
-            </View>
-
-            {/* <View style={styles.searchContainer}>
-              <TextField
-                placeholder={t('searchEvent')}
-                placeholderTextColor="#aaa"
-                bgColor={COLORS.white}
-                startIcon={ICONS.search}
-                inputContainer={styles.inputContainer}
-                styleProps={styles.inputText}
+    <FlatList
+      keyExtractor={(item, index) => item?._id || index.toString()}
+      ListHeaderComponent={
+        <View style={styles.headerContainer}>
+          <View style={styles.headerTop}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Image
+                resizeMode="contain"
+                style={styles.backIcon}
+                source={ICONS.leftArrowIcon}
               />
-            </View> */}
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{t('Notifications')}</Text>
+            <View style={styles.headerSpacer} />
           </View>
-        }
-        data={loading ? skeletonData : notification}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          !loading && (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{t('No Notifications')}</Text>
-            </View>
-          )
-        }
-      />
-
-      <FilterModal
-        isVisible={isModalVisible}
-        onClose={() => setModalVisible(false)}
-      />
-    </>
+        </View>
+      }
+      data={loading ? skeletonData : notification}
+      renderItem={renderItem}
+      contentContainerStyle={styles.listContent}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      ListEmptyComponent={
+        !loading && (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>{t('No Notifications')}</Text>
+          </View>
+        )
+      }
+    />
   );
 };
 
@@ -171,31 +215,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  backIcon: { width: 40, height: 40 },
+  backIcon: {width: 40, height: 40},
   headerTitle: {
     fontFamily: fontFamly.PlusJakartaSansBold,
     fontSize: 16,
     color: COLORS.black,
   },
-  headerSpacer: { width: 40 },
-  searchContainer: {
-    flex: 1,
-    width: '100%',
-    paddingLeft: width(4),
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: width(3),
-    justifyContent: 'space-between',
-  },
-  inputContainer: {
-    paddingVertical: 0,
-    paddingHorizontal: 10,
-    height: 45,
-    width: '95%',
-    marginTop: 0,
-  },
-  inputText: { fontSize: 14, color: '#000' },
-  listContent: { paddingBottom: 10 },
+  headerSpacer: {width: 40},
+  listContent: {paddingBottom: 10},
   emptyContainer: {
     padding: 30,
     alignItems: 'center',
@@ -210,7 +237,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
     alignItems: 'center',
   },
-  leftContainer: { flexDirection: 'row' },
+  leftContainer: {flexDirection: 'row', flex: 1},
   imageWrapper: {
     height: width(13),
     width: width(13),
@@ -220,7 +247,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  image: { height: '100%', width: '100%', borderRadius: 100 },
+  image: {height: '100%', width: '100%', borderRadius: 100},
   statusDot: {
     position: 'absolute',
     bottom: 0,
@@ -263,7 +290,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginHorizontal: width(1),
   },
-  bellIcon: { height: width(3), width: width(3), marginTop: width(1) },
+  bellIcon: {height: width(3), width: width(3), marginTop: width(1)},
 });
 
 export default Notification;

@@ -1,6 +1,13 @@
+import notifee, {EventType} from '@notifee/react-native';
 import {useEffect} from 'react';
 import {displayPushNotification} from '../utils/displayNotification';
 import {getMessagingOrNull} from '../utils/firebaseMessagingSafe';
+import {navigateFromNotificationData} from '../utils/notificationNavigation';
+
+const handleOpenedNotification = remoteMessage => {
+  const data = remoteMessage?.data || {};
+  navigateFromNotificationData(data);
+};
 
 const useFirebaseMessaging = () => {
   useEffect(() => {
@@ -9,9 +16,27 @@ const useFirebaseMessaging = () => {
       return undefined;
     }
 
-    msg.getInitialNotification().catch(console.error);
+    msg
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          handleOpenedNotification(remoteMessage);
+        }
+      })
+      .catch(console.error);
 
-    const unsubscribeOpened = msg.onNotificationOpenedApp(() => {});
+    notifee
+      .getInitialNotification()
+      .then(initialNotification => {
+        if (initialNotification?.notification?.data) {
+          navigateFromNotificationData(initialNotification.notification.data);
+        }
+      })
+      .catch(console.error);
+
+    const unsubscribeOpened = msg.onNotificationOpenedApp(remoteMessage => {
+      handleOpenedNotification(remoteMessage);
+    });
 
     const unsubscribeForeground = msg.onMessage(async remoteMessage => {
       const notification = remoteMessage.notification || {};
@@ -28,9 +53,18 @@ const useFirebaseMessaging = () => {
       }
     });
 
+    const unsubscribeNotifeeForeground = notifee.onForegroundEvent(
+      ({type, detail}) => {
+        if (type === EventType.PRESS) {
+          navigateFromNotificationData(detail?.notification?.data);
+        }
+      },
+    );
+
     return () => {
       unsubscribeOpened();
       unsubscribeForeground();
+      unsubscribeNotifeeForeground();
     };
   }, []);
 };

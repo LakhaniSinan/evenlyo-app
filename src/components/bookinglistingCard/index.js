@@ -38,7 +38,7 @@ const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
           <View style={styles.headerRow}>
             <View style={styles.statusBadge}>
               <Text style={styles.statusText}>
-                {moment(item?.date).format('MMM DD,YYYY')}
+                {moment(item?.date).format('DD-MMM-YYYY')}
               </Text>
               <View style={{flexDirection: 'row'}}>
                 {/* <TouchableOpacity
@@ -62,13 +62,19 @@ const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
             </View>
           </View>
           <Text style={styles.name} numberOfLines={1}>
-            {currentLanguage ? item?.title?.en : item?.title?.nl}
+            {currentLanguage === 'en'
+              ? item?.title?.en
+              : item?.title?.nl}
           </Text>
           <Text style={styles.buttonText} numberOfLines={1}>
-            {currentLanguage ? item?.subtitle?.en : item?.subtitle?.nl}
+            {currentLanguage === 'en'
+              ? item?.subtitle?.en
+              : item?.subtitle?.nl}
           </Text>
           <Text style={styles.buttonText} numberOfLines={2}>
-            {currentLanguage ? item?.description?.en : item?.description?.nl}
+            {currentLanguage === 'en'
+              ? item?.description?.en
+              : item?.description?.nl}
           </Text>
         </View>
         <View style={styles.footer}>
@@ -88,9 +94,7 @@ const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
           </TouchableOpacity>
           <View style={styles.priceContainer}>
             <Text style={styles.price}>
-              {item.pricing?.totalPrice?.toFixed(2) ||
-                item?.pricing?.amount?.toFixed(2) ||
-                0}
+              €{(item?.pricing?.amount ?? 0).toFixed(2)}
             </Text>
             <Text style={styles.perEvent}>{pricingTypeLabel}</Text>
           </View>

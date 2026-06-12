@@ -1,7 +1,8 @@
 // CreateCustomOffer.js
-import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
+  BackHandler,
   FlatList,
   Image,
   SafeAreaView,
@@ -51,6 +52,23 @@ const CreateCustomOffer = ({route}) => {
   useEffect(() => {
     handleGetVendorCategories();
   }, [modalVisible]);
+
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        () => {
+          handleGoBack();
+          return true;
+        },
+      );
+      return () => subscription.remove();
+    }, [handleGoBack]),
+  );
 
   const handleGetVendorCategories = async () => {
     try {
@@ -245,7 +263,7 @@ const CreateCustomOffer = ({route}) => {
       <AppHeader
         headingText={t('Create Custom offer')}
         leftIcon={ICONS.leftArrowIcon}
-        onLeftIconPress={() => navigation.goBack()}
+        onLeftIconPress={handleGoBack}
       />
 
       {!offerItems?.length > 0 ? (

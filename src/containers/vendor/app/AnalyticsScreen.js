@@ -67,13 +67,14 @@ const AnalyticsReport = () => {
       {
         titleKey: 'Today Earning:',
         icon: ICONS.earningIcon,
-        value: analyticsReport?.stats?.todayEarnings,
+        value: analyticsReport?.stats?.todayEarnings ?? 0,
         percentage: 10,
       },
       {
         titleKey: 'Last Week Earning:',
         icon: ICONS.dollerSignIcon,
-        value: analyticsReport?.stats?.lastWeekEarnings,
+        iconTint: COLORS.primary,
+        value: analyticsReport?.stats?.lastWeekEarnings ?? 0,
         percentage: 10,
       },
     ],
@@ -116,6 +117,7 @@ const AnalyticsReport = () => {
       //     ? await getBookingAnalytic()
       //     : await getAnalyticsReport();
       const response = await getBookingAnalytic();
+      console.log(response, 'responseresponseresponseresponseresponse');
 
       if (response?.status === 200 || response?.status === 201) {
         setAnalyticsReport(response.data);
@@ -139,6 +141,14 @@ const AnalyticsReport = () => {
 
   const handleFilterPress = useCallback(() => setModalVisible(true), []);
   const hasSelectedBookings = selectedBookings.length > 0;
+
+  const earningsChartData = useMemo(
+    () => [
+      ...(analyticsReport?.monthlyEarningsDaily || []),
+      ...(analyticsReport?.monthlyEarnings || []),
+    ],
+    [analyticsReport?.monthlyEarnings, analyticsReport?.monthlyEarningsDaily],
+  );
 
   const parseDate = value => {
     if (!value) return null;
@@ -231,7 +241,8 @@ const AnalyticsReport = () => {
 
   const safeCsvValue = value => `"${String(value ?? '-').replace(/"/g, '""')}"`;
 
-  const normalizeFilePath = path => String(path || '').replace(/^file:\/\//, '');
+  const normalizeFilePath = path =>
+    String(path || '').replace(/^file:\/\//, '');
 
   const escapeHtml = value =>
     String(value ?? '-')
@@ -279,13 +290,19 @@ const AnalyticsReport = () => {
         const bookingItem = getListingTitle(item);
         const totalCost = `€${item?.pricingBreakdown?.total ?? 0}`;
         const bookingDate = formatDate(item?.createdAt);
-        const duration = `${item?.details?.duration?.totalHours ?? 0} ${t('hours')}`;
+        const duration = `${item?.details?.duration?.totalHours ?? 0} ${t(
+          'hours',
+        )}`;
         const location =
-          item?.eventLocation || item?.details?.eventLocation || t('notAvailable');
+          item?.eventLocation ||
+          item?.details?.eventLocation ||
+          t('notAvailable');
         return [
           safeCsvValue(item?.trackingId || t('notAvailable')),
           safeCsvValue(bookingItem),
-          safeCsvValue(item?.userId?._id || item?.client?._id || t('notAvailable')),
+          safeCsvValue(
+            item?.userId?._id || item?.client?._id || t('notAvailable'),
+          ),
           safeCsvValue(totalCost),
           safeCsvValue(bookingDate),
           safeCsvValue(getStatusLabel(item?.status)),
@@ -352,11 +369,15 @@ const AnalyticsReport = () => {
             <tr>
               <td>${escapeHtml(item?.trackingId || t('notAvailable'))}</td>
               <td>${escapeHtml(getListingTitle(item))}</td>
-              <td>${escapeHtml(item?.userId?._id || item?.client?._id || t('notAvailable'))}</td>
+              <td>${escapeHtml(
+                item?.userId?._id || item?.client?._id || t('notAvailable'),
+              )}</td>
               <td>${escapeHtml(`€${item?.pricingBreakdown?.total ?? 0}`)}</td>
               <td>${escapeHtml(formatDate(item?.createdAt))}</td>
               <td>${escapeHtml(getStatusLabel(item?.status))}</td>
-              <td>${escapeHtml(`${item?.details?.duration?.totalHours ?? 0}h`)}</td>
+              <td>${escapeHtml(
+                `${item?.details?.duration?.totalHours ?? 0}h`,
+              )}</td>
               <td>${escapeHtml(
                 item?.eventLocation ||
                   item?.details?.eventLocation ||
@@ -392,15 +413,25 @@ const AnalyticsReport = () => {
                 <div class="logoBox">E</div>
                 <div class="brandName">Evenlyo</div>
               </div>
-              <div class="reportTitle">${escapeHtml(t('Selected Bookings Report'))}</div>
+              <div class="reportTitle">${escapeHtml(
+                t('Selected Bookings Report'),
+              )}</div>
             </div>
             <div class="sectionTitle">${escapeHtml(t('Report Summary'))}</div>
             <table class="summary">
-              <tr><td class="summaryLabel">${escapeHtml(t('Report Date'))}</td><td>${escapeHtml(reportDate)}</td></tr>
-              <tr><td class="summaryLabel">${escapeHtml(t('Item Type'))}</td><td>${escapeHtml(t('Booking'))}</td></tr>
-              <tr><td class="summaryLabel">${escapeHtml(t('Total Items'))}</td><td>${selectedBookings.length}</td></tr>
+              <tr><td class="summaryLabel">${escapeHtml(
+                t('Report Date'),
+              )}</td><td>${escapeHtml(reportDate)}</td></tr>
+              <tr><td class="summaryLabel">${escapeHtml(
+                t('Item Type'),
+              )}</td><td>${escapeHtml(t('Booking'))}</td></tr>
+              <tr><td class="summaryLabel">${escapeHtml(
+                t('Total Items'),
+              )}</td><td>${selectedBookings.length}</td></tr>
             </table>
-            <div class="sectionTitle">${escapeHtml(t('Selected Bookings'))}</div>
+            <div class="sectionTitle">${escapeHtml(
+              t('Selected Bookings'),
+            )}</div>
             <table>
               <thead>
                 <tr>
@@ -419,7 +450,9 @@ const AnalyticsReport = () => {
               </tbody>
             </table>
             <div class="footer">
-              <span>${escapeHtml(t('Generated on:'))} ${escapeHtml(generatedAt)}</span>
+              <span>${escapeHtml(t('Generated on:'))} ${escapeHtml(
+        generatedAt,
+      )}</span>
               <span>${escapeHtml(t('Page 1'))}</span>
             </div>
           </body>
@@ -531,11 +564,11 @@ const AnalyticsReport = () => {
       />
 
       <FlatList
-        data={DUMMY_DASHBOARD_DATA} // Only FlatList for vertical scroll
+        data={DUMMY_DASHBOARD_DATA}
         keyExtractor={(_, index) => index.toString()}
         numColumns={2}
         columnWrapperStyle={styles.dashboardColumns}
-        contentContainerStyle={{paddingBottom: 50}} // Bottom spacing
+        contentContainerStyle={{paddingBottom: 50}}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -555,19 +588,22 @@ const AnalyticsReport = () => {
                 paddingHorizontal: width(3),
                 marginTop: width(2),
               }}>
-              {DUMMY_DASHBOARD_DATA?.map(item => {
-                return <AnalyticsCard item={item} />;
-              })}
+              {DUMMY_DASHBOARD_DATA?.map((item, index) => (
+                <AnalyticsCard key={index.toString()} item={item} />
+              ))}
             </View>
 
             <View style={styles.totalEarningCard}>
               <View style={styles.totalEarningHeader}>
-                <Text style={styles.totalEarningLabel}>{t('Total Earning:')}</Text>
+                <Text style={styles.totalEarningLabel}>
+                  {t('Total Earning:')}
+                </Text>
                 <View style={styles.totalEarningIconContainer}>
                   <Image
                     source={ICONS.incrimentIcon}
                     resizeMode="contain"
                     style={styles.totalEarningIcon}
+                    tintColor={COLORS.primary}
                   />
                 </View>
               </View>
@@ -584,7 +620,7 @@ const AnalyticsReport = () => {
                 //     : 'Sale Earnings'
                 // }
                 labelll={t('Orders Overview')}
-                data={analyticsReport?.monthlyEarnings || []}
+                data={earningsChartData}
               />
             </View>
 
@@ -596,6 +632,7 @@ const AnalyticsReport = () => {
                     : t('Sale Earnings')
                 }
                 data={analyticsReport?.earningsByCategory || []}
+                monthlyData={analyticsReport?.earningsByCategoryMonthly || []}
                 loading={refreshing}
               />
             </View>

@@ -71,6 +71,8 @@ export const endPoints = {
   //Notifications
   notifications: '/notifications',
   vendorNotifications: '/notifications/vendor-notifications',
+  markVendorNotificationRead: id => `/notifications/${id}/read`,
+  markClientNotificationRead: id => `/notifications/${id}/client-read`,
 
   //Vendors APIS
   //Dashboard
@@ -85,6 +87,7 @@ export const endPoints = {
   acceptBooking: '/vendor/bookings',
   update: '/vendor/tracking',
   bookingByStatus: '/booking/request-by-status',
+  bookingByDate: '/booking/request-by-date',
 
   //Analytics
   bookingAnalytics: '/vendor/bookings/analytics',

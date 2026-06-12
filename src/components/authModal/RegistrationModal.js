@@ -288,7 +288,7 @@ const RegistrationModal = ({ onClose, isVisible, handlePressFun }) => {
                   value={formData.password}
                   onChangeText={val => handleInputChange('password', val)}
                   secure={showPassword}
-                  endIcon={ICONS.eyeIcon}
+                  passwordToggle
                   onEndIconPress={() => setShowPassword(prev => !prev)}
                 />
               </View>
@@ -304,7 +304,7 @@ const RegistrationModal = ({ onClose, isVisible, handlePressFun }) => {
                     handleInputChange('confirmPassword', val)
                   }
                   secure={showPassword}
-                  endIcon={ICONS.eyeIcon}
+                  passwordToggle
                   onEndIconPress={() => setShowPassword(prev => !prev)}
                 />
               </View>

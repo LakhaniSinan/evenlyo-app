@@ -5,9 +5,19 @@ import { width } from 'react-native-dimension';
 import { COLORS, fontFamly } from '../../constants';
 import { useTranslation } from '../../hooks';
 
+const getActivityTypeLabel = (type, translate) => {
+  if (!type) {
+    return '';
+  }
+  const key = `activityType_${type}`;
+  const translated = translate(key);
+  return translated === key ? type.replace(/_/g, ' ') : translated;
+};
+
 const ActivityLogCard = ({item, index, dataLength}) => {
-  const {currentLanguage} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const isLastItem = index === dataLength - 1;
+  const typeLabel = getActivityTypeLabel(item?.type, t);
 
   const formattedTime = moment(item?.createdAt).format(
     'MMM DD, YYYY | hh:mm A',
@@ -36,7 +46,7 @@ const ActivityLogCard = ({item, index, dataLength}) => {
               : item?.description?.nl}
           </Text>
           <View style={styles.rowBetween}>
-            <Text style={styles.type}>{item?.type?.replace(/_/g, ' ')}</Text>
+            <Text style={styles.type}>{typeLabel}</Text>
             <Text style={styles.time}>{formattedTime}</Text>
           </View>
         </View>
@@ -95,7 +105,6 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: COLORS.primary,
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
-    textTransform: 'capitalize',
   },
   time: {
     fontSize: 9,

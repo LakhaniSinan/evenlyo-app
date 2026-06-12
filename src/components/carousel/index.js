@@ -1,39 +1,71 @@
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {Image, StyleSheet, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import Carousel from 'react-native-snap-carousel';
-import {COLORS} from '../../constants';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {COLORS} from '../../constants';
+
+const CAROUSEL_HEIGHT = width(80);
+const CAROUSEL_VERTICAL_MARGIN = width(2);
+const CAROUSEL_HORIZONTAL_MARGIN = width(2);
+const ARROW_SIZE = 36;
 
 const CarouselComponent = ({data = []}) => {
   const carouselRef = useRef(null);
   const [activeSlide, setActiveSlide] = useState(0);
 
-  /* ---------------- INDICATORS ---------------- */
+  const slides = useMemo(
+    () =>
+      (Array.isArray(data) ? data : [])
+        .map(item => {
+          if (!item) {
+            return null;
+          }
+          if (typeof item === 'string') {
+            return item.trim();
+          }
+          return (
+            item?.uri ||
+            item?.url ||
+            item?.secure_url ||
+            item?.image ||
+            ''
+          )
+            .toString()
+            .trim();
+        })
+        .filter(Boolean),
+    [data],
+  );
+
+  const hasMultipleSlides = slides.length > 1;
+  const wrapperHeight = CAROUSEL_HEIGHT + CAROUSEL_VERTICAL_MARGIN * 2;
+  const arrowTop = CAROUSEL_VERTICAL_MARGIN + (CAROUSEL_HEIGHT - ARROW_SIZE) / 2;
+
   const renderIndicators = () => (
     <View style={styles.indicatorContainer}>
-      {data.map((_, index) => {
+      {slides.map((_, index) => {
         const isActive = index === activeSlide;
         return (
           <View
             key={index}
             style={[styles.dotWrapper, isActive && styles.activeDotWrapper]}>
-            <View style={styles.dot} />
+            <View style={[styles.dot, isActive && styles.activeDot]} />
           </View>
         );
       })}
     </View>
   );
 
-  /* ---------------- RENDER ITEM ---------------- */
   const renderItem = ({item}) => (
     <View style={styles.card}>
       <Image source={{uri: item}} resizeMode="cover" style={styles.image} />
-      <View style={styles.indicatorWrapper}>{renderIndicators()}</View>
+      {hasMultipleSlides ? (
+        <View style={styles.indicatorWrapper}>{renderIndicators()}</View>
+      ) : null}
     </View>
   );
 
-  /* ---------------- BUTTON HANDLERS ---------------- */
   const goPrev = () => {
     if (activeSlide > 0) {
       carouselRef.current?.snapToItem(activeSlide - 1);
@@ -41,64 +73,86 @@ const CarouselComponent = ({data = []}) => {
   };
 
   const goNext = () => {
-    if (activeSlide < data.length - 1) {
+    if (activeSlide < slides.length - 1) {
       carouselRef.current?.snapToItem(activeSlide + 1);
     }
   };
 
-  return (
-    <View style={styles.container}>
-      {/* -------- LEFT BUTTON -------- */}
-      <TouchableOpacity
-        style={[styles.arrowButton, {left: 10}]}
-        onPress={goPrev}
-        disabled={activeSlide === 0}>
-        <Icon
-          name="chevron-back"
-          size={20}
-          color={activeSlide === 0 ? COLORS.border : COLORS.black}
-        />
-      </TouchableOpacity>
+  if (!slides.length) {
+    return <View style={[styles.wrapper, {height: wrapperHeight}]} />;
+  }
 
-      {/* -------- CAROUSEL -------- */}
+  return (
+    <View style={[styles.wrapper, {height: wrapperHeight}]}>
       <Carousel
         ref={carouselRef}
-        data={data}
+        data={slides}
         renderItem={renderItem}
         sliderWidth={width(100)}
         itemWidth={width(100)}
         onSnapToItem={index => setActiveSlide(index)}
+        inactiveSlideOpacity={1}
+        inactiveSlideScale={1}
       />
 
-      {/* -------- RIGHT BUTTON -------- */}
-      <TouchableOpacity
-        style={[styles.arrowButton, {right: 10}]}
-        onPress={goNext}
-        disabled={activeSlide === data.length - 1}>
-        <Icon
-          name="chevron-forward"
-          size={20}
-          color={activeSlide === data.length - 1 ? COLORS.border : COLORS.black}
-        />
-      </TouchableOpacity>
+      {hasMultipleSlides ? (
+        <>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={[
+              styles.arrowButton,
+              styles.arrowLeft,
+              {top: arrowTop},
+              activeSlide === 0 && styles.arrowButtonDisabled,
+            ]}
+            onPress={goPrev}
+            disabled={activeSlide === 0}>
+            <Icon
+              name="chevron-back"
+              size={22}
+              color={activeSlide === 0 ? COLORS.textLight : COLORS.textDark}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={[
+              styles.arrowButton,
+              styles.arrowRight,
+              {top: arrowTop},
+              activeSlide === slides.length - 1 && styles.arrowButtonDisabled,
+            ]}
+            onPress={goNext}
+            disabled={activeSlide === slides.length - 1}>
+            <Icon
+              name="chevron-forward"
+              size={22}
+              color={
+                activeSlide === slides.length - 1
+                  ? COLORS.textLight
+                  : COLORS.textDark
+              }
+            />
+          </TouchableOpacity>
+        </>
+      ) : null}
     </View>
   );
 };
 
 export default CarouselComponent;
 
-/* ---------------- STYLES ---------------- */
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
+    width: '100%',
     position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
+    overflow: 'hidden',
   },
   card: {
-    height: width(80),
+    height: CAROUSEL_HEIGHT,
     backgroundColor: COLORS.white,
-    margin: width(2),
+    marginHorizontal: CAROUSEL_HORIZONTAL_MARGIN,
+    marginVertical: CAROUSEL_VERTICAL_MARGIN,
     borderRadius: width(5),
     overflow: 'hidden',
   },
@@ -115,33 +169,50 @@ const styles = StyleSheet.create({
   indicatorContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: width(4),
+    marginBottom: width(3),
   },
   dotWrapper: {
-    marginHorizontal: width(1),
+    marginHorizontal: width(0.8),
+    padding: 2,
+    borderRadius: 100,
   },
   activeDotWrapper: {
     borderWidth: 1,
-    borderRadius: 100,
-    padding: width(1),
-    borderColor: COLORS.black,
+    borderColor: COLORS.white,
   },
   dot: {
     height: 7,
     width: 7,
-    backgroundColor: COLORS.black,
+    backgroundColor: 'rgba(255,255,255,0.55)',
     borderRadius: 10,
+  },
+  activeDot: {
+    backgroundColor: COLORS.white,
   },
   arrowButton: {
     position: 'absolute',
-    top: '45%',
-    zIndex: 999,
-    backgroundColor: 'rgba(255,255,255,0.8)',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    zIndex: 20,
+    backgroundColor: COLORS.white,
+    width: ARROW_SIZE,
+    height: ARROW_SIZE,
+    borderRadius: ARROW_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.08)',
+  },
+  arrowButtonDisabled: {
+    opacity: 0.55,
+  },
+  arrowLeft: {
+    left: width(4),
+  },
+  arrowRight: {
+    right: width(4),
   },
 });

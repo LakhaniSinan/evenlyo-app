@@ -4,16 +4,19 @@ import {width} from 'react-native-dimension';
 import {useSelector} from 'react-redux';
 import {ICONS, IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
-import useTranslation from '../../hooks/useTranslation';
 import LanguageModal from '../languageModal';
 
 const Header = ({languageModal, showBack, onBackPress}) => {
   const [showLanguageModal, setShowLanguageModal] = useState(false);
-  const {t} = useTranslation();
-  const {currentLanguage} = useSelector(state => state.LanguageSlice);
+  const {currentLanguage, availableLanguages} = useSelector(
+    state => state.LanguageSlice,
+  );
 
   const getLanguageDisplayName = () => {
-    return currentLanguage === 'en' ? t('english') : t('dutch');
+    const language = availableLanguages.find(
+      lang => lang.code === currentLanguage,
+    );
+    return language?.name || 'English';
   };
 
   const languageChip = languageModal ? (

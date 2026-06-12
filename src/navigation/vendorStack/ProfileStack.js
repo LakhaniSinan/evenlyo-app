@@ -9,8 +9,8 @@ import Settings from '../../containers/vendor/app/Settings';
 import Notification from '../../containers/vendor/app/Notification';
 import NotificationDetails from '../../containers/vendor/app/NotificationDetails';
 import Messages from '../../containers/vendor/app/Messages';
-import ChatDetails from '../../containers/vendor/app/ChatDetails';
 import AnalyticsReport from '../../containers/vendor/app/AnalyticsScreen';
+import ChatFlowStack from './ChatFlowStack';
 
 const Stack = createStackNavigator();
 
@@ -83,6 +83,13 @@ const ProfileStack = () => {
         component={Messages}
         options={{
           title: 'Messages',
+        }}
+      />
+      <Stack.Screen
+        name="ChatFlow"
+        component={ChatFlowStack}
+        options={{
+          title: 'ChatFlow',
         }}
       />
 

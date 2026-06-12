@@ -6,47 +6,18 @@ const DashboardCard = ({item}) => {
   return (
     <View style={styles.cardOuter}>
       <View style={styles.plainCard}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            width: '100%',
-            justifyContent: 'space-between',
-          }}>
-          <Text
-            style={{
-              fontFamily: fontFamly.PlusJakartaSansSemiBold,
-              fontSize: 10,
-              color: COLORS.textDark,
-            }}>
-            {item?.title}
-          </Text>
-          <View
-            style={{
-              width: 22.32,
-              height: 22.32,
-              borderRadius: 6,
-              borderWidth: 2,
-              borderColor: COLORS.border,
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: COLORS.white,
-            }}>
+        <View style={styles.headerRow}>
+          <Text style={styles.titleText}>{item?.title}</Text>
+          <View style={styles.iconContainer}>
             <Image
               source={item.icon}
               resizeMode="contain"
-              style={{width: 10, height: 10}}
+              style={styles.iconImage}
+              tintColor={item?.iconTint}
             />
           </View>
         </View>
-        <Text
-          style={{
-            fontFamily: fontFamly.PlusJakartaSansBold,
-            fontSize: 16,
-            color: COLORS.textDark,
-          }}>
-          {item?.value}
-        </Text>
+        <Text style={styles.valueText}>{item?.value}</Text>
       </View>
     </View>
   );
@@ -76,5 +47,35 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.backgroundLight,
     padding: width(2),
     borderRadius: width(3),
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+  titleText: {
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
+    fontSize: 10,
+    color: COLORS.textDark,
+  },
+  iconContainer: {
+    width: 22.32,
+    height: 22.32,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+  },
+  iconImage: {
+    width: 10,
+    height: 10,
+  },
+  valueText: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 16,
+    color: COLORS.textDark,
   },
 });

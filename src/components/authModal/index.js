@@ -208,7 +208,7 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
               onChangeText={text => handleInputChange('password', text)}
               secure={!showPassword}
               autoCapitalize="none"
-              endIcon={ICONS.eyeIcon}
+              passwordToggle
               onEndIconPress={() => setShowPassword(prev => !prev)}
             />
             <TouchableOpacity

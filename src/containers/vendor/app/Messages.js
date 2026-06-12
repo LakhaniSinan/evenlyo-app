@@ -309,7 +309,10 @@ const Messages = ({navigation}) => {
   const handleSelectChat = useCallback(
     item => {
       dispatch(setActiveChat(item));
-      navigation.navigate('ChatDetails', item);
+      navigation.navigate('ChatFlow', {
+        screen: 'ChatDetails',
+        params: item,
+      });
     },
     [dispatch, navigation],
   );
@@ -360,7 +363,7 @@ const Messages = ({navigation}) => {
           </View>
 
           <Text style={styles.lastMessage} numberOfLines={1}>
-            {item?.lastMessage || t('messagesNoMessagesYet')}
+            {(item?.lastMessage || '').trim() || t('messagesNoMessagesYet')}
           </Text>
         </View>
       </TouchableOpacity>

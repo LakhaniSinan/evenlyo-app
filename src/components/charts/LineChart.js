@@ -12,6 +12,30 @@ const FILTER_MONTHLY = 'Monthly';
 const FILTER_SIX_MONTHS = '6 Months';
 const FILTER_YEARLY = 'Yearly';
 
+const toChartNumber = value => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+};
+
+const alignChartSeries = (labels, values) => {
+  const length = Math.max(labels.length, values.length, 2);
+  const alignedLabels = Array.from({length}, (_, index) => labels[index] ?? '');
+  const alignedValues = Array.from({length}, (_, index) =>
+    toChartNumber(values[index]),
+  );
+
+  return {labels: alignedLabels, values: alignedValues};
+};
+
+const getMonthSeries = (count, locale) =>
+  Array.from({length: count}, (_, index) => {
+    const monthMoment = moment().subtract(count - 1 - index, 'months');
+    return {
+      month: monthMoment.month() + 1,
+      label: monthMoment.locale(locale).format('MMM'),
+    };
+  });
+
 const LineChartComponent = ({data = []}) => {
   const {t, currentLanguage} = useTranslation();
   const selectSizeRef = useRef();
@@ -40,40 +64,108 @@ const LineChartComponent = ({data = []}) => {
     : t('Orders Overview');
 
   const filteredData = useMemo(() => {
+    const locale = currentLanguage === 'nl' ? 'nl' : 'en';
     let labels = [];
     let dataset = [];
+    const dailySource = (data || []).filter(item => item?.date);
+    const monthlySource = (data || []).filter(item => item?.month != null);
+    const hasMonthField = monthlySource.length > 0;
+    const currentMonthStart = moment().startOf('month');
+    const currentMonthEnd = moment().endOf('month');
 
     if (filterType === FILTER_MONTHLY) {
       const daysInMonth = moment().daysInMonth();
       labels = Array.from({length: daysInMonth}, (_, i) => (i + 1).toString());
 
       dataset = labels.map(day => {
-        const dateStr = moment().date(day).format('YYYY-MM-DD');
-        const found = data.find(
-          item => moment(item.date).format('YYYY-MM-DD') === dateStr,
+        const dateStr = moment()
+          .startOf('month')
+          .date(day)
+          .format('YYYY-MM-DD');
+        const found = dailySource.find(
+          item =>
+            item?.date &&
+            moment(item.date).format('YYYY-MM-DD') === dateStr &&
+            moment(item.date).isBetween(
+              currentMonthStart,
+              currentMonthEnd,
+              'day',
+              '[]',
+            ),
         );
-        return found ? found[valueKey] || 0 : 0;
+        return toChartNumber(found?.[valueKey]);
       });
     } else if (filterType === FILTER_SIX_MONTHS) {
-      const last6 = data?.slice(-6) || [];
-      labels = monthLabels.slice(-6);
-      dataset = last6.map(item => item[valueKey] || 0);
+      const lastSixMonths = getMonthSeries(6, locale);
+      labels = lastSixMonths.map(item => item.label);
+      dataset = lastSixMonths.map(({month}, index) => {
+        const found = hasMonthField
+          ? monthlySource.find(item => item.month === month)
+          : data?.[Math.max(0, data.length - 6) + index];
+        return toChartNumber(found?.[valueKey]);
+      });
     } else if (filterType === FILTER_YEARLY) {
       labels = monthLabels;
-      dataset = data?.map(item => item[valueKey] || 0);
+      dataset = monthLabels.map((_, index) => {
+        const month = index + 1;
+        const found = hasMonthField
+          ? monthlySource.find(item => item.month === month)
+          : data[index];
+        return toChartNumber(found?.[valueKey]);
+      });
     }
 
-    return {
+    const {labels: safeLabels, values: safeValues} = alignChartSeries(
       labels,
+      dataset,
+    );
+
+    return {
+      labels: safeLabels,
       datasets: [
         {
-          data: dataset,
+          data: safeValues,
           color: (opacity = 1) => `rgba(255, 41, 93, ${opacity})`,
           strokeWidth: 3,
         },
       ],
     };
-  }, [filterType, data, monthLabels, valueKey]);
+  }, [filterType, data, monthLabels, valueKey, currentLanguage]);
+
+  const chartValues = filteredData.datasets[0]?.data || [];
+  const canUseBezier =
+    chartValues.length >= 2 &&
+    Math.max(...chartValues) !== Math.min(...chartValues);
+
+  const chartAxisConfig = useMemo(() => {
+    const maxValue = Math.max(...chartValues, 0);
+    const seenLabels = new Set();
+
+    const formatYLabel = label => {
+      const normalized = isEarnings
+        ? label
+        : String(Math.round(Number(label)));
+      if (seenLabels.has(normalized)) {
+        return '';
+      }
+      seenLabels.add(normalized);
+      return normalized;
+    };
+
+    if (isEarnings) {
+      return {segments: 4, formatYLabel};
+    }
+
+    if (maxValue <= 0) {
+      return {segments: 1, formatYLabel};
+    }
+
+    if (maxValue <= 6) {
+      return {segments: Math.ceil(maxValue), formatYLabel};
+    }
+
+    return {segments: 4, formatYLabel};
+  }, [chartValues, isEarnings]);
 
   const chartConfig = {
     backgroundGradientFrom: COLORS.backgroundLight,
@@ -145,7 +237,10 @@ const LineChartComponent = ({data = []}) => {
           width={chartWidth}
           height={250}
           chartConfig={chartConfig}
-          bezier
+          segments={chartAxisConfig.segments}
+          formatYLabel={chartAxisConfig.formatYLabel}
+          fromZero
+          bezier={canUseBezier}
           style={{
             borderRadius: 16,
             marginHorizontal: width(1.5),

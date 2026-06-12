@@ -16,6 +16,7 @@ import {
   KeyboardAvoidingView,
   PermissionsAndroid,
   Platform,
+  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -45,6 +46,7 @@ import {SocketContext} from '../../../context';
 import {helper} from '../../../helper';
 import {useTranslation} from '../../../hooks';
 import {conversationService, messageService} from '../../../services/Chat';
+import RNFetchBlob from 'rn-fetch-blob';
 
 const IMAGE_EXT_REGEX = /\.(jpg|jpeg|png|gif|webp|bmp|heic)(\?.*)?$/i;
 
@@ -143,7 +145,61 @@ const isMessageImage = attachment => {
 const isMessagePdf = attachment =>
   attachment?.type === 'file' ||
   attachment?.type?.includes?.('pdf') ||
-  attachment?.url?.toLowerCase?.().endsWith('.pdf');
+  attachment?.url?.toLowerCase?.().endsWith('.pdf') ||
+  attachment?.url?.includes?.('/raw/upload');
+
+const handleDownloadPDF = async (url, name = 'Document') => {
+  try {
+    if (!url) {
+      Alert.alert('Error', 'No PDF URL found.');
+      return;
+    }
+
+    if (Platform.OS === 'android') {
+      await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      );
+    }
+
+    const timeStamp = moment().format('YYYYMMDD_HHmmss');
+    const pdfFileName = `${(name || 'Document').replace(/\.pdf$/i, '')}_${timeStamp}.pdf`;
+    const isAndroid = Platform.OS === 'android';
+    const folderPath = isAndroid
+      ? RNFetchBlob.fs.dirs.DownloadDir
+      : RNFetchBlob.fs.dirs.DocumentDir;
+    const destinationPath = `${folderPath}/${pdfFileName}`;
+
+    const res = await RNFetchBlob.config({
+      trusty: true,
+      path: destinationPath,
+      fileCache: true,
+      appendExt: 'pdf',
+    }).fetch('GET', url);
+
+    if (res.info().status === 200 || res.info().status === 302) {
+      if (isAndroid) {
+        RNFetchBlob.android.addCompleteDownload({
+          title: pdfFileName,
+          description: 'PDF download',
+          mime: 'application/pdf',
+          path: destinationPath,
+          showNotification: true,
+        });
+        Alert.alert('Download Complete', `Saved to Downloads/${pdfFileName}`);
+      } else {
+        await Share.share({
+          url: `file://${destinationPath}`,
+          title: 'Share PDF Document',
+        });
+      }
+    } else {
+      Alert.alert('Error', 'Failed to download PDF.');
+    }
+  } catch (error) {
+    console.log('PDF Download Error:', error);
+    Alert.alert('Error', 'Something went wrong while downloading PDF.');
+  }
+};
 
 const ChatDetail = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
@@ -697,23 +753,6 @@ const ChatDetail = ({navigation, route}) => {
               styles.messageContainer,
               isOwn ? styles.myMessageContainer : styles.otherMessageContainer,
             ]}>
-            {!isOwn && (
-              <Image
-                resizeMode="contain"
-                source={
-                  conversation?.participants?.vendor?.photo &&
-                  String(conversation.participants.vendor.photo).trim()
-                    ? {
-                        uri: String(
-                          conversation.participants.vendor.photo,
-                        ).trim(),
-                      }
-                    : ICONS.userIcon
-                }
-                style={styles.messageAvatar}
-              />
-            )}
-
             {isOwn ? (
               isImage && imageUri ? (
                 <TouchableOpacity
@@ -756,10 +795,18 @@ const ChatDetail = ({navigation, route}) => {
                       <Text style={styles.sendingText}>{localizedText.sending}</Text>
                     ) : isPDF ? (
                       <View style={styles.myMessagePdf}>
-                        <Icon name="file-pdf-box" size={28} color="#FF0000" />
-                        <Text style={styles.myMessagePdfName} numberOfLines={1}>
-                          {attachment?.name || localizedText.pdfDocument}
-                        </Text>
+                        <View style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+                          <Icon name="file-pdf-box" size={28} color="#FF0000" />
+                          <Text style={styles.myMessagePdfName} numberOfLines={1}>
+                            {attachment?.name || localizedText.pdfDocument}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() =>
+                            handleDownloadPDF(attachment?.url, attachment?.name)
+                          }>
+                          <Icon name="download" size={28} color="#E31B95" />
+                        </TouchableOpacity>
                       </View>
                     ) : (
                       <Text style={styles.myMessageText}>{item.message}</Text>
@@ -795,21 +842,30 @@ const ChatDetail = ({navigation, route}) => {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
+                      justifyContent: 'space-between',
                       padding: 10,
                       backgroundColor: '#f4f4f4',
                       borderRadius: width(2),
                     }}>
-                    <Icon name="file-pdf-box" size={28} color="#FF0000" />
-                    <Text
-                      style={{
-                        marginLeft: 8,
-                        fontWeight: 'bold',
-                        color: '#000',
-                        maxWidth: width(60),
-                      }}
-                      numberOfLines={1}>
-                      {attachment?.name || localizedText.pdfDocument}
-                    </Text>
+                    <View style={{flexDirection: 'row', alignItems: 'center', flex: 1}}>
+                      <Icon name="file-pdf-box" size={28} color="#FF0000" />
+                      <Text
+                        style={{
+                          marginLeft: 8,
+                          fontWeight: 'bold',
+                          color: '#000',
+                          maxWidth: width(45),
+                        }}
+                        numberOfLines={1}>
+                        {attachment?.name || localizedText.pdfDocument}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() =>
+                        handleDownloadPDF(attachment?.url, attachment?.name)
+                      }>
+                      <Icon name="download" size={28} color="#E31B95" />
+                    </TouchableOpacity>
                   </View>
                 )}
                 {!attachment && !isOfferMessage && (

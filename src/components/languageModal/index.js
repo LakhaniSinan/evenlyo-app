@@ -40,7 +40,7 @@ const LanguageModal = ({visible, onClose}) => {
             styles.languageText,
             isSelected && styles.selectedLanguageText,
           ]}>
-          {t(item.code === 'en' ? 'english' : 'dutch')}
+          {item.name}
         </Text>
         <Text
           style={[

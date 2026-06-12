@@ -516,6 +516,8 @@ export default {
   // Bookings by status list (vendor)
   bookingsByStatusPageTitle: '{{status}} boekingen',
   bookingsByStatusEmpty: 'Geen boekingen gevonden voor "{{status}}".',
+  bookingsByDatePageTitle: 'Boekingen op {{date}}',
+  bookingsByDateEmpty: 'Geen boekingen gevonden voor {{date}}.',
   bookingsByStatusLocationLabel: 'Locatie',
   bookingsByStatusBookingIdLabel: 'Boekings-ID',
   bookingsByStatusStartLabel: 'Start',
@@ -696,6 +698,10 @@ export default {
   // Notifications and locations
   'Notifications': 'Notificaties',
   'No Notifications': 'Geen notificaties',
+  notificationsSearchPlaceholder: 'Zoek meldingen...',
+  notificationsFilterAll: 'Alles',
+  notificationsFilterRead: 'Gelezen',
+  notificationsFilterUnread: 'Ongelezen',
   'Newyork, USA': 'New York, VS',
   'Morning Date at a Hidden Art Gallery': 'Ochtenddate in een verborgen kunstgalerij',
 
@@ -806,6 +812,12 @@ export default {
   'Booking Rejected': 'Boeking afgewezen',
   recentBookingOffers: 'Recente boekingsaanbiedingen',
   activityLog: 'Activiteitenlogboek',
+  activityType_booking_created: 'Boeking aangemaakt',
+  activityType_booking_accepted: 'Boeking geaccepteerd',
+  activityType_booking_rejected: 'Boeking afgewezen',
+  activityType_sale_item_added: 'Verkoopartikel toegevoegd',
+  activityType_sale_item_order_placed: 'Verkoopbestelling geplaatst',
+  activityType_sale_item_order_delivered: 'Verkoopbestelling geleverd',
   recentlyJoinedClients: 'Onlangs toegetreden klanten',
   dashboardNoBookingsYet: 'Nog geen boekingen',
   dashboardNoBookingsSubtitle:

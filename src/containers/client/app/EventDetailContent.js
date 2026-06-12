@@ -366,7 +366,11 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: response?.data?.message,
+          message: response?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl
+            : response?.data?.message,
         });
       }
       setIsLoadding(false);

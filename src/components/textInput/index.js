@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {fontFamly} from '../../constants';
 
 const TextField = ({
@@ -23,6 +24,7 @@ const TextField = ({
   onEndIconPress,
   labelColor,
   secure,
+  passwordToggle = false,
   styleProps,
   inputContainer,
   label,
@@ -80,15 +82,28 @@ const TextField = ({
           editable={editable}
           onChangeText={onChangeText}
         />
-        {endIcon && (
-          <TouchableOpacity onPress={onEndIconPress}>
-            <Image
-              resizeMode="contain"
-              source={endIcon}
+        {passwordToggle ? (
+          <TouchableOpacity
+            onPress={onEndIconPress}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <Icon
+              name={secure ? 'eye-outline' : 'eye-off-outline'}
+              size={22}
               color="#808080"
-              style={styles.icon}
+              style={styles.vectorIcon}
             />
           </TouchableOpacity>
+        ) : (
+          endIcon && (
+            <TouchableOpacity onPress={onEndIconPress}>
+              <Image
+                resizeMode="contain"
+                source={endIcon}
+                color="#808080"
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+          )
         )}
       </View>
     </>
@@ -123,6 +138,9 @@ const styles = StyleSheet.create({
     height: 20,
     width: 20,
     objectFit: 'contain',
+  },
+  vectorIcon: {
+    marginLeft: 10,
   },
 });
 

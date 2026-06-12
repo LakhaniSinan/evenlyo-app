@@ -73,22 +73,26 @@ const Dashboard = () => {
         id: 'totalBookings',
         title: t('Total Bookings'),
         icon: ICONS.cartIcon,
+        iconTint: COLORS.primary,
         value:
-          dashboardData?.stats?.totalBookings ??
           dashboardData?.stats?.totalBookingsCount ??
+          dashboardData?.stats?.totalBookings ??
           0,
       },
       {
         id: 'completedBookings',
         title: t('Completed Bookings'),
         icon: ICONS.checkIcon,
-        value: dashboardData?.stats?.completedBookingsCount ?? 0,
+        value:
+          dashboardData?.stats?.completedBookingsCount ??
+          dashboardData?.stats?.completedBookings ??
+          0,
       },
       {
         id: 'revenue',
         title: t('Revenue'),
         icon: ICONS.earningIcon,
-        value: dashboardData?.stats?.monthlyRevenue ?? 0,
+        value: `€${dashboardData?.stats?.monthlyRevenue ?? 0}`,
       },
     ],
     [dashboardData, t],
@@ -127,6 +131,14 @@ const Dashboard = () => {
   const onRefresh = useCallback(() => {
     handleGetDashboard();
   }, [handleGetDashboard]);
+
+  const orderChartData = useMemo(
+    () => [
+      ...(dashboardData?.orderOverviewDaily || []),
+      ...(dashboardData?.orderOverview || []),
+    ],
+    [dashboardData?.orderOverview, dashboardData?.orderOverviewDaily],
+  );
 
   const renderDashboardCard = ({item}) => <DashboardCard item={item} />;
 
@@ -218,9 +230,7 @@ const Dashboard = () => {
 
         <View style={styles.chartContainer}>
           <LineChartComponent
-            data={
-              activeTab === 'Booking' ? dashboardData?.orderOverview || [] : []
-            }
+            data={activeTab === 'Booking' ? orderChartData : []}
           />
         </View>
 

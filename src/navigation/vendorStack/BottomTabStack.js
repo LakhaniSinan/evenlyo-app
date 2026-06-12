@@ -1,4 +1,5 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {getFocusedRouteNameFromRoute} from '@react-navigation/native';
 import React from 'react';
 import {Dimensions, Image, TouchableOpacity, View} from 'react-native';
 import Animated, {
@@ -17,6 +18,27 @@ import ProfileStack from './ProfileStack';
 const Tab = createBottomTabNavigator();
 const {width} = Dimensions.get('window');
 const TAB_WIDTH = width / 4;
+
+const HIDDEN_TAB_BAR_ROUTES = new Set([
+  'Messages',
+  'ChatFlow',
+  'ChatDetails',
+  'CreateCustomOffer',
+  'BookingItems',
+  'OfferPreview',
+]);
+
+const shouldHideTabBar = navigationState => {
+  const currentRoute = navigationState?.routes?.[navigationState.index];
+  if (!currentRoute) {
+    return false;
+  }
+
+  const focusedRouteName = getFocusedRouteNameFromRoute(currentRoute);
+  return focusedRouteName
+    ? HIDDEN_TAB_BAR_ROUTES.has(focusedRouteName)
+    : false;
+};
 
 const TabBackground = ({translateX}) => {
   const animatedStyle = useAnimatedStyle(() => {
@@ -77,6 +99,10 @@ const CustomTabBar = ({state, descriptors, navigation}) => {
   React.useEffect(() => {
     translateX.value = state.index * TAB_WIDTH;
   }, [state.index]);
+
+  if (shouldHideTabBar(state)) {
+    return null;
+  }
 
   return (
     <View

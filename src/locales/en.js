@@ -526,6 +526,8 @@ export default {
   // Bookings by status list (vendor)
   bookingsByStatusPageTitle: '{{status}} bookings',
   bookingsByStatusEmpty: 'No bookings found for "{{status}}".',
+  bookingsByDatePageTitle: 'Bookings on {{date}}',
+  bookingsByDateEmpty: 'No bookings found for {{date}}.',
   bookingsByStatusLocationLabel: 'Location',
   bookingsByStatusBookingIdLabel: 'Booking ID',
   bookingsByStatusStartLabel: 'Start',
@@ -692,6 +694,10 @@ export default {
   // Notifications and locations
   'Notifications': 'Notifications',
   'No Notifications': 'No Notifications',
+  notificationsSearchPlaceholder: 'Search notifications...',
+  notificationsFilterAll: 'All',
+  notificationsFilterRead: 'Read',
+  notificationsFilterUnread: 'Un-read',
   'Newyork, USA': 'New York, USA',
   'Morning Date at a Hidden Art Gallery': 'Morning Date at a Hidden Art Gallery',
 
@@ -802,6 +808,12 @@ export default {
   'Booking Rejected': 'Booking Rejected',
   recentBookingOffers: 'Recent Bookings Offers',
   activityLog: 'Activity Log',
+  activityType_booking_created: 'Booking Created',
+  activityType_booking_accepted: 'Booking Accepted',
+  activityType_booking_rejected: 'Booking Rejected',
+  activityType_sale_item_added: 'Sale Item Added',
+  activityType_sale_item_order_placed: 'Sale Item Order Placed',
+  activityType_sale_item_order_delivered: 'Sale Item Order Delivered',
   recentlyJoinedClients: 'Recently Joined Clients',
   dashboardNoBookingsYet: 'No bookings yet',
   dashboardNoBookingsSubtitle:

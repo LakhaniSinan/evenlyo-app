@@ -10,6 +10,7 @@ import VendorAppStack from './vendorStack/VendorAppStack';
 import VendorDetailStack from './vendorStack/VendorDetailStack';
 import UpdatePopUp from '../components/updatePopup';
 import { getSettings } from '../services/Settings';
+import { navigationRef } from './navigationRef';
 
 const AppNavigator = () => {
   const { user } = useSelector(state => state.LoginSlice);
@@ -63,7 +64,7 @@ const AppNavigator = () => {
   }, [user, fetchProfile, getAdminSettings]);
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       {!user ? (
         <AuthStack />
       ) : isClient ? (

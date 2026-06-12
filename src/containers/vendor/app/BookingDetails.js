@@ -39,6 +39,18 @@ const BOOKING_STATUS_I18N = {
   rejected: 'statusRejected',
 };
 
+const resolveApiMessage = (message, language) => {
+  if (!message) {
+    return '';
+  }
+  if (typeof message === 'string') {
+    return message;
+  }
+  return language === 'en'
+    ? message.en || message.nl || ''
+    : message.nl || message.en || '';
+};
+
 const STATUS_COLORS = {
   pending: {bg: '#FFF4E5', text: '#FF9800'},
   accepted: {bg: '#E3F2FD', text: '#1976D2'},
@@ -152,10 +164,7 @@ function BookingDetails({route}) {
       if (response?.status === 200 || response?.status === 201) {
         showAlert(
           'ok',
-          currentLanguage === 'en'
-            ? response?.data?.message?.en
-            : response?.data?.message?.nl,
-
+          resolveApiMessage(response?.data?.message, currentLanguage),
           () => {
             alertRef.current?.hide();
             fetchBookingDetails();
@@ -164,9 +173,7 @@ function BookingDetails({route}) {
       } else {
         showAlert(
           'error',
-          currentLanguage === 'en'
-            ? response?.data?.message?.en
-            : response?.data?.message?.nl,
+          resolveApiMessage(response?.data?.message, currentLanguage),
         );
       }
     } catch (error) {
@@ -187,9 +194,7 @@ function BookingDetails({route}) {
         setRejectModalVisible(false);
         showAlert(
           'ok',
-          currentLanguage === 'en'
-            ? response?.data?.message?.en
-            : response?.data?.message?.nl,
+          resolveApiMessage(response?.data?.message, currentLanguage),
           () => {
             alertRef.current?.hide();
             fetchBookingDetails();
@@ -198,9 +203,7 @@ function BookingDetails({route}) {
       } else {
         showAlert(
           'error',
-          currentLanguage === 'en'
-            ? response?.data?.message?.en
-            : response?.data?.message?.nl,
+          resolveApiMessage(response?.data?.message, currentLanguage),
         );
       }
     } catch (error) {
@@ -220,9 +223,7 @@ function BookingDetails({route}) {
         setOpenPickedUpModal(false);
         showAlert(
           'ok',
-          currentLanguage === 'en'
-            ? response?.data?.message?.en
-            : response?.data?.message?.nl,
+          resolveApiMessage(response?.data?.message, currentLanguage),
           () => {
             alertRef.current?.hide();
             fetchBookingDetails();
@@ -231,9 +232,7 @@ function BookingDetails({route}) {
       } else {
         showAlert(
           'error',
-          currentLanguage === 'en'
-            ? response?.data?.message?.en
-            : response?.data?.message?.nl,
+          resolveApiMessage(response?.data?.message, currentLanguage),
         );
       }
     } catch (error) {

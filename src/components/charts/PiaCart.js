@@ -30,6 +30,7 @@ const PIE_CHART_COLORS = [
 const PieChartComponent = ({
   labelll = 'Orders Overview',
   data = [],
+  monthlyData = [],
   loading = false,
 }) => {
   const {t, currentLanguage} = useTranslation();
@@ -64,19 +65,25 @@ const PieChartComponent = ({
     [currentLanguage, t],
   );
 
-  // 🧠 Convert API data into chart format
+  const activeData = useMemo(() => {
+    if (filterType === FILTER_MONTHLY) {
+      return monthlyData || [];
+    }
+    return data;
+  }, [data, filterType, monthlyData]);
+
   const chartData = useMemo(() => {
-    if (!data?.length) {
+    if (!activeData?.length) {
       return [];
     }
-    return data.map((item, index) => ({
+    return activeData.map((item, index) => ({
       name: getCategoryDisplayName(item.categoryName),
-      population: item.totalEarnings || 0,
+      population: Number(item.totalEarnings) || 0,
       color: PIE_CHART_COLORS[index % PIE_CHART_COLORS.length],
       legendFontColor: '#000',
       legendFontSize: 10,
     }));
-  }, [data, getCategoryDisplayName]);
+  }, [activeData, getCategoryDisplayName]);
 
   const handleSelectValue = (_, value) => {
     setFilterType(value?.name || value);
@@ -106,7 +113,7 @@ const PieChartComponent = ({
           <ActivityIndicator size="large" color={COLORS.primary || '#FF2D87'} />
           <Text style={styles.loaderText}>{t('chartLoadingData')}</Text>
         </View>
-      ) : !data?.length ? (
+      ) : !activeData?.length ? (
         <View style={styles.loaderContainer}>
           <Text style={styles.noDataText}>{t('chartNoDataAvailable')}</Text>
         </View>

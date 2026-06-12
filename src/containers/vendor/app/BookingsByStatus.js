@@ -17,7 +17,10 @@ import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
-import {getBookingByStatus} from '../../../services/BookingItem';
+import {
+  getBookingByDate,
+  getBookingByStatus,
+} from '../../../services/BookingItem';
 import {normalizeStatusKey} from '../../../utils/translatePricingBreakdownLabel';
 
 const BOOKING_STATUS_I18N = {
@@ -120,34 +123,45 @@ const BookingsByStatus = ({navigation, route}) => {
   const [loading, setLoading] = useState(true);
   const {user} = useSelector(state => state.LoginSlice);
 
+  const filterMode = event?.filterMode === 'date' ? 'date' : 'status';
   const dateFilters = event?.dateFilters || {};
   const statusFilter = event?.statusFilter || '';
+  const selectedDate = event?.selectedDate || dateFilters?.startDate || '';
+  const dateLocale = currentLanguage === 'nl' ? 'nl' : 'en';
 
-  const statusParam = useMemo(
-    () =>
-      event?.status?.toLowerCase() ||
-      event?.statusKey?.toLowerCase() ||
-      event?.title?.toLowerCase() ||
-      '',
-    [event?.status, event?.statusKey, event?.title],
-  );
+  const statusParam = useMemo(() => {
+    if (filterMode === 'date') {
+      return '';
+    }
+    return event?.statusKey?.toLowerCase() || '';
+  }, [event?.statusKey, filterMode]);
 
   const headerStatusLabel = useMemo(
-    () => getStatusLabel(event?.status || event?.statusKey || event?.title, t),
-    [event?.status, event?.statusKey, event?.title, t],
+    () => getStatusLabel(event?.statusKey || event?.title, t),
+    [event?.statusKey, event?.title, t],
   );
 
-  const pageTitle = useMemo(
-    () => t('bookingsByStatusPageTitle', {status: headerStatusLabel}),
-    [t, headerStatusLabel],
-  );
+  const formattedSelectedDate = useMemo(() => {
+    if (!selectedDate) {
+      return '';
+    }
+    const parsed = moment(selectedDate);
+    return parsed.isValid() ? parsed.locale(dateLocale).format('LL') : '';
+  }, [dateLocale, selectedDate]);
 
-  const emptyMessage = useMemo(
-    () => t('bookingsByStatusEmpty', {status: headerStatusLabel}),
-    [t, headerStatusLabel],
-  );
+  const pageTitle = useMemo(() => {
+    if (filterMode === 'date' && formattedSelectedDate) {
+      return t('bookingsByDatePageTitle', {date: formattedSelectedDate});
+    }
+    return t('bookingsByStatusPageTitle', {status: headerStatusLabel});
+  }, [filterMode, formattedSelectedDate, headerStatusLabel, t]);
 
-  const dateLocale = currentLanguage === 'nl' ? 'nl' : 'en';
+  const emptyMessage = useMemo(() => {
+    if (filterMode === 'date' && formattedSelectedDate) {
+      return t('bookingsByDateEmpty', {date: formattedSelectedDate});
+    }
+    return t('bookingsByStatusEmpty', {status: headerStatusLabel});
+  }, [filterMode, formattedSelectedDate, headerStatusLabel, t]);
 
   const formatListingDate = useCallback(
     value => {
@@ -168,10 +182,22 @@ const BookingsByStatus = ({navigation, route}) => {
       setRefreshing(true);
       setLoading(true);
 
-      const response = await getBookingByStatus({
-        status: statusParam,
-        vendorId: user?.id,
-      });
+      let response;
+      if (filterMode === 'date') {
+        if (!selectedDate) {
+          setRawListingData([]);
+          return;
+        }
+        response = await getBookingByDate({
+          date: selectedDate,
+          vendorId: user?.id,
+        });
+      } else {
+        response = await getBookingByStatus({
+          status: statusParam,
+          vendorId: user?.id,
+        });
+      }
 
       if (response?.status === 200 || response?.status === 201) {
         const data = response?.data?.data || [];
@@ -185,7 +211,7 @@ const BookingsByStatus = ({navigation, route}) => {
       setRefreshing(false);
       setLoading(false);
     }
-  }, [statusParam, user?.id]);
+  }, [filterMode, selectedDate, statusParam, user?.id]);
 
   useEffect(() => {
     handleGetCartListing();
@@ -198,7 +224,7 @@ const BookingsByStatus = ({navigation, route}) => {
   const listingCartData = useMemo(() => {
     let result = rawListingData;
 
-    if (dateFilters?.startDate || dateFilters?.endDate) {
+    if (filterMode === 'date' && (dateFilters?.startDate || dateFilters?.endDate)) {
       result = result.filter(item =>
         bookingOverlapsDateRange(
           item,
@@ -208,7 +234,7 @@ const BookingsByStatus = ({navigation, route}) => {
       );
     }
 
-    if (statusFilter) {
+    if (filterMode === 'status' && statusFilter) {
       const normalizedStatus = statusFilter.trim().toLowerCase();
       result = result.filter(
         item => item?.status?.trim()?.toLowerCase() === normalizedStatus,
@@ -216,7 +242,13 @@ const BookingsByStatus = ({navigation, route}) => {
     }
 
     return result;
-  }, [dateFilters?.endDate, dateFilters?.startDate, rawListingData, statusFilter]);
+  }, [
+    dateFilters?.endDate,
+    dateFilters?.startDate,
+    filterMode,
+    rawListingData,
+    statusFilter,
+  ]);
 
   const renderBookingCard = useCallback(
     ({item}) => {

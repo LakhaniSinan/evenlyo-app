@@ -7,8 +7,8 @@ import Messages from '../../containers/vendor/app/Messages';
 import Notification from '../../containers/vendor/app/Notification';
 import NotificationDetails from '../../containers/vendor/app/NotificationDetails';
 import TrackingBookingDetails from '../../containers/vendor/app/TrackBooking';
-import ChatDetails from '../../containers/vendor/app/ChatDetails';
 import AnalyticsReport from '../../containers/vendor/app/AnalyticsScreen';
+import ChatFlowStack from './ChatFlowStack';
 import BookingsByStatus from '../../containers/vendor/app/BookingsByStatus';
 
 const Stack = createStackNavigator();
@@ -75,6 +75,13 @@ const AllBookingStack = () => {
         component={Messages}
         options={{
           title: 'Messages',
+        }}
+      />
+      <Stack.Screen
+        name="ChatFlow"
+        component={ChatFlowStack}
+        options={{
+          title: 'ChatFlow',
         }}
       />
 

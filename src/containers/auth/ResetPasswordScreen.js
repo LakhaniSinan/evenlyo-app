@@ -111,7 +111,7 @@ const ResetPasswordScreen = ({ route, navigation }) => {
                 value={password}
                 onChangeText={setPassword}
                 secure={hidePassword}
-                endIcon={ICONS.eyeIcon}
+                passwordToggle
                 onEndIconPress={() => setHidePassword(!hidePassword)}
               />
 
@@ -125,7 +125,7 @@ const ResetPasswordScreen = ({ route, navigation }) => {
                 onChangeText={setConfirmPassword}
                 bgColor={COLORS.white}
                 secure={hideConfirmPassword}
-                endIcon={ICONS.eyeIcon}
+                passwordToggle
                 onEndIconPress={() =>
                   setHideConfirmPassword(!hideConfirmPassword)
                 }

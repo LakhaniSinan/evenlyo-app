@@ -60,6 +60,75 @@ const commonEmojis = [
   '💪',
 ];
 
+const formatFileSize = bytes => {
+  const size = Number(bytes);
+  if (!bytes || Number.isNaN(size) || size <= 0) {
+    return null;
+  }
+  if (size < 1024) {
+    return `${size} B`;
+  }
+  if (size < 1024 * 1024) {
+    return `${Math.round(size / 1024)} KB`;
+  }
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const PdfAttachmentCard = ({
+  fileName,
+  fileSize,
+  isOwn,
+  isSending,
+  onDownload,
+  containerStyle,
+}) => {
+  const displayName = fileName || 'PDF Document';
+  const sizeLabel = formatFileSize(fileSize);
+  const metaText = sizeLabel ? `PDF • ${sizeLabel}` : 'PDF';
+  const gradientColors = isOwn
+    ? BRAND_BUTTON_GRADIENT_COLORS
+    : ['#FF295D', '#E31B95', '#7A3FF2'];
+  const gradientLocations = isOwn
+    ? BRAND_BUTTON_GRADIENT_LOCATIONS
+    : [0, 0.5, 1];
+
+  return (
+    <LinearGradient
+      colors={gradientColors}
+      locations={gradientLocations}
+      start={{x: 0, y: 0}}
+      end={{x: 1, y: 0}}
+      style={[styles.pdfAttachmentCard, containerStyle]}>
+      <View style={styles.pdfAttachmentRow}>
+        <View style={styles.pdfFileIconContainer}>
+          <Icon name="file-document-outline" size={28} color="#D1D5DB" />
+          <View style={styles.pdfFileTypeBadge}>
+            <Text style={styles.pdfFileTypeText}>PDF</Text>
+          </View>
+        </View>
+
+        <View style={styles.pdfAttachmentInfo}>
+          <Text style={styles.pdfAttachmentName} numberOfLines={1}>
+            {displayName}
+          </Text>
+          <Text style={styles.pdfAttachmentMeta} numberOfLines={1}>
+            {isSending ? 'Sending...' : metaText}
+          </Text>
+        </View>
+
+        {!isSending && (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={onDownload}
+            style={styles.pdfDownloadButton}>
+            <Icon name="download" size={20} color="rgba(255,255,255,0.95)" />
+          </TouchableOpacity>
+        )}
+      </View>
+    </LinearGradient>
+  );
+};
+
 const ChatDetail = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
   const data = route?.params || {};
@@ -659,7 +728,9 @@ const ChatDetail = ({navigation, route}) => {
         item?.attachment?.url?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
       const isPDF =
         item?.attachment?.type === 'file' ||
-        item?.attachment?.url?.endsWith('.pdf');
+        item?.attachment?.type?.includes?.('pdf') ||
+        item?.attachment?.url?.toLowerCase?.().endsWith('.pdf') ||
+        item?.attachment?.url?.includes?.('/raw/upload');
       const offerObject = item?.offerObject || {};
       const firstOfferItem = offerObject?.items?.[0] || {};
       const offerTitle =
@@ -688,8 +759,14 @@ const ChatDetail = ({navigation, route}) => {
             return;
           }
 
+          if (Platform.OS === 'android') {
+            await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            );
+          }
+
           const timeStamp = moment().format('YYYYMMDD_HHmmss');
-          const pdfFileName = `${name}_${timeStamp}.pdf`;
+          const pdfFileName = `${(name || 'Document').replace(/\.pdf$/i, '')}_${timeStamp}.pdf`;
 
           const isAndroid = Platform.OS === 'android';
           const folderPath = isAndroid
@@ -697,11 +774,8 @@ const ChatDetail = ({navigation, route}) => {
             : RNFetchBlob.fs.dirs.DocumentDir;
           const destinationPath = `${folderPath}/${pdfFileName}`;
 
-          console.log('📂 Saving to:', destinationPath);
-
-          // ✅ Use RNFetchBlob internal download — not Android DownloadManager
           const res = await RNFetchBlob.config({
-            trusty: true, // allows HTTPS
+            trusty: true,
             path: destinationPath,
             fileCache: true,
             appendExt: 'pdf',
@@ -711,6 +785,13 @@ const ChatDetail = ({navigation, route}) => {
 
           if (status === 200 || status === 302) {
             if (isAndroid) {
+              RNFetchBlob.android.addCompleteDownload({
+                title: pdfFileName,
+                description: 'PDF download',
+                mime: 'application/pdf',
+                path: destinationPath,
+                showNotification: true,
+              });
               Alert.alert(
                 'Download Complete',
                 `Saved to Downloads/${pdfFileName}`,
@@ -718,18 +799,14 @@ const ChatDetail = ({navigation, route}) => {
             } else {
               await Share.share({
                 url: `file://${destinationPath}`,
-                type: 'application/pdf',
                 title: 'Share PDF Document',
               });
             }
-
-            console.log('✅ PDF saved successfully:', destinationPath);
           } else {
-            console.log('❌ Unexpected status:', status);
             Alert.alert('Error', 'Failed to download PDF.');
           }
         } catch (error) {
-          console.log('❌ PDF Download Error:', error);
+          console.log('PDF Download Error:', error);
           Alert.alert('Error', 'Something went wrong while downloading PDF.');
         }
       };
@@ -815,6 +892,23 @@ const ChatDetail = ({navigation, route}) => {
                     </TouchableOpacity>
                   </LinearGradient>
                 </View>
+              ) : isPDF ? (
+                <PdfAttachmentCard
+                  isOwn
+                  isSending={isSending}
+                  fileName={item?.attachment?.name}
+                  fileSize={item?.attachment?.size}
+                  onDownload={() =>
+                    handleDownloadPDF(
+                      item?.attachment?.url,
+                      item?.attachment?.name,
+                    )
+                  }
+                  containerStyle={{
+                    maxWidth: width(85),
+                    alignSelf: 'flex-end',
+                  }}
+                />
               ) : isImage && item?.attachment?.url && !isSending ? (
                 <TouchableOpacity
                   activeOpacity={0.9}
@@ -854,26 +948,6 @@ const ChatDetail = ({navigation, route}) => {
                   <View style={styles.myMessageBubbleContent}>
                     {isSending ? (
                       <Text style={styles.sendingText}>Sending...</Text>
-                    ) : isPDF ? (
-                      <View style={styles.myMessagePdf}>
-                        <View style={styles.myMessagePdfInfo}>
-                          <Icon name="file-pdf-box" size={32} color="#FF0000" />
-                          <Text
-                            style={styles.myMessagePdfName}
-                            numberOfLines={1}>
-                            {item?.attachment?.name || 'PDF Document'}
-                          </Text>
-                        </View>
-                        <TouchableOpacity
-                          onPress={() =>
-                            handleDownloadPDF(
-                              item?.attachment?.url,
-                              item?.attachment?.name,
-                            )
-                          }>
-                          <Icon name="download" size={28} color="#E31B95" />
-                        </TouchableOpacity>
-                      </View>
                     ) : (
                       <Text style={[styles.messageText, styles.myMessageText]}>
                         {item?.message}
@@ -971,38 +1045,18 @@ const ChatDetail = ({navigation, route}) => {
                     />
                   </TouchableOpacity>
                 ) : isPDF ? (
-                  <View
-                    style={{
-                      backgroundColor: '#f4f4f4',
-                      borderRadius: width(2),
-                      padding: width(3),
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}>
-                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                      <Icon name="file-pdf-box" size={32} color="#FF0000" />
-                      <Text
-                        style={{
-                          marginLeft: 8,
-                          fontWeight: 'bold',
-                          color: '#000',
-                          maxWidth: width(45),
-                        }}
-                        numberOfLines={1}>
-                        {item?.attachment?.name || 'PDF Document'}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() =>
-                        handleDownloadPDF(
-                          item?.attachment?.url,
-                          item?.attachment?.name,
-                        )
-                      }>
-                      <Icon name="download" size={28} color="#E31B95" />
-                    </TouchableOpacity>
-                  </View>
+                  <PdfAttachmentCard
+                    isOwn={false}
+                    fileName={item?.attachment?.name}
+                    fileSize={item?.attachment?.size}
+                    onDownload={() =>
+                      handleDownloadPDF(
+                        item?.attachment?.url,
+                        item?.attachment?.name,
+                      )
+                    }
+                    containerStyle={{maxWidth: width(85)}}
+                  />
                 ) : (
                   <Text style={[styles.messageText, styles.otherMessageText]}>
                     {item?.message}
@@ -1011,13 +1065,6 @@ const ChatDetail = ({navigation, route}) => {
               </View>
             )}
 
-            {isOwn && (
-              <Image
-                resizeMode="contain"
-                source={messageAvatarSource}
-                style={styles.messageAvatar}
-              />
-            )}
           </View>
 
           <Text
@@ -1317,13 +1364,18 @@ const ChatDetail = ({navigation, route}) => {
                 width: width(10),
                 borderRadius: 12,
                 position: 'absolute',
-                bottom: width(25),
+                bottom: insets.bottom + width(18),
                 right: width(3),
+                zIndex: 10,
+                elevation: 10,
+                backgroundColor: COLORS.white,
+                alignItems: 'center',
+                justifyContent: 'center',
               }}>
               <Image
                 source={ICONS.plusIcon}
                 resizeMode="contain"
-                style={{height: '100%', width: '100%'}}
+                style={{height: width(6), width: width(6)}}
               />
             </TouchableOpacity>
 
@@ -1650,24 +1702,63 @@ const styles = StyleSheet.create({
     padding: width(2),
     backgroundColor: COLORS.white,
   },
-  myMessagePdf: {
-    backgroundColor: 'white',
-    borderRadius: width(2),
-    padding: width(3),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  pdfAttachmentCard: {
+    borderRadius: width(4),
+    paddingHorizontal: width(3),
+    paddingVertical: width(2.8),
+    minWidth: width(72),
   },
-  myMessagePdfInfo: {
+  pdfAttachmentRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  pdfFileIconContainer: {
+    width: width(12),
+    height: width(14),
+    borderRadius: width(1.5),
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: width(2.5),
+  },
+  pdfFileTypeBadge: {
+    position: 'absolute',
+    bottom: width(1.2),
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    borderRadius: 3,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  pdfFileTypeText: {
+    fontSize: 8,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  pdfAttachmentInfo: {
     flex: 1,
+    marginRight: width(2),
   },
-  myMessagePdfName: {
-    marginLeft: 8,
-    fontWeight: 'bold',
-    color: '#000',
-    maxWidth: width(45),
+  pdfAttachmentName: {
+    fontSize: 14,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  pdfAttachmentMeta: {
+    fontSize: 11,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: 'rgba(255,255,255,0.75)',
+  },
+  pdfDownloadButton: {
+    width: width(9),
+    height: width(9),
+    borderRadius: width(4.5),
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   otherMessageBubble: {
     backgroundColor: COLORS.backgroundLight,

@@ -71,7 +71,7 @@ const SecurityTab = ({enteredPass, onPressBack, handleNextStep}) => {
             onChangeText={setPassword}
             secure={!showPassword}
             autoCapitalize="none"
-            endIcon={ICONS.eyeIcon}
+            passwordToggle
             onEndIconPress={() => setShowPassword(prev => !prev)}
           />
           <View style={styles.fieldGap} />
@@ -83,7 +83,7 @@ const SecurityTab = ({enteredPass, onPressBack, handleNextStep}) => {
             onChangeText={setConfirmPassword}
             secure={!showConfirmPassword}
             autoCapitalize="none"
-            endIcon={ICONS.eyeIcon}
+            passwordToggle
             onEndIconPress={() => setShowConfirmPassword(prev => !prev)}
           />
 

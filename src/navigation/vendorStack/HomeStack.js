@@ -10,6 +10,7 @@ import NotificationDetails from '../../containers/vendor/app/NotificationDetails
 import BookingDetails from '../../containers/vendor/app/BookingDetails';
 import TrackingBookingDetails from '../../containers/vendor/app/TrackBooking';
 import AllActivityLog from '../../containers/vendor/app/AllActivityLog';
+import ChatFlowStack from './ChatFlowStack';
 
 const Stack = createStackNavigator();
 
@@ -89,6 +90,13 @@ const HomeStack = () => {
         component={Messages}
         options={{
           title: 'Messages',
+        }}
+      />
+      <Stack.Screen
+        name="ChatFlow"
+        component={ChatFlowStack}
+        options={{
+          title: 'ChatFlow',
         }}
       />
     </Stack.Navigator>

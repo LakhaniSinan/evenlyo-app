@@ -5,9 +5,11 @@ const useNotifications = () => {
   const [notification, setNotificaiton] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async ({isRefresh = false} = {}) => {
     try {
-      setLoading(true);
+      if (!isRefresh) {
+        setLoading(true);
+      }
       const res = await getNotifications();
       const status = res?.status || 0;
       const data = res?.data || {};
@@ -21,7 +23,9 @@ const useNotifications = () => {
       console.log('fetchNotifications error:', error);
       return {success: false, message: 'Something went wrong'};
     } finally {
-      setLoading(false);
+      if (!isRefresh) {
+        setLoading(false);
+      }
     }
   }, []);
 

@@ -324,16 +324,32 @@ function AllBookingScreen() {
     return marks;
   }, [listingCartData]);
 
-  const buildBookingsRouteParams = useCallback(
-    params => ({
-      ...params,
+  const buildDateBookingsRouteParams = useCallback(
+    date => ({
+      filterMode: 'date',
+      selectedDate: date,
       dateFilters: {
-        startDate: bookingFilters.startDate,
-        endDate: bookingFilters.endDate,
+        startDate: date,
+        endDate: date,
       },
-      statusFilter: bookingFilters.status,
+      statusFilter: '',
     }),
-    [bookingFilters],
+    [],
+  );
+
+  const buildStatusBookingsRouteParams = useCallback(
+    item => ({
+      filterMode: 'status',
+      statusKey: item.statusKey,
+      title: item.title,
+      value: item.value,
+      dateFilters: {
+        startDate: '',
+        endDate: '',
+      },
+      statusFilter: item.statusKey,
+    }),
+    [],
   );
 
   const handleApplyBookingFilters = useCallback(filters => {
@@ -766,10 +782,10 @@ function AllBookingScreen() {
               listingCartData={listingCartData}
               goBack={() => setSelectedDate('')}
               selectedDate={selectedDate}
-              onEventPress={event => {
+              onEventPress={() => {
                 navigation.navigate(
                   'BookingsByStatus',
-                  buildBookingsRouteParams(event),
+                  buildDateBookingsRouteParams(selectedDate),
                 );
               }}
             />
@@ -793,12 +809,7 @@ function AllBookingScreen() {
               onPress={() =>
                 navigation.navigate(
                   'BookingsByStatus',
-                  buildBookingsRouteParams({
-                    status: item.statusKey,
-                    statusKey: item.statusKey,
-                    title: item.title,
-                    value: item.value,
-                  }),
+                  buildStatusBookingsRouteParams(item),
                 )
               }
               style={{

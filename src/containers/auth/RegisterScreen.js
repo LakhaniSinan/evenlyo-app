@@ -218,7 +218,7 @@ const RegisterScreen = ({ navigation }) => {
                 keyboardType="default"
                 autoCapitalize="none"
                 secure={showPassword}
-                endIcon={ICONS.eyeIcon}
+                passwordToggle
                 onEndIconPress={() => setShowPassword(!showPassword)}
               />
 
@@ -232,7 +232,7 @@ const RegisterScreen = ({ navigation }) => {
                 keyboardType="default"
                 autoCapitalize="none"
                 secure={showPassword}
-                endIcon={ICONS.eyeIcon}
+                passwordToggle
                 onEndIconPress={() => setShowPassword(!showPassword)}
               />
               <View style={{ height: 25 }} />

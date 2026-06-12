@@ -74,6 +74,10 @@ export const getBookingByStatus = params => {
   return Api(endPoints.bookingByStatus, params, requestType.POST);
 };
 
+export const getBookingByDate = params => {
+  return Api(endPoints.bookingByDate, params, requestType.POST);
+};
+
 export const updateStatus = (bookinID, params = null, type) => {
   return Api(
     `${endPoints.update}/${bookinID}/${type}`,

@@ -14,18 +14,23 @@ import {width} from 'react-native-dimension';
 
 import {ICONS} from '../../../assets';
 import CommonAlert from '../../../components/commanAlert';
-import FilterModal from '../../../components/modals/FilterModal';
+import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
-import {getVendorNotifications} from '../../../services/Notifications';
+import {
+  getVendorNotifications,
+  markVendorNotificationAsRead,
+} from '../../../services/Notifications';
+
+const FILTER_OPTIONS = ['all', 'read', 'unread'];
 
 const Notification = ({navigation}) => {
-  const [isModalVisible, setModalVisible] = useState(false);
   const modalRef = useRef();
-
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [vendorNotifications, setVendorNotifications] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [readFilter, setReadFilter] = useState('all');
 
   const {t, currentLanguage} = useTranslation();
   const skeletonData = useMemo(() => Array(6).fill({}), []);
@@ -38,10 +43,8 @@ const Notification = ({navigation}) => {
       if (typeof field === 'string') {
         return field.trim();
       }
-      const primary =
-        currentLanguage === 'en' ? field?.en : field?.nl;
-      const fallback =
-        currentLanguage === 'en' ? field?.nl : field?.en;
+      const primary = currentLanguage === 'en' ? field?.en : field?.nl;
+      const fallback = currentLanguage === 'en' ? field?.nl : field?.en;
       return String(primary || fallback || '').trim();
     },
     [currentLanguage],
@@ -93,29 +96,36 @@ const Notification = ({navigation}) => {
     [currentLanguage, t],
   );
 
-  const handlGetVendorNotifications = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const response = await getVendorNotifications();
+  const handlGetVendorNotifications = useCallback(
+    async ({isRefresh = false} = {}) => {
+      try {
+        if (!isRefresh) {
+          setIsLoading(true);
+        }
+        const response = await getVendorNotifications();
 
-      if (response?.status === 200 || response.status == 201) {
-        setVendorNotifications(response?.data?.data || []);
-      } else {
+        if (response?.status === 200 || response?.status === 201) {
+          setVendorNotifications(response?.data?.data || []);
+        } else {
+          modalRef.current?.show({
+            status: 'error',
+            message: resolveApiMessage(response?.data?.message),
+          });
+        }
+      } catch (error) {
+        console.log('Notification error:', error);
         modalRef.current?.show({
           status: 'error',
-          message: resolveApiMessage(response?.data?.message),
+          message: t('Something went wrong'),
         });
+      } finally {
+        if (!isRefresh) {
+          setIsLoading(false);
+        }
       }
-    } catch (error) {
-      console.log('Notification error:', error);
-      modalRef.current?.show({
-        status: 'error',
-        message: t('Something went wrong'),
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [resolveApiMessage, t]);
+    },
+    [resolveApiMessage, t],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -125,9 +135,94 @@ const Notification = ({navigation}) => {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await handlGetVendorNotifications();
+    await handlGetVendorNotifications({isRefresh: true});
     setRefreshing(false);
   }, [handlGetVendorNotifications]);
+
+  const filteredNotifications = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return vendorNotifications.filter(item => {
+      const title = getLocalizedField(item?.title).toLowerCase();
+      const matchesSearch = !query || title.includes(query);
+
+      const matchesFilter =
+        readFilter === 'all' ||
+        (readFilter === 'read' && item?.isRead) ||
+        (readFilter === 'unread' && !item?.isRead);
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [vendorNotifications, searchQuery, readFilter, getLocalizedField]);
+
+  const handleNotificationPress = useCallback(
+    async item => {
+      if (!item?._id) {
+        return;
+      }
+
+      if (!item?.isRead) {
+        setVendorNotifications(prev =>
+          prev.map(notification =>
+            notification._id === item._id
+              ? {...notification, isRead: true}
+              : notification,
+          ),
+        );
+
+        try {
+          await markVendorNotificationAsRead(item._id);
+        } catch (error) {
+          console.log('markVendorNotificationAsRead error:', error);
+        }
+      }
+
+      const bookingId = item?.bookingId;
+      if (!bookingId) {
+        return;
+      }
+
+      const parent = navigation.getParent?.();
+      if (parent) {
+        parent.navigate('AllBookingStack', {
+          screen: 'BookingDetails',
+          params: {_id: String(bookingId)},
+        });
+        return;
+      }
+
+      navigation.navigate('BookingDetails', {_id: String(bookingId)});
+    },
+    [navigation],
+  );
+
+  const renderFilterChip = useCallback(
+    filterKey => {
+      const isActive = readFilter === filterKey;
+      const labelKey =
+        filterKey === 'all'
+          ? 'notificationsFilterAll'
+          : filterKey === 'read'
+          ? 'notificationsFilterRead'
+          : 'notificationsFilterUnread';
+
+      return (
+        <TouchableOpacity
+          key={filterKey}
+          style={[styles.filterChip, isActive && styles.filterChipActive]}
+          onPress={() => setReadFilter(filterKey)}>
+          <Text
+            style={[
+              styles.filterChipText,
+              isActive && styles.filterChipTextActive,
+            ]}>
+            {t(labelKey)}
+          </Text>
+        </TouchableOpacity>
+      );
+    },
+    [readFilter, t],
+  );
 
   const renderItem = useCallback(
     ({item}) => {
@@ -144,7 +239,10 @@ const Notification = ({navigation}) => {
       }
 
       return (
-        <View style={styles.itemContainer}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={styles.itemContainer}
+          onPress={() => handleNotificationPress(item)}>
           <View style={styles.leftContainer}>
             <View style={styles.imageWrapper}>
               <Image
@@ -176,14 +274,14 @@ const Notification = ({navigation}) => {
               </Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       );
     },
-    [getLocalizedField, getRelativeTime, isLoading],
+    [getLocalizedField, getRelativeTime, handleNotificationPress, isLoading],
   );
 
-  return (
-    <>
+  const listHeader = useMemo(
+    () => (
       <View style={styles.headerContainer}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -196,10 +294,34 @@ const Notification = ({navigation}) => {
           <Text style={styles.headerTitle}>{t('Notifications')}</Text>
           <View style={styles.headerSpacer} />
         </View>
+
+        <View style={styles.searchContainer}>
+          <TextField
+            placeholder={t('notificationsSearchPlaceholder')}
+            placeholderTextColor="#aaa"
+            bgColor={COLORS.white}
+            startIcon={ICONS.search}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            inputContainer={styles.inputContainer}
+            styleProps={styles.inputText}
+          />
+        </View>
+
+        <View style={styles.filterRow}>
+          {FILTER_OPTIONS.map(renderFilterChip)}
+        </View>
       </View>
+    ),
+    [navigation, t, searchQuery, renderFilterChip],
+  );
+
+  return (
+    <>
       <FlatList
         keyExtractor={(item, index) => item?._id || index.toString()}
-        data={isLoading ? skeletonData : vendorNotifications}
+        ListHeaderComponent={listHeader}
+        data={isLoading ? skeletonData : filteredNotifications}
         renderItem={renderItem}
         extraData={currentLanguage}
         contentContainerStyle={styles.listContent}
@@ -212,11 +334,6 @@ const Notification = ({navigation}) => {
             </View>
           )
         }
-      />
-
-      <FilterModal
-        isVisible={isModalVisible}
-        onClose={() => setModalVisible(false)}
       />
 
       <CommonAlert ref={modalRef} />
@@ -248,6 +365,49 @@ const styles = StyleSheet.create({
     color: COLORS.black,
   },
   headerSpacer: {width: 40},
+  searchContainer: {
+    width: '100%',
+    paddingHorizontal: width(4),
+    marginTop: width(2),
+  },
+  inputContainer: {
+    paddingVertical: 0,
+    paddingHorizontal: 10,
+    height: 45,
+    width: '100%',
+    marginTop: 0,
+  },
+  inputText: {fontSize: 14, color: '#000'},
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: width(2),
+    paddingHorizontal: width(4),
+    paddingTop: width(3),
+    paddingBottom: width(2),
+    width: '100%',
+  },
+  filterChip: {
+    paddingHorizontal: width(3.5),
+    paddingVertical: width(1.8),
+    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+  filterChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  filterChipText: {
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    fontSize: 12,
+    color: COLORS.textDark,
+  },
+  filterChipTextActive: {
+    color: COLORS.white,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
   listContent: {paddingBottom: 10},
   emptyContainer: {
     padding: 30,
@@ -263,7 +423,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
     alignItems: 'center',
   },
-  leftContainer: {flexDirection: 'row'},
+  leftContainer: {flexDirection: 'row', flex: 1},
   imageWrapper: {
     height: width(13),
     width: width(13),

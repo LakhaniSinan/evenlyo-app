@@ -1,6 +1,8 @@
-import React, {useContext, useMemo, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import {
   Alert,
+  BackHandler,
   Image,
   SafeAreaView,
   ScrollView,
@@ -29,6 +31,23 @@ const OfferPreviewScreen = ({navigation, route}) => {
   const [notesByItem, setNotesByItem] = useState({});
 
   const selectedItems = useMemo(() => offerItems || [], [offerItems]);
+
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        () => {
+          handleGoBack();
+          return true;
+        },
+      );
+      return () => subscription.remove();
+    }, [handleGoBack]),
+  );
 
   const handleChangeNote = (key, value) => {
     setNotesByItem(prev => ({...prev, [key]: value}));
@@ -159,7 +178,7 @@ const OfferPreviewScreen = ({navigation, route}) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={handleGoBack}>
           <Image
             source={ICONS.leftArrowIcon}
             resizeMode="contain"

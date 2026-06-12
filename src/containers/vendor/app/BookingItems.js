@@ -1,5 +1,7 @@
-import {useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import {useCallback, useState} from 'react';
 import {
+  BackHandler,
   FlatList,
   Image,
   SafeAreaView,
@@ -22,6 +24,23 @@ const BookingItems = ({route, navigation}) => {
   console.log(item, 'itemitemitemitemitem123131');
 
   const {t} = useTranslation();
+
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        () => {
+          handleGoBack();
+          return true;
+        },
+      );
+      return () => subscription.remove();
+    }, [handleGoBack]),
+  );
   const [modalVisible, setModalVisible] = useState(false);
   const [slectedIndex, setSlectedIndex] = useState('');
   const [selectItem, setSelectItem] = useState(null);
@@ -267,7 +286,7 @@ const BookingItems = ({route, navigation}) => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
+              <TouchableOpacity onPress={handleGoBack}>
                 <Image
                   resizeMode="contain"
                   style={{width: 40, height: 40}}

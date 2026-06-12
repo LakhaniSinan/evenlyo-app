@@ -119,9 +119,9 @@ const ResetPassword = ({navigation}) => {
             placeholder={t('***********')}
             value={currentPassword}
             onChangeText={setCurrentPassword}
-            secureTextEntry={!showCurrent}
+            secure={!showCurrent}
             autoCapitalize="none"
-            endIcon={ICONS.eyeIcon}
+            passwordToggle
             onEndIconPress={() => setShowCurrent(!showCurrent)}
           />
 
@@ -132,9 +132,9 @@ const ResetPassword = ({navigation}) => {
             placeholder={t('***********')}
             value={newPassword}
             onChangeText={setNewPassword}
-            secureTextEntry={!showNew}
+            secure={!showNew}
             autoCapitalize="none"
-            endIcon={ICONS.eyeIcon}
+            passwordToggle
             onEndIconPress={() => setShowNew(!showNew)}
           />
 
@@ -145,9 +145,9 @@ const ResetPassword = ({navigation}) => {
             placeholder={t('***********')}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
-            secureTextEntry={!showConfirm}
+            secure={!showConfirm}
             autoCapitalize="none"
-            endIcon={ICONS.eyeIcon}
+            passwordToggle
             onEndIconPress={() => setShowConfirm(!showConfirm)}
           />
         </View>
