@@ -74,17 +74,17 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
   };
 
   const [formData, setFormData] = useState({
-    companyName: '',
-    companyEmail: '',
-    contact: '',
-    companyAddress: '',
+    companyName: 'name',
+    companyEmail: 'dd@gmail.com',
+    contact: '+923342989198',
+    companyAddress: 'Address',
     companyWebsite: '',
     passportNumber: '',
-    kvknumber: '',
-    workType: '',
-    teamSize: '',
-    tagline: {en: '', nl: ''},
-    description: {en: '', nl: ''},
+    kvknumber: '123123123',
+    workType: 'Home',
+    teamSize: '1-5',
+    tagline: {en: '', nl: 'tagg'},
+    description: {en: '', nl: 'tag des'},
   });
 
   // populate form data from props
