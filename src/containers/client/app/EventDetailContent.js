@@ -159,6 +159,46 @@ const getInitialMarkedDates = availableDays => {
   return marked;
 };
 
+const getMarkedDatesForRange = (availableDays, startDate, endDate) => {
+  const updatedMarked = getInitialMarkedDates(availableDays);
+  if (!startDate) {
+    return updatedMarked;
+  }
+
+  if (!endDate || startDate === endDate) {
+    const startDayName = getDayKeyFromMoment(moment(startDate));
+    if (availableDays.includes(startDayName)) {
+      updatedMarked[startDate] = {
+        ...updatedMarked[startDate],
+        customStyles: {
+          container: {backgroundColor: '#FF295D', borderRadius: 5},
+          text: {color: '#fff', fontWeight: 'bold'},
+        },
+      };
+    }
+    return updatedMarked;
+  }
+
+  let curr = moment(startDate);
+  const rangeEnd = moment(endDate);
+  while (curr.isSameOrBefore(rangeEnd)) {
+    const currDayName = getDayKeyFromMoment(curr);
+    const currDateStr = curr.format('YYYY-MM-DD');
+    if (availableDays.includes(currDayName)) {
+      updatedMarked[currDateStr] = {
+        ...updatedMarked[currDateStr],
+        customStyles: {
+          container: {backgroundColor: '#FF295D', borderRadius: 5},
+          text: {color: '#fff', fontWeight: 'bold'},
+        },
+      };
+    }
+    curr.add(1, 'day');
+  }
+
+  return updatedMarked;
+};
+
 const DetailsContent = ({data, selectedTab, navigation}) => {
   const {cartData} = useSelector(state => state.CartSlice);
   const {user} = useSelector(state => state.LoginSlice);
@@ -230,8 +270,8 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
   const [endDate, setEndDate] = useState(null);
 
   useEffect(() => {
-    setMarkedDates(getInitialMarkedDates(availableDays));
-  }, [availableDays]);
+    setMarkedDates(getMarkedDatesForRange(availableDays, startDate, endDate));
+  }, [availableDays, startDate, endDate]);
 
   const closeAllAuthModals = useCallback(() => {
     setShowLoginModal(false);
@@ -304,46 +344,15 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
       setEndDate(newEndDate);
     }
 
-    let updatedMarked = getInitialMarkedDates(availableDays);
-
-    if (newStartDate && newEndDate) {
-      const range = [];
-      let curr = moment(newStartDate);
-      while (curr.isSameOrBefore(newEndDate)) {
-        const currDayName = getDayKeyFromMoment(curr);
-        const currDateStr = curr.format('YYYY-MM-DD');
-        if (availableDays.includes(currDayName)) {
-          range.push(currDateStr);
-        }
-        curr.add(1, 'day');
-      }
-
-      range.forEach(d => {
-        if (updatedMarked[d] && !updatedMarked[d].disabled) {
-          updatedMarked[d] = {
-            ...updatedMarked[d],
-            customStyles: {
-              container: {backgroundColor: '#FF295D', borderRadius: 5},
-              text: {color: '#fff', fontWeight: 'bold'},
-            },
-          };
-        }
-      });
-    } else if (newStartDate && !newEndDate) {
-      const startDayName = getDayKeyFromMoment(moment(newStartDate));
-      if (availableDays.includes(startDayName)) {
-        updatedMarked[newStartDate] = {
-          ...updatedMarked[newStartDate],
-          customStyles: {
-            container: {backgroundColor: '#FF295D', borderRadius: 5},
-            text: {color: '#fff', fontWeight: 'bold'},
-          },
-        };
-      }
-    }
-
-    setMarkedDates(updatedMarked);
+    setMarkedDates(
+      getMarkedDatesForRange(availableDays, newStartDate, newEndDate),
+    );
   };
+
+  const handleModalDateChange = useCallback((nextStartDate, nextEndDate) => {
+    setStartDate(nextStartDate || null);
+    setEndDate(nextEndDate || null);
+  }, []);
   const selectedRangeText =
     startDate && endDate
       ? `${startDate} → ${endDate}`
@@ -949,6 +958,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         isVisible={modalVisible}
         type={'add'}
         selectedDate={{startDate, endDate}}
+        onSelectedDateChange={handleModalDateChange}
         onClose={() => setModalVisible(false)}
         handleAddToWishList={handleAddToWishList}
         handleSendBookingRequest={handleSendBookingRequest}
