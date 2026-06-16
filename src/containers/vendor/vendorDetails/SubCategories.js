@@ -139,6 +139,8 @@ const SubCategories = ({
       updated.has(id) ? updated.delete(id) : updated.add(id);
       return updated;
     });
+    console.log(setSelectionVersion,"setSelectionVersionsetSelectionVersionsetSelectionVersion");
+    
     setSelectionVersion(v => v + 1);
   }, []);
 
@@ -182,8 +184,9 @@ const SubCategories = ({
       });
       return;
     }
-
-    handleNextStep(Array.from(selectedItems));
+    console.log(selectedItems,"selectedItemsselectedItems");
+    
+    // handleNextStep(Array.from(selectedItems));
   };
 
   /* ---------------- UI ---------------- */
