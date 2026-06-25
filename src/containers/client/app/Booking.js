@@ -41,8 +41,9 @@ const BOOKING_FILTER_TABS = [
   {id: 'all', labelKey: 'All Order'},
   {id: 'pending', labelKey: 'statusPending'},
   {id: 'accepted', labelKey: 'statusAccepted'},
+  {id: 'on_the_way', labelKey: 'statusOnTheWay'},
   {id: 'completed', labelKey: 'statusCompleted'},
-  {id: 'paid', labelKey: 'Paid'},
+  // {id: 'paid', labelKey: 'Paid'},
   {id: 'finished', labelKey: 'statusFinished'},
   {id: 'rejected', labelKey: 'statusRejected'},
 ];

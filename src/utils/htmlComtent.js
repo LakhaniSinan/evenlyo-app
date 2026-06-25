@@ -1,4 +1,5 @@
 import moment from 'moment';
+import {formatPrice} from './index';
 
 export const generateOrderHTML = order => {
   return `
@@ -203,12 +204,12 @@ export const generateOrderHTML = order => {
                     <span class="product-detail">Quantity: ${
                       item.quantity || 1
                     }</span>
-                    <span class="product-detail">Price: $€{
-                      item.price || '0.00'
-                    }</span>
-                    <span class="product-detail">Total: $€{(
-                      (item.quantity || 1) * (item.price || 0)
-                    ).toFixed(2)}</span>
+                    <span class="product-detail">Price: €${formatPrice(
+                      item.price || 0,
+                    )}</span>
+                    <span class="product-detail">Total: €${formatPrice(
+                      (item.quantity || 1) * (item.price || 0),
+                    )}</span>
                   </div>
                 </div>
               `,
@@ -220,7 +221,7 @@ export const generateOrderHTML = order => {
             <div class="total-section">
               <div class="total-row">
                 <span>Total Amount:</span>
-                <span>$€{order.totalAmount || '0.00'}</span>
+                <span>€${formatPrice(order.totalAmount || 0)}</span>
               </div>
             </div>
           </div>
@@ -242,11 +243,10 @@ export const getInvoiceHtml = order => {
     <tr>
       <td>${item.title?.en}</td>
       <td style="text-align:center;">${item.quantity}</td>
-      <td style="text-align:right;">$€{item.price.toFixed(2)}</td>
-      <td style="text-align:right;">$€{(
-        item.price * item.quantity +
-        (item.extraDeliveryCharges || 0)
-      ).toFixed(2)}</td>
+      <td style="text-align:right;">€${formatPrice(item.price)}</td>
+      <td style="text-align:right;">€${formatPrice(
+        item.price * item.quantity + (item.extraDeliveryCharges || 0),
+      )}</td>
     </tr>
   `,
     )
@@ -358,23 +358,21 @@ export const getInvoiceHtml = order => {
     <table class="totals">
       <tr>
         <td class="label">Subtotal:</td>
-        <td class="value">$€{(
-          order.totalAmount -
-          order.deliveryAmount -
-          order.platformFee
-        ).toFixed(2)}</td>
+        <td class="value">€${formatPrice(
+          order.totalAmount - order.deliveryAmount - order.platformFee,
+        )}</td>
       </tr>
       <tr>
         <td class="label">Delivery Fee:</td>
-        <td class="value">$€{order.deliveryAmount.toFixed(2)}</td>
+        <td class="value">€${formatPrice(order.deliveryAmount)}</td>
       </tr>
       <tr>
         <td class="label">Platform Fee:</td>
-        <td class="value">$€{order.platformFee.toFixed(2)}</td>
+        <td class="value">€${formatPrice(order.platformFee)}</td>
       </tr>
       <tr>
         <td class="label">Total:</td>
-        <td class="value">$€{order.totalAmount.toFixed(2)}</td>
+        <td class="value">€${formatPrice(order.totalAmount)}</td>
       </tr>
     </table>
   </body>
@@ -465,9 +463,9 @@ export const generateSaleReportHTML = (data, currentLanguage = 'en') => {
               <td>${index + 1}</td>
               <td>${item.itemName || '-'}</td>
               <td>${item.customerId || '-'}</td>
-              <td>$€{item.totalAmount || 0}</td>
+              <td>€${formatPrice(item.totalAmount || 0)}</td>
               <td>${moment(item.orderDate).format('YYYY-MM-DD')}</td>
-              <td>$€{item.itemProfit || 0}</td>
+              <td>€${formatPrice(item.itemProfit || 0)}</td>
             </tr>
           `,
             )

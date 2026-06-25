@@ -45,6 +45,7 @@ import {
 import {SocketContext} from '../../../context';
 import {helper} from '../../../helper';
 import {useTranslation} from '../../../hooks';
+import {formatEuro} from '../../../utils';
 import {conversationService, messageService} from '../../../services/Chat';
 import RNFetchBlob from 'rn-fetch-blob';
 
@@ -899,7 +900,7 @@ const ChatDetail = ({navigation, route}) => {
                           {offerTitle}
                         </Text>
                         <Text style={styles.offerMessageItemPrice}>
-                          €{Number(offerDisplayPrice || 0).toFixed(0)}
+                          {formatEuro(offerDisplayPrice || 0, {decimals: 0, space: false})}
                         </Text>
                         <Text style={styles.offerMessageItemStatus}>
                           {localizedText.status}: {offerStatus}
@@ -913,7 +914,7 @@ const ChatDetail = ({navigation, route}) => {
                         {localizedText.total}
                       </Text>
                       <Text style={styles.offerMessageTotalAmount}>
-                        €{Number(offerFinalTotal || 0).toFixed(0)}
+                        {formatEuro(offerFinalTotal || 0, {decimals: 0, space: false})}
                       </Text>
                     </View>
                     <Text style={styles.offerMessageSubText}>

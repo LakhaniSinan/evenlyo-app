@@ -11,6 +11,7 @@ import {
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {formatPrice} from '../../utils';
 import StatusBadge from '../statusComponent';
 
 const getLocalizedField = (field, currentLanguage) => {
@@ -55,7 +56,7 @@ const BookingCard = ({item}) => {
           </TouchableOpacity>
           <View style={styles.priceContainer}>
             <Text style={styles.price}>
-              € {item?.listingDetails?.pricing?.amount}
+              € {formatPrice(item?.listingDetails?.pricing?.amount)}
             </Text>
             <Text style={styles.perEvent}>
               /{item?.pricingBreakdown?.pricingType?.toUpperCase()}

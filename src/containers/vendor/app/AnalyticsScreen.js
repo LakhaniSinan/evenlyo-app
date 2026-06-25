@@ -29,6 +29,7 @@ import AnalyticsFilter from '../../../components/modals/AnalyticsFilter';
 import AnalyticsCard from '../../../components/reportAndAnalyticsCard';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {formatEuro} from '../../../utils';
 import {getBookingAnalytic} from '../../../services/AnalyticsReport';
 import {normalizeStatusKey} from '../../../utils/translatePricingBreakdownLabel';
 
@@ -288,7 +289,9 @@ const AnalyticsReport = () => {
       const generatedAt = formatDate(new Date());
       const rows = selectedBookings.map(item => {
         const bookingItem = getListingTitle(item);
-        const totalCost = `€${item?.pricingBreakdown?.total ?? 0}`;
+        const totalCost = formatEuro(item?.pricingBreakdown?.total ?? 0, {
+          space: false,
+        });
         const bookingDate = formatDate(item?.createdAt);
         const duration = `${item?.details?.duration?.totalHours ?? 0} ${t(
           'hours',
@@ -372,7 +375,7 @@ const AnalyticsReport = () => {
               <td>${escapeHtml(
                 item?.userId?._id || item?.client?._id || t('notAvailable'),
               )}</td>
-              <td>${escapeHtml(`€${item?.pricingBreakdown?.total ?? 0}`)}</td>
+              <td>${escapeHtml(formatEuro(item?.pricingBreakdown?.total ?? 0, {space: false}))}</td>
               <td>${escapeHtml(formatDate(item?.createdAt))}</td>
               <td>${escapeHtml(getStatusLabel(item?.status))}</td>
               <td>${escapeHtml(
@@ -608,7 +611,9 @@ const AnalyticsReport = () => {
                 </View>
               </View>
               <Text style={styles.totalEarningValue}>
-                €{analyticsReport?.stats?.totalEarnings || 0}
+                {formatEuro(analyticsReport?.stats?.totalEarnings || 0, {
+                  space: false,
+                })}
               </Text>
             </View>
 

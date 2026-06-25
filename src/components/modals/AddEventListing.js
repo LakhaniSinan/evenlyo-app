@@ -49,6 +49,74 @@ const DAY_LABEL_KEYS = {
   sat: 'daySat',
 };
 
+const normalizeCoords = coords => {
+  if (!coords) {
+    return null;
+  }
+
+  if (Array.isArray(coords) && coords.length >= 2) {
+    const lng = Number(coords[0]);
+    const lat = Number(coords[1]);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      return {latitude: lat, longitude: lng};
+    }
+    return null;
+  }
+
+  if (coords.latitude !== undefined && coords.longitude !== undefined) {
+    const lat = Number(coords.latitude);
+    const lng = Number(coords.longitude);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      return {latitude: lat, longitude: lng};
+    }
+  }
+
+  if (coords.lat !== undefined && coords.lng !== undefined) {
+    const lat = Number(coords.lat);
+    const lng = Number(coords.lng);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      return {latitude: lat, longitude: lng};
+    }
+  }
+
+  if (coords.latLng) {
+    return normalizeCoords(coords.latLng);
+  }
+
+  return null;
+};
+
+const normalizeSelectedLocation = location => {
+  if (!location) {
+    return null;
+  }
+
+  const coords =
+    normalizeCoords(location.latLng) ||
+    normalizeCoords(location.coordinates) ||
+    normalizeCoords(location);
+
+  const userAddress = location.userAddress || location.fullAddress || '';
+
+  if (!userAddress && !coords) {
+    return null;
+  }
+
+  return {
+    ...location,
+    userAddress,
+    latLng: coords,
+    coordinates: coords
+      ? {latitude: coords.latitude, longitude: coords.longitude}
+      : location.coordinates,
+  };
+};
+
+const resolveLocationCoords = selected =>
+  normalizeCoords(selected?.latLng) ||
+  normalizeCoords(selected?.coordinates) ||
+  normalizeCoords(selected);
+
 const TERMS_MODAL_SECTIONS = [
   {
     title: 'Welcome to Evenlyo',
@@ -177,7 +245,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
             perKm: toEditData?.pricing?.pricePerKm?.toString() || '',
             securityFeeAmount:
               toEditData?.pricing?.securityFee?.toString() || '',
-            selectedCoords: toEditData?.location || null,
+            selectedCoords: normalizeSelectedLocation(toEditData?.location),
             productImage: toEditData?.images || [],
             termsAccepted: true,
             autoAcceptOrder: toEditData?.autoAcceptOrder || false,
@@ -280,6 +348,11 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       setFormData(prev => ({
         ...prev,
         pricingType: value,
+      }));
+    } else if (key === 'selectedCoords') {
+      setFormData(prev => ({
+        ...prev,
+        selectedCoords: normalizeSelectedLocation(value),
       }));
     } else {
       setFormData(prev => ({...prev, [key]: value}));
@@ -389,7 +462,14 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
     if (!endTime) {
       return showError(t('End Time is required'));
     }
-    if (!selectedCoords) {
+    const locationCoords = resolveLocationCoords(selectedCoords);
+    const locationAddress =
+      selectedCoords?.userAddress || selectedCoords?.fullAddress || '';
+
+    if (!locationAddress) {
+      return showError(t('Please select a valid location'));
+    }
+    if (!locationCoords) {
       return showError(t('Please select a valid location'));
     }
     if (!termsAccepted) {
@@ -413,10 +493,10 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       },
       images: formData.productImage || [],
       location: {
-        userAddress: selectedCoords?.userAddress || '',
+        userAddress: locationAddress,
         coordinates: {
-          latitude: selectedCoords?.latLng?.latitude,
-          longitude: selectedCoords?.latLng?.longitude,
+          latitude: locationCoords.latitude,
+          longitude: locationCoords.longitude,
         },
       },
       availability: {

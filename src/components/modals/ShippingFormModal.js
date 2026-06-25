@@ -12,6 +12,7 @@ import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {formatPrice} from '../../utils';
 import GradientButton from '../button';
 import GradientText from '../gradiantText';
 import TextField from '../textInput';
@@ -175,14 +176,14 @@ const ShippingFromModal = ({isVisible, onClose, onContinueToShipping}) => {
             <View style={styles.pricingRow}>
               <Text style={styles.pricingLabel}>Subtotal:</Text>
               <Text style={styles.pricingValue}>
-                ${pricing.subtotal.toFixed(2)}
+                € {formatPrice(pricing.subtotal)}
               </Text>
             </View>
 
             <View style={styles.pricingRow}>
               <Text style={styles.pricingLabel}>Shipping:</Text>
               <Text style={styles.pricingValue}>
-                ${pricing.shipping.toFixed(2)}
+                € {formatPrice(pricing.shipping)}
               </Text>
             </View>
 
@@ -190,7 +191,7 @@ const ShippingFromModal = ({isVisible, onClose, onContinueToShipping}) => {
 
             <View style={styles.pricingRow}>
               <Text style={styles.totalLabel}>Total:</Text>
-              <Text style={styles.totalValue}>${pricing.total.toFixed(2)}</Text>
+              <Text style={styles.totalValue}>€ {formatPrice(pricing.total)}</Text>
             </View>
           </View>
 

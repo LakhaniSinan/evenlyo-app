@@ -43,6 +43,7 @@ import {
 import {SocketContext} from '../../../context';
 import {helper} from '../../../helper';
 import {useTranslation} from '../../../hooks';
+import {formatEuro, formatPrice} from '../../../utils';
 import {setActiveChat} from '../../../redux/slice/chat';
 import {conversationService, messageService} from '../../../services/Chat';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -855,7 +856,7 @@ const ChatDetail = ({navigation, route}) => {
                         {offerTitle}
                       </Text>
                       <Text style={styles.offerMessageItemPrice}>
-                        €{Number(offerDisplayPrice || 0).toFixed(0)}
+                        {formatEuro(offerDisplayPrice || 0, {decimals: 0, space: false})}
                       </Text>
                       <Text style={styles.offerMessageItemStatus}>
                         Status: {offerStatus}
@@ -868,7 +869,7 @@ const ChatDetail = ({navigation, route}) => {
                   <View style={styles.offerMessageTotalRow}>
                     <Text style={styles.offerMessageTotalLabel}>Total</Text>
                     <Text style={styles.offerMessageTotalAmount}>
-                      €{Number(offerFinalTotal || 0).toFixed(0)}
+                      {formatEuro(offerFinalTotal || 0, {decimals: 0, space: false})}
                     </Text>
                   </View>
                   <Text style={styles.offerMessageSubText}>
@@ -990,7 +991,7 @@ const ChatDetail = ({navigation, route}) => {
                           {offerTitle}
                         </Text>
                         <Text style={styles.offerMessageItemPrice}>
-                          €{Number(offerDisplayPrice || 0).toFixed(0)}
+                          {formatEuro(offerDisplayPrice || 0, {decimals: 0, space: false})}
                         </Text>
                         <Text style={styles.offerMessageItemStatus}>
                           Status: {offerStatus}
@@ -1003,7 +1004,7 @@ const ChatDetail = ({navigation, route}) => {
                     <View style={styles.offerMessageTotalRow}>
                       <Text style={styles.offerMessageTotalLabel}>Total</Text>
                       <Text style={styles.offerMessageTotalAmount}>
-                        €{Number(offerFinalTotal || 0).toFixed(0)}
+                        {formatEuro(offerFinalTotal || 0, {decimals: 0, space: false})}
                       </Text>
                     </View>
                     <Text style={styles.offerMessageSubText}>
@@ -1547,14 +1548,14 @@ const ChatDetail = ({navigation, route}) => {
                 </Text>
               </View>
               <Text style={styles.offerDetailsItemPrice}>
-                €
-                {Number(
+                {formatEuro(
                   selectedOfferDetails?.items?.[0]?.offerPrice ||
                     selectedOfferDetails?.items?.[0]?.pricingBreakdown
                       ?.offerPrice ||
                     selectedOfferDetails?.items?.[0]?.discountedPrice ||
                     0,
-                ).toFixed(2)}
+                  {space: false},
+                )}
               </Text>
             </View>
 
@@ -1565,7 +1566,7 @@ const ChatDetail = ({navigation, route}) => {
               <View style={styles.offerDetailsRow}>
                 <Text style={styles.offerDetailsLabel}>Subtotal</Text>
                 <Text style={styles.offerDetailsValue}>
-                  €{Number(selectedOfferDetails?.subtotal || 0).toFixed(2)}
+                  {formatEuro(selectedOfferDetails?.subtotal || 0, {space: false})}
                 </Text>
               </View>
               <View style={styles.offerDetailsRow}>
@@ -1573,15 +1574,14 @@ const ChatDetail = ({navigation, route}) => {
                   Security Fees
                 </Text>
                 <Text style={[styles.offerDetailsValue, {color: '#1D4ED8'}]}>
-                  +€
-                  {Number(selectedOfferDetails?.totalSecurity || 0).toFixed(2)}
+                  +{formatEuro(selectedOfferDetails?.totalSecurity || 0, {space: false})}
                 </Text>
               </View>
               <View style={styles.offerDetailsDivider} />
               <View style={styles.offerDetailsRow}>
                 <Text style={styles.offerDetailsTotalLabel}>Total Amount</Text>
                 <Text style={styles.offerDetailsTotalValue}>
-                  €{Number(selectedOfferDetails?.finalTotal || 0).toFixed(2)}
+                  {formatEuro(selectedOfferDetails?.finalTotal || 0, {space: false})}
                 </Text>
               </View>
             </View>

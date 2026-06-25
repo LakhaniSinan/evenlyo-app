@@ -16,7 +16,7 @@ import {useSelector} from 'react-redux';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
-import {getDistance} from '../../utils';
+import {getDistance, formatPrice, formatEuro} from '../../utils';
 import ReviewsCard from '../reviewsCard';
 
 const PRICING_LEGACY_KEYS = {
@@ -310,7 +310,7 @@ const EventAndPriceDetails = ({
     if (raw === null || raw === undefined || raw === '') {
       return t('notAvailable');
     }
-    return String(raw);
+    return formatPrice(raw);
   }, [data?.pricing?.amount, t]);
 
   const title =

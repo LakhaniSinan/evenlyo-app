@@ -8,6 +8,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import {saveBookingOrder} from '../../services/ListingsItem';
+import {formatEuro, parsePrice} from '../../utils';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
 
@@ -25,6 +26,8 @@ const PaymentModal = ({
   const [cardComplete, setCardComplete] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  const payableAmount = useMemo(() => parsePrice(amountToPay), [amountToPay]);
 
   const labels = useMemo(
     () => ({
@@ -109,7 +112,7 @@ const PaymentModal = ({
           const params = {
             bookingId: selectedData?._id,
             paymentIntent: paymentIntent?.id,
-            amount: amountToPay,
+            amount: payableAmount,
           };
           const res = await saveBookingOrder(params);
           if (res.status === 200 || res.status === 201) {
@@ -146,7 +149,7 @@ const PaymentModal = ({
     confirmPayment,
     labels,
     selectedData,
-    amountToPay,
+    payableAmount,
     modalRef,
     onClose,
     onPaymentSuccess,
@@ -176,7 +179,7 @@ const PaymentModal = ({
 
           <View style={styles.amountRow}>
             <Text style={styles.amountLabel}>{labels.bookingAmount}</Text>
-            <Text style={styles.amountValue}>€ {amountToPay}</Text>
+            <Text style={styles.amountValue}>{formatEuro(payableAmount)}</Text>
           </View>
         </View>
 

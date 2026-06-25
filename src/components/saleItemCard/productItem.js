@@ -3,6 +3,7 @@ import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import {formatPrice} from '../../utils';
 
 const CheckBox = memo(({checked, onPress}) => {
   return (
@@ -56,7 +57,7 @@ const ProductItem = ({
         </Text>
 
         <Text style={styles.price}>
-          ${(product.sellingPrice * product.quantity).toFixed(2)}
+          € {formatPrice(product.sellingPrice * product.quantity)}
         </Text>
 
         <View style={styles.counterRow}>

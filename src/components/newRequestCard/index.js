@@ -1,6 +1,7 @@
 import {Image, StyleSheet, Text, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
+import {formatPrice} from '../../utils';
 
 const InfoRow = ({label, value}) => (
   <View style={styles.infoBlock}>
@@ -18,7 +19,7 @@ const NewRequestCard = ({item}) => {
           <Text style={styles.djText}>.DJ</Text>
           <Text style={styles.title}>{item?.title}</Text>
           <View style={styles.priceRow}>
-            <Text style={styles.price}>${item?.pricePerDay}</Text>
+            <Text style={styles.price}>€ {formatPrice(item?.pricePerDay)}</Text>
             <Text style={styles.perDay}>/Day</Text>
           </View>
         </View>

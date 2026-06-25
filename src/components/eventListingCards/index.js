@@ -5,6 +5,7 @@ import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {formatPrice} from '../../utils';
 import {ICONS} from '../../assets';
 
 const EventListingCard = ({onEditIconPress, item, onDeleteIconPress}) => {
@@ -54,7 +55,7 @@ const EventListingCard = ({onEditIconPress, item, onDeleteIconPress}) => {
         </View>
         <View style={styles.footer}>
           <View style={styles.priceContainer}>
-            <Text style={styles.price}>{item.SellingPrice}</Text>
+            <Text style={styles.price}>{formatPrice(item.SellingPrice)}</Text>
             <Text style={styles.perEvent}>/Dar</Text>
           </View>
         </View>

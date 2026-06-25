@@ -21,6 +21,7 @@ import RecentClientsCard from '../../../components/recentClientsCard';
 import {COLORS, fontFamly} from '../../../constants';
 import {getDashboard} from '../../../services/Dashboard';
 import useTranslation from '../../../hooks/useTranslation';
+import {formatEuro} from '../../../utils';
 import {useSelector} from 'react-redux';
 
 const ViewMoreButton = React.memo(
@@ -92,7 +93,7 @@ const Dashboard = () => {
         id: 'revenue',
         title: t('Revenue'),
         icon: ICONS.earningIcon,
-        value: `€${dashboardData?.stats?.monthlyRevenue ?? 0}`,
+        value: formatEuro(dashboardData?.stats?.monthlyRevenue ?? 0, {space: false}),
       },
     ],
     [dashboardData, t],

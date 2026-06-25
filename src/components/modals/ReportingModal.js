@@ -17,6 +17,7 @@ import {generatePDF} from 'react-native-html-to-pdf';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {formatEuro, formatPrice} from '../../utils';
 import BookingTable from '../bookingTable';
 import GradientButton from '../button';
 import GradientText from '../gradiantText';
@@ -25,12 +26,12 @@ const ReportingModal = ({data, visible, onClose}) => {
   const {t} = useTranslation();
   const earningsData = [
     {label: 'Report Date:', value: moment().format('MMMM D, YYYY')},
-    {label: 'Today Earning:', value: `$${data?.stats?.todayEarnings || 0}`},
+    {label: 'Today Earning:', value: formatEuro(data?.stats?.todayEarnings || 0)},
     {
       label: 'Last Week Earning:',
-      value: `$${data?.stats?.lastWeekEarnings || 0}`,
+      value: formatEuro(data?.stats?.lastWeekEarnings || 0),
     },
-    {label: 'Total Earning:', value: `$${data?.stats?.totalEarnings || 0}`},
+    {label: 'Total Earning:', value: formatEuro(data?.stats?.totalEarnings || 0)},
   ];
 
   // ✅ Function to generate and download PDF
@@ -101,9 +102,9 @@ const ReportingModal = ({data, visible, onClose}) => {
 
     <h3>Earnings Summary</h3>
     <div class="earnings">
-      <div>Today Earning: €${data?.stats?.todayEarnings || 0}</div>
-      <div>Last Week Earning: €${data?.stats?.lastWeekEarnings || 0}</div>
-      <div>Total Earning: €${data?.stats?.totalEarnings || 0}</div>
+      <div>Today Earning: ${formatEuro(data?.stats?.todayEarnings || 0)}</div>
+      <div>Last Week Earning: ${formatEuro(data?.stats?.lastWeekEarnings || 0)}</div>
+      <div>Total Earning: ${formatEuro(data?.stats?.totalEarnings || 0)}</div>
     </div>
 
     <h3>Booking Details</h3>
@@ -123,7 +124,7 @@ const ReportingModal = ({data, visible, onClose}) => {
               <tr>
                 <td>${item?.trackingId || '-'}</td>
                 <td>${item?.listingName || '-'}</td>
-                <td>€${item?.totalCost || 0}</td>
+                <td>${formatEuro(item?.totalCost || 0, {space: false})}</td>
               </tr>
             `,
             )

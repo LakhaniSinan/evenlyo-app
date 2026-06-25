@@ -82,11 +82,65 @@ export const formatDate = (date, format = 'short') => {
   }
 };
 
-export const formatCurrency = (amount, currency = 'USD') => {
-  return new Intl.NumberFormat('en-US', {
+const NL_PRICE_FORMATTER = new Intl.NumberFormat('nl-NL', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const NL_PRICE_FORMATTER_WHOLE = new Intl.NumberFormat('nl-NL', {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
+/** Netherlands number format: 1.000,00 */
+export const formatPrice = (amount, options = {}) => {
+  const {decimals = 2} = options;
+  const value = Number(amount) || 0;
+  if (decimals === 0) {
+    return NL_PRICE_FORMATTER_WHOLE.format(value);
+  }
+  return NL_PRICE_FORMATTER.format(value);
+};
+
+/** Netherlands euro display: € 1.000,00 */
+export const formatEuro = (amount, options = {}) => {
+  const {space = true, decimals = 2} = options;
+  const formatted = formatPrice(amount, {decimals});
+  return space ? `€ ${formatted}` : `€${formatted}`;
+};
+
+/** Parse display/API price strings back to a number (supports nl-NL and plain numbers). */
+export const parsePrice = value => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  const str = String(value ?? '').trim().replace(/[€\s]/g, '');
+  if (!str) {
+    return 0;
+  }
+
+  const hasComma = str.includes(',');
+  const hasDot = str.includes('.');
+
+  let normalized = str;
+  if (hasComma && hasDot) {
+    // nl-NL: 1.800,50
+    normalized = str.replace(/\./g, '').replace(',', '.');
+  } else if (hasComma) {
+    // 1800,50
+    normalized = str.replace(',', '.');
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+export const formatCurrency = (amount, currency = 'EUR') => {
+  return new Intl.NumberFormat('nl-NL', {
     style: 'currency',
     currency,
-  }).format(amount);
+  }).format(Number(amount) || 0);
 };
 
 export const validateEmail = email => {

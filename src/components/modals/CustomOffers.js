@@ -12,6 +12,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {width} from 'react-native-dimension';
 import {IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import {formatEuro, formatPrice} from '../../utils';
 import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 
@@ -45,7 +46,7 @@ const CustomOfferModal = ({isVisible, onClose, offerObject, onAccept, isAcceptin
   const totalAmount = Number(offerObject?.finalTotal || item?.total || 0);
 
   const platformPercent = Number(breakdown?.platformFeePercent || 0);
-  const formatEuro = value => `€${Number(value || 0).toFixed(2)}`;
+  const formatEuroAmount = value => formatEuro(value, {space: false});
   const offerItems = offerObject?.items || [];
   const evenlyoProtectByItem = offerItems.map(() => true);
   const selectedItems = offerItems.map(() => true);
@@ -92,7 +93,7 @@ const CustomOfferModal = ({isVisible, onClose, offerObject, onAccept, isAcceptin
                 {!!subtitle && (
                   <Text style={styles.itemSubTitle}>{subtitle}</Text>
                 )}
-                <Text style={styles.mainPrice}>{formatEuro(totalAmount)}</Text>
+                <Text style={styles.mainPrice}>{formatEuroAmount(totalAmount)}</Text>
               </View>
             </View>
 
@@ -101,22 +102,22 @@ const CustomOfferModal = ({isVisible, onClose, offerObject, onAccept, isAcceptin
                 <Text style={styles.rowLabel}>
                   Security Deposit(Refundable)
                 </Text>
-                <Text style={styles.rowValue}>{formatEuro(securityFee)}</Text>
+                <Text style={styles.rowValue}>{formatEuroAmount(securityFee)}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.rowLabel}>
                   Platform Service Fee ({platformPercent}%)
                 </Text>
-                <Text style={styles.rowValue}>{formatEuro(platformFee)}</Text>
+                <Text style={styles.rowValue}>{formatEuroAmount(platformFee)}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.rowLabel}>VAT</Text>
-                <Text style={styles.rowValue}>{formatEuro(vatFee)}</Text>
+                <Text style={styles.rowValue}>{formatEuroAmount(vatFee)}</Text>
               </View>
               <View style={styles.offerPriceRow}>
                 <Text style={styles.offerPriceLabel}>Offer Price</Text>
                 <Text style={styles.offerPriceValue}>
-                  {formatEuro(offerBasePrice)}
+                  {formatEuroAmount(offerBasePrice)}
                 </Text>
               </View>
             </View>
@@ -125,7 +126,7 @@ const CustomOfferModal = ({isVisible, onClose, offerObject, onAccept, isAcceptin
           <Text style={styles.summaryHeading}>{t('Order Summary')}</Text>
           <View style={styles.totalCard}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>{formatEuro(totalAmount)}</Text>
+            <Text style={styles.totalValue}>{formatEuroAmount(totalAmount)}</Text>
           </View>
 
           <View

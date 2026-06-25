@@ -21,6 +21,7 @@ import PickedupModal from '../../../components/modals/PickedupModal';
 import RejectRequestModal from '../../../components/modals/RejectRequest';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {formatPrice} from '../../../utils';
 import {
   acceptBooking,
   getVendorBookingById,
@@ -357,7 +358,7 @@ function BookingDetails({route}) {
 
             <View>
               <Text style={styles.price}>
-                € {booking?.listingDetails?.pricing?.amount}
+                € {formatPrice(booking?.listingDetails?.pricing?.amount)}
               </Text>
               <Text style={styles.priceType}>/{pricingTypeLabel}</Text>
             </View>

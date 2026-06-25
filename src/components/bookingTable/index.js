@@ -11,8 +11,9 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
-import ReportingModal from '../modals/ReportingModal';
 import {useTranslation} from '../../hooks';
+import ReportingModal from '../modals/ReportingModal';
+import {formatPrice} from '../../utils';
 
 const BookingTable = ({data, canDownload, onSelectionChange}) => {
   const {t, currentLanguage} = useTranslation();
@@ -88,11 +89,7 @@ const BookingTable = ({data, canDownload, onSelectionChange}) => {
     });
   };
 
-  const formatCost = value => {
-    const numericValue = Number(value);
-    if (Number.isNaN(numericValue)) return '0.00';
-    return numericValue.toFixed(2);
-  };
+  const formatCost = value => formatPrice(value);
 
   const renderItem = ({item}) => {
     const rowId = item?._id || item?.trackingId;

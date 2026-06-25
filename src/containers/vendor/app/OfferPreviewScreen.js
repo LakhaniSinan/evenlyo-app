@@ -20,6 +20,7 @@ import {COLORS, fontFamly} from '../../../constants';
 import {SocketContext} from '../../../context';
 import {useTranslation} from '../../../hooks';
 import {resetOffer} from '../../../redux/slice/offers';
+import {formatEuro} from '../../../utils';
 
 const OfferPreviewScreen = ({navigation, route}) => {
   const {t, currentLanguage} = useTranslation();
@@ -234,7 +235,7 @@ const OfferPreviewScreen = ({navigation, route}) => {
                 </Text>
               </View>
               <Text style={styles.itemPrice}>
-                €{Number(price || 0).toFixed(2)}
+                {formatEuro(price || 0, {space: false})}
               </Text>
             </View>
           );

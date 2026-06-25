@@ -155,7 +155,7 @@ function CartScreen({navigation}) {
           return;
         }
 
-        setAmountToPay(payableAmount.toFixed(2));
+        setAmountToPay(payableAmount);
         const res = await createPaymentIntent({
           amount: payableAmount.toFixed(2),
           bookingId: selectedData?._id,

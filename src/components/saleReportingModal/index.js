@@ -16,6 +16,7 @@ import {generatePDF} from 'react-native-html-to-pdf';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {formatEuro} from '../../utils';
 import {generateSaleReportHTML} from '../../utils/htmlComtent';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
@@ -28,12 +29,12 @@ const SaleReportingModal = ({data, visible, onClose}) => {
 
   const earningsData = [
     {label: 'Report Date:', value: moment().format('MMMM D, YYYY')},
-    {label: 'Today Earning:', value: `$€{data?.stats?.todayEarnings || 0}`},
+    {label: 'Today Earning:', value: formatEuro(data?.stats?.todayEarnings || 0)},
     {
       label: 'Last Week Earning:',
-      value: `$€{data?.stats?.lastWeekEarnings || 0}`,
+      value: formatEuro(data?.stats?.lastWeekEarnings || 0),
     },
-    {label: 'Total Earning:', value: `$€{data?.stats?.totalEarnings || 0}`},
+    {label: 'Total Earning:', value: formatEuro(data?.stats?.totalEarnings || 0)},
   ];
 
   const handleDownloadPDF = async () => {

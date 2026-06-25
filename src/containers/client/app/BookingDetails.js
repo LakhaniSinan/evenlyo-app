@@ -28,6 +28,7 @@ import ComplaintPopup from '../../../components/modals/ComplaintModal';
 import ReviewModal from '../../../components/modals/ReviewModal';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {formatEuro} from '../../../utils';
 import {
   addReview,
   cancelBooking,
@@ -49,6 +50,8 @@ const formatTime = time =>
 
 const normalizeStatus = status =>
   status?.toLowerCase().replace(/\s+/g, '_') || 'default';
+
+const REVIEWABLE_BOOKING_STATUSES = ['completed', 'finished'];
 
 /* -------------------------------------------------------------------------- */
 /*                             STATUS COLORS                                  */
@@ -107,6 +110,8 @@ const RenderCards = React.memo(({title, isCheckIn, data}) => {
 /* -------------------------------------------------------------------------- */
 
 const BookingDetails = ({route, navigation}) => {
+  console.log(route?.params, 'routerouterouterouterouterouterouteroute');
+
   const {currentLanguage} = useTranslation();
   const isDutch = currentLanguage === 'nl';
   const localizedText = {
@@ -160,6 +165,15 @@ const BookingDetails = ({route, navigation}) => {
       bookingData?.details?.eventLongitude,
     [bookingData],
   );
+
+  const canAddReview = useMemo(() => {
+    if (!bookingData || bookingData.isReviewed) {
+      return false;
+    }
+    return REVIEWABLE_BOOKING_STATUSES.includes(
+      normalizeStatus(bookingData.status),
+    );
+  }, [bookingData]);
 
   const animateMap = useCallback(() => {
     if (!hasLocation || !mapRef.current) return;
@@ -358,6 +372,7 @@ const BookingDetails = ({route, navigation}) => {
 
       setReviewModal(false);
       if (responce.status == 200 || responce.status == 201) {
+        setBookingData(prev => (prev ? {...prev, isReviewed: true} : prev));
         modalRef.current.show({
           status: 'ok',
           message:
@@ -412,7 +427,8 @@ const BookingDetails = ({route, navigation}) => {
         <EventListingReviewsSection
           data={{
             ...(bookingData?.listingDetails || {}),
-            reviews: bookingData?.listingDetails?.reviews || bookingData?.reviews,
+            reviews:
+              bookingData?.listingDetails?.reviews || bookingData?.reviews,
           }}
         />
         <View style={{paddingVertical: width(3), marginHorizontal: 20}}>
@@ -480,12 +496,14 @@ const BookingDetails = ({route, navigation}) => {
           />
           <InfoRow
             label={localizedText.security}
-            value={`€${bookingData?.pricingBreakdown?.securityFee}`}
+            value={formatEuro(bookingData?.pricingBreakdown?.securityFee, {
+              space: false,
+            })}
           />
 
           <InfoRow
             label={localizedText.totalPrice}
-            value={`€${bookingData?.totalPrice}`}
+            value={formatEuro(bookingData?.totalPrice, {space: false})}
           />
         </View>
         {/* LOCATION
@@ -544,7 +562,7 @@ const BookingDetails = ({route, navigation}) => {
         </View>
       )}
 
-      {!bookingData?.isReviewed && bookingData?.status == 'completed' && (
+      {canAddReview && (
         <View style={styles.footerButtonSection}>
           <GradientButton
             onPress={() => setReviewModal(true)}

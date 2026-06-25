@@ -12,6 +12,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
+import {formatPrice} from '../../utils';
 
 const PopularCard = ({data, onCardPress, type, handleAddToCart}) => {
   const {currentLanguage} = useTranslation();
@@ -62,7 +63,7 @@ const PopularCard = ({data, onCardPress, type, handleAddToCart}) => {
           </Text>
 
           <Text style={styles.price}>
-            ${item?.pricing?.totalPrice || item?.sellingPrice || 0}
+            € {formatPrice(item?.pricing?.totalPrice || item?.sellingPrice || 0)}
           </Text>
 
           <TouchableOpacity onPress={() => handleAddToCart(item)}>

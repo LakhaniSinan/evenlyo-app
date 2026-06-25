@@ -6,6 +6,7 @@ import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {formatEuro, formatPrice} from '../../utils';
 
 const CartCard = ({
   item,
@@ -70,13 +71,13 @@ const CartCard = ({
       {
         key: 'totalPaid',
         label: t('Total Paid Amount'),
-        value: item?.AmountPaid?.toFixed(2),
+        value: item?.AmountPaid,
         color: isUpfrontPaid ? COLORS.green : COLORS.red,
       },
       {
         key: 'remaining',
         label: t('Remaining'),
-        value: item?.AmountLeft?.toFixed(2),
+        value: item?.AmountLeft,
         color: COLORS.red,
       },
     ],
@@ -214,7 +215,7 @@ const CartCard = ({
                   </Text>
                   <Text style={[styles.metaText, {color: row.color}]}>
                     {!isNaN(row.value)
-                      ? `€${Number(row.value).toFixed(2)}`
+                      ? formatEuro(row.value, {space: false})
                       : row.value}
                   </Text>
                 </View>
@@ -230,7 +231,7 @@ const CartCard = ({
               ]}>
               <Text style={[styles.warningText, {color: COLORS.red}]}>
                 {t('cartFullPaymentRequired', {
-                  amount: Number(item?.pricingBreakdown?.total)?.toFixed(2),
+                  amount: formatPrice(item?.pricingBreakdown?.total),
                 })}
               </Text>
             </View>
@@ -239,7 +240,7 @@ const CartCard = ({
               <Text style={styles.warningText}>
                 {t('cartRemainingBalanceWarning', {
                   amount: item?.AmountLeft
-                    ? `€${Number(item?.AmountLeft)?.toFixed(2)}`
+                    ? formatEuro(item?.AmountLeft, {space: false})
                     : '',
                 })}
               </Text>

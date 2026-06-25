@@ -32,7 +32,7 @@ import {
   listingAddToCart,
   sendBookingRequest,
 } from '../../../services/ListingsItem';
-import {getDistance, resolveAvailableDays} from '../../../utils';
+import {formatPrice, getDistance, resolveAvailableDays} from '../../../utils';
 
 const AUTH_MODAL_SWITCH_MS = 480;
 
@@ -751,7 +751,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
                 color: '#000',
                 fontSize: 15,
               }}>
-              € {data?.sellingPrice || data?.pricing?.amount}
+              € {formatPrice(data?.sellingPrice || data?.pricing?.amount)}
             </Text>
             <Text
               style={{

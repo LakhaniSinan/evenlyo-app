@@ -20,6 +20,8 @@ import {useTranslation} from '../../hooks';
 import {onUpdateCart} from '../../services/ListingsItem';
 import {
   calculateAvailableDaysWithHours,
+  formatEuro,
+  formatPrice,
   getDistance,
   getInitialMarkedDates,
   resolveAvailableDays,
@@ -159,17 +161,9 @@ const OrderBooking = ({
     getInitialMarkedDates(availableDays, moment()),
   );
   const openTermsModal = () => setShowTermsModal(true);
-  const amountFormatter = useMemo(
-    () =>
-      new Intl.NumberFormat(currentLanguage === 'nl' ? 'nl-NL' : 'en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
-    [currentLanguage],
-  );
   const formatAmount = useCallback(
-    value => amountFormatter.format(Number(value) || 0),
-    [amountFormatter],
+    value => formatPrice(value),
+    [],
   );
 
   const {
@@ -422,7 +416,9 @@ const OrderBooking = ({
     normalizedPricingType === 'perday' || normalizedPricingType === 'daily';
   const isPerEventPricing =
     normalizedPricingType === 'perevent' || normalizedPricingType === 'event';
-  const requiresTimeSelection = isPerHourPricing && isSingleDateSelected;
+  const requiresTimeSelection =
+    (isPerHourPricing && isSingleDateSelected) ||
+    (isPerDayPricing && !!startDateStr);
   const chargedDays = Math.max(
     Number(availableSelectedDays || 0),
     startDateStr ? 1 : 0,
@@ -680,8 +676,8 @@ const OrderBooking = ({
           total: calculatedPricing.total?.toFixed(2),
 
           calculationDetails: isPerHourPricing
-            ? `Standard pricing: ${calculatedPricing.totalHours} hours × €${calculatedPricing.pricePerHour}/hour`
-            : `Standard pricing: ${calculatedPricing.pricingLabelDays} days × €${calculatedPricing.pricePerHour}`,
+            ? `Standard pricing: ${calculatedPricing.totalHours} hours × ${formatEuro(calculatedPricing.pricePerHour)}/hour`
+            : `Standard pricing: ${calculatedPricing.pricingLabelDays} days × ${formatEuro(calculatedPricing.pricePerHour)}`,
 
           breakdown: [
             {
@@ -692,8 +688,8 @@ const OrderBooking = ({
                 : `Daily Service (${calculatedPricing.pricingLabelDays} day(s))`,
               amount: calculatedPricing.serviceCost,
               explanation: isPerHourPricing
-                ? `${calculatedPricing.totalHours} hours × €${calculatedPricing.pricePerHour}/hour`
-                : `${calculatedPricing.pricingLabelDays} × €${calculatedPricing.pricePerHour}`,
+                ? `${calculatedPricing.totalHours} hours × ${formatEuro(calculatedPricing.pricePerHour)}/hour`
+                : `${calculatedPricing.pricingLabelDays} × ${formatEuro(calculatedPricing.pricePerHour)}`,
             },
             {
               label: `Extra Time Fee`,
@@ -914,13 +910,13 @@ const OrderBooking = ({
   const paymentRequirement = useMemo(() => {
     return getPaymentRequirement({
       startDate: startDateStr,
-      startTime: isSingleDateSelected ? startTime : null,
+      startTime: requiresTimeSelection ? startTime : null,
       totalAmount: calculatedPricing.total,
     });
   }, [
     startDateStr,
     startTime,
-    isSingleDateSelected,
+    requiresTimeSelection,
     calculatedPricing.total,
     t,
   ]);
@@ -944,9 +940,7 @@ const OrderBooking = ({
       const validationErrors = [];
       if ((calculatedPricing.extraHours || 0) > 0) {
         validationErrors.push(
-          `ℹ️ Booking outside available hours (${slotStart}-${slotEnd}) will include an extra time fee of €${extraTimeCost.toFixed(
-            2,
-          )} (${calculatedPricing.extraHours} extra hours)`,
+          `ℹ️ Booking outside available hours (${slotStart}-${slotEnd}) will include an extra time fee of ${formatEuro(extraTimeCost)} (${calculatedPricing.extraHours} extra hours)`,
         );
       }
 
@@ -988,8 +982,8 @@ const OrderBooking = ({
           total,
 
           calculationDetails: isPerHourPricing
-            ? `Standard pricing: ${calculatedPricing.totalHours} hours × €${calculatedPricing.pricePerHour}/hour`
-            : `Standard pricing: ${calculatedPricing.pricingLabelDays} days × €${calculatedPricing.pricePerHour}`,
+            ? `Standard pricing: ${calculatedPricing.totalHours} hours × ${formatEuro(calculatedPricing.pricePerHour)}/hour`
+            : `Standard pricing: ${calculatedPricing.pricingLabelDays} days × ${formatEuro(calculatedPricing.pricePerHour)}`,
 
           breakdown: [
             {
@@ -1000,8 +994,8 @@ const OrderBooking = ({
                 : `Daily Service (${calculatedPricing.pricingLabelDays} day(s))`,
               amount: baseAmount,
               explanation: isPerHourPricing
-                ? `${calculatedPricing.totalHours} hours × €${calculatedPricing.pricePerHour}/hour`
-                : `${calculatedPricing.pricingLabelDays} × €${calculatedPricing.pricePerHour}`,
+                ? `${calculatedPricing.totalHours} hours × ${formatEuro(calculatedPricing.pricePerHour)}/hour`
+                : `${calculatedPricing.pricingLabelDays} × ${formatEuro(calculatedPricing.pricePerHour)}`,
             },
             {
               label: 'Extra Time Fee',
@@ -1295,13 +1289,12 @@ const OrderBooking = ({
                     <Text style={styles.pricingLabel}>
                       {t('standardServiceRate', {
                         hours: calculatedPricing.totalHours,
-                        rate: calculatedPricing.pricePerHour,
+                        rate: formatPrice(calculatedPricing.pricePerHour),
                       })}
                     </Text>
                   ) : (
                     <Text style={styles.pricingLabel}>
-                      {calculatedPricing.pricingLabelDays} day(s) x €
-                      {calculatedPricing.pricePerHour}/
+                      {calculatedPricing.pricingLabelDays} day(s) x {formatEuro(calculatedPricing.pricePerHour)}/
                       {isPerEventPricing ? 'event' : 'day'}
                     </Text>
                   )}

@@ -5,6 +5,7 @@ import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import {formatEuro, formatPrice} from '../../utils';
 import {useTranslation} from '../../hooks';
 
 const PRICING_TYPE_LABEL_KEYS = {
@@ -62,14 +63,10 @@ const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
             </View>
           </View>
           <Text style={styles.name} numberOfLines={1}>
-            {currentLanguage === 'en'
-              ? item?.title?.en
-              : item?.title?.nl}
+            {currentLanguage === 'en' ? item?.title?.en : item?.title?.nl}
           </Text>
           <Text style={styles.buttonText} numberOfLines={1}>
-            {currentLanguage === 'en'
-              ? item?.subtitle?.en
-              : item?.subtitle?.nl}
+            {currentLanguage === 'en' ? item?.subtitle?.en : item?.subtitle?.nl}
           </Text>
           <Text style={styles.buttonText} numberOfLines={2}>
             {currentLanguage === 'en'
@@ -94,7 +91,7 @@ const BookingListingCard = ({item, onEditIconPress, onDeleteIconPress}) => {
           </TouchableOpacity>
           <View style={styles.priceContainer}>
             <Text style={styles.price}>
-              €{(item?.pricing?.amount ?? 0).toFixed(2)}
+              {formatEuro(item?.pricing?.amount ?? 0, {space: false})}
             </Text>
             <Text style={styles.perEvent}>{pricingTypeLabel}</Text>
           </View>

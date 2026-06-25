@@ -25,6 +25,7 @@ import DateRangePicker from '../customDatePicker';
 import GradientText from '../gradiantText';
 import Loader from '../loder';
 import GooglePlacesInput from '../locationField';
+import {formatEuro, formatPrice} from '../../utils';
 
 const NESTED_MODAL_DISMISS_MS = 480;
 
@@ -830,8 +831,7 @@ const NewRequestModal = ({
                   color: COLORS.textLight,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                Base Rate: €
-                {Number(selectedListing?.pricing?.amount || 0).toFixed(2)}{' '}
+                Base Rate: {formatEuro(selectedListing?.pricing?.amount || 0)}{' '}
                 {selectedListing?.pricing?.type === 'perhour'
                   ? 'per hour'
                   : selectedListing?.pricing?.type}
@@ -842,10 +842,7 @@ const NewRequestModal = ({
                   color: COLORS.red,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                Extra Time Cost: €
-                {Number(selectedListing?.pricing?.extratimeCost || 0).toFixed(
-                  2,
-                )}{' '}
+                Extra Time Cost: {formatEuro(selectedListing?.pricing?.extratimeCost || 0)}{' '}
                 per hour beyond scheduled time
               </Text>
               <Text
@@ -854,8 +851,7 @@ const NewRequestModal = ({
                   color: COLORS.navyBlue,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                Distance Cost: €
-                {Number(selectedListing?.pricing?.pricePerKm || 0).toFixed(2)} /
+                Distance Cost: {formatEuro(selectedListing?.pricing?.pricePerKm || 0)} /
                 km per km from vendor location
               </Text>
               <Text
@@ -1024,7 +1020,7 @@ const NewRequestModal = ({
                 style={{marginRight: 6}}
               />
               <Text style={styles.checkboxLabel}>
-                Include Security Fee (€{securityFee?.toFixed(2)})
+                Include Security Fee ({formatEuro(securityFee || 0, {space: false})})
               </Text>
             </TouchableOpacity>
 
@@ -1034,7 +1030,7 @@ const NewRequestModal = ({
                   Security Fee ({includeSecurityFee ? 'Included' : 'Excluded'})
                 </Text>
                 <Text style={styles.feeAmount}>
-                  +€{appliedSecurityFee.toFixed(2)}
+                  +{formatEuro(appliedSecurityFee, {space: false})}
                 </Text>
               </View>
               {platformFee > 0 && (
@@ -1043,7 +1039,7 @@ const NewRequestModal = ({
                     Platform Fee ({bookingItemPlatformFee}%)
                   </Text>
                   <Text style={styles.feeAmount}>
-                    +€{platformFee.toFixed(2)}
+                    +{formatEuro(platformFee, {space: false})}
                   </Text>
                 </View>
               )}
@@ -1052,7 +1048,9 @@ const NewRequestModal = ({
                   <Text style={styles.feeLabel}>
                     VAT Fee ({bookingVatFeePercent}%)
                   </Text>
-                  <Text style={styles.feeAmount}>+€{vatFee.toFixed(2)}</Text>
+                  <Text style={styles.feeAmount}>
+                    +{formatEuro(vatFee, {space: false})}
+                  </Text>
                 </View>
               )}
             </View>
@@ -1062,7 +1060,7 @@ const NewRequestModal = ({
                 <View style={styles.finalTotalRow}>
                   <Text style={styles.finalTotalHeading}>Final Total:</Text>
                   <Text style={styles.finalTotalAmount}>
-                    €{grandTotal?.toFixed(2)}
+                    {formatEuro(grandTotal, {space: false})}
                   </Text>
                 </View>
                 <Text style={styles.finalTotalDescription}>
@@ -1081,8 +1079,7 @@ const NewRequestModal = ({
                   -
                   {selectedListing?.availability?.availableTimeSlots?.[0]
                     ?.endTime || 'N/A'}
-                  ) will include an extra time fee of €
-                  {totalExtraCost.toFixed(2)}.
+                  ) will include an extra time fee of {formatEuro(totalExtraCost)}.
                 </Text>
               </View>
             )}
@@ -1179,7 +1176,7 @@ const NewRequestModal = ({
           <View style={styles.infoModalRow}>
             <Text style={styles.infoModalLabel}>Calculated offer price</Text>
             <Text style={styles.infoModalValue}>
-              €{calculatedOfferPrice.toFixed(2)}
+              {formatEuro(calculatedOfferPrice, {space: false})}
             </Text>
           </View>
           <View style={styles.infoModalRow}>
@@ -1187,14 +1184,14 @@ const NewRequestModal = ({
               Extra Time Cost
             </Text>
             <Text style={[styles.infoModalValue, {color: '#FF5B00'}]}>
-              +€{totalExtraCost.toFixed(2)}
+              +{formatEuro(totalExtraCost, {space: false})}
             </Text>
           </View>
 
           <View style={[styles.infoModalRow, styles.infoModalTotalRow]}>
             <Text style={styles.infoModalTotalLabel}>Calculated Total</Text>
             <Text style={styles.infoModalTotalValue}>
-              €{calculatedPricingTotal.toFixed(2)}
+              {formatEuro(calculatedPricingTotal, {space: false})}
             </Text>
           </View>
         </View>

@@ -3,6 +3,7 @@ import React, {memo, useMemo} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
+import {formatPrice} from '../../utils';
 import GradientButton from '../button';
 import GradientText from '../gradiantText';
 import GooglePlacesInput from '../locationField';
@@ -46,7 +47,7 @@ const OrderSummary = memo(
               {item.title?.en} × {item.quantity}
             </Text>
             <Text style={styles.itemPrice}>
-              ${(item.sellingPrice * item.quantity).toFixed(2)}
+              € {formatPrice(item.sellingPrice * item.quantity)}
             </Text>
           </View>
         )),
@@ -84,7 +85,7 @@ const OrderSummary = memo(
             <View style={styles.row}>
               <Text style={styles.deliveryLabel}>Base delivery charge</Text>
               <Text style={styles.deliveryLabel}>
-                ${deliveryCharges.toFixed(2)}
+                € {formatPrice(deliveryCharges)}
               </Text>
             </View>
 
@@ -92,7 +93,7 @@ const OrderSummary = memo(
               <View style={styles.row}>
                 <Text style={styles.deliveryLabel}>Extra charges</Text>
                 <Text style={styles.deliveryLabel}>
-                  ${extraDeliveryCharges.toFixed(2)}
+                  € {formatPrice(extraDeliveryCharges)}
                 </Text>
               </View>
             )}
@@ -100,7 +101,7 @@ const OrderSummary = memo(
             <View style={styles.rowBold}>
               <Text style={styles.deliveryLabel}>Total Delivery</Text>
               <Text style={styles.deliveryLabel}>
-                ${deliveryTotal.toFixed(2)}
+                € {formatPrice(deliveryTotal)}
               </Text>
             </View>
           </View>
@@ -108,13 +109,13 @@ const OrderSummary = memo(
 
         <View style={styles.totalRow}>
           <Text style={styles.bold}>Subtotal</Text>
-          <Text style={styles.primary}>${selectedTotal.toFixed(2)}</Text>
+          <Text style={styles.primary}>€ {formatPrice(selectedTotal)}</Text>
         </View>
 
         {deliveryTotal > 0 && (
           <View style={styles.totalRow}>
             <Text style={styles.bold}>Delivery</Text>
-            <Text style={styles.primary}>${deliveryTotal.toFixed(2)}</Text>
+            <Text style={styles.primary}>€ {formatPrice(deliveryTotal)}</Text>
           </View>
         )}
 
@@ -122,12 +123,12 @@ const OrderSummary = memo(
           <Text style={styles.bold}>
             Platform Fee {selectedProductsArray[0]?.platformFeePercentage || 0}%
           </Text>
-          <Text style={styles.primary}>${platformFee.toFixed(2)}</Text>
+          <Text style={styles.primary}>€ {formatPrice(platformFee)}</Text>
         </View>
 
         <View style={styles.totalRow}>
           <Text style={styles.bold}>Total</Text>
-          <Text style={styles.primary}>${total.toFixed(2)}</Text>
+          <Text style={styles.primary}>€ {formatPrice(total)}</Text>
         </View>
 
         <View style={{height: width(8)}} />
@@ -194,7 +195,7 @@ const OrderSummary = memo(
               </TouchableOpacity>
 
               <GradientButton
-                text={t(`Pay $ ${total.toFixed(2)}`)}
+                text={t('Pay € {{amount}}', {amount: formatPrice(total)})}
                 onPress={onpayPress}
                 type="filled"
               />

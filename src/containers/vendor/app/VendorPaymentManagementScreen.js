@@ -17,6 +17,7 @@ import CommonAlert from '../../../components/commanAlert';
 import Loader from '../../../components/loder';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {formatPrice} from '../../../utils';
 import {
   disburseVendorPayments,
   getPayoutOrders,
@@ -317,7 +318,7 @@ const VendorPaymentManagementScreen = () => {
             ) : null}
           </View>
           <Text style={styles.orderAmount}>
-            {t('vendorPaymentAmountEur', {amount: amount.toFixed(2)})}
+            {t('vendorPaymentAmountEur', {amount: formatPrice(amount)})}
           </Text>
           <Text style={styles.orderMeta}>
             {escrowEnded
@@ -424,7 +425,7 @@ const VendorPaymentManagementScreen = () => {
         ]}>
         <Text style={styles.floatingButtonText}>
           {t('vendorPaymentPayoutCta', {
-            amount: selectedTotal.toFixed(2),
+            amount: formatPrice(selectedTotal),
           })}
         </Text>
       </TouchableOpacity>

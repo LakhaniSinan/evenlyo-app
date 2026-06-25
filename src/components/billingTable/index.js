@@ -10,6 +10,7 @@ import {
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {formatPrice} from '../../utils';
 import TextField from '../textInput';
 
 const BillingTable = ({
@@ -48,7 +49,7 @@ const BillingTable = ({
       <Text style={styles.cell}>{item.billingId}</Text>
       <Text style={styles.cell}>{item.date}</Text>
       <Text style={styles.cellBadge}>{item.plan}</Text>
-      <Text style={styles.cell}>${item.amount}</Text>
+      <Text style={styles.cell}>€ {formatPrice(item.amount)}</Text>
       <View style={styles.statusWrapper}>
         {item?.status === 'Paid' ? (
           <Text

@@ -10,6 +10,7 @@ import {PieChart} from 'react-native-chart-kit';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {formatEuro} from '../../utils';
 import CustomPicker from '../customPicker';
 
 const screenWidth = Dimensions.get('window').width;
@@ -127,7 +128,9 @@ const PieChartComponent = ({
                   style={[styles.legendDot, {backgroundColor: item.color}]}
                 />
                 <Text style={styles.legendText}>{item.name}</Text>
-                <Text style={styles.legendValue}>€{item.population}</Text>
+                <Text style={styles.legendValue}>
+                  {formatEuro(item.population, {space: false})}
+                </Text>
               </View>
             ))}
           </View>

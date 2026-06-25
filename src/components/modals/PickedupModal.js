@@ -15,6 +15,7 @@ import {width} from 'react-native-dimension';
 
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
+import {formatEuro, formatPrice} from '../../utils';
 import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 import GradientText from '../gradiantText';
@@ -112,7 +113,7 @@ const PickedupModal = ({booking, visible, onClose, onConfirm}) => {
 
     if (selectedReason === 'Fair' && numericAmount > securityFee) {
       ToastAndroid.show(
-        `Fair amount cannot exceed €${securityFee}`,
+        `Fair amount cannot exceed ${formatEuro(securityFee)}`,
         ToastAndroid.SHORT,
       );
       return;
@@ -136,7 +137,7 @@ const PickedupModal = ({booking, visible, onClose, onConfirm}) => {
 
     if (numericValue > securityFee) {
       ToastAndroid.show(
-        `Fair amount cannot exceed €${securityFee}`,
+        `Fair amount cannot exceed ${formatEuro(securityFee)}`,
         ToastAndroid.SHORT,
       );
       setAmount(String(securityFee));
@@ -161,7 +162,7 @@ const PickedupModal = ({booking, visible, onClose, onConfirm}) => {
   const claimTotalDisplay = useMemo(() => {
     const n = Number(claimAmount);
     const v = Number.isNaN(n) ? 0 : n;
-    return `€${v.toFixed(2)}`;
+    return formatEuro(v, {space: false});
   }, [claimAmount]);
 
   const scrollMaxHeight = Dimensions.get('window').height * 0.52;
@@ -227,8 +228,10 @@ const PickedupModal = ({booking, visible, onClose, onConfirm}) => {
 
             {selectedReason === 'Fair' && (
               <TextField
-                label={t(`Add security fee (€${securityFee})`)}
-                placeholder={`Max €${securityFee}`}
+                label={t('Add security fee ({{amount}})', {
+                  amount: formatPrice(securityFee),
+                })}
+                placeholder={t('Max {{amount}}', {amount: formatPrice(securityFee)})}
                 value={amount}
                 keyboardType="numeric"
                 onChangeText={handleFairAmountChange}
@@ -240,8 +243,7 @@ const PickedupModal = ({booking, visible, onClose, onConfirm}) => {
                 <View style={styles.infoBox}>
                   <Text style={styles.listingTitleBold}>{listingTitle}</Text>
                   <Text style={styles.infoText}>
-                    {t('Security Fee (Already Paid)')}: €
-                    {securityFee.toFixed(2)}
+                    {t('Security Fee (Already Paid)')}: {formatEuro(securityFee)}
                   </Text>
                   <Text style={styles.infoDesc}>
                     {t(

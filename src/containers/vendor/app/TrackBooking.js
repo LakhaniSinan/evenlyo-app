@@ -21,6 +21,7 @@ import AppHeader from '../../../components/appHeader';
 import {useTranslation} from '../../../hooks';
 import {setActiveChat} from '../../../redux/slice/chat';
 import {checkIsChatedBefore, createConnection} from '../../../services/Chat';
+import {formatEuro} from '../../../utils';
 import {
   normalizeStatusKey,
   translatePricingBreakdownLabel,
@@ -368,10 +369,7 @@ const TrackingBookingDetails = ({navigation, route}) => {
     }
   }, [data, user?.vendorId, dispatch, navigation, formatedParticipants, t]);
 
-  const formatAmount = amount =>
-    `€ ${Number(amount || 0)
-      .toFixed(2)
-      .replace('.', ',')}`;
+  const formatAmount = amount => formatEuro(amount);
 
   const formatTimelineDateTime = useCallback(
     dateValue => {
@@ -513,7 +511,7 @@ const TrackingBookingDetails = ({navigation, route}) => {
           <tr>
             <td>${escapeHtml(translatePricingLabel(row?.label))}</td>
             <td style="text-align:right;">${escapeHtml(
-              formatAmount(row?.amount).replace(',', '.'),
+              formatAmount(row?.amount),
             )}</td>
           </tr>
         `,
@@ -523,7 +521,7 @@ const TrackingBookingDetails = ({navigation, route}) => {
     const generatedAt = formatPDFDateTime(new Date().toISOString());
     const totalAmount = formatAmount(
       data?.totalPrice || data?.pricingBreakdown?.total || 0,
-    ).replace(',', '.');
+    );
 
     const schedPdf = buildEventSchedule(data, dateLocale, notAvailableLabel);
     const locPdf = escapeHtml(

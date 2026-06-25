@@ -26,6 +26,7 @@ import {
   getVendorCategories,
 } from '../../../services/Categories';
 import {filterListings} from '../../../services/ListingsItem';
+import {formatEuro, formatPrice} from '../../../utils';
 
 const CreateCustomOffer = ({route}) => {
   const data = route?.params || {};
@@ -184,7 +185,9 @@ const CreateCustomOffer = ({route}) => {
           </Text>
         </View>
         <View style={styles.priceWrapper}>
-          <Text style={styles.priceText}>€{item?.pricing?.amount}</Text>
+          <Text style={styles.priceText}>
+            {formatEuro(item?.pricing?.amount, {space: false})}
+          </Text>
           <Text style={styles.dayText}>
             /{item?.pricing?.type.toUpperCase()}
           </Text>
@@ -227,7 +230,7 @@ const CreateCustomOffer = ({route}) => {
         <View style={styles.selectedRightWrap}>
           <View style={styles.selectedPriceWrapper}>
             <Text style={styles.priceText}>
-              €{Number(displayPrice || 0).toFixed(2)}
+              {formatEuro(displayPrice || 0, {space: false})}
             </Text>
             {!!unit && (
               <Text style={styles.dayText}>/{String(unit).toUpperCase()}</Text>

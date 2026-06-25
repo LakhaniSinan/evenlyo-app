@@ -24,6 +24,7 @@ import OrderBooking from '../../../components/modals/OrderBookingModal';
 import RequestConfirmation from '../../../components/modals/RequestConfirmation';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
+import {formatPrice} from '../../../utils';
 import {getBookingDetails, toggleStatus} from '../../../services/ListingsItem';
 
 const WEEKDAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -203,7 +204,7 @@ function EventDetailsScreen({navigation, route}) {
               {t('vendorEventFeeExtraPrefix', {
                 amount:
                   feeAmount != null && feeAmount !== ''
-                    ? String(feeAmount)
+                    ? formatPrice(feeAmount)
                     : t('notAvailable'),
               })}
             </Text>
@@ -220,7 +221,7 @@ function EventDetailsScreen({navigation, route}) {
               {t('vendorEventPricePerKmLine', {
                 amount:
                   perKmAmount != null && perKmAmount !== ''
-                    ? String(perKmAmount)
+                    ? formatPrice(perKmAmount)
                     : t('notAvailable'),
               })}
             </Text>

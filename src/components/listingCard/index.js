@@ -5,6 +5,7 @@ import {Rating} from 'react-native-ratings';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
+import {formatPrice} from '../../utils';
 
 const PRICING_TYPE_LABEL_KEYS = {
   perhour: 'Per Hour',
@@ -206,7 +207,7 @@ const ListingCard = ({item, navigation}) => {
                 color: COLORS.textDark,
                 fontFamily: fontFamly.PlusJakartaSansBold,
               }}>
-              ${price}
+              € {formatPrice(price)}
             </Text>
             {priceUnit ? (
               <Text

@@ -8,6 +8,7 @@ import {
   fontFamly,
 } from '../../constants';
 import {useTranslation} from '../../hooks';
+import {formatEuro} from '../../utils';
 
 const AnalyticsCard = ({item}) => {
   const {t} = useTranslation();
@@ -72,7 +73,7 @@ const CardContent = ({item, isDark = false, label}) => {
           styles.valueText,
           {color: isDark ? COLORS.white : COLORS.textDark},
         ]}>
-        €{item?.value ?? 0}
+        {formatEuro(item?.value ?? 0, {space: false})}
       </Text>
     </>
   );
