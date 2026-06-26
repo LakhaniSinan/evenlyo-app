@@ -12,44 +12,67 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {width} from 'react-native-dimension';
 import {IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
-import {formatEuro, formatPrice} from '../../utils';
+import {formatEuro, getOfferItemImage, getOfferItemTitle, getOfferPricingSummary} from '../../utils';
 import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 
 const CustomOfferModal = ({isVisible, onClose, offerObject, onAccept, isAccepting}) => {
   const {t, currentLanguage} = useTranslation();
 
-  const item = offerObject?.items?.[0];
-  const breakdown = item?.pricingBreakdown || {};
-
-  const title = useMemo(() => {
-    return currentLanguage === 'en' ? item?.title?.en : item?.title?.nl;
-  }, [currentLanguage, item]);
-
-  const subtitle = useMemo(() => {
-    return currentLanguage === 'en'
-      ? item?.subtitle?.en || item?.subtitle
-      : item?.subtitle?.nl || item?.subtitle;
-  }, [currentLanguage, item]);
-
-  const securityFee = Number(
-    item?.securityFee || offerObject?.totalSecurity || 0,
+  const offerPricing = useMemo(
+    () => getOfferPricingSummary(offerObject || {}),
+    [offerObject],
   );
-  const platformFee = Number(breakdown?.platformFee || 0);
-  const vatFee = Number(breakdown?.vatFee || 0);
-  const offerBasePrice = Number(
-    breakdown?.subtotal ||
-      item?.discountedPrice ||
-      (item?.offerPrice ? Number(item.offerPrice) - securityFee : 0) ||
-      0,
-  );
-  const totalAmount = Number(offerObject?.finalTotal || item?.total || 0);
-
-  const platformPercent = Number(breakdown?.platformFeePercent || 0);
-  const formatEuroAmount = value => formatEuro(value, {space: false});
+  const isMultiItem = offerPricing.itemCount > 1;
   const offerItems = offerObject?.items || [];
   const evenlyoProtectByItem = offerItems.map(() => true);
   const selectedItems = offerItems.map(() => true);
+
+  const totalAmount = Number(
+    offerPricing.payableTotal || offerObject?.finalTotal || 0,
+  );
+  const formatEuroAmount = value => formatEuro(value, {space: false});
+
+  const getItemSubtitle = item => {
+    if (currentLanguage === 'en') {
+      return item?.subtitle?.en || item?.subtitle || '';
+    }
+    return item?.subtitle?.nl || item?.subtitle || '';
+  };
+
+  const singleItemBreakdown = offerPricing.items[0]?.item?.pricingBreakdown || {};
+  const platformPercent = Number(singleItemBreakdown?.platformFeePercent || 0);
+
+  const renderBreakdown = ({
+    securityFee,
+    platformFee,
+    vatFee,
+    offerBasePrice,
+    platformPercentValue = platformPercent,
+  }) => (
+    <View style={styles.breakdownBox}>
+      <View style={styles.row}>
+        <Text style={styles.rowLabel}>Security Deposit(Refundable)</Text>
+        <Text style={styles.rowValue}>{formatEuroAmount(securityFee)}</Text>
+      </View>
+      <View style={styles.row}>
+        <Text style={styles.rowLabel}>
+          Platform Service Fee ({platformPercentValue}%)
+        </Text>
+        <Text style={styles.rowValue}>{formatEuroAmount(platformFee)}</Text>
+      </View>
+      <View style={styles.row}>
+        <Text style={styles.rowLabel}>VAT</Text>
+        <Text style={styles.rowValue}>{formatEuroAmount(vatFee)}</Text>
+      </View>
+      <View style={styles.offerPriceRow}>
+        <Text style={styles.offerPriceLabel}>Offer Price</Text>
+        <Text style={styles.offerPriceValue}>
+          {formatEuroAmount(offerBasePrice)}
+        </Text>
+      </View>
+    </View>
+  );
 
   return (
     <Modal
@@ -74,54 +97,63 @@ const CustomOfferModal = ({isVisible, onClose, offerObject, onAccept, isAcceptin
         <ScrollView showsVerticalScrollIndicator={false}>
           <Text style={styles.selectedHeading}>{t('selected')}</Text>
 
-          <View style={styles.itemCard}>
-            <View style={styles.itemTopRow}>
-              <View style={styles.imageWrapper}>
-                <Image
-                  source={
-                    item?.images?.[0]
-                      ? {uri: item.images[0]}
-                      : IMAGES.backgroundImage2
-                  }
-                  resizeMode="cover"
-                  style={styles.image}
-                />
-              </View>
+          {offerPricing.items.map((row, index) => {
+            const itemImage = getOfferItemImage(row.item);
+            const itemTitle = getOfferItemTitle(row.item, currentLanguage);
+            const itemSubtitle = getItemSubtitle(row.item);
+            const itemDisplayPrice = isMultiItem
+              ? row.payableTotal
+              : totalAmount;
 
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>{title}</Text>
-                {!!subtitle && (
-                  <Text style={styles.itemSubTitle}>{subtitle}</Text>
-                )}
-                <Text style={styles.mainPrice}>{formatEuroAmount(totalAmount)}</Text>
-              </View>
-            </View>
+            return (
+              <View
+                key={row.key}
+                style={[styles.itemCard, index > 0 && styles.itemCardSpacing]}>
+                <View style={styles.itemTopRow}>
+                  <View style={styles.imageWrapper}>
+                    <Image
+                      source={
+                        itemImage
+                          ? {uri: itemImage}
+                          : IMAGES.backgroundImage2
+                      }
+                      resizeMode="cover"
+                      style={styles.image}
+                    />
+                  </View>
 
-            <View style={styles.breakdownBox}>
-              <View style={styles.row}>
-                <Text style={styles.rowLabel}>
-                  Security Deposit(Refundable)
-                </Text>
-                <Text style={styles.rowValue}>{formatEuroAmount(securityFee)}</Text>
+                  <View style={styles.itemContent}>
+                    <Text style={styles.itemTitle}>{itemTitle}</Text>
+                    {!!itemSubtitle && (
+                      <Text style={styles.itemSubTitle}>{itemSubtitle}</Text>
+                    )}
+                    <Text style={styles.mainPrice}>
+                      {formatEuroAmount(itemDisplayPrice)}
+                    </Text>
+                  </View>
+                </View>
+
+                {!isMultiItem &&
+                  renderBreakdown({
+                    securityFee: row.securityFee,
+                    platformFee: row.platformFee,
+                    vatFee: row.vatFee,
+                    offerBasePrice: row.offerSubtotal,
+                  })}
               </View>
-              <View style={styles.row}>
-                <Text style={styles.rowLabel}>
-                  Platform Service Fee ({platformPercent}%)
-                </Text>
-                <Text style={styles.rowValue}>{formatEuroAmount(platformFee)}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.rowLabel}>VAT</Text>
-                <Text style={styles.rowValue}>{formatEuroAmount(vatFee)}</Text>
-              </View>
-              <View style={styles.offerPriceRow}>
-                <Text style={styles.offerPriceLabel}>Offer Price</Text>
-                <Text style={styles.offerPriceValue}>
-                  {formatEuroAmount(offerBasePrice)}
-                </Text>
-              </View>
+            );
+          })}
+
+          {isMultiItem ? (
+            <View style={[styles.itemCard, styles.itemCardSpacing]}>
+              {renderBreakdown({
+                securityFee: offerPricing.securityFee,
+                platformFee: offerPricing.platformFee,
+                vatFee: offerPricing.vatFee,
+                offerBasePrice: offerPricing.offerSubtotal,
+              })}
             </View>
-          </View>
+          ) : null}
 
           <Text style={styles.summaryHeading}>{t('Order Summary')}</Text>
           <View style={styles.totalCard}>
@@ -208,6 +240,9 @@ const styles = StyleSheet.create({
     borderRadius: width(3),
     backgroundColor: '#F5F5F8',
     overflow: 'hidden',
+  },
+  itemCardSpacing: {
+    marginTop: width(2),
   },
   itemTopRow: {
     flexDirection: 'row',
