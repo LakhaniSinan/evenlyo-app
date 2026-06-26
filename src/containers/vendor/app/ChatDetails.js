@@ -10,9 +10,10 @@ import React, {
 } from 'react';
 import {
   Alert,
+  Dimensions,
   FlatList,
   Image,
-  KeyboardAvoidingView,
+  Keyboard,
   Modal,
   PermissionsAndroid,
   Platform,
@@ -163,6 +164,7 @@ const ChatDetail = ({navigation, route}) => {
   const [previewImage, setPreviewImage] = useState(null);
   const [offerDetailsVisible, setOfferDetailsVisible] = useState(false);
   const [selectedOfferDetails, setSelectedOfferDetails] = useState(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   const selectedOfferPricing = useMemo(
     () => getOfferPricingSummary(selectedOfferDetails || {}),
@@ -386,6 +388,46 @@ const ChatDetail = ({navigation, route}) => {
       flatListRef.current.scrollToEnd({animated: true});
     }
   }, []);
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent =
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const scrollMessagesToEnd = () => {
+      flatListRef.current?.scrollToEnd({animated: true});
+    };
+
+    const showSub = Keyboard.addListener(showEvent, event => {
+      let offset = 0;
+
+      if (Platform.OS === 'ios') {
+        const keyboardHeight = event?.endCoordinates?.height ?? 0;
+        offset = Math.max(0, keyboardHeight - insets.bottom);
+      } else if (Platform.Version >= 33) {
+        const windowHeight = Dimensions.get('window').height;
+        const keyboardTop = event?.endCoordinates?.screenY ?? windowHeight;
+        offset = Math.max(0, windowHeight - keyboardTop);
+      }
+
+      setKeyboardOffset(offset);
+      if (Platform.OS === 'ios' || Platform.Version >= 33) {
+        setTimeout(scrollMessagesToEnd, 100);
+      }
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardOffset(0);
+      if (Platform.OS === 'ios' || Platform.Version >= 33) {
+        setTimeout(scrollMessagesToEnd, 100);
+      }
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [insets.bottom]);
+
   const fetchAllMessages = useCallback(
     async (isRefreshing = false) => {
       if (!data?.conversationId || !user?.vendorId) {
@@ -1349,30 +1391,29 @@ const ChatDetail = ({navigation, route}) => {
     }
   }, []);
 
+  const bottomKeyboardInset =
+    Platform.OS === 'android' && Platform.Version < 33 ? 0 : keyboardOffset;
+
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}>
-        <AppHeader
-          leftIcon={ICONS.leftArrowIcon}
-          onLeftIconPress={() => navigation.goBack()}
-          menuContent={menuContent}
-          setCommentType={setCommentType}
-          commentType={commentType}
-          isMenu={true}
-          handleSelectOption={handleSelectOption}
-          isShowMenuIcon={true}
-          rightIcon={ICONS.menuIcon}
-          onRightIconPress={() => {}}
-          chatHeaderData={{
-            Icon: data?.participants?.user?.photo || null,
-            name: data?.participants?.user?.name,
-            lastSeen: 'Thanks for the quick res....',
-          }}
-        />
-
+      <AppHeader
+        leftIcon={ICONS.leftArrowIcon}
+        onLeftIconPress={() => navigation.goBack()}
+        menuContent={menuContent}
+        setCommentType={setCommentType}
+        commentType={commentType}
+        isMenu={true}
+        handleSelectOption={handleSelectOption}
+        isShowMenuIcon={true}
+        rightIcon={ICONS.menuIcon}
+        onRightIconPress={() => {}}
+        chatHeaderData={{
+          Icon: data?.participants?.user?.photo || null,
+          name: data?.participants?.user?.name,
+          lastSeen: 'Thanks for the quick res....',
+        }}
+      />
+      <View style={styles.chatBody}>
         <FlatList
           ref={flatListRef}
           data={allMessages}
@@ -1381,8 +1422,13 @@ const ChatDetail = ({navigation, route}) => {
           style={styles.messagesList}
           showsVerticalScrollIndicator={false}
           inverted={false}
-          contentContainerStyle={{padding: width(2), paddingBottom: width(4)}}
+          contentContainerStyle={{
+            flexGrow: 1,
+            padding: width(2),
+            paddingBottom: width(4),
+          }}
           keyboardShouldPersistTaps="handled"
+          onContentSizeChange={() => setTimeout(scrollToBottom, 20)}
           initialNumToRender={20}
           maxToRenderPerBatch={10}
           windowSize={10}
@@ -1409,11 +1455,37 @@ const ChatDetail = ({navigation, route}) => {
           }
         />
 
+        {!activeChat?.isBlocked && (
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('CreateCustomOffer', {chatParams: data})
+            }
+            style={{
+              height: width(10),
+              width: width(10),
+              borderRadius: 12,
+              position: 'absolute',
+              bottom: bottomKeyboardInset + width(18),
+              right: width(3),
+              zIndex: 10,
+              elevation: 10,
+              backgroundColor: COLORS.white,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Image
+              source={ICONS.plusIcon}
+              resizeMode="contain"
+              style={{height: width(6), width: width(6)}}
+            />
+          </TouchableOpacity>
+        )}
+
         {activeChat?.isBlocked ? (
           <View
             style={{
               padding: width(3),
-              paddingBottom: width(3) + insets.bottom,
+              marginBottom: bottomKeyboardInset,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: COLORS.backgroundLight,
@@ -1432,36 +1504,8 @@ const ChatDetail = ({navigation, route}) => {
             </Text>
           </View>
         ) : (
-          <>
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('CreateCustomOffer', {chatParams: data})
-              }
-              style={{
-                height: width(10),
-                width: width(10),
-                borderRadius: 12,
-                position: 'absolute',
-                bottom: insets.bottom + width(18),
-                right: width(3),
-                zIndex: 10,
-                elevation: 10,
-                backgroundColor: COLORS.white,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <Image
-                source={ICONS.plusIcon}
-                resizeMode="contain"
-                style={{height: width(6), width: width(6)}}
-              />
-            </TouchableOpacity>
-
-            <View
-              style={[
-                styles.inputWrapper,
-                {flexDirection: 'column', paddingBottom: insets.bottom},
-              ]}>
+          <View style={{marginBottom: bottomKeyboardInset}}>
+            <View style={[styles.inputWrapper, {flexDirection: 'column'}]}>
               {attachedFile && !attachedFile?.name && (
                 <View style={styles.previewContainer}>
                   <Image
@@ -1535,6 +1579,11 @@ const ChatDetail = ({navigation, route}) => {
                     placeholderTextColor={COLORS.textLight}
                     value={messageText}
                     onChangeText={setMessageText}
+                    onFocus={
+                      Platform.OS === 'ios' || Platform.Version >= 33
+                        ? scrollToBottom
+                        : undefined
+                    }
                     maxLength={500}
                     style={styles.textInput}
                     multiline
@@ -1559,9 +1608,9 @@ const ChatDetail = ({navigation, route}) => {
                 </View>
               </View>
             </View>
-          </>
+          </View>
         )}
-      </KeyboardAvoidingView>
+      </View>
       <CommonAlert ref={modalRef} />
       <ReportUserModal
         visible={visible}
@@ -1707,6 +1756,7 @@ const ChatDetail = ({navigation, route}) => {
 
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: COLORS.white},
+  chatBody: {flex: 1, position: 'relative'},
   messagesList: {flex: 1},
   fullScreenModal: {
     position: 'absolute',
@@ -1915,7 +1965,9 @@ const styles = StyleSheet.create({
     borderRadius: width(3),
     overflow: 'hidden',
     flex: 1,
-    margin: width(2),
+    marginHorizontal: width(2),
+    marginTop: width(2),
+    marginBottom: width(1),
   },
   textInput: {
     flex: 1,
