@@ -25,7 +25,7 @@ import DateRangePicker from '../customDatePicker';
 import GradientText from '../gradiantText';
 import Loader from '../loder';
 import GooglePlacesInput from '../locationField';
-import {formatEuro, formatPrice} from '../../utils';
+import {formatEuro} from '../../utils';
 
 const NESTED_MODAL_DISMISS_MS = 480;
 
@@ -38,7 +38,7 @@ const NewRequestModal = ({
   editingItem,
   settingsData,
 }) => {
-  const {t, currentLanguage} = useTranslation();
+  const {t} = useTranslation();
   const modalRef = useRef(null);
   const dispatch = useDispatch();
   const [selectedCoords, setSelectedCoords] = useState(null);
@@ -242,15 +242,59 @@ const NewRequestModal = ({
     requestedHoursPerDay - availableHoursPerDay,
   );
 
-  const baseHourlyRate = selectedListing?.pricing?.amount || 0;
-  const extraHourlyRate = selectedListing?.pricing?.extratimeCost || 0;
+  const baseRate = Number(selectedListing?.pricing?.amount || 0);
+  const extraHourlyRate = Number(selectedListing?.pricing?.extratimeCost || 0);
 
-  const perDayBaseCost = baseHourlyRate * requestedHoursPerDay;
-  const perDayExtraCost = extraHoursPerDay * extraHourlyRate;
-  const totalExtraCost = perDayExtraCost * selectedDaysCount;
+  const normalizedPricingType = String(selectedListing?.pricing?.type || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '');
+  const isPerHourPricing =
+    normalizedPricingType === 'perhour' || normalizedPricingType === 'hourly';
+  const isPerDayPricing =
+    normalizedPricingType === 'perday' || normalizedPricingType === 'daily';
+  const isPerEventPricing =
+    normalizedPricingType === 'perevent' || normalizedPricingType === 'event';
+  const isFixedPricing =
+    normalizedPricingType === 'fixed' ||
+    normalizedPricingType === 'fixedprice' ||
+    normalizedPricingType === 'onetime';
 
-  const totalPerDayCost = perDayBaseCost + perDayExtraCost;
-  const totalDaysCost = totalPerDayCost * selectedDaysCount;
+  const chargedDays = Math.max(selectedDaysCount, 0);
+
+  let discountBasePrice = 0;
+  let totalExtraCost = 0;
+
+  if (isPerHourPricing) {
+    const vendorHours = availableHoursPerDay || requestedHoursPerDay;
+
+    if (singleDay || chargedDays <= 1) {
+      const baseHours = Math.min(
+        requestedHoursPerDay,
+        vendorHours || requestedHoursPerDay,
+      );
+      const extraHours = Math.max(
+        0,
+        requestedHoursPerDay - (availableHoursPerDay || 0),
+      );
+      const perExtraHourRate = extraHourlyRate || baseRate;
+
+      discountBasePrice = baseHours * baseRate;
+      totalExtraCost = extraHours * perExtraHourRate;
+    } else {
+      discountBasePrice = requestedHoursPerDay * chargedDays * baseRate;
+      totalExtraCost = 0;
+    }
+  } else if (isPerDayPricing || isPerEventPricing) {
+    discountBasePrice = chargedDays * baseRate;
+    totalExtraCost = 0;
+  } else if (isFixedPricing) {
+    discountBasePrice = baseRate;
+    totalExtraCost = 0;
+  } else {
+    discountBasePrice = chargedDays * baseRate;
+    totalExtraCost = 0;
+  }
 
   const distanceCost =
     distanceToSelectedListingKm != null
@@ -284,7 +328,6 @@ const NewRequestModal = ({
       19,
   );
 
-  const discountBasePrice = perDayBaseCost * selectedDaysCount;
   const enteredOfferAmount = Number(offerAmount || 0);
   const hasEnteredOffer =
     offerAmount?.trim() !== '' && Number.isFinite(enteredOfferAmount);
@@ -300,11 +343,20 @@ const NewRequestModal = ({
       : 0;
   const conditionalSecurityFee = includeSecurityFee ? securityFee : 0;
   const appliedSecurityFee = hasEnteredOffer ? conditionalSecurityFee : 0;
-  const calculatedOfferPrice =
-    hasEnteredOffer && safeOfferAmount > 0
-      ? safeOfferAmount
-      : discountBasePrice;
-  const calculatedPricingTotal = calculatedOfferPrice + totalExtraCost;
+  const systemCalculatedOfferPrice = Number(discountBasePrice.toFixed(2));
+  const normalizedDistanceCost = Number(distanceCost.toFixed(2));
+  const normalizedExtraTimeCost = Number(totalExtraCost.toFixed(2));
+  const roundedDistanceKm =
+    distanceToSelectedListingKm != null
+      ? Math.round(distanceToSelectedListingKm)
+      : null;
+  const calculatedPricingTotal = Number(
+    (
+      systemCalculatedOfferPrice +
+      normalizedDistanceCost +
+      normalizedExtraTimeCost
+    ).toFixed(2),
+  );
   const grandTotal =
     (hasEnteredOffer ? safeOfferAmount : 0) +
     platformFee +
@@ -724,8 +776,6 @@ const NewRequestModal = ({
       uniqueId: editingItem?.uniqueId,
     };
 
-    console.log(finalItem, 'finalItemfinalItemfinalItemfinalItem');
-
     dispatch(addItem(finalItem));
     modalRef.current?.show({
       status: 'ok',
@@ -807,7 +857,7 @@ const NewRequestModal = ({
                   color: COLORS.textDark,
                   marginVertical: width(2),
                 }}>
-                Pricing Information
+                {t('Pricing Information')}
               </Text>
             </View>
             <View
@@ -822,7 +872,7 @@ const NewRequestModal = ({
                   color: COLORS.primary,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                Pricing Type :{' '}
+                {t('Pricing Type')} :{' '}
                 {(selectedListing?.pricing?.type || 'N/A').toLowerCase()}
               </Text>
               <Text
@@ -831,9 +881,9 @@ const NewRequestModal = ({
                   color: COLORS.textLight,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                Base Rate: {formatEuro(selectedListing?.pricing?.amount || 0)}{' '}
+                {t('Base Rate')}: {formatEuro(selectedListing?.pricing?.amount || 0)}{' '}
                 {selectedListing?.pricing?.type === 'perhour'
-                  ? 'per hour'
+                  ? t('per hour')
                   : selectedListing?.pricing?.type}
               </Text>
               <Text
@@ -842,8 +892,8 @@ const NewRequestModal = ({
                   color: COLORS.red,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                Extra Time Cost: {formatEuro(selectedListing?.pricing?.extratimeCost || 0)}{' '}
-                per hour beyond scheduled time
+                {t('Extra Time Cost')}: {formatEuro(selectedListing?.pricing?.extratimeCost || 0)}{' '}
+                {t('per hour beyond scheduled time')}
               </Text>
               <Text
                 style={{
@@ -851,8 +901,8 @@ const NewRequestModal = ({
                   color: COLORS.navyBlue,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                Distance Cost: {formatEuro(selectedListing?.pricing?.pricePerKm || 0)} /
-                km per km from vendor location
+                {t('Distance Cost')}: {formatEuro(selectedListing?.pricing?.pricePerKm || 0)} /
+                {t('km per km from vendor location')}
               </Text>
               <Text
                 style={{
@@ -860,10 +910,10 @@ const NewRequestModal = ({
                   color: COLORS.green,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                Stock Available:{' '}
+                {t('Stock Available')}:{' '}
                 {Number(selectedListing?.quantity || 0) > 0
                   ? selectedListing?.quantity
-                  : 'Out of Stock'}
+                  : t('outOfStock')}
               </Text>
             </View>
           </View>
@@ -891,7 +941,7 @@ const NewRequestModal = ({
                   color: COLORS.textDark,
                   marginVertical: width(2),
                 }}>
-                Scheduled Date & Time
+                {t('Scheduled Date & Time')}
               </Text>
             </View>
             <DateRangePicker
@@ -914,7 +964,7 @@ const NewRequestModal = ({
                   color: COLORS.navyBlue,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                Availability:
+                {t('Availability')}:
               </Text>
               <Text
                 style={{
@@ -922,12 +972,12 @@ const NewRequestModal = ({
                   color: COLORS.navyBlue,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                Time Slots:{' '}
+                {t('Time Slots')}:{' '}
                 {selectedListing?.availability?.availableTimeSlots[0]
-                  ?.startTime || 'N/A'}{' '}
+                  ?.startTime || t('N/A')}{' '}
                 -{' '}
                 {selectedListing?.availability?.availableTimeSlots[0]
-                  ?.endTime || 'N/A'}
+                  ?.endTime || t('N/A')}
               </Text>
               <Text
                 style={{
@@ -935,10 +985,10 @@ const NewRequestModal = ({
                   color: COLORS.navyBlue,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                Time Slots:{' '}
+                {t('Time Slots')}:{' '}
                 {selectedListing?.availability?.availableDays
                   ?.map(day => day.toUpperCase())
-                  .join(', ') || 'N/A'}
+                  .join(', ') || t('N/A')}
               </Text>
               {distanceToSelectedListingKm != null && (
                 <Text
@@ -947,7 +997,7 @@ const NewRequestModal = ({
                     color: COLORS.navyBlue,
                     fontFamily: fontFamly.PlusJakartaSansBold,
                   }}>
-                  Distance to selected location:{' '}
+                  {t('Distance to selected location')}:{' '}
                   {distanceToSelectedListingKm.toFixed(2)} km
                 </Text>
               )}
@@ -965,21 +1015,33 @@ const NewRequestModal = ({
                 onEndIconPress={() => {
                   setSelectedCoords(null);
                 }}
-                placeholder="Enter Location"
+                placeholder={t('Enter Location')}
                 bgcolor={COLORS.white}
                 showRightIcon={ICONS.locationIcon}
-                lable="Add Location *"
+                lable={t('Add Location *')}
               />
+              {selectedCoords?.userAddress && roundedDistanceKm != null && (
+                <View style={styles.distanceCalculatedRow}>
+                  <Icon
+                    name="checkmark-circle"
+                    size={16}
+                    color={COLORS.green}
+                  />
+                  <Text style={styles.distanceCalculatedText}>
+                    {t('distanceCalculated', {km: roundedDistanceKm})}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
           <View style={styles.pricingCard}>
             <View style={styles.sectionTitleRow}>
               <Text style={styles.sectionTitleIcon}>€</Text>
-              <Text style={styles.sectionTitleText}>Pricing Breakdown</Text>
+              <Text style={styles.sectionTitleText}>{t('Pricing Breakdown')}</Text>
             </View>
 
             <View style={styles.offerLabelRow}>
-              <Text style={styles.offerInputLabel}>Your Offer Price (€)</Text>
+              <Text style={styles.offerInputLabel}>{t('Your Offer Price (€)')}</Text>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => setShowOfferInfoModal(true)}>
@@ -994,7 +1056,7 @@ const NewRequestModal = ({
               value={offerAmount}
               onChangeText={handleOfferAmountChange}
               keyboardType="decimal-pad"
-              placeholder="Enter your offer price"
+              placeholder={t('Enter your offer price')}
               placeholderTextColor={COLORS.textLight}
               style={styles.offerInput}
             />
@@ -1020,14 +1082,14 @@ const NewRequestModal = ({
                 style={{marginRight: 6}}
               />
               <Text style={styles.checkboxLabel}>
-                Include Security Fee ({formatEuro(securityFee || 0, {space: false})})
+                {t('Include Security Fee')} ({formatEuro(securityFee || 0, {space: false})})
               </Text>
             </TouchableOpacity>
 
             <View style={styles.feeContainer}>
               <View style={styles.feeRow}>
                 <Text style={styles.feeLabel}>
-                  Security Fee ({includeSecurityFee ? 'Included' : 'Excluded'})
+                  {t('Security Fee')} ({includeSecurityFee ? t('Included') : t('Excluded')})
                 </Text>
                 <Text style={styles.feeAmount}>
                   +{formatEuro(appliedSecurityFee, {space: false})}
@@ -1036,7 +1098,7 @@ const NewRequestModal = ({
               {platformFee > 0 && (
                 <View style={styles.feeRow}>
                   <Text style={styles.feeLabel}>
-                    Platform Fee ({bookingItemPlatformFee}%)
+                    {t('Platform Fee')} ({bookingItemPlatformFee}%)
                   </Text>
                   <Text style={styles.feeAmount}>
                     +{formatEuro(platformFee, {space: false})}
@@ -1046,7 +1108,7 @@ const NewRequestModal = ({
               {vatFee > 0 && (
                 <View style={[styles.feeRow, {borderBottomWidth: 0}]}>
                   <Text style={styles.feeLabel}>
-                    VAT Fee ({bookingVatFeePercent}%)
+                    {t('VAT Fee')} ({bookingVatFeePercent}%)
                   </Text>
                   <Text style={styles.feeAmount}>
                     +{formatEuro(vatFee, {space: false})}
@@ -1058,28 +1120,29 @@ const NewRequestModal = ({
             {hasEnteredOffer && safeOfferAmount > 0 && (
               <View style={styles.finalTotalInfoBox}>
                 <View style={styles.finalTotalRow}>
-                  <Text style={styles.finalTotalHeading}>Final Total:</Text>
+                  <Text style={styles.finalTotalHeading}>{t('Final Total')}:</Text>
                   <Text style={styles.finalTotalAmount}>
                     {formatEuro(grandTotal, {space: false})}
                   </Text>
                 </View>
                 <Text style={styles.finalTotalDescription}>
-                  Final total includes your offer amount, extra charges,
-                  optional security fee, platform fee, and VAT.
+                  {t('finalTotalDescription')}
                 </Text>
               </View>
             )}
 
-            {extraHoursPerDay > 0 && (
+            {extraHoursPerDay > 0 && isPerHourPricing && (
               <View style={styles.extraTimeInfoBox}>
                 <Text style={styles.extraTimeInfoText}>
-                  Booking outside available hours (
-                  {selectedListing?.availability?.availableTimeSlots?.[0]
-                    ?.startTime || 'N/A'}
-                  -
-                  {selectedListing?.availability?.availableTimeSlots?.[0]
-                    ?.endTime || 'N/A'}
-                  ) will include an extra time fee of {formatEuro(totalExtraCost)}.
+                  {t('bookingOutsideHoursExtraFee', {
+                    start:
+                      selectedListing?.availability?.availableTimeSlots?.[0]
+                        ?.startTime || t('N/A'),
+                    end:
+                      selectedListing?.availability?.availableTimeSlots?.[0]
+                        ?.endTime || t('N/A'),
+                    amount: formatEuro(totalExtraCost),
+                  })}
                 </Text>
               </View>
             )}
@@ -1097,12 +1160,12 @@ const NewRequestModal = ({
                 styles.totalText,
                 {fontSize: 12, marginBottom: width(2)},
               ]}>
-              Special Request (optional)
+              {t('Special Request (optional)')}
             </Text>
             <TextInput
               value={specialRequest}
               onChangeText={setSpecialRequest}
-              placeholder="Enter special request (optional)"
+              placeholder={t('Enter special request (optional)')}
               multiline
               placeholderTextColor={COLORS.textLight}
               style={[styles.input, styles.textarea]}
@@ -1117,22 +1180,12 @@ const NewRequestModal = ({
                 <TouchableOpacity
                   onPress={onClose}
                   style={styles.addToWishlistButton}>
-                  <GradientText
-                    text={
-                      currentLanguage === 'nl'
-                        ? 'Offerte afwijzen'
-                        : 'Reject Offer'
-                    }
-                  />
+                  <GradientText text={t('Reject Offer')} />
                 </TouchableOpacity>
                 <View style={{width: width(50)}}>
                   <GradientButton
                     styleContainer={{height: width(12.5)}}
-                    text={
-                      currentLanguage === 'nl'
-                        ? 'Offerte accepteren'
-                        : 'Accept Offer'
-                    }
+                    text={t('Accept Offer')}
                     onPress={() => onClose()}
                     type="filled"
                     textStyle={styles.sendRequestText}
@@ -1148,9 +1201,7 @@ const NewRequestModal = ({
                 onPress={handleCancel}
                 style={styles.cancelButton}
                 activeOpacity={0.7}>
-                <GradientText
-                  text={currentLanguage === 'nl' ? 'Annuleren' : 'Cancel'}
-                />
+                <GradientText text={t('Cancel')} />
               </TouchableOpacity>
             </View>
 
@@ -1171,25 +1222,39 @@ const NewRequestModal = ({
         style={styles.infoModalWrap}
         backdropOpacity={0.4}>
         <View style={styles.infoModalCard}>
-          <Text style={styles.infoModalTitle}>Calculated pricing details</Text>
+          <Text style={styles.infoModalTitle}>{t('Calculated pricing details')}</Text>
 
           <View style={styles.infoModalRow}>
-            <Text style={styles.infoModalLabel}>Calculated offer price</Text>
+            <Text style={styles.infoModalLabel}>{t('Calculated offer price')}</Text>
             <Text style={styles.infoModalValue}>
-              {formatEuro(calculatedOfferPrice, {space: false})}
+              {formatEuro(systemCalculatedOfferPrice, {space: false})}
             </Text>
           </View>
-          <View style={styles.infoModalRow}>
-            <Text style={[styles.infoModalLabel, {color: '#FF5B00'}]}>
-              Extra Time Cost
-            </Text>
-            <Text style={[styles.infoModalValue, {color: '#FF5B00'}]}>
-              +{formatEuro(totalExtraCost, {space: false})}
-            </Text>
-          </View>
+
+          {normalizedDistanceCost > 0 && roundedDistanceKm != null && (
+            <View style={styles.infoModalRow}>
+              <Text style={[styles.infoModalLabel, styles.infoModalDistanceLabel]}>
+                {t('distanceCostWithKm', {km: roundedDistanceKm})}
+              </Text>
+              <Text style={[styles.infoModalValue, styles.infoModalDistanceValue]}>
+                +{formatEuro(normalizedDistanceCost, {space: false})}
+              </Text>
+            </View>
+          )}
+
+          {normalizedExtraTimeCost > 0 && (
+            <View style={styles.infoModalRow}>
+              <Text style={[styles.infoModalLabel, styles.infoModalExtraTimeLabel]}>
+                {t('Extra Time Cost')}
+              </Text>
+              <Text style={[styles.infoModalValue, styles.infoModalExtraTimeValue]}>
+                +{formatEuro(normalizedExtraTimeCost, {space: false})}
+              </Text>
+            </View>
+          )}
 
           <View style={[styles.infoModalRow, styles.infoModalTotalRow]}>
-            <Text style={styles.infoModalTotalLabel}>Calculated Total</Text>
+            <Text style={styles.infoModalTotalLabel}>{t('Calculated Total')}</Text>
             <Text style={styles.infoModalTotalValue}>
               {formatEuro(calculatedPricingTotal, {space: false})}
             </Text>
@@ -1477,6 +1542,17 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansMedium,
     lineHeight: 15,
   },
+  distanceCalculatedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: width(2),
+  },
+  distanceCalculatedText: {
+    marginLeft: 6,
+    fontSize: 13,
+    color: COLORS.green,
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+  },
   infoModalWrap: {
     justifyContent: 'center',
     marginHorizontal: width(5),
@@ -1511,6 +1587,18 @@ const styles = StyleSheet.create({
     fontSize: 24 / 2,
     color: '#32363F',
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  infoModalDistanceLabel: {
+    color: '#7C3AED',
+  },
+  infoModalDistanceValue: {
+    color: '#7C3AED',
+  },
+  infoModalExtraTimeLabel: {
+    color: '#FF5B00',
+  },
+  infoModalExtraTimeValue: {
+    color: '#FF5B00',
   },
   infoModalTotalRow: {
     borderBottomWidth: 0,

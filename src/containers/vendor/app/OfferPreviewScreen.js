@@ -20,7 +20,7 @@ import {COLORS, fontFamly} from '../../../constants';
 import {SocketContext} from '../../../context';
 import {useTranslation} from '../../../hooks';
 import {resetOffer} from '../../../redux/slice/offers';
-import {formatEuro} from '../../../utils';
+import {formatEuro, getOfferItemImage, getOfferItemTitle, getOfferPricingSummary} from '../../../utils';
 
 const OfferPreviewScreen = ({navigation, route}) => {
   const {t, currentLanguage} = useTranslation();
@@ -54,27 +54,22 @@ const OfferPreviewScreen = ({navigation, route}) => {
     setNotesByItem(prev => ({...prev, [key]: value}));
   };
 
-  const calculateOfferTotals = items =>
-    (items || []).reduce(
-      (sum, item) =>
-        sum + Number(item?.pricingBreakdown?.total || item?.total || 0),
-      0,
-    );
-
   const handleSendOffer = () => {
     if (!selectedItems.length) {
-      Alert.alert('Error', 'No selected items found.');
+      Alert.alert(t('Error'), t('No selected items found.'));
       return;
     }
 
     const subtotal = selectedItems.reduce((sum, item) => {
-      const baseAmount =
-        item?.type === 'booking'
-          ? item?.pricingBreakdown?.basePrice ||
-            item?.pricingBreakdown?.baseAmount ||
-            item?.basePrice
-          : item?.price;
-      return sum + Number(baseAmount || 0);
+      if (item?.type === 'booking') {
+        return (
+          sum +
+          Number(
+            item?.discountedPrice || item?.pricingBreakdown?.subtotal || 0,
+          )
+        );
+      }
+      return sum + Number(item?.price || 0);
     }, 0);
 
     const totalDiscount = selectedItems.reduce((sum, item) => {
@@ -112,7 +107,16 @@ const OfferPreviewScreen = ({navigation, route}) => {
       );
     }, 0);
 
-    const finalTotal = calculateOfferTotals(selectedItems);
+    const finalTotal = selectedItems.reduce((sum, item) => {
+      if (item?.type === 'booking') {
+        const offerSubtotal = Number(
+          item?.discountedPrice || item?.pricingBreakdown?.subtotal || 0,
+        );
+        const security = Number(item?.securityFee || 0);
+        return sum + offerSubtotal + security;
+      }
+      return sum + Number(item?.total || item?.price || 0);
+    }, 0);
 
     const itemsArray = selectedItems.map(item => ({
       ...item,
@@ -144,7 +148,7 @@ const OfferPreviewScreen = ({navigation, route}) => {
       activeChat?.conversationId || route?.params?.chatParams?.conversationId;
 
     if (!socket || !conversationId || !receiverId || !user?.vendorId) {
-      Alert.alert('Error', 'Unable to send offer right now.');
+      Alert.alert(t('Error'), t('Unable to send offer right now.'));
       return;
     }
 
@@ -203,20 +207,14 @@ const OfferPreviewScreen = ({navigation, route}) => {
 
         {selectedItems.map(item => {
           const key = item?.uniqueId || item?.id || item?._id;
-          const title =
-            currentLanguage === 'en' ? item?.title?.en : item?.title?.nl;
-          const subtotalWithSecurity =
-            item?.pricingBreakdown?.subtotal !== undefined
-              ? Number(item?.pricingBreakdown?.subtotal || 0) +
-                Number(item?.securityFee || 0)
-              : undefined;
+          const title = getOfferItemTitle(item, currentLanguage);
           const price =
-            item?.offerPrice ??
-            item?.pricingBreakdown?.offerPrice ??
-            subtotalWithSecurity ??
             item?.discountedPrice ??
+            item?.pricingBreakdown?.subtotal ??
             item?.pricing?.amount ??
             0;
+          const itemPayableTotal =
+            Number(price || 0) + Number(item?.securityFee || 0);
 
           return (
             <View key={String(key)} style={styles.itemRow}>
@@ -235,7 +233,7 @@ const OfferPreviewScreen = ({navigation, route}) => {
                 </Text>
               </View>
               <Text style={styles.itemPrice}>
-                {formatEuro(price || 0, {space: false})}
+                {formatEuro(itemPayableTotal || 0, {space: false})}
               </Text>
             </View>
           );
@@ -247,8 +245,7 @@ const OfferPreviewScreen = ({navigation, route}) => {
 
         {selectedItems.map(item => {
           const key = item?.uniqueId || item?.id || item?._id;
-          const title =
-            currentLanguage === 'en' ? item?.title?.en : item?.title?.nl;
+          const title = getOfferItemTitle(item, currentLanguage);
 
           return (
             <View key={`note-${String(key)}`} style={styles.noteCard}>

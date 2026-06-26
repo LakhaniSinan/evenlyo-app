@@ -19,7 +19,7 @@ const useTranslation = () => {
       if (resolvedKey) {
         return originalT(resolvedKey, options);
       }
-      return key;
+      return originalT(key, options);
     },
     [originalT, i18n],
   );
