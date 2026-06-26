@@ -355,7 +355,6 @@ const ChatDetail = ({ navigation, route }) => {
   }, [socket, user, currentConversationId, handleReceiveMessage]);
 
   const flatListRef = useRef(null);
-  const windowHeightRef = useRef(Dimensions.get('window').height);
   const allMessagesRef = useRef([]);
   const memoizedMessages = useMemo(() => allMessages, [allMessages]);
 
@@ -506,31 +505,29 @@ const ChatDetail = ({ navigation, route }) => {
     };
 
     const showSub = Keyboard.addListener(showEvent, event => {
-      const keyboardHeight = event?.endCoordinates?.height ?? 0;
-      const currentWindowHeight = Dimensions.get('window').height;
-
       let offset = 0;
+
       if (Platform.OS === 'ios') {
+        const keyboardHeight = event?.endCoordinates?.height ?? 0;
         offset = Math.max(0, keyboardHeight - insets.bottom);
-      } else {
-        // Older Android already resizes the window via adjustResize.
-        // Only add manual offset for the remaining keyboard height.
-        const resizeDelta = Math.max(
-          0,
-          windowHeightRef.current - currentWindowHeight,
-        );
-        offset = Math.max(0, keyboardHeight - resizeDelta);
+      } else if (Platform.Version >= 33) {
+        // Android 13+: adjustResize is unreliable; lift input manually.
+        const windowHeight = Dimensions.get('window').height;
+        const keyboardTop = event?.endCoordinates?.screenY ?? windowHeight;
+        offset = Math.max(0, windowHeight - keyboardTop);
       }
+      // Android 12 and below: adjustResize handles keyboard; no manual offset.
 
       setKeyboardOffset(offset);
-      setTimeout(scrollMessagesToEnd, 100);
+      if (Platform.OS === 'ios' || Platform.Version >= 33) {
+        setTimeout(scrollMessagesToEnd, 100);
+      }
     });
     const hideSub = Keyboard.addListener(hideEvent, () => {
       setKeyboardOffset(0);
-      setTimeout(() => {
-        windowHeightRef.current = Dimensions.get('window').height;
-        scrollMessagesToEnd();
-      }, 100);
+      if (Platform.OS === 'ios' || Platform.Version >= 33) {
+        setTimeout(scrollMessagesToEnd, 100);
+      }
     });
 
     return () => {
@@ -538,6 +535,9 @@ const ChatDetail = ({ navigation, route }) => {
       hideSub.remove();
     };
   }, [insets.bottom]);
+
+  const bottomKeyboardInset =
+    Platform.OS === 'android' && Platform.Version < 33 ? 0 : keyboardOffset;
 
   const commonEmojis = [
     '😀',
@@ -1400,8 +1400,7 @@ const ChatDetail = ({ navigation, route }) => {
           lastSeen: 'Thanks for the quick res....',
         }}
       />
-      <View
-        style={[styles.chatBody, { paddingBottom: keyboardOffset }]}>
+      <View style={styles.chatBody}>
         <FlatList
           ref={flatListRef}
           data={memoizedMessages}
@@ -1422,6 +1421,7 @@ const ChatDetail = ({ navigation, route }) => {
           <View
             style={{
               padding: width(3),
+              marginBottom: bottomKeyboardInset,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: COLORS.backgroundLight,
@@ -1440,7 +1440,7 @@ const ChatDetail = ({ navigation, route }) => {
             </Text>
           </View>
         ) : (
-          <>
+          <View style={{ marginBottom: bottomKeyboardInset }}>
             {attachedFile && attachedFile?.type?.startsWith('image') && (
               <View style={styles.previewContainer}>
                 <Image
@@ -1520,7 +1520,11 @@ const ChatDetail = ({ navigation, route }) => {
                     placeholderTextColor={COLORS.textLight}
                     value={messageText}
                     onChangeText={setMessageText}
-                    onFocus={scrollToBottom}
+                    onFocus={
+                      Platform.OS === 'ios' || Platform.Version >= 33
+                        ? scrollToBottom
+                        : undefined
+                    }
                     maxLength={500}
                     style={styles.textInput}
                     multiline
@@ -1547,7 +1551,7 @@ const ChatDetail = ({ navigation, route }) => {
                 </View>
               </View>
             </View>
-          </>
+          </View>
         )}
       </View>
       <CommonAlert ref={modalRef} />
