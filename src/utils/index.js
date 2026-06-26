@@ -463,6 +463,71 @@ export const getTimeAgoStatus = (createdAt) => {
   return `${years} years ago`;
 };
 
+const CHAT_IMAGE_EXT_REGEX = /\.(jpg|jpeg|png|gif|webp|bmp|heic)(\?.*)?$/i;
+
+export const getChatMessagePreview = (message, options = {}) => {
+  const {
+    customOfferLabel = 'Custom Offer',
+    photoLabel = 'Photo',
+    pdfLabel = 'PDF',
+  } = options;
+
+  if (!message) {
+    return '';
+  }
+
+  if (message.isOffer || message.offerObject) {
+    return customOfferLabel;
+  }
+
+  const text = String(message.message || '').trim();
+
+  let attachment = message.attachment ?? message.attachments;
+  if (typeof attachment === 'string') {
+    const trimmed = attachment.trim();
+    if (trimmed) {
+      try {
+        attachment = JSON.parse(trimmed);
+      } catch {
+        attachment = {
+          url: trimmed,
+          type: CHAT_IMAGE_EXT_REGEX.test(trimmed) ? 'image' : 'file',
+        };
+      }
+    }
+  }
+
+  if (Array.isArray(attachment)) {
+    attachment = attachment[0];
+  }
+
+  if (attachment && typeof attachment === 'object') {
+    const url = String(
+      attachment.url || attachment.secure_url || attachment.uri || '',
+    ).toLowerCase();
+    const type = String(attachment.type || attachment.mimeType || '').toLowerCase();
+    const isImage =
+      type.startsWith('image/') ||
+      type === 'image' ||
+      CHAT_IMAGE_EXT_REGEX.test(url) ||
+      url.includes('/image/upload');
+    const isPdf =
+      type.includes('pdf') ||
+      type === 'file' ||
+      url.endsWith('.pdf') ||
+      url.includes('/raw/upload');
+
+    if (isImage) {
+      return text || photoLabel;
+    }
+    if (isPdf) {
+      return text || attachment.name || pdfLabel;
+    }
+  }
+
+  return text;
+};
+
 export {
   getOfferItemImage,
   getOfferItemKey,

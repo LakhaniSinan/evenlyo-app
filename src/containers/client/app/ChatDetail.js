@@ -45,7 +45,13 @@ import {
 import { SocketContext } from '../../../context';
 import { helper } from '../../../helper';
 import { useTranslation } from '../../../hooks';
-import { formatEuro } from '../../../utils';
+import {
+  formatEuro,
+  getChatMessagePreview,
+  getOfferItemImage,
+  getOfferItemTitle,
+  getOfferPricingSummary,
+} from '../../../utils';
 import { conversationService, messageService } from '../../../services/Chat';
 import RNFetchBlob from 'rn-fetch-blob';
 
@@ -216,6 +222,7 @@ const ChatDetail = ({ navigation, route }) => {
     sending: isDutch ? 'Verzenden...' : 'Sending...',
     pdfDocument: isDutch ? 'PDF-document' : 'PDF Document',
     customOffer: isDutch ? 'Aangepaste offerte' : 'Custom Offer',
+    offerItem: isDutch ? 'Offerte-item' : 'Offer Item',
     status: isDutch ? 'Status' : 'Status',
     total: isDutch ? 'Totaal' : 'Total',
     validFor24Hours: isDutch ? '24 uur geldig' : 'Valid for 24 hours',
@@ -357,6 +364,26 @@ const ChatDetail = ({ navigation, route }) => {
   const flatListRef = useRef(null);
   const allMessagesRef = useRef([]);
   const memoizedMessages = useMemo(() => allMessages, [allMessages]);
+
+  const lastMessagePreview = useMemo(() => {
+    if (allMessages.length > 0) {
+      const preview = getChatMessagePreview(allMessages[allMessages.length - 1], {
+        customOfferLabel: localizedText.customOffer,
+        photoLabel: isDutch ? 'Foto' : 'Photo',
+        pdfLabel: localizedText.pdfDocument,
+      });
+      if (preview) {
+        return preview;
+      }
+    }
+    return String(conversation?.lastMessage || '').trim();
+  }, [
+    allMessages,
+    conversation?.lastMessage,
+    currentLanguage,
+    localizedText.customOffer,
+    localizedText.pdfDocument,
+  ]);
 
   useEffect(() => {
     allMessagesRef.current = allMessages;
@@ -767,24 +794,8 @@ const ChatDetail = ({ navigation, route }) => {
       const isOwn = item.senderId === user?.id;
       const isOfferMessage = Boolean(item?.isOffer || item?.offerObject);
       const offerObjectData = item?.offerObject || {};
-      const firstOfferItem = offerObjectData?.items?.[0] || {};
-      const offerTitle =
-        currentLanguage === 'en'
-          ? firstOfferItem?.title?.en
-          : firstOfferItem?.title?.nl;
-      const offerDisplayPrice =
-        firstOfferItem?.offerPrice ||
-        firstOfferItem?.pricingBreakdown?.offerPrice ||
-        firstOfferItem?.pricingBreakdown?.subtotal ||
-        firstOfferItem?.discountedPrice ||
-        0;
-      const offerFinalTotal =
-        offerObjectData?.finalTotal || offerDisplayPrice || 0;
+      const offerPricing = getOfferPricingSummary(offerObjectData);
       const offerStatus = offerObjectData?.status || 'PENDING';
-      const offerImage =
-        firstOfferItem?.images?.[0] ||
-        firstOfferItem?.image ||
-        firstOfferItem?.featuredImage;
 
       const attachment = normalizeMessageAttachment(item) || item?.attachment;
       const isImage = isMessageImage(attachment);
@@ -933,26 +944,44 @@ const ChatDetail = ({ navigation, route }) => {
                       </Text>
                     </View>
 
-                    <View style={styles.offerMessageItemRow}>
-                      <Image
-                        source={offerImage ? { uri: offerImage } : ICONS.event2}
-                        style={styles.offerMessageItemImage}
-                        resizeMode="cover"
-                      />
-                      <View style={{ flex: 1, marginLeft: width(2) }}>
-                        <Text
-                          style={styles.offerMessageItemTitle}
-                          numberOfLines={2}>
-                          {offerTitle}
-                        </Text>
-                        <Text style={styles.offerMessageItemPrice}>
-                          {formatEuro(offerDisplayPrice || 0, { decimals: 0, space: false })}
-                        </Text>
-                        <Text style={styles.offerMessageItemStatus}>
-                          {localizedText.status}: {offerStatus}
-                        </Text>
-                      </View>
-                    </View>
+                    {offerPricing.items.map((row, rowIndex) => {
+                      const itemImage = getOfferItemImage(row.item);
+                      return (
+                        <View
+                          key={row.key}
+                          style={[
+                            styles.offerMessageItemRow,
+                            rowIndex > 0 && { marginTop: width(2) },
+                          ]}>
+                          <Image
+                            source={itemImage ? { uri: itemImage } : ICONS.event2}
+                            style={styles.offerMessageItemImage}
+                            resizeMode="cover"
+                          />
+                          <View style={{ flex: 1, marginLeft: width(2) }}>
+                            <Text
+                              style={styles.offerMessageItemTitle}
+                              numberOfLines={2}>
+                              {getOfferItemTitle(row.item, currentLanguage) ||
+                                localizedText.offerItem}
+                            </Text>
+                            <Text style={styles.offerMessageItemPrice}>
+                              {formatEuro(
+                                offerPricing.itemCount === 1
+                                  ? row.fullCalculatedTotal
+                                  : row.payableTotal,
+                                { decimals: 0, space: false },
+                              )}
+                            </Text>
+                            {offerPricing.itemCount === 1 ? (
+                              <Text style={styles.offerMessageItemStatus}>
+                                {localizedText.status}: {offerStatus}
+                              </Text>
+                            ) : null}
+                          </View>
+                        </View>
+                      );
+                    })}
 
                     <View style={styles.offerMessageDivider} />
                     <View style={styles.offerMessageTotalRow}>
@@ -960,7 +989,10 @@ const ChatDetail = ({ navigation, route }) => {
                         {localizedText.total}
                       </Text>
                       <Text style={styles.offerMessageTotalAmount}>
-                        {formatEuro(offerFinalTotal || 0, { decimals: 0, space: false })}
+                        {formatEuro(offerPricing.payableTotal || offerObjectData?.finalTotal || 0, {
+                          decimals: 0,
+                          space: false,
+                        })}
                       </Text>
                     </View>
                     <Text style={styles.offerMessageSubText}>
@@ -1397,7 +1429,7 @@ const ChatDetail = ({ navigation, route }) => {
         chatHeaderData={{
           Icon: conversation?.participants?.vendor?.photo || null,
           name: vendorDisplayName,
-          lastSeen: 'Thanks for the quick res....',
+          lastSeen: lastMessagePreview,
         }}
       />
       <View style={styles.chatBody}>

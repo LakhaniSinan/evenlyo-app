@@ -45,7 +45,13 @@ import {
 import {SocketContext} from '../../../context';
 import {helper} from '../../../helper';
 import {useTranslation} from '../../../hooks';
-import {formatEuro, getOfferItemImage, getOfferItemTitle, getOfferPricingSummary} from '../../../utils';
+import {
+  formatEuro,
+  getChatMessagePreview,
+  getOfferItemImage,
+  getOfferItemTitle,
+  getOfferPricingSummary,
+} from '../../../utils';
 import {setActiveChat} from '../../../redux/slice/chat';
 import {conversationService, messageService} from '../../../services/Chat';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -173,6 +179,20 @@ const ChatDetail = ({navigation, route}) => {
     const rawStatus = String(selectedOfferDetails?.status || 'PENDING').toUpperCase();
     return t(`offerStatus_${rawStatus}`);
   }, [selectedOfferDetails?.status, t]);
+
+  const lastMessagePreview = useMemo(() => {
+    if (allMessages.length > 0) {
+      const preview = getChatMessagePreview(allMessages[allMessages.length - 1], {
+        customOfferLabel: t('Custom Offer'),
+        photoLabel: currentLanguage === 'nl' ? 'Foto' : 'Photo',
+        pdfLabel: t('PDF'),
+      });
+      if (preview) {
+        return preview;
+      }
+    }
+    return String(data?.lastMessage || '').trim();
+  }, [allMessages, data?.lastMessage, currentLanguage, t]);
 
   // refs
   const flatListRef = useRef(null);
@@ -1369,7 +1389,7 @@ const ChatDetail = ({navigation, route}) => {
           chatHeaderData={{
             Icon: data?.participants?.user?.photo || null,
             name: data?.participants?.user?.name,
-            lastSeen: 'Thanks for the quick res....',
+            lastSeen: lastMessagePreview,
           }}
         />
 
@@ -1531,7 +1551,7 @@ const ChatDetail = ({navigation, route}) => {
 
                 <View style={styles.inputInner}>
                   <TextInput
-                    placeholder={t('Reply to Sarah here...')}
+                    placeholder={t('Reply to Client here...')}
                     placeholderTextColor={COLORS.textLight}
                     value={messageText}
                     onChangeText={setMessageText}
