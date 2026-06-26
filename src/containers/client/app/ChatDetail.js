@@ -355,6 +355,7 @@ const ChatDetail = ({ navigation, route }) => {
   }, [socket, user, currentConversationId, handleReceiveMessage]);
 
   const flatListRef = useRef(null);
+  const windowHeightRef = useRef(Dimensions.get('window').height);
   const allMessagesRef = useRef([]);
   const memoizedMessages = useMemo(() => allMessages, [allMessages]);
 
@@ -505,15 +506,31 @@ const ChatDetail = ({ navigation, route }) => {
     };
 
     const showSub = Keyboard.addListener(showEvent, event => {
-      const windowHeight = Dimensions.get('window').height;
-      const keyboardTop = event?.endCoordinates?.screenY ?? windowHeight;
-      const offset = Math.max(0, windowHeight - keyboardTop - insets.bottom);
+      const keyboardHeight = event?.endCoordinates?.height ?? 0;
+      const currentWindowHeight = Dimensions.get('window').height;
+
+      let offset = 0;
+      if (Platform.OS === 'ios') {
+        offset = Math.max(0, keyboardHeight - insets.bottom);
+      } else {
+        // Older Android already resizes the window via adjustResize.
+        // Only add manual offset for the remaining keyboard height.
+        const resizeDelta = Math.max(
+          0,
+          windowHeightRef.current - currentWindowHeight,
+        );
+        offset = Math.max(0, keyboardHeight - resizeDelta);
+      }
+
       setKeyboardOffset(offset);
       setTimeout(scrollMessagesToEnd, 100);
     });
     const hideSub = Keyboard.addListener(hideEvent, () => {
       setKeyboardOffset(0);
-      setTimeout(scrollMessagesToEnd, 50);
+      setTimeout(() => {
+        windowHeightRef.current = Dimensions.get('window').height;
+        scrollMessagesToEnd();
+      }, 100);
     });
 
     return () => {
