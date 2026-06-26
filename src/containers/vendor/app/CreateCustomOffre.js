@@ -26,7 +26,7 @@ import {
   getVendorCategories,
 } from '../../../services/Categories';
 import {filterListings} from '../../../services/ListingsItem';
-import {formatEuro, formatPrice} from '../../../utils';
+import {formatEuro} from '../../../utils';
 
 const CreateCustomOffer = ({route}) => {
   const data = route?.params || {};
@@ -48,7 +48,10 @@ const CreateCustomOffer = ({route}) => {
   console.log(offerItems, 'offerItemsofferItemsofferItems');
 
   const [showAddNew, setShowAddNew] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(null);
+  const [isBrowsingMoreItems, setIsBrowsingMoreItems] = useState(false);
+
+  const showSelectedView = offerItems?.length > 0 && !isBrowsingMoreItems;
+  const showAvailableView = !offerItems?.length || isBrowsingMoreItems;
 
   useEffect(() => {
     handleGetVendorCategories();
@@ -140,18 +143,18 @@ const CreateCustomOffer = ({route}) => {
   };
 
   const handleAddMoreItems = () => {
-    const fallbackItem =
-      selectedListing ||
-      filteredListings?.[0] ||
-      offerItems?.[offerItems.length - 1] ||
-      null;
-
-    if (fallbackItem) {
-      handleOpenForm(fallbackItem);
+    if (!filteredListings?.length) {
+      setIsBrowsingMoreItems(true);
+      setModalVisible(true);
       return;
     }
+    setIsBrowsingMoreItems(true);
+  };
 
-    setModalVisible(true);
+  const handleCloseRequestModal = () => {
+    setShowAddNew(false);
+    setEditingItem(null);
+    setIsBrowsingMoreItems(false);
   };
 
   const handleEditOfferItem = item => {
@@ -179,7 +182,7 @@ const CreateCustomOffer = ({route}) => {
           />
         </View>
         <View style={styles.textWrapper}>
-          <Text style={styles.typeText}>• Listing</Text>
+          <Text style={styles.typeText}>• {t('Listing')}</Text>
           <Text style={styles.titleText} numberOfLines={2}>
             {currentLanguage == 'en' ? item?.title?.en : item?.title?.nl}
           </Text>
@@ -197,17 +200,13 @@ const CreateCustomOffer = ({route}) => {
   };
   const selectedOfferItem = ({item}) => {
     const title = currentLanguage == 'en' ? item?.title?.en : item?.title?.nl;
-    const subtotalWithSecurity =
-      item?.pricingBreakdown?.subtotal !== undefined
-        ? Number(item?.pricingBreakdown?.subtotal || 0) +
-          Number(item?.securityFee || 0)
-        : undefined;
     const displayPrice =
-      item?.offerPrice ??
-      item?.pricingBreakdown?.offerPrice ??
-      subtotalWithSecurity ??
       item?.discountedPrice ??
-      item?.pricing?.amount;
+      item?.pricingBreakdown?.subtotal ??
+      item?.pricing?.amount ??
+      0;
+    const itemPayableTotal =
+      Number(displayPrice || 0) + Number(item?.securityFee || 0);
     const unit = item?.unit || item?.pricing?.type;
 
     return (
@@ -225,12 +224,12 @@ const CreateCustomOffer = ({route}) => {
           <Text style={styles.titleText} numberOfLines={2}>
             {title}
           </Text>
-          <Text style={styles.typeText}>Rental</Text>
+          <Text style={styles.typeText}>{t('Rental')}</Text>
         </View>
         <View style={styles.selectedRightWrap}>
           <View style={styles.selectedPriceWrapper}>
             <Text style={styles.priceText}>
-              {formatEuro(displayPrice || 0, {space: false})}
+              {formatEuro(itemPayableTotal || 0, {space: false})}
             </Text>
             {!!unit && (
               <Text style={styles.dayText}>/{String(unit).toUpperCase()}</Text>
@@ -269,7 +268,7 @@ const CreateCustomOffer = ({route}) => {
         onLeftIconPress={handleGoBack}
       />
 
-      {!offerItems?.length > 0 ? (
+      {!offerItems?.length ? (
         <View style={styles.addBtnWrapper}>
           <GradientButton
             text={t('Add New Item')}
@@ -280,42 +279,55 @@ const CreateCustomOffer = ({route}) => {
         </View>
       ) : null}
 
-      {offerItems?.length > 0 ? (
+      {showSelectedView ? (
         <FlatList
           ListHeaderComponent={
             <Text style={styles.sectionHeader}>
-              Selected Items ({offerItems?.length})
+              {t('selectedItemsCount', {count: offerItems?.length})}
             </Text>
           }
           data={offerItems}
           renderItem={selectedOfferItem}
+          keyExtractor={item =>
+            String(item?.uniqueId || item?.id || item?._id)
+          }
           ListFooterComponent={
-            <>
-              {offerItems?.length > 0 && (
-                <View style={{width: width(46), marginLeft: width(3)}}>
-                  <GradientButton
-                    text={t('Add More Items')}
-                    type="filled"
-                    onPress={handleAddMoreItems}
-                    textStyle={styles.applyText}
-                    styleProps={{width: width(46)}}
-                  />
-                </View>
-              )}
-            </>
+            <View style={{width: width(46), marginLeft: width(3)}}>
+              <GradientButton
+                text={t('Add More Items')}
+                type="filled"
+                onPress={handleAddMoreItems}
+                textStyle={styles.applyText}
+                styleProps={{width: width(46)}}
+              />
+            </View>
           }
         />
-      ) : (
-        <FlatList
-          ListHeaderComponent={
-            <Text style={styles.sectionHeader}>Available Items</Text>
-          }
-          data={filteredListings}
-          renderItem={renderItem}
-        />
-      )}
+      ) : null}
 
-      {offerItems?.length > 0 && (
+      {showAvailableView ? (
+        <>
+          {offerItems?.length > 0 ? (
+            <TouchableOpacity
+              style={styles.backToSelectedWrap}
+              onPress={() => setIsBrowsingMoreItems(false)}>
+              <Text style={styles.backToSelectedText}>
+                {t('backToSelectedItems', {count: offerItems.length})}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+          <FlatList
+            ListHeaderComponent={
+              <Text style={styles.sectionHeader}>{t('Available Items')}</Text>
+            }
+            data={filteredListings}
+            renderItem={renderItem}
+            keyExtractor={item => String(item?._id || item?.id)}
+          />
+        </>
+      ) : null}
+
+      {offerItems?.length > 0 && !isBrowsingMoreItems ? (
         <View
           style={{alignSelf: 'center', marginVertical: width(4), width: '90%'}}>
           <GradientButton
@@ -333,15 +345,12 @@ const CreateCustomOffer = ({route}) => {
             }}
           />
         </View>
-      )}
+      ) : null}
 
       <NewRequestModal
         type={'vendor'}
         isVisible={showAddNew}
-        onClose={() => {
-          setShowAddNew(false);
-          setEditingItem(null);
-        }}
+        onClose={handleCloseRequestModal}
         navigation={navigation}
         selectedListing={selectedListing}
         editingItem={editingItem}
@@ -485,5 +494,15 @@ const styles = StyleSheet.create({
   offerActionIcon: {
     width: width(5),
     height: width(5),
+  },
+  backToSelectedWrap: {
+    marginHorizontal: width(4),
+    marginTop: width(3),
+    marginBottom: width(1),
+  },
+  backToSelectedText: {
+    fontSize: 13,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
   },
 });

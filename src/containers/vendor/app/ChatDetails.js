@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -15,6 +16,7 @@ import {
   Modal,
   PermissionsAndroid,
   Platform,
+  ScrollView,
   Share,
   StyleSheet,
   Text,
@@ -43,7 +45,7 @@ import {
 import {SocketContext} from '../../../context';
 import {helper} from '../../../helper';
 import {useTranslation} from '../../../hooks';
-import {formatEuro, formatPrice} from '../../../utils';
+import {formatEuro, getOfferItemImage, getOfferItemTitle, getOfferPricingSummary} from '../../../utils';
 import {setActiveChat} from '../../../redux/slice/chat';
 import {conversationService, messageService} from '../../../services/Chat';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -161,6 +163,16 @@ const ChatDetail = ({navigation, route}) => {
   const [previewImage, setPreviewImage] = useState(null);
   const [offerDetailsVisible, setOfferDetailsVisible] = useState(false);
   const [selectedOfferDetails, setSelectedOfferDetails] = useState(null);
+
+  const selectedOfferPricing = useMemo(
+    () => getOfferPricingSummary(selectedOfferDetails || {}),
+    [selectedOfferDetails],
+  );
+
+  const selectedOfferStatusLabel = useMemo(() => {
+    const rawStatus = String(selectedOfferDetails?.status || 'PENDING').toUpperCase();
+    return t(`offerStatus_${rawStatus}`);
+  }, [selectedOfferDetails?.status, t]);
 
   // refs
   const flatListRef = useRef(null);
@@ -733,24 +745,11 @@ const ChatDetail = ({navigation, route}) => {
         item?.attachment?.url?.toLowerCase?.().endsWith('.pdf') ||
         item?.attachment?.url?.includes?.('/raw/upload');
       const offerObject = item?.offerObject || {};
-      const firstOfferItem = offerObject?.items?.[0] || {};
-      const offerTitle =
-        firstOfferItem?.title?.en ||
-        firstOfferItem?.title?.nl ||
-        firstOfferItem?.title ||
-        'Custom Offer';
-      const offerDisplayPrice =
-        firstOfferItem?.offerPrice ||
-        firstOfferItem?.pricingBreakdown?.offerPrice ||
-        firstOfferItem?.pricingBreakdown?.subtotal ||
-        firstOfferItem?.discountedPrice ||
-        0;
-      const offerFinalTotal = offerObject?.finalTotal || offerDisplayPrice || 0;
+      const offerPricing = getOfferPricingSummary(offerObject);
       const offerStatus = offerObject?.status || 'PENDING';
-      const offerImage =
-        firstOfferItem?.images?.[0] ||
-        firstOfferItem?.image ||
-        firstOfferItem?.featuredImage;
+      const offerStatusLabel = t(
+        `offerStatus_${String(offerStatus).toUpperCase()}`,
+      );
 
       // ✅ Replaced with RNFS-based download from URL
       const handleDownloadPDF = async (url, name = 'Document') => {
@@ -839,44 +838,69 @@ const ChatDetail = ({navigation, route}) => {
                       />
                     </View>
                     <Text style={styles.offerMessageHeaderText}>
-                      Custom Offer
+                      {t('Custom Offer')}
                     </Text>
                   </View>
 
-                  <View style={styles.offerMessageItemRow}>
-                    <Image
-                      source={offerImage ? {uri: offerImage} : ICONS.event2}
-                      style={styles.offerMessageItemImage}
-                      resizeMode="contain"
-                    />
-                    <View style={{flex: 1, marginLeft: width(2)}}>
-                      <Text
-                        style={styles.offerMessageItemTitle}
-                        numberOfLines={2}>
-                        {offerTitle}
-                      </Text>
-                      <Text style={styles.offerMessageItemPrice}>
-                        {formatEuro(offerDisplayPrice || 0, {decimals: 0, space: false})}
-                      </Text>
-                      <Text style={styles.offerMessageItemStatus}>
-                        Status: {offerStatus}
-                      </Text>
-                    </View>
-                  </View>
+                  {offerPricing.items.map((row, rowIndex) => {
+                    const itemImage = getOfferItemImage(row.item);
+                    return (
+                      <View
+                        key={row.key}
+                        style={[
+                          styles.offerMessageItemRow,
+                          rowIndex > 0 && {marginTop: width(2)},
+                        ]}>
+                        <Image
+                          source={itemImage ? {uri: itemImage} : ICONS.event2}
+                          style={styles.offerMessageItemImage}
+                          resizeMode="cover"
+                        />
+                        <View style={{flex: 1, marginLeft: width(2)}}>
+                          <Text
+                            style={styles.offerMessageItemTitle}
+                            numberOfLines={2}>
+                            {getOfferItemTitle(row.item, currentLanguage) ||
+                              t('Offer Item')}
+                          </Text>
+                          <Text style={styles.offerMessageItemPrice}>
+                            {formatEuro(
+                              offerPricing.itemCount === 1
+                                ? row.fullCalculatedTotal
+                                : row.payableTotal,
+                              {decimals: 0, space: false},
+                            )}
+                          </Text>
+                          {offerPricing.itemCount === 1 ? (
+                            <Text style={styles.offerMessageItemStatus}>
+                              {t('offerDetailsStatusLabel', {
+                                status: offerStatusLabel,
+                              })}
+                            </Text>
+                          ) : null}
+                        </View>
+                      </View>
+                    );
+                  })}
 
                   <View style={styles.offerMessageDivider} />
 
                   <View style={styles.offerMessageTotalRow}>
-                    <Text style={styles.offerMessageTotalLabel}>Total</Text>
+                    <Text style={styles.offerMessageTotalLabel}>
+                      {t('Total')}
+                    </Text>
                     <Text style={styles.offerMessageTotalAmount}>
-                      {formatEuro(offerFinalTotal || 0, {decimals: 0, space: false})}
+                      {formatEuro(offerPricing.payableTotal || 0, {
+                        decimals: 0,
+                        space: false,
+                      })}
                     </Text>
                   </View>
                   <Text style={styles.offerMessageSubText}>
-                    Valid for 24 hours
+                    {t('validFor24Hours')}
                   </Text>
                   <Text style={styles.offerMessageSubText}>
-                    Status: {offerStatus}
+                    {t('offerDetailsStatusLabel', {status: offerStatusLabel})}
                   </Text>
 
                   <LinearGradient
@@ -888,7 +912,9 @@ const ChatDetail = ({navigation, route}) => {
                       activeOpacity={0.85}
                       style={styles.offerViewBtn}
                       onPress={() => handleOpenOfferDetails(offerObject)}>
-                      <Text style={styles.offerViewBtnText}>View Offer</Text>
+                      <Text style={styles.offerViewBtnText}>
+                        {t('View Offer')}
+                      </Text>
                       <Text style={styles.offerViewBtnArrow}>{'->'}</Text>
                     </TouchableOpacity>
                   </LinearGradient>
@@ -974,44 +1000,69 @@ const ChatDetail = ({navigation, route}) => {
                         />
                       </View>
                       <Text style={styles.offerMessageHeaderText}>
-                        Custom Offer
+                        {t('Custom Offer')}
                       </Text>
                     </View>
 
-                    <View style={styles.offerMessageItemRow}>
-                      <Image
-                        source={offerImage ? {uri: offerImage} : ICONS.event2}
-                        style={styles.offerMessageItemImage}
-                        resizeMode="cover"
-                      />
-                      <View style={{flex: 1, marginLeft: width(2)}}>
-                        <Text
-                          style={styles.offerMessageItemTitle}
-                          numberOfLines={2}>
-                          {offerTitle}
-                        </Text>
-                        <Text style={styles.offerMessageItemPrice}>
-                          {formatEuro(offerDisplayPrice || 0, {decimals: 0, space: false})}
-                        </Text>
-                        <Text style={styles.offerMessageItemStatus}>
-                          Status: {offerStatus}
-                        </Text>
-                      </View>
-                    </View>
+                    {offerPricing.items.map((row, rowIndex) => {
+                      const itemImage = getOfferItemImage(row.item);
+                      return (
+                        <View
+                          key={row.key}
+                          style={[
+                            styles.offerMessageItemRow,
+                            rowIndex > 0 && {marginTop: width(2)},
+                          ]}>
+                          <Image
+                            source={itemImage ? {uri: itemImage} : ICONS.event2}
+                            style={styles.offerMessageItemImage}
+                            resizeMode="cover"
+                          />
+                          <View style={{flex: 1, marginLeft: width(2)}}>
+                            <Text
+                              style={styles.offerMessageItemTitle}
+                              numberOfLines={2}>
+                              {getOfferItemTitle(row.item, currentLanguage) ||
+                                t('Offer Item')}
+                            </Text>
+                            <Text style={styles.offerMessageItemPrice}>
+                              {formatEuro(
+                                offerPricing.itemCount === 1
+                                  ? row.fullCalculatedTotal
+                                  : row.payableTotal,
+                                {decimals: 0, space: false},
+                              )}
+                            </Text>
+                            {offerPricing.itemCount === 1 ? (
+                              <Text style={styles.offerMessageItemStatus}>
+                                {t('offerDetailsStatusLabel', {
+                                  status: offerStatusLabel,
+                                })}
+                              </Text>
+                            ) : null}
+                          </View>
+                        </View>
+                      );
+                    })}
 
                     <View style={styles.offerMessageDivider} />
 
                     <View style={styles.offerMessageTotalRow}>
-                      <Text style={styles.offerMessageTotalLabel}>Total</Text>
+                      <Text style={styles.offerMessageTotalLabel}>
+                        {t('Total')}
+                      </Text>
                       <Text style={styles.offerMessageTotalAmount}>
-                        {formatEuro(offerFinalTotal || 0, {decimals: 0, space: false})}
+                        {formatEuro(offerPricing.payableTotal || 0, {
+                          decimals: 0,
+                          space: false,
+                        })}
                       </Text>
                     </View>
                     <Text style={styles.offerMessageSubText}>
-                      Valid for 24 hours
+                      {t('validFor24Hours')}
                     </Text>
                     <Text style={styles.offerMessageSubText}>
-                      Status: {offerStatus}
+                      {t('offerDetailsStatusLabel', {status: offerStatusLabel})}
                     </Text>
 
                     <LinearGradient
@@ -1023,7 +1074,9 @@ const ChatDetail = ({navigation, route}) => {
                         activeOpacity={0.85}
                         style={styles.offerViewBtn}
                         onPress={() => handleOpenOfferDetails(offerObject)}>
-                        <Text style={styles.offerViewBtnText}>View Offer</Text>
+                        <Text style={styles.offerViewBtnText}>
+                          {t('View Offer')}
+                        </Text>
                         <Text style={styles.offerViewBtnArrow}>{'->'}</Text>
                       </TouchableOpacity>
                     </LinearGradient>
@@ -1078,7 +1131,7 @@ const ChatDetail = ({navigation, route}) => {
         </>
       );
     },
-    [user?.vendorId, data?.participants, getMessageTime, navigation],
+    [user?.vendorId, data?.participants, getMessageTime, navigation, t, currentLanguage],
   );
 
   // keyExtractor (safety if messages generated as temp)
@@ -1514,84 +1567,98 @@ const ChatDetail = ({navigation, route}) => {
                     resizeMode="contain"
                   />
                 </View>
-                <Text style={styles.offerDetailsTitle}>Offer Details</Text>
+                <Text style={styles.offerDetailsTitle}>{t('Offer Details')}</Text>
               </View>
               <TouchableOpacity onPress={() => setOfferDetailsVisible(false)}>
                 <Text style={styles.offerDetailsClose}>x</Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.offerDetailsItemsHeading}>
-              Items ({selectedOfferDetails?.items?.length || 0})
-            </Text>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              style={styles.offerDetailsScroll}>
+              <Text style={styles.offerDetailsItemsHeading}>
+                {t('offerDetailsItemsCount', {
+                  count: selectedOfferPricing.itemCount,
+                })}
+              </Text>
 
-            <View style={styles.offerDetailsItemCard}>
-              <Image
-                source={
-                  selectedOfferDetails?.items?.[0]?.images?.[0]
-                    ? {uri: selectedOfferDetails.items[0].images[0]}
-                    : ICONS.event2
-                }
-                style={styles.offerDetailsItemImage}
-                resizeMode="cover"
-              />
-              <View style={{flex: 1, marginLeft: width(2.5)}}>
-                <Text style={styles.offerDetailsItemTitle} numberOfLines={2}>
-                  {selectedOfferDetails?.items?.[0]?.title?.en ||
-                    selectedOfferDetails?.items?.[0]?.title?.nl ||
-                    selectedOfferDetails?.items?.[0]?.title ||
-                    'Offer Item'}
+              {selectedOfferPricing.items.map(row => {
+                const itemImage = getOfferItemImage(row.item);
+                return (
+                  <View key={row.key} style={styles.offerDetailsItemCard}>
+                    <Image
+                      source={itemImage ? {uri: itemImage} : ICONS.event2}
+                      style={styles.offerDetailsItemImage}
+                      resizeMode="cover"
+                    />
+                    <View style={{flex: 1, marginLeft: width(2.5)}}>
+                      <Text
+                        style={styles.offerDetailsItemTitle}
+                        numberOfLines={2}>
+                        {getOfferItemTitle(row.item, currentLanguage) ||
+                          t('Offer Item')}
+                      </Text>
+                      <Text style={styles.offerDetailsItemType}>
+                        {t('booking')}
+                      </Text>
+                      {row.securityFee > 0 ? (
+                        <Text style={styles.offerDetailsSecurityText}>
+                          {t('securityFeeIncluded')}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <Text style={styles.offerDetailsItemPrice}>
+                      {formatEuro(row.payableTotal, {space: false})}
+                    </Text>
+                  </View>
+                );
+              })}
+
+              <View style={styles.offerDetailsSummaryCard}>
+                <Text style={styles.offerDetailsSummaryTitle}>
+                  {t('pricingSummary')}
                 </Text>
-                <Text style={styles.offerDetailsItemType}>Booking</Text>
-                <Text style={styles.offerDetailsSecurityText}>
-                  Security fee included
-                </Text>
-              </View>
-              <Text style={styles.offerDetailsItemPrice}>
-                {formatEuro(
-                  selectedOfferDetails?.items?.[0]?.offerPrice ||
-                    selectedOfferDetails?.items?.[0]?.pricingBreakdown
-                      ?.offerPrice ||
-                    selectedOfferDetails?.items?.[0]?.discountedPrice ||
-                    0,
-                  {space: false},
+                <View style={styles.offerDetailsRow}>
+                  <Text style={styles.offerDetailsLabel}>{t('Subtotal')}</Text>
+                  <Text style={styles.offerDetailsValue}>
+                    {formatEuro(selectedOfferPricing.offerSubtotal, {
+                      space: false,
+                    })}
+                  </Text>
+                </View>
+                {selectedOfferPricing.securityFee > 0 && (
+                  <View style={styles.offerDetailsRow}>
+                    <Text
+                      style={[styles.offerDetailsLabel, {color: '#1D4ED8'}]}>
+                      {t('Security Fees')}
+                    </Text>
+                    <Text
+                      style={[styles.offerDetailsValue, {color: '#1D4ED8'}]}>
+                      +{formatEuro(selectedOfferPricing.securityFee, {space: false})}
+                    </Text>
+                  </View>
                 )}
-              </Text>
-            </View>
+                <View style={styles.offerDetailsDivider} />
+                <View style={styles.offerDetailsRow}>
+                  <Text style={styles.offerDetailsTotalLabel}>
+                    {t('Total Amount')}
+                  </Text>
+                  <Text style={styles.offerDetailsTotalValue}>
+                    {formatEuro(selectedOfferPricing.payableTotal, {space: false})}
+                  </Text>
+                </View>
+              </View>
 
-            <View style={styles.offerDetailsSummaryCard}>
-              <Text style={styles.offerDetailsSummaryTitle}>
-                Pricing Summary
+              <Text style={styles.offerDetailsStatusText}>
+                {t('offerDetailsStatusLabel', {
+                  status: selectedOfferStatusLabel,
+                })}
               </Text>
-              <View style={styles.offerDetailsRow}>
-                <Text style={styles.offerDetailsLabel}>Subtotal</Text>
-                <Text style={styles.offerDetailsValue}>
-                  {formatEuro(selectedOfferDetails?.subtotal || 0, {space: false})}
-                </Text>
-              </View>
-              <View style={styles.offerDetailsRow}>
-                <Text style={[styles.offerDetailsLabel, {color: '#1D4ED8'}]}>
-                  Security Fees
-                </Text>
-                <Text style={[styles.offerDetailsValue, {color: '#1D4ED8'}]}>
-                  +{formatEuro(selectedOfferDetails?.totalSecurity || 0, {space: false})}
-                </Text>
-              </View>
-              <View style={styles.offerDetailsDivider} />
-              <View style={styles.offerDetailsRow}>
-                <Text style={styles.offerDetailsTotalLabel}>Total Amount</Text>
-                <Text style={styles.offerDetailsTotalValue}>
-                  {formatEuro(selectedOfferDetails?.finalTotal || 0, {space: false})}
-                </Text>
-              </View>
-            </View>
-
-            <Text style={styles.offerDetailsStatusText}>
-              Status: {selectedOfferDetails?.status || 'PENDING'}
-            </Text>
-            <Text style={styles.offerDetailsExpiryText}>
-              Valid for 24 hours
-            </Text>
+              <Text style={styles.offerDetailsExpiryText}>
+                {t('validFor24Hours')}
+              </Text>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -2012,6 +2079,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F6F8',
     borderRadius: 20,
     padding: width(4),
+    maxHeight: '85%',
+  },
+  offerDetailsScroll: {
+    marginTop: width(2),
   },
   offerDetailsHeader: {
     flexDirection: 'row',

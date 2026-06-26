@@ -136,7 +136,9 @@ const BookingFilterPopUp = ({
           <CustomPicker
             ref={mainCategory}
             label="Main_Category"
-            labelll={isLoading ? 'Loading Categories...' : 'Main Category'}
+            labelll={
+              isLoading ? t('Loading Categories...') : t('Main Category')
+            }
             value={inputVal?.mainCategory || ''}
             listData={categoryOptions}
             name="mainCategory"
@@ -145,7 +147,11 @@ const BookingFilterPopUp = ({
           <CustomPicker
             ref={subCategory}
             label="Sub_Category"
-            labelll={isLoading ? 'Loading Sub-Categories...' : 'Sub Category'}
+            labelll={
+              isLoading
+                ? t('Loading Sub-Categories...')
+                : t('Sub Category')
+            }
             value={inputVal?.subCategory || ''}
             listData={subcategoryOptions}
             name="subCategory"
@@ -160,7 +166,7 @@ const BookingFilterPopUp = ({
                 onPress={onClose}
                 style={styles.cancelButton}
                 activeOpacity={0.7}>
-                <GradientText text={'Reset All'} />
+                <GradientText text={t('Reset All')} />
               </TouchableOpacity>
             </View>
 
