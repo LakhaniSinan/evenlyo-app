@@ -1,4 +1,4 @@
-import {pick, types} from '@react-native-documents/picker';
+import { pick, types } from '@react-native-documents/picker';
 import moment from 'moment';
 import React, {
   useCallback,
@@ -13,7 +13,7 @@ import {
   Dimensions,
   FlatList,
   Image,
-  KeyboardAvoidingView,
+  Keyboard,
   PermissionsAndroid,
   Platform,
   Share,
@@ -23,13 +23,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {width} from 'react-native-dimension';
-import {launchImageLibrary} from 'react-native-image-picker';
+import { width } from 'react-native-dimension';
+import { launchImageLibrary } from 'react-native-image-picker';
 import LinearGradient from 'react-native-linear-gradient';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {useSelector} from 'react-redux';
-import {ICONS} from '../../../assets';
+import { useSelector } from 'react-redux';
+import { ICONS } from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import CommonAlert from '../../../components/commanAlert';
 import EmojiPickerPopup from '../../../components/emojiModal';
@@ -42,11 +42,11 @@ import {
   COLORS,
   fontFamly,
 } from '../../../constants';
-import {SocketContext} from '../../../context';
-import {helper} from '../../../helper';
-import {useTranslation} from '../../../hooks';
-import {formatEuro} from '../../../utils';
-import {conversationService, messageService} from '../../../services/Chat';
+import { SocketContext } from '../../../context';
+import { helper } from '../../../helper';
+import { useTranslation } from '../../../hooks';
+import { formatEuro } from '../../../utils';
+import { conversationService, messageService } from '../../../services/Chat';
 import RNFetchBlob from 'rn-fetch-blob';
 
 const IMAGE_EXT_REGEX = /\.(jpg|jpeg|png|gif|webp|bmp|heic)(\?.*)?$/i;
@@ -84,10 +84,10 @@ const normalizeMessageAttachment = message => {
 
   const url = String(
     attachment.url ||
-      attachment.secure_url ||
-      attachment.secureUrl ||
-      attachment.uri ||
-      '',
+    attachment.secure_url ||
+    attachment.secureUrl ||
+    attachment.uri ||
+    '',
   ).trim();
 
   if (!url) {
@@ -128,7 +128,7 @@ const normalizeChatMessage = message => {
   if (!attachment) {
     return message;
   }
-  return {...message, attachment};
+  return { ...message, attachment };
 };
 
 const isMessageImage = attachment => {
@@ -202,14 +202,14 @@ const handleDownloadPDF = async (url, name = 'Document') => {
   }
 };
 
-const ChatDetail = ({navigation, route}) => {
+const ChatDetail = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
   const modalRef = useRef();
   const data = route.params;
-  const {socket} = useContext(SocketContext);
+  const { socket } = useContext(SocketContext);
   const [visible, setVisible] = useState(false);
   const [isError, setIsError] = useState(false);
-  const {t, currentLanguage} = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const isDutch = currentLanguage === 'nl';
   const localizedText = {
     vendor: isDutch ? 'Leverancier' : 'Vendor',
@@ -262,7 +262,7 @@ const ChatDetail = ({navigation, route}) => {
   const [allMessages, setAllMessages] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [offerObject, setOfferObject] = useState(null);
-  const {user} = useSelector(state => state.LoginSlice);
+  const { user } = useSelector(state => state.LoginSlice);
   const [attachedFile, setAttachedFile] = useState(null);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
@@ -271,6 +271,7 @@ const ChatDetail = ({navigation, route}) => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [isAcceptingOffer, setIsAcceptingOffer] = useState(false);
   const [showViewOfferModal, setShowViewOfferModal] = useState(false);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
   const currentConversationId =
     conversation?.conversationId || conversation?._id;
   const vendorDisplayName = useMemo(() => {
@@ -293,7 +294,7 @@ const ChatDetail = ({navigation, route}) => {
 
   useEffect(() => {
     if (socket && user) {
-      socket.emit('user_connected', {userId: user.id});
+      socket.emit('user_connected', { userId: user.id });
     }
   }, [socket, user]);
 
@@ -452,12 +453,12 @@ const ChatDetail = ({navigation, route}) => {
       return;
     }
 
-    socket.on('user_typing', ({senderId}) => {
+    socket.on('user_typing', ({ senderId }) => {
       setIsTyping(true);
       scrollToBottom();
     });
 
-    socket.on('user_stop_typing', ({senderId}) => {
+    socket.on('user_stop_typing', ({ senderId }) => {
       setIsTyping(false);
       scrollToBottom();
     });
@@ -483,7 +484,7 @@ const ChatDetail = ({navigation, route}) => {
       });
     } catch (err) {
       // fallback if the list hasn't measured layout yet
-      flatListRef.current.scrollToEnd({animated: true});
+      flatListRef.current.scrollToEnd({ animated: true });
     }
   };
 
@@ -492,6 +493,34 @@ const ChatDetail = ({navigation, route}) => {
     const handle = setTimeout(() => scrollToBottom(), 20);
     return () => clearTimeout(handle);
   }, [allMessages]);
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent =
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const scrollMessagesToEnd = () => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    };
+
+    const showSub = Keyboard.addListener(showEvent, event => {
+      const windowHeight = Dimensions.get('window').height;
+      const keyboardTop = event?.endCoordinates?.screenY ?? windowHeight;
+      const offset = Math.max(0, windowHeight - keyboardTop - insets.bottom);
+      setKeyboardOffset(offset);
+      setTimeout(scrollMessagesToEnd, 100);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardOffset(0);
+      setTimeout(scrollMessagesToEnd, 50);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [insets.bottom]);
 
   const commonEmojis = [
     '😀',
@@ -533,8 +562,8 @@ const ChatDetail = ({navigation, route}) => {
       const responseMessages = Array.isArray(response?.data)
         ? response.data
         : Array.isArray(response)
-        ? response
-        : [];
+          ? response
+          : [];
 
       const isValidMessagesResponse =
         response?.success ||
@@ -626,15 +655,15 @@ const ChatDetail = ({navigation, route}) => {
       const pricePerKm = Number(offerItem?.pricing?.pricePerKm || 0);
       const distanceCost = Number(
         offerItem?.pricingBreakdown?.distanceCost ||
-          offerItem?.distanceCost ||
-          0,
+        offerItem?.distanceCost ||
+        0,
       );
       const derivedDistanceKm =
         rawDistanceKm > 0
           ? rawDistanceKm
           : pricePerKm > 0 && distanceCost > 0
-          ? distanceCost / pricePerKm
-          : 0;
+            ? distanceCost / pricePerKm
+            : 0;
       const safeDistanceKm =
         offerItem?.type === 'booking'
           ? Number((derivedDistanceKm > 0 ? derivedDistanceKm : 0.1).toFixed(2))
@@ -708,7 +737,7 @@ const ChatDetail = ({navigation, route}) => {
             return;
           }
         }
-      } catch (error) {}
+      } catch (error) { }
 
       if (attempts >= maxAttempts) {
         clearInterval(intervalId);
@@ -717,7 +746,7 @@ const ChatDetail = ({navigation, route}) => {
   };
 
   const renderMessage = useCallback(
-    ({item}) => {
+    ({ item }) => {
       const isOwn = item.senderId === user?.id;
       const isOfferMessage = Boolean(item?.isOffer || item?.offerObject);
       const offerObjectData = item?.offerObject || {};
@@ -764,10 +793,10 @@ const ChatDetail = ({navigation, route}) => {
                   }}
                   style={[
                     styles.myMessageImageWrap,
-                    {maxWidth: width(80), alignSelf: 'flex-end'},
+                    { maxWidth: width(80), alignSelf: 'flex-end' },
                   ]}>
                   <Image
-                    source={{uri: imageUri}}
+                    source={{ uri: imageUri }}
                     resizeMode="cover"
                     style={styles.myMessageImage}
                   />
@@ -781,13 +810,13 @@ const ChatDetail = ({navigation, route}) => {
                 <View
                   style={[
                     styles.myMessageBubble,
-                    {maxWidth: width(80), alignSelf: 'flex-end'},
+                    { maxWidth: width(80), alignSelf: 'flex-end' },
                   ]}>
                   <LinearGradient
                     colors={BRAND_BUTTON_GRADIENT_COLORS}
                     locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
-                    start={{x: 0, y: 0}}
-                    end={{x: 1, y: 0}}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
                     pointerEvents="none"
                     style={styles.myMessageBubbleGradient}
                   />
@@ -796,7 +825,7 @@ const ChatDetail = ({navigation, route}) => {
                       <Text style={styles.sendingText}>{localizedText.sending}</Text>
                     ) : isPDF ? (
                       <View style={styles.myMessagePdf}>
-                        <View style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+                        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
                           <Icon name="file-pdf-box" size={28} color="#FF0000" />
                           <Text style={styles.myMessagePdfName} numberOfLines={1}>
                             {attachment?.name || localizedText.pdfDocument}
@@ -819,7 +848,7 @@ const ChatDetail = ({navigation, route}) => {
               <View
                 style={[
                   styles.otherMessageBubble,
-                  {maxWidth: width(80), alignSelf: 'flex-start'},
+                  { maxWidth: width(80), alignSelf: 'flex-start' },
                 ]}>
                 {isImage && imageUri ? (
                   <TouchableOpacity
@@ -829,7 +858,7 @@ const ChatDetail = ({navigation, route}) => {
                       setPreviewVisible(true);
                     }}>
                     <Image
-                      source={{uri: imageUri}}
+                      source={{ uri: imageUri }}
                       resizeMode="cover"
                       style={styles.otherMessageImage}
                     />
@@ -848,7 +877,7 @@ const ChatDetail = ({navigation, route}) => {
                       backgroundColor: '#f4f4f4',
                       borderRadius: width(2),
                     }}>
-                    <View style={{flexDirection: 'row', alignItems: 'center', flex: 1}}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                       <Icon name="file-pdf-box" size={28} color="#FF0000" />
                       <Text
                         style={{
@@ -889,18 +918,18 @@ const ChatDetail = ({navigation, route}) => {
 
                     <View style={styles.offerMessageItemRow}>
                       <Image
-                        source={offerImage ? {uri: offerImage} : ICONS.event2}
+                        source={offerImage ? { uri: offerImage } : ICONS.event2}
                         style={styles.offerMessageItemImage}
                         resizeMode="cover"
                       />
-                      <View style={{flex: 1, marginLeft: width(2)}}>
+                      <View style={{ flex: 1, marginLeft: width(2) }}>
                         <Text
                           style={styles.offerMessageItemTitle}
                           numberOfLines={2}>
                           {offerTitle}
                         </Text>
                         <Text style={styles.offerMessageItemPrice}>
-                          {formatEuro(offerDisplayPrice || 0, {decimals: 0, space: false})}
+                          {formatEuro(offerDisplayPrice || 0, { decimals: 0, space: false })}
                         </Text>
                         <Text style={styles.offerMessageItemStatus}>
                           {localizedText.status}: {offerStatus}
@@ -914,7 +943,7 @@ const ChatDetail = ({navigation, route}) => {
                         {localizedText.total}
                       </Text>
                       <Text style={styles.offerMessageTotalAmount}>
-                        {formatEuro(offerFinalTotal || 0, {decimals: 0, space: false})}
+                        {formatEuro(offerFinalTotal || 0, { decimals: 0, space: false })}
                       </Text>
                     </View>
                     <Text style={styles.offerMessageSubText}>
@@ -933,8 +962,8 @@ const ChatDetail = ({navigation, route}) => {
                     ) : (
                       <LinearGradient
                         colors={['#FF295D', '#E31B95', '#7A3FF2']}
-                        start={{x: 0, y: 0}}
-                        end={{x: 1, y: 1}}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
                         style={styles.offerViewBtnGradient}>
                         <TouchableOpacity
                           activeOpacity={0.85}
@@ -956,7 +985,7 @@ const ChatDetail = ({navigation, route}) => {
                 resizeMode="contain"
                 source={
                   user?.profileImage && String(user.profileImage).trim()
-                    ? {uri: String(user.profileImage).trim()}
+                    ? { uri: String(user.profileImage).trim() }
                     : ICONS.userIcon
                 }
                 style={styles.messageAvatar}
@@ -1046,11 +1075,11 @@ const ChatDetail = ({navigation, route}) => {
         ...tempMessage,
         attachment: fileUrl
           ? {
-              url: fileUrl.url,
-              type: fileUrl.format === 'pdf' ? 'file' : 'image',
-              name: fileUrl.name,
-              size: fileUrl.size,
-            }
+            url: fileUrl.url,
+            type: fileUrl.format === 'pdf' ? 'file' : 'image',
+            name: fileUrl.name,
+            size: fileUrl.size,
+          }
           : undefined,
         isPending: false,
       });
@@ -1064,7 +1093,7 @@ const ChatDetail = ({navigation, route}) => {
       //   message as failed
       setAllMessages(prev =>
         prev.map(msg =>
-          msg._id === tempId ? {...msg, isPending: false, error: true} : msg,
+          msg._id === tempId ? { ...msg, isPending: false, error: true } : msg,
         ),
       );
     }
@@ -1090,7 +1119,7 @@ const ChatDetail = ({navigation, route}) => {
       return;
     }
 
-    launchImageLibrary({mediaType: 'photo'}, response => {
+    launchImageLibrary({ mediaType: 'photo' }, response => {
       if (response.didCancel || response.errorCode) {
         if (response.errorMessage) {
           Alert.alert(localizedText.error, response.errorMessage);
@@ -1144,14 +1173,14 @@ const ChatDetail = ({navigation, route}) => {
     conversation?.blockedBy && conversation?.blockedByRefrence === 'User';
 
   const menuContent = [
-    {icon: ICONS.deleteIcon, title: localizedText.deleteChat},
+    { icon: ICONS.deleteIcon, title: localizedText.deleteChat },
     {
       icon: ICONS.viewIcon,
       title: isBlockedByMe
         ? localizedText.unblockVendor
         : localizedText.blockVendor,
     },
-    {icon: ICONS.editGridientIcon, title: localizedText.reportVendor},
+    { icon: ICONS.editGridientIcon, title: localizedText.reportVendor },
   ];
 
   const handleSelectOption = type => {
@@ -1196,7 +1225,7 @@ const ChatDetail = ({navigation, route}) => {
       const conversationId = conversation?._id || conversation?.conversationId;
       const response = await conversationService.blockConversation(
         conversationId,
-        {userId: user?.id, userType: 'User'},
+        { userId: user?.id, userType: 'User' },
       );
 
       if (response?.success) {
@@ -1312,39 +1341,38 @@ const ChatDetail = ({navigation, route}) => {
 
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}>
-        <AppHeader
-          leftIcon={ICONS.leftArrowIcon}
-          onLeftIconPress={() => navigation.goBack()}
-          menuContent={menuContent}
-          setCommentType={setCommentType}
-          commentType={commentType}
-          isMenu={true}
-          handleSelectOption={handleSelectOption}
-          isShowMenuIcon={true}
-          rightIcon={ICONS.menuIcon}
-          onRightIconPress={() => {}}
-          chatHeaderData={{
-            Icon: conversation?.participants?.vendor?.photo || null,
-            name: vendorDisplayName,
-            lastSeen: 'Thanks for the quick res....',
-          }}
-        />
+      <AppHeader
+        leftIcon={ICONS.leftArrowIcon}
+        onLeftIconPress={() => navigation.goBack()}
+        menuContent={menuContent}
+        setCommentType={setCommentType}
+        commentType={commentType}
+        isMenu={true}
+        handleSelectOption={handleSelectOption}
+        isShowMenuIcon={true}
+        rightIcon={ICONS.menuIcon}
+        onRightIconPress={() => { }}
+        chatHeaderData={{
+          Icon: conversation?.participants?.vendor?.photo || null,
+          name: vendorDisplayName,
+          lastSeen: 'Thanks for the quick res....',
+        }}
+      />
+      <View
+        style={[styles.chatBody, { paddingBottom: keyboardOffset }]}>
         <FlatList
           ref={flatListRef}
           data={memoizedMessages}
           renderItem={renderMessage}
           keyExtractor={item => item._id || item.id}
           style={styles.messagesList}
-          showsVerticalScrollIndicator={false}
           contentContainerStyle={{
+            flexGrow: 1,
             padding: width(2),
             paddingBottom: width(4),
           }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
           onContentSizeChange={() => setTimeout(scrollToBottom, 20)}
         />
 
@@ -1352,7 +1380,6 @@ const ChatDetail = ({navigation, route}) => {
           <View
             style={{
               padding: width(3),
-              paddingBottom: width(3) + insets.bottom,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: COLORS.backgroundLight,
@@ -1375,7 +1402,7 @@ const ChatDetail = ({navigation, route}) => {
             {attachedFile && attachedFile?.type?.startsWith('image') && (
               <View style={styles.previewContainer}>
                 <Image
-                  source={{uri: attachedFile?.uri}}
+                  source={{ uri: attachedFile?.uri }}
                   style={styles.previewImage}
                   resizeMode="cover"
                 />
@@ -1401,19 +1428,18 @@ const ChatDetail = ({navigation, route}) => {
                 }}>
                 <Text
                   numberOfLines={1}
-                  style={{flex: 1, color: COLORS.textLight}}>
+                  style={{ flex: 1, color: COLORS.textLight }}>
                   {attachedFile.name}
                 </Text>
                 <TouchableOpacity onPress={() => setAttachedFile(null)}>
-                  <Text style={{color: 'red'}}>{localizedText.remove}</Text>
+                  <Text style={{ color: 'red' }}>{localizedText.remove}</Text>
                 </TouchableOpacity>
               </View>
             )}
-
             <View
               style={[
                 styles.inputWrapper,
-                {flexDirection: 'column', paddingBottom: insets.bottom},
+                { flexDirection: 'column' },
               ]}>
               <View
                 style={{
@@ -1427,14 +1453,14 @@ const ChatDetail = ({navigation, route}) => {
                   <Image
                     resizeMode="contain"
                     source={ICONS.plusIcon}
-                    style={{height: 22, width: 22}}
+                    style={{ height: 22, width: 22 }}
                   />
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.emojiButton}
                   onPress={() => setShowEmojiPicker(true)}>
-                  <Text style={{fontSize: 19}}>😊</Text>
+                  <Text style={{ fontSize: 19 }}>😊</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -1442,7 +1468,7 @@ const ChatDetail = ({navigation, route}) => {
                   onPress={() => handleUpload(setAttachedFile)}>
                   <Image
                     source={ICONS.attachmentIcon}
-                    style={{height: width(4), width: width(4)}}
+                    style={{ height: width(4), width: width(4) }}
                   />
                 </TouchableOpacity>
 
@@ -1452,6 +1478,7 @@ const ChatDetail = ({navigation, route}) => {
                     placeholderTextColor={COLORS.textLight}
                     value={messageText}
                     onChangeText={setMessageText}
+                    onFocus={scrollToBottom}
                     maxLength={500}
                     style={styles.textInput}
                     multiline
@@ -1472,7 +1499,7 @@ const ChatDetail = ({navigation, route}) => {
                     ]}>
                     <Image
                       source={ICONS.sendIcon}
-                      style={{height: width(10), width: width(10)}}
+                      style={{ height: width(10), width: width(10) }}
                     />
                   </TouchableOpacity>
                 </View>
@@ -1480,7 +1507,7 @@ const ChatDetail = ({navigation, route}) => {
             </View>
           </>
         )}
-      </KeyboardAvoidingView>
+      </View>
       <CommonAlert ref={modalRef} />
       <NewRequestModal
         isVisible={showRequestModal}
@@ -1509,36 +1536,39 @@ const ChatDetail = ({navigation, route}) => {
         emojis={commonEmojis}
         onSelectEmoji={handleSelectEmoji}
       />
-      {previewVisible && previewImage ? (
-        <View style={styles.fullScreenModal}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setPreviewVisible(false)}>
-            <Text style={styles.closeText}>×</Text>
-          </TouchableOpacity>
-          <Image
-            source={{uri: previewImage}}
-            style={styles.fullScreenImage}
-            resizeMode="contain"
-          />
-        </View>
-      ) : null}
+      {
+        previewVisible && previewImage ? (
+          <View style={styles.fullScreenModal}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setPreviewVisible(false)}>
+              <Text style={styles.closeText}>×</Text>
+            </TouchableOpacity>
+            <Image
+              source={{ uri: previewImage }}
+              style={styles.fullScreenImage}
+              resizeMode="contain"
+            />
+          </View>
+        ) : null
+      }
     </View>
   );
 };
 
-const {width: screenWidth} = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  container: {flex: 1},
-  messagesList: {flex: 1},
+  container: { flex: 1 },
+  chatBody: { flex: 1 },
+  messagesList: { flex: 1 },
   messageContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     marginVertical: width(1.5),
     paddingHorizontal: width(2),
   },
-  myMessageContainer: {justifyContent: 'flex-end', alignSelf: 'flex-end'},
+  myMessageContainer: { justifyContent: 'flex-end', alignSelf: 'flex-end' },
   otherMessageContainer: {
     justifyContent: 'flex-start',
     alignSelf: 'flex-start',
@@ -1635,7 +1665,7 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
     fontStyle: 'italic',
   },
-  myMessageText: {color: '#FFF', fontSize: 14, flexShrink: 1},
+  myMessageText: { color: '#FFF', fontSize: 14, flexShrink: 1 },
   otherMessageText: {
     color: COLORS.textDark,
     fontSize: 14,
@@ -1648,8 +1678,8 @@ const styles = StyleSheet.create({
     width: width(72),
     alignSelf: 'center',
   },
-  myMessageTime: {textAlign: 'right', marginRight: width(1)},
-  otherMessageTime: {textAlign: 'left', marginLeft: width(1)},
+  myMessageTime: { textAlign: 'right', marginRight: width(1) },
+  otherMessageTime: { textAlign: 'left', marginLeft: width(1) },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1685,7 +1715,9 @@ const styles = StyleSheet.create({
     borderRadius: width(3),
     overflow: 'hidden',
     flex: 1,
-    margin: width(2),
+    marginHorizontal: width(2),
+    marginTop: width(2),
+    marginBottom: width(1),
   },
   previewContainer: {
     marginTop: width(2),
