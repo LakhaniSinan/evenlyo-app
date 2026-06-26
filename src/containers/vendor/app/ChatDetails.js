@@ -1,4 +1,4 @@
-import {pick, types} from '@react-native-documents/picker';
+import {pick, types, errorCodes, isErrorWithCode} from '@react-native-documents/picker';
 import moment from 'moment';
 import React, {
   useCallback,
@@ -661,6 +661,22 @@ const ChatDetail = ({navigation, route}) => {
     if (Platform.OS !== 'android') {
       return true;
     }
+
+    if (Platform.Version >= 33) {
+      const permission = PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES;
+      const alreadyGranted = await PermissionsAndroid.check(permission);
+      if (alreadyGranted) {
+        return true;
+      }
+
+      await PermissionsAndroid.request(permission, {
+        title: 'Storage Permission Required',
+        message: 'App needs access to your storage to select media',
+      });
+
+      return true;
+    }
+
     const granted = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
       {
@@ -674,10 +690,11 @@ const ChatDetail = ({navigation, route}) => {
   const handleUpload = useCallback(async () => {
     const hasPermission = await requestStoragePermission();
     if (!hasPermission) {
+      Alert.alert('Error', 'App needs access to your storage to select media');
       return;
     }
 
-    launchImageLibrary({mediaType: 'photo'}, response => {
+    launchImageLibrary({mediaType: 'photo', selectionLimit: 1}, response => {
       if (response?.didCancel) {
         return;
       }
@@ -1246,6 +1263,7 @@ const ChatDetail = ({navigation, route}) => {
       // setIsLoading(true);
 
       const [file] = await pick({
+        mode: 'open',
         type: [types.pdf],
       });
 
@@ -1264,6 +1282,12 @@ const ChatDetail = ({navigation, route}) => {
       // setIsLoading(false);
     } catch (error) {
       // setIsLoading(false);
+      if (
+        isErrorWithCode(error) &&
+        error.code === errorCodes.OPERATION_CANCELED
+      ) {
+        return;
+      }
       if (error?.message?.includes('canceled')) {
         return; // user cancelled selection
       }

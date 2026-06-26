@@ -1,4 +1,4 @@
-import { pick, types } from '@react-native-documents/picker';
+import { pick, types, errorCodes, isErrorWithCode } from '@react-native-documents/picker';
 import moment from 'moment';
 import React, {
   useCallback,
@@ -1100,26 +1100,44 @@ const ChatDetail = ({ navigation, route }) => {
   };
 
   const requestStoragePermission = async () => {
-    if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        {
-          title: localizedText.storagePermissionTitle,
-          message: localizedText.storagePermissionMsg,
-        },
-      );
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    if (Platform.OS !== 'android') {
+      return true;
     }
-    return true;
+
+    if (Platform.Version >= 33) {
+      const permission = PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES;
+      const alreadyGranted = await PermissionsAndroid.check(permission);
+      if (alreadyGranted) {
+        return true;
+      }
+
+      await PermissionsAndroid.request(permission, {
+        title: localizedText.storagePermissionTitle,
+        message: localizedText.storagePermissionMsg,
+      });
+
+      // Android 13+ system photo picker works without storage permission.
+      return true;
+    }
+
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+      {
+        title: localizedText.storagePermissionTitle,
+        message: localizedText.storagePermissionMsg,
+      },
+    );
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
   };
 
   const handleUpload = async setter => {
     const hasPermission = await requestStoragePermission();
     if (!hasPermission) {
+      Alert.alert(localizedText.error, localizedText.storagePermissionMsg);
       return;
     }
 
-    launchImageLibrary({ mediaType: 'photo' }, response => {
+    launchImageLibrary({ mediaType: 'photo', selectionLimit: 1 }, response => {
       if (response.didCancel || response.errorCode) {
         if (response.errorMessage) {
           Alert.alert(localizedText.error, response.errorMessage);
@@ -1146,6 +1164,7 @@ const ChatDetail = ({ navigation, route }) => {
   const handleSelectFile = useCallback(async () => {
     try {
       const [file] = await pick({
+        mode: 'open',
         type: [types.pdf],
       });
 
@@ -1161,6 +1180,12 @@ const ChatDetail = ({ navigation, route }) => {
         Alert.alert(localizedText.fileSelected, selectedFile.name);
       }
     } catch (error) {
+      if (
+        isErrorWithCode(error) &&
+        error.code === errorCodes.OPERATION_CANCELED
+      ) {
+        return;
+      }
       if (error?.message?.includes('canceled')) {
         return;
       }
