@@ -776,10 +776,6 @@ const NewRequestModal = ({
       uniqueId: editingItem?.uniqueId,
     };
 
-    console.log(finalItem, 'finalItemfinalItemfinalItemfinalItemfinalItem');
-
-    return;
-
     dispatch(addItem(finalItem));
     modalRef.current?.show({
       status: 'ok',

@@ -20,7 +20,12 @@ import {COLORS, fontFamly} from '../../../constants';
 import {SocketContext} from '../../../context';
 import {useTranslation} from '../../../hooks';
 import {resetOffer} from '../../../redux/slice/offers';
-import {formatEuro, getOfferItemImage, getOfferItemTitle, getOfferPricingSummary} from '../../../utils';
+import {
+  formatEuro,
+  getOfferItemImage,
+  getOfferItemTitle,
+  getOfferPricingSummary,
+} from '../../../utils';
 
 const OfferPreviewScreen = ({navigation, route}) => {
   const {t, currentLanguage} = useTranslation();
@@ -64,9 +69,7 @@ const OfferPreviewScreen = ({navigation, route}) => {
       if (item?.type === 'booking') {
         return (
           sum +
-          Number(
-            item?.discountedPrice || item?.pricingBreakdown?.subtotal || 0,
-          )
+          Number(item?.discountedPrice || item?.pricingBreakdown?.subtotal || 0)
         );
       }
       return sum + Number(item?.price || 0);
@@ -139,6 +142,11 @@ const OfferPreviewScreen = ({navigation, route}) => {
       status: 'PENDING',
       uniqueId,
     };
+
+    console.log(
+      finalObject,
+      'finalObjectfinalObjectfinalObjectfinalObjectfinalObject',
+    );
 
     const receiverId =
       activeChat?.participants?.user?.userId ||

@@ -473,6 +473,8 @@ const ChatDetail = ({navigation, route}) => {
           user.vendorId,
           currentLanguage,
         );
+        console.log(response, 'responseresponseresponseresponseresponse');
+
         if (response?.success) {
           if (isMountedRef.current) {
             setAllMessages(response.data || []);
