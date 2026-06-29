@@ -146,7 +146,7 @@ const BookingsByStatus = ({navigation, route}) => {
       return '';
     }
     const parsed = moment(selectedDate);
-    return parsed.isValid() ? parsed.locale(dateLocale).format('LL') : '';
+    return parsed.isValid() ? parsed.format('DD/MM/YYYY') : '';
   }, [dateLocale, selectedDate]);
 
   const pageTitle = useMemo(() => {
@@ -172,7 +172,7 @@ const BookingsByStatus = ({navigation, route}) => {
       if (!m.isValid()) {
         return t('notAvailable');
       }
-      return m.locale(dateLocale).format('LL');
+      return m.format('DD/MM/YYYY');
     },
     [dateLocale, t],
   );

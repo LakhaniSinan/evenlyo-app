@@ -160,7 +160,7 @@ export const generateOrderHTML = order => {
                 <div class="info-item">
                   <span class="label">Date:</span>
                   <span class="value">${moment(order.createdAt).format(
-                    'MMMM DD, YYYY',
+                    'DD/MM/YYYY',
                   )}</span>
                 </div>
                 <div class="info-item">
@@ -228,7 +228,7 @@ export const generateOrderHTML = order => {
           
           <div class="footer">
             <p>Thank you for your business!</p>
-            <p>Generated on ${moment().format('MMMM DD, YYYY')}</p>
+            <p>Generated on ${moment().format('DD/MM/YYYY')}</p>
           </div>
         </div>
       </body>
@@ -440,7 +440,7 @@ export const generateSaleReportHTML = (data, currentLanguage = 'en') => {
     <h1>Sales Report</h1>
 
     <div class="report-date">
-      <span>Report Date:</span> ${moment().format('MM/DD/YYYY')}
+      <span>Report Date:</span> ${moment().format('DD/MM/YYYY')}
     </div>
 
     <div class="table-container">
@@ -464,7 +464,7 @@ export const generateSaleReportHTML = (data, currentLanguage = 'en') => {
               <td>${item.itemName || '-'}</td>
               <td>${item.customerId || '-'}</td>
               <td>€${formatPrice(item.totalAmount || 0)}</td>
-              <td>${moment(item.orderDate).format('YYYY-MM-DD')}</td>
+              <td>${moment(item.orderDate).format('DD/MM/YYYY')}</td>
               <td>€${formatPrice(item.itemProfit || 0)}</td>
             </tr>
           `,

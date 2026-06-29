@@ -67,8 +67,8 @@ const VendorPersonalDetails = ({navigation}) => {
   const handleSubCategoriesNext = data => {
     console.log(data, 'datadatadata12312');
 
-    // setSubCategoriesSelected(data || []);
-    // setActiveStep(pre => pre + 1);
+    setSubCategoriesSelected(data || []);
+    setActiveStep(pre => pre + 1);
   };
 
   const handleBackStep = () => {

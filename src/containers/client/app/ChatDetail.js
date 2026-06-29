@@ -657,7 +657,7 @@ const ChatDetail = ({ navigation, route }) => {
 
     // Agar purana hai
     return messageTime.format(
-      `MMM DD, YYYY [${localizedText.at}] hh:mm A`,
+      `DD/MM/YYYY [${localizedText.at}] hh:mm A`,
     );
   };
 

@@ -22,7 +22,7 @@ const DateSelector = ({
     setSelectedDate(date ? moment(date).format('YYYY-MM-DD') : null);
   }, [date]);
 
-  const formatDate = d => (d ? moment(d).format('DD MMM YYYY') : placeholder);
+  const formatDate = d => (d ? moment(d).format('DD/MM/YYYY') : placeholder);
 
   const openCalendar = () => setShowCalendar(true);
   const closeCalendar = () => setShowCalendar(false);

@@ -9,9 +9,13 @@ import NotificationPopup from 'react-native-push-notification-popup';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {Provider, useDispatch} from 'react-redux';
 import LocationInitializer from './src/components/LocationInitializer';
+import {
+  STRIPE_PUBLISHABLE_KEY,
+  STRIPE_PUBLISHABLE_KEYS,
+} from './src/config/server';
 import {notifications} from './src/constants/Variable';
-import {helper} from './src/helper';
 import {SocketProvider} from './src/context';
+import {helper} from './src/helper';
 import useNotifications from './src/hooks/notifications';
 import useFirebaseMessaging from './src/hooks/useFirebaseMessaging';
 import useSyncFcmToken from './src/hooks/useSyncFcmToken';
@@ -72,10 +76,7 @@ const App = () => {
         <Provider store={store}>
           <SocketProvider>
             <PaperProvider>
-              <StripeProvider
-                publishableKey={
-                  'pk_test_51S5mMXIUXgoWiMw14oUpuKyQawd4L7FDZNzS7O99qwoERe5PBh9lTVlc38G3AMKDvHIdMmIQa6NHfs5IvG8zacPy00P8gvRAl9'
-                }>
+              <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEYS.LIVE}>
                 <AppContent />
               </StripeProvider>
             </PaperProvider>

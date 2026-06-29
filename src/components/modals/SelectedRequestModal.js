@@ -13,6 +13,7 @@ import DatePicker from 'react-native-date-picker';
 import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
+import moment from 'moment';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
@@ -120,7 +121,7 @@ const SelectedRequestModal = ({isVisible, onSave, onClose, type}) => {
               <View style={styles.section}>
                 <TextField
                   label={'Date'}
-                  placeholder={date.toLocaleDateString() || t('DD/MM/YYYY')}
+                  placeholder={moment(date).format('DD/MM/YYYY') || t('DD/MM/YYYY')}
                   bgColor={COLORS.white}
                   editable={false}
                   endIcon={ICONS.calenderIcon}

@@ -467,7 +467,7 @@ function AllBookingScreen() {
             r =>
               `${r.trackingId},${r.status},${r.totalAmount},${moment(
                 r.createdAt,
-              ).format('MMM DD, YYYY')},${r.vendorId?.fullName || ''}`,
+              ).format('DD/MM/YYYY')},${r.vendorId?.fullName || ''}`,
           )
           .join('\n');
 
@@ -642,7 +642,7 @@ function AllBookingScreen() {
 
         <Text style={[styles.td, styles.trackingCell]}>{item.trackingId}</Text>
         <Text style={[styles.td, styles.dateCell]}>
-          {moment(item.createdAt).format('MMM DD, YYYY')}
+          {moment(item.createdAt).format('DD/MM/YYYY')}
         </Text>
         <Text style={[styles.td, styles.buyerCell]}>
           {item.vendorId?.fullName || 'N/A'}

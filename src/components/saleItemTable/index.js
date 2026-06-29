@@ -45,7 +45,7 @@ const SaleItemTable = ({data, canDownload}) => {
       <Text style={styles.cell}>{item.customerId}</Text>
       <Text style={styles.cell}>${item.totalAmount}</Text>
       <Text style={styles.cell}>
-        {moment(item.orderDate).format('YYYY-MM-DD')}
+        {moment(item.orderDate).format('DD/MM/YYYY')}
       </Text>
       {canDownload && (
         <TouchableOpacity

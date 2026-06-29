@@ -29,14 +29,16 @@ const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
     data?.isFavourite || false,
   );
 
+  console.log(data, 'datadatadatadatadatadata');
+
   return (
     <FlatList
       data={data}
       horizontal
-      keyExtractor={(item, index) => index.toString()}
+      keyExtractor={(item, index) => item?._id || item?.id || String(index)}
       contentContainerStyle={{paddingHorizontal: 10}}
       showsHorizontalScrollIndicator={false}
-      extraData={currentLanguage}
+      extraData={data}
       renderItem={({item, index}) => {
         return (
           <TouchableOpacity

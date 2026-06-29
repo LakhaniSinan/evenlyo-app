@@ -20,7 +20,7 @@ const ActivityLogCard = ({item, index, dataLength}) => {
   const typeLabel = getActivityTypeLabel(item?.type, t);
 
   const formattedTime = moment(item?.createdAt).format(
-    'MMM DD, YYYY | hh:mm A',
+    'DD/MM/YYYY | hh:mm A',
   );
 
   return (

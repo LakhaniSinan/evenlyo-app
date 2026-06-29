@@ -28,7 +28,7 @@ import ComplaintPopup from '../../../components/modals/ComplaintModal';
 import ReviewModal from '../../../components/modals/ReviewModal';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
-import {formatEuro} from '../../../utils';
+import {formatEuro, formatPrice} from '../../../utils';
 import {
   addReview,
   cancelBooking,
@@ -38,12 +38,14 @@ import {
   markAsRecived,
 } from '../../../services/BookingItem';
 import {checkIsChatedBefore, createConnection} from '../../../services/Chat';
+import {createPaymentIntent, getAmountToPay} from '../../../services/Payment';
+import PaymentModal from '../../../components/paymentModal';
 
 /* -------------------------------------------------------------------------- */
 /*                                HELPERS                                     */
 /* -------------------------------------------------------------------------- */
 
-const formatDate = date => (date ? moment(date).format('MM/DD/YYYY') : '--');
+const formatDate = date => (date ? moment(date).format('DD/MM/YYYY') : '--');
 
 const formatTime = time =>
   time ? moment(time, 'HH:mm').format('hh:mm A') : '--';
@@ -52,6 +54,24 @@ const normalizeStatus = status =>
   status?.toLowerCase().replace(/\s+/g, '_') || 'default';
 
 const REVIEWABLE_BOOKING_STATUSES = ['completed', 'finished'];
+
+const PAYMENT_STATUS_LABEL_KEYS = {
+  paid: 'Paid',
+  unpaid: 'Unpaid',
+  pending: 'Pending',
+  upfront_paid: 'Upfront Paid',
+};
+
+const getPaymentStatusLabel = (status, translate) => {
+  if (!status) {
+    return '';
+  }
+  const labelKey = PAYMENT_STATUS_LABEL_KEYS[String(status).toLowerCase()];
+  if (labelKey) {
+    return translate(labelKey);
+  }
+  return String(status).toUpperCase();
+};
 
 /* -------------------------------------------------------------------------- */
 /*                             STATUS COLORS                                  */
@@ -112,7 +132,7 @@ const RenderCards = React.memo(({title, isCheckIn, data}) => {
 const BookingDetails = ({route, navigation}) => {
   console.log(route?.params, 'routerouterouterouterouterouterouteroute');
 
-  const {currentLanguage} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const isDutch = currentLanguage === 'nl';
   const localizedText = {
     booking: isDutch ? 'Boeking' : 'Booking',
@@ -158,6 +178,102 @@ const BookingDetails = ({route, navigation}) => {
   const [chatData, setChatData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [openCancelModal, setOpenCancelModal] = useState(false);
+  const [payModalVisible, setPayModalVisible] = useState(false);
+  const [clientSecret, setClientSecret] = useState(null);
+  const [amountToPay, setAmountToPay] = useState(0);
+
+  const resolveApiMessage = useCallback(
+    message => {
+      if (!message) {
+        return t('somethingWentWrong');
+      }
+      if (typeof message === 'string') {
+        return message;
+      }
+      return currentLanguage === 'en'
+        ? message?.en || message?.nl || t('somethingWentWrong')
+        : message?.nl || message?.en || t('somethingWentWrong');
+    },
+    [currentLanguage, t],
+  );
+
+  const canProceedToCheckout = useMemo(() => {
+    const paymentStatus = normalizeStatus(bookingData?.paymentStatus);
+    return paymentStatus === 'pending' || paymentStatus === 'unpaid';
+  }, [bookingData?.paymentStatus]);
+
+  const isUpfrontPaid = useMemo(
+    () =>
+      Boolean(
+        bookingData?.isUpfrontPaid ||
+          bookingData?.paymentStatus === 'upfront_paid' ||
+          bookingData?.paymentStatus === 'paid',
+      ),
+    [bookingData?.isUpfrontPaid, bookingData?.paymentStatus],
+  );
+
+  const showPaymentSummary = useMemo(() => {
+    if (!bookingData) {
+      return false;
+    }
+    const bookingStatus = normalizeStatus(bookingData?.status);
+    if (
+      bookingStatus === 'pending' ||
+      bookingStatus === 'rejected' ||
+      bookingStatus === 'cancelled'
+    ) {
+      return false;
+    }
+    return (
+      canProceedToCheckout ||
+      bookingData?.paymentStatus === 'upfront_paid' ||
+      normalizeStatus(bookingData?.paymentStatus) === 'paid' ||
+      Boolean(bookingData?.pricingBreakdown)
+    );
+  }, [bookingData, canProceedToCheckout]);
+
+  const showPaymentWarning = useMemo(() => {
+    if (!bookingData) {
+      return false;
+    }
+    return normalizeStatus(bookingData?.paymentStatus) !== 'paid';
+  }, [bookingData?.paymentStatus]);
+
+  const paymentRows = useMemo(
+    () => [
+      {
+        key: 'totalCost',
+        label: t('Total Cost'),
+        value: bookingData?.pricingBreakdown?.total,
+        color: COLORS.textLight,
+      },
+      {
+        key: 'upfrontPaid',
+        label: t('Upfront Paid'),
+        value: isUpfrontPaid ? t('Paid') : t('Un Paid'),
+        color: COLORS.navyBlue,
+      },
+      {
+        key: 'upfrontAmount',
+        label: t('Upfront Amount'),
+        value: bookingData?.pricingBreakdown?.upfrontFee,
+        color: COLORS.navyBlue,
+      },
+      {
+        key: 'totalPaid',
+        label: t('Total Paid Amount'),
+        value: bookingData?.AmountPaid,
+        color: isUpfrontPaid ? COLORS.green : COLORS.red,
+      },
+      {
+        key: 'remaining',
+        label: t('Remaining'),
+        value: bookingData?.AmountLeft,
+        color: COLORS.red,
+      },
+    ],
+    [bookingData, t, isUpfrontPaid],
+  );
 
   const hasLocation = useMemo(
     () =>
@@ -189,18 +305,20 @@ const BookingDetails = ({route, navigation}) => {
     );
   }, [hasLocation, bookingData]);
 
-  const fetchBookingDetails = async () => {
+  const fetchBookingDetails = useCallback(async () => {
+    if (!bookingId) {
+      return;
+    }
     try {
       setIsLoading(true);
       const res = await getBookingDetails(bookingId);
-      console.log(res, 'resresresresresresresres13323132');
 
       if (res?.status === 200 || res?.status === 201) {
         setBookingData(res?.data?.data?.booking);
       } else {
         modalRef.current?.show({
           status: 'error',
-          message: res?.data?.message,
+          message: resolveApiMessage(res?.data?.message),
         });
       }
     } catch (e) {
@@ -208,11 +326,11 @@ const BookingDetails = ({route, navigation}) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [bookingId, resolveApiMessage]);
 
   useEffect(() => {
     fetchBookingDetails();
-  }, []);
+  }, [fetchBookingDetails]);
 
   useEffect(() => {
     animateMap();
@@ -318,6 +436,7 @@ const BookingDetails = ({route, navigation}) => {
       console.log('Cancel error', e);
     }
   };
+
   const handleMarkAsRecived = async () => {
     try {
       setIsLoading(true);
@@ -329,6 +448,66 @@ const BookingDetails = ({route, navigation}) => {
       setIsLoading(false);
     }
   };
+
+  const handlePayAmount = async () => {
+    if (!bookingData?._id) {
+      modalRef.current?.show({
+        status: 'error',
+        message: t('somethingWentWrong'),
+      });
+      return;
+    }
+    try {
+      setIsLoading(true);
+      const response = await getAmountToPay(bookingData._id);
+
+      if (response?.status === 200 || response?.status === 201) {
+        const payableAmount = Number(response?.data?.amountToPay || 0);
+        if (!payableAmount) {
+          modalRef.current?.show({
+            status: 'error',
+            message: resolveApiMessage(response?.data?.message),
+          });
+          return;
+        }
+
+        setAmountToPay(payableAmount);
+        const res = await createPaymentIntent({
+          amount: payableAmount.toFixed(2),
+          bookingId: bookingData._id,
+        });
+        if (res?.data?.clientSecret) {
+          setPayModalVisible(true);
+          setClientSecret(res.data.clientSecret);
+        } else {
+          modalRef.current?.show({
+            status: 'error',
+            message: resolveApiMessage(res?.data?.message),
+          });
+        }
+      } else {
+        modalRef.current?.show({
+          status: 'error',
+          message: resolveApiMessage(response?.data?.message),
+        });
+      }
+    } catch (err) {
+      console.log('PAYMENT INTENT ERROR', err);
+      modalRef.current?.show({
+        status: 'error',
+        message: t('somethingWentWrong'),
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePaymentSuccess = useCallback(() => {
+    setPayModalVisible(false);
+    setClientSecret(null);
+    fetchBookingDetails();
+  }, [fetchBookingDetails]);
+
   const handleMarkAsComplete = async () => {
     try {
       setIsLoading(true);
@@ -474,10 +653,7 @@ const BookingDetails = ({route, navigation}) => {
             <Text style={styles.label}>{localizedText.paymentStatus}</Text>
             <StatusBadge
               rawStatus={bookingData?.paymentStatus}
-              label={
-                statusLabelMap[normalizeStatus(bookingData?.paymentStatus)] ||
-                String(bookingData?.paymentStatus || '').toUpperCase()
-              }
+              label={getPaymentStatusLabel(bookingData?.paymentStatus, t)}
             />
           </View>
 
@@ -505,6 +681,80 @@ const BookingDetails = ({route, navigation}) => {
             label={localizedText.totalPrice}
             value={formatEuro(bookingData?.totalPrice, {space: false})}
           />
+
+          {showPaymentSummary && (
+            <View style={styles.paymentSummarySection}>
+              {paymentRows.map(row => {
+                if (!row?.value > 0) {
+                  return null;
+                }
+                if (!bookingData?.willPayUpfront && row?.key === 'upfrontPaid') {
+                  return null;
+                }
+                if (
+                  !bookingData?.willPayUpfront &&
+                  row?.key === 'upfrontAmount'
+                ) {
+                  return null;
+                }
+                return (
+                  <View key={row.key} style={styles.paymentSummaryRow}>
+                    <Text style={[styles.paymentSummaryText, {color: row.color}]}>
+                      {row.label}
+                    </Text>
+                    <Text style={[styles.paymentSummaryText, {color: row.color}]}>
+                      {!isNaN(row.value)
+                        ? formatEuro(row.value, {space: false})
+                        : row.value}
+                    </Text>
+                  </View>
+                );
+              })}
+
+              {showPaymentWarning &&
+                (bookingData?.pricingBreakdown?.requiresFullPayment ? (
+                  <View
+                    style={[
+                      styles.paymentWarningBox,
+                      styles.paymentWarningBoxFull,
+                    ]}>
+                    <Text
+                      style={[
+                        styles.paymentWarningText,
+                        styles.paymentWarningTextFull,
+                      ]}>
+                      {t('cartFullPaymentRequired', {
+                        amount: formatPrice(
+                          bookingData?.pricingBreakdown?.total,
+                        ),
+                      })}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.paymentWarningBox}>
+                    <Text style={styles.paymentWarningText}>
+                      {t('cartRemainingBalanceWarning', {
+                        amount: bookingData?.AmountLeft
+                          ? formatEuro(bookingData?.AmountLeft, {space: false})
+                          : '',
+                      })}
+                    </Text>
+                  </View>
+                ))}
+            </View>
+          )}
+
+          {canProceedToCheckout && (
+            <View style={styles.paymentCheckoutButton}>
+              <GradientButton
+                text={t('processToCheckout')}
+                type="filled"
+                onPress={handlePayAmount}
+                styleContainer={styles.filledActionButton}
+                textStyle={styles.filledActionText}
+              />
+            </View>
+          )}
         </View>
         {/* LOCATION
         {hasLocation && (
@@ -535,17 +785,35 @@ const BookingDetails = ({route, navigation}) => {
         )} */}
       </ScrollView>
 
-      {(bookingData?.status == 'pending' ||
-        bookingData?.status == 'accepted') && (
-        <View style={styles.footerButtonSection}>
-          <GradientButton
-            onPress={() => setOpenCancelModal(true)}
-            text={localizedText.cancel}
-            type="outline"
-            useGradient
-            outlineButtonStyle={styles.outlineActionButton}
-            textStyle={styles.outlineActionText}
-          />
+      {bookingData && (
+        <View style={[styles.footerButtonSection, styles.actionButtonRow]}>
+          {(bookingData?.status == 'pending' ||
+            bookingData?.status == 'accepted') && (
+            <View style={styles.actionButtonWrapper}>
+              <GradientButton
+                onPress={() => setOpenCancelModal(true)}
+                text={localizedText.cancel}
+                type="outline"
+                useGradient
+                outlineButtonStyle={styles.outlineActionButton}
+                textStyle={styles.outlineActionText}
+              />
+            </View>
+          )}
+          <View style={styles.actionButtonWrapper}>
+            <GradientButton
+              text={localizedText.trackBooking}
+              type="filled"
+              onPress={() =>
+                navigation.navigate('TrackDirections', {
+                  ...bookingData,
+                  ...bookingData?.vendorDetails,
+                })
+              }
+              styleContainer={styles.filledActionButton}
+              textStyle={styles.filledActionText}
+            />
+          </View>
         </View>
       )}
 
@@ -599,20 +867,6 @@ const BookingDetails = ({route, navigation}) => {
         </View>
       )}
 
-      <View style={styles.footerButtonSection}>
-        <GradientButton
-          text={localizedText.trackBooking}
-          type="filled"
-          onPress={() =>
-            navigation.navigate('TrackDirections', {
-              ...bookingData,
-              ...bookingData?.vendorDetails,
-            })
-          }
-          styleContainer={styles.filledActionButton}
-          textStyle={styles.filledActionText}
-        />
-      </View>
       <CancelBookingModal
         visible={openCancelModal}
         onClose={() => setOpenCancelModal(false)}
@@ -627,6 +881,18 @@ const BookingDetails = ({route, navigation}) => {
         visible={reviewModal}
         onClose={() => setReviewModal(false)}
         onConfirm={handleAddReview}
+      />
+      <PaymentModal
+        selectedData={bookingData}
+        amountToPay={amountToPay}
+        modalRef={modalRef}
+        isVisible={payModalVisible}
+        clientSecret={clientSecret}
+        onPaymentSuccess={handlePaymentSuccess}
+        onClose={() => {
+          setPayModalVisible(false);
+          setClientSecret(null);
+        }}
       />
       <CommonAlert ref={modalRef} />
       <Loader isLoading={isLoading} />
@@ -675,6 +941,54 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textLight,
     fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+
+  paymentSummarySection: {
+    marginTop: width(3),
+    paddingTop: width(3),
+    borderTopWidth: 1,
+    borderTopColor: COLORS.backgroundLight,
+  },
+
+  paymentSummaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: width(2),
+  },
+
+  paymentSummaryText: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 12,
+    color: COLORS.black,
+  },
+
+  paymentWarningBox: {
+    marginTop: width(2),
+    padding: width(2),
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    backgroundColor: '#FFFBEB',
+  },
+
+  paymentWarningBoxFull: {
+    backgroundColor: '#FEE2E2',
+    borderColor: COLORS.red,
+  },
+
+  paymentWarningText: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 12,
+    color: '#92400E',
+  },
+
+  paymentWarningTextFull: {
+    color: COLORS.red,
+  },
+
+  paymentCheckoutButton: {
+    marginTop: width(4),
   },
 
   badge: {

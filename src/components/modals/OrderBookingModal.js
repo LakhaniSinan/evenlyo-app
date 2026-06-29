@@ -103,6 +103,29 @@ const getDayKeyFromMoment = dateMoment => {
   return map[isoDay - 1] || null;
 };
 
+const TIME_PARSE_FORMATS = ['HH:mm', 'H:mm', 'hh:mm A', 'h:mm A'];
+
+const formatTime24 = date => {
+  if (!date) {
+    return '';
+  }
+  return moment(date).format('HH:mm');
+};
+
+const normalizeToHour = date => {
+  if (!date) {
+    return null;
+  }
+  return moment(date).minute(0).second(0).millisecond(0).toDate();
+};
+
+const getPickerTimeDate = existingTime => {
+  if (existingTime) {
+    return normalizeToHour(existingTime);
+  }
+  return moment().minute(0).second(0).millisecond(0).toDate();
+};
+
 const OrderBooking = ({
   data,
   type,
@@ -161,10 +184,7 @@ const OrderBooking = ({
     getInitialMarkedDates(availableDays, moment()),
   );
   const openTermsModal = () => setShowTermsModal(true);
-  const formatAmount = useCallback(
-    value => formatPrice(value),
-    [],
-  );
+  const formatAmount = useCallback(value => formatEuro(value), []);
 
   const {
     hoursPerDay,
@@ -217,21 +237,21 @@ const OrderBooking = ({
         setInstructions(data?.specialRequests || data?.instructions || '');
 
         if (data?.startTime) {
-          const st = moment(data.startTime, ['HH:mm', 'hh:mm A']).set({
+          const st = moment(data.startTime, TIME_PARSE_FORMATS).set({
             year: moment(s).year(),
             month: moment(s).month(),
             date: moment(s).date(),
           });
-          setStartTime(st.isValid() ? st.toDate() : null);
+          setStartTime(st.isValid() ? normalizeToHour(st.toDate()) : null);
         }
 
         if (data?.endTime) {
-          const en = moment(data.endTime, ['HH:mm', 'hh:mm A']).set({
+          const en = moment(data.endTime, TIME_PARSE_FORMATS).set({
             year: moment(s).year(),
             month: moment(s).month(),
             date: moment(s).date(),
           });
-          setEndTime(en.isValid() ? en.toDate() : null);
+          setEndTime(en.isValid() ? normalizeToHour(en.toDate()) : null);
         }
 
         if (s) {
@@ -452,7 +472,7 @@ const OrderBooking = ({
     const slot = data?.availability?.availableTimeSlots?.[0];
     let vendorHoursPerDay = hoursPerDay;
     if (slot && slot.startTime && slot.endTime) {
-      const tryFormats = ['HH:mm', 'hh:mm A', 'h:mm A'];
+      const tryFormats = TIME_PARSE_FORMATS;
       const s = moment(slot.startTime, tryFormats);
       const e = moment(slot.endTime, tryFormats);
       if (s.isValid() && e.isValid()) {
@@ -568,23 +588,27 @@ const OrderBooking = ({
       );
 
       const start = slot?.startTime
-        ? moment(slot.startTime, ['hh:mm A'])
-            .set({
-              year: selDate.year(),
-              month: selDate.month(),
-              date: selDate.date(),
-            })
-            .toDate()
+        ? normalizeToHour(
+            moment(slot.startTime, TIME_PARSE_FORMATS)
+              .set({
+                year: selDate.year(),
+                month: selDate.month(),
+                date: selDate.date(),
+              })
+              .toDate(),
+          )
         : null;
 
       const end = slot?.endTime
-        ? moment(slot.endTime, ['hh:mm A'])
-            .set({
-              year: selDate.year(),
-              month: selDate.month(),
-              date: selDate.date(),
-            })
-            .toDate()
+        ? normalizeToHour(
+            moment(slot.endTime, TIME_PARSE_FORMATS)
+              .set({
+                year: selDate.year(),
+                month: selDate.month(),
+                date: selDate.date(),
+              })
+              .toDate(),
+          )
         : null;
 
       setStartTime(start);
@@ -1075,13 +1099,8 @@ const OrderBooking = ({
       paymentPolicy: data?.paymentPolicy,
       evenyloProtect: isChecked,
       startTime:
-        startTime && requiresTimeSelection
-          ? moment(startTime).format('hh:mm A')
-          : null,
-      endTime:
-        endTime && requiresTimeSelection
-          ? moment(endTime).format('hh:mm A')
-          : null,
+        startTime && requiresTimeSelection ? formatTime24(startTime) : null,
+      endTime: endTime && requiresTimeSelection ? formatTime24(endTime) : null,
     };
 
     handleAddToWishList(details);
@@ -1134,12 +1153,12 @@ const OrderBooking = ({
                 <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
                   {localStartDate && (
                     <Text style={styles.dateValue}>
-                      {moment(localStartDate).format('dddd, MMMM D')}
+                      {moment(localStartDate).format('DD/MM/YYYY')}
                     </Text>
                   )}
                   {localEndDate && (
                     <Text style={styles.dateValue}>
-                      , {moment(localEndDate).format('dddd, MMMM D')}
+                      , {moment(localEndDate).format('DD/MM/YYYY')}
                     </Text>
                   )}
                 </View>
@@ -1168,7 +1187,7 @@ const OrderBooking = ({
                       style={[styles.dateInput, idx === 0 && {marginRight: 10}]}
                       onPress={() => setter(true)}>
                       <Text style={styles.dateInputText}>
-                        {value ? moment(value).format('hh:mm A') : label}
+                        {value ? formatTime24(value) : label}
                       </Text>
                       <Image
                         source={ICONS.clockIcon}
@@ -1182,11 +1201,14 @@ const OrderBooking = ({
                 <DatePicker
                   modal
                   open={showStartPicker}
-                  date={startTime || new Date()}
+                  date={getPickerTimeDate(startTime)}
                   mode="time"
+                  is24hourSource
+                  locale="nl"
+                  minuteInterval={60}
                   onConfirm={date => {
                     setShowStartPicker(false);
-                    setStartTime(date);
+                    setStartTime(normalizeToHour(date));
                   }}
                   onCancel={() => setShowStartPicker(false)}
                 />
@@ -1194,11 +1216,14 @@ const OrderBooking = ({
                 <DatePicker
                   modal
                   open={showEndPicker}
-                  date={endTime || new Date()}
+                  date={getPickerTimeDate(endTime)}
                   mode="time"
+                  is24hourSource
+                  locale="nl"
+                  minuteInterval={60}
                   onConfirm={date => {
                     setShowEndPicker(false);
-                    setEndTime(date);
+                    setEndTime(normalizeToHour(date));
                   }}
                   onCancel={() => setShowEndPicker(false)}
                 />
@@ -1300,7 +1325,7 @@ const OrderBooking = ({
                   )}
                 </View>
                 <Text style={styles.pricingValue}>
-                  € {formatAmount(calculatedPricing.serviceCost)}
+                  {formatAmount(calculatedPricing.serviceCost)}
                 </Text>
               </View>
 
@@ -1309,7 +1334,7 @@ const OrderBooking = ({
                   {t('travelCostWithDistance', {distance: roundedDistanceKm})}
                 </Text>
                 <Text style={styles.pricingValue}>
-                  € {formatAmount(calculatedPricing.travelCost)}
+                  {formatAmount(calculatedPricing.travelCost)}
                 </Text>
               </View>
 
@@ -1318,14 +1343,14 @@ const OrderBooking = ({
                   {t('securityDepositRefundable')}
                 </Text>
                 <Text style={styles.pricingValue}>
-                  € {formatAmount(calculatedPricing.securityDeposit)}
+                  {formatAmount(calculatedPricing.securityDeposit)}
                 </Text>
               </View>
 
               <View style={styles.pricingRow}>
                 <Text style={styles.pricingLabel}>{t('Subtotal')}</Text>
                 <Text style={styles.pricingValue}>
-                  € {formatAmount(calculatedPricing.subTotal)}
+                  {formatAmount(calculatedPricing.subTotal)}
                 </Text>
               </View>
 
@@ -1336,7 +1361,7 @@ const OrderBooking = ({
                   })}
                 </Text>
                 <Text style={styles.pricingValue}>
-                  € {formatAmount(calculatedPricing.platformFee)}
+                  {formatAmount(calculatedPricing.platformFee)}
                 </Text>
               </View>
 
@@ -1345,7 +1370,7 @@ const OrderBooking = ({
                   VAT ({calculatedPricing.vatPercent}%)
                 </Text>
                 <Text style={styles.pricingValue}>
-                  € {formatAmount(calculatedPricing.vatFee)}
+                  {formatAmount(calculatedPricing.vatFee)}
                 </Text>
               </View>
 
@@ -1357,7 +1382,7 @@ const OrderBooking = ({
                     })}
                   </Text>
                   <Text style={styles.pricingValue}>
-                    € {formatAmount(calculatedPricing.evenlyoProtect)}
+                    {formatAmount(calculatedPricing.evenlyoProtect)}
                   </Text>
                 </View>
               )}
@@ -1367,13 +1392,14 @@ const OrderBooking = ({
                   <Text style={styles.pricingLabel}>
                     {t('extraTimeWithRate', {
                       hours: calculatedPricing.extraHours,
-                      rate:
+                      rate: formatPrice(
                         calculatedPricing.extratimeCost ||
-                        calculatedPricing.pricePerHour,
+                          calculatedPricing.pricePerHour,
+                      ),
                     })}
                   </Text>
                   <Text style={styles.pricingValue}>
-                    € {formatAmount(calculatedPricing.extraTimeAmount)}
+                    {formatAmount(calculatedPricing.extraTimeAmount)}
                   </Text>
                 </View>
               )}
@@ -1431,7 +1457,7 @@ const OrderBooking = ({
               <View style={styles.pricingRow}>
                 <Text style={styles.totalLabel}>{t('totalLabel')}</Text>
                 <Text style={styles.totalValue}>
-                  € {formatAmount(calculatedPricing.total)}
+                  {formatAmount(calculatedPricing.total)}
                 </Text>
               </View>
             </View>

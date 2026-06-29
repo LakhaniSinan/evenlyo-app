@@ -34,6 +34,7 @@ const Home = ({navigation}) => {
     categories,
     subCategories,
     homeData,
+    homeDataVersion,
     selectedCategory,
     selectedSubCategory,
     setSelectedSubCategory,
@@ -70,6 +71,7 @@ const Home = ({navigation}) => {
       selectedSubCategory,
       onSubCategorySelect: setSelectedSubCategory,
       homeData,
+      homeDataVersion,
       platformFeePercentage,
       onNotificationsPress: () => navigation.navigate('Notifications'),
       onFilterPress: () => setFilterVisible(true),
@@ -89,6 +91,7 @@ const Home = ({navigation}) => {
       selectedSubCategory,
       setSelectedSubCategory,
       homeData,
+      homeDataVersion,
       platformFeePercentage,
       setFilterVisible,
       onBookingCardPress,
@@ -112,7 +115,13 @@ const Home = ({navigation}) => {
         contentContainerStyle={styles.listContent}
         renderItem={renderSection}
         keyExtractor={sectionId => sectionId}
-        extraData={currentLanguage}
+        extraData={{
+          currentLanguage,
+          homeDataVersion,
+          homeData,
+          selectedCategory,
+          selectedSubCategory,
+        }}
         refreshing={refreshing}
         onRefresh={onRefresh}
         showsVerticalScrollIndicator={false}

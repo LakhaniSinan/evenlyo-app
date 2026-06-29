@@ -28,7 +28,7 @@ const SaleReportingModal = ({data, visible, onClose}) => {
   const modalRef = useRef(null);
 
   const earningsData = [
-    {label: 'Report Date:', value: moment().format('MMMM D, YYYY')},
+    {label: 'Report Date:', value: moment().format('DD/MM/YYYY')},
     {label: 'Today Earning:', value: formatEuro(data?.stats?.todayEarnings || 0)},
     {
       label: 'Last Week Earning:',

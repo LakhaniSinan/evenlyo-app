@@ -26,6 +26,8 @@ const HomeListSection = ({
   onVendorPress,
   onAddToWishList,
 }) => {
+  console.log(homeData, 'homeDatahomeDatahomeDatahomeDatahomeData');
+
   switch (sectionId) {
     case 'header':
       return (
@@ -77,6 +79,7 @@ const HomeListSection = ({
     case 'bookingCards':
       return (
         <HomeCard
+          key={`booking-${homeData?.bookingItems?.length || 0}`}
           data={homeData?.bookingItems || []}
           onBookingCardPress={onBookingCardPress}
           handleAddToWishList={onAddToWishList}
@@ -91,6 +94,7 @@ const HomeListSection = ({
     case 'vendors':
       return (
         <RelevantVendorsRow
+          key={`vendors-${homeData?.releventVendors?.length || 0}`}
           vendors={homeData?.releventVendors || []}
           currentLanguage={currentLanguage}
           navigation={navigation}

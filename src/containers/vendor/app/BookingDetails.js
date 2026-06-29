@@ -286,7 +286,7 @@ function BookingDetails({route}) {
       <View style={styles.infoText}>
         <Text style={styles.infoTitle}>{t(labelKey)}</Text>
         <Text style={styles.infoValue}>
-          {moment(date).format('YYYY-MM-DD')}
+          {moment(date).format('DD/MM/YYYY')}
         </Text>
         <Text style={styles.infoSubValue}>{time}</Text>
       </View>

@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import {
   FlatList,
+  Image,
   InteractionManager,
   StyleSheet,
   Text,
@@ -8,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import {SvgUri} from 'react-native-svg';
 import {
   BRAND_BUTTON_GRADIENT_COLORS,
   BRAND_BUTTON_GRADIENT_LOCATIONS,
@@ -18,48 +18,47 @@ import {
 import {useTranslation} from '../../hooks';
 
 const PRESS_COOLDOWN_MS = 500;
-const failedIconUris = new Set();
 
-const isSafeSvgUri = uri =>
-  typeof uri === 'string' &&
-  /^https?:\/\//i.test(uri.trim()) &&
-  uri.toLowerCase().includes('.svg');
+const isValidImageUri = uri =>
+  typeof uri === 'string' && /^https?:\/\//i.test(uri.trim());
 
 const getSubCategoryKey = item =>
   String(item?._id || item?.id || item?.slug || item?.name?.en || '');
 
-const SafeSubCategoryIcon = React.memo(({uri, size = 13, enabled = false}) => {
+const SubCategoryIcon = React.memo(({uri, size = 13}) => {
   const safeUri = typeof uri === 'string' ? uri.trim() : '';
 
-  if (!enabled || !isSafeSvgUri(safeUri) || failedIconUris.has(safeUri)) {
+  if (!isValidImageUri(safeUri)) {
     return (
       <View
-        style={[styles.iconFallback, {width: size, height: size, borderRadius: size / 2}]}
+        style={[
+          styles.iconFallback,
+          {width: size, height: size, borderRadius: size / 2},
+        ]}
       />
     );
   }
 
   return (
-    <SvgUri
-      width={size}
-      height={size}
-      uri={safeUri}
-      onError={() => {
-        failedIconUris.add(safeUri);
-      }}
+    <Image
+      source={{uri: safeUri}}
+      style={{width: size, height: size}}
+      resizeMode="contain"
     />
   );
 });
 
-const SubCategoryCard = React.memo(({item, isSelected, label, onPress}) => (
-  <TouchableOpacity
-    activeOpacity={0.85}
-    style={styles.pillTouchable}
-    onPress={onPress}>
-    <View style={[styles.card, isSelected && styles.cardSelected]}>
-      <View style={styles.iconSlot}>
-        {isSelected ? (
-          <>
+const SubCategoryCard = React.memo(({item, isSelected, label, onPress}) => {
+  const hasIcon = isValidImageUri(item?.icon);
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.85}
+      style={styles.pillTouchable}
+      onPress={onPress}>
+      <View style={[styles.card, isSelected && styles.cardSelected]}>
+        <View style={styles.iconSlot}>
+          {isSelected && (
             <LinearGradient
               colors={BRAND_BUTTON_GRADIENT_COLORS}
               locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
@@ -67,22 +66,26 @@ const SubCategoryCard = React.memo(({item, isSelected, label, onPress}) => (
               end={{x: 1, y: 0}}
               style={styles.iconGradient}
             />
-            <View style={styles.iconCenter}>
-              <SafeSubCategoryIcon uri={item?.icon} enabled />
-            </View>
-          </>
-        ) : (
-          <Text style={styles.iconInitial}>{label?.charAt(0)?.toUpperCase() || '?'}</Text>
-        )}
+          )}
+          <View style={styles.iconCenter}>
+            {hasIcon ? (
+              <SubCategoryIcon uri={item?.icon} />
+            ) : (
+              <Text style={styles.iconInitial}>
+                {label?.charAt(0)?.toUpperCase() || '?'}
+              </Text>
+            )}
+          </View>
+        </View>
+        <Text
+          style={[styles.cardText, isSelected && styles.selectedText]}
+          numberOfLines={1}>
+          {label}
+        </Text>
       </View>
-      <Text
-        style={[styles.cardText, isSelected && styles.selectedText]}
-        numberOfLines={1}>
-        {label}
-      </Text>
-    </View>
-  </TouchableOpacity>
-));
+    </TouchableOpacity>
+  );
+});
 
 const SubCategories = ({data, subSelected, setsubSelected}) => {
   const {currentLanguage} = useTranslation();

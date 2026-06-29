@@ -1,9 +1,15 @@
 import React, {useCallback} from 'react';
-import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
 import Modal from 'react-native-modal';
-import {SvgUri} from 'react-native-svg';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
@@ -57,7 +63,11 @@ const SubCategoriesModal = ({
             end={{x: 0, y: 1}}
             style={styles.activeContainer}>
             <View style={styles.iconWrapper}>
-              <SvgUri width={20} height={20} uri={subItem?.icon} />
+              <Image
+                source={{uri: subItem?.icon}}
+                style={styles.icon}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.activeText}>
               {currentLanguage == 'en' ? subItem?.name?.en : subItem?.name?.nl}
@@ -66,7 +76,11 @@ const SubCategoriesModal = ({
         ) : (
           <View style={styles.inactiveContainer}>
             <View style={[styles.iconWrapper, styles.iconSpacing]}>
-              <SvgUri width={20} height={20} uri={subItem?.icon} />
+              <Image
+                source={{uri: subItem?.icon}}
+                style={styles.icon}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.inactiveText}>
               {currentLanguage == 'en' ? subItem?.name?.en : subItem?.name?.nl}

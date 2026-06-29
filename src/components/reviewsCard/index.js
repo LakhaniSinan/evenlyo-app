@@ -17,9 +17,8 @@ const ReviewsCard = ({item}) => {
     if (!item?.createdAt) {
       return '';
     }
-    const locale = currentLanguage === 'nl' ? 'nl' : 'en';
-    return moment(item.createdAt).locale(locale).format('DD MMM YYYY');
-  }, [item?.createdAt, currentLanguage]);
+    return moment(item.createdAt).format('DD/MM/YYYY');
+  }, [item?.createdAt]);
 
   const reviewBody = item?.review || item?.comment;
 

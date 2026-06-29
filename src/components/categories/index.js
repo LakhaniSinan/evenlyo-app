@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import {
   FlatList,
+  Image,
   InteractionManager,
   StyleSheet,
   Text,
@@ -9,7 +10,6 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
-import {SvgUri} from 'react-native-svg';
 import {
   BRAND_BUTTON_GRADIENT_COLORS,
   BRAND_BUTTON_GRADIENT_LOCATIONS,
@@ -19,12 +19,9 @@ import {
 import {useTranslation} from '../../hooks';
 
 const PRESS_COOLDOWN_MS = 500;
-const failedIconUris = new Set();
 
-const isSafeSvgUri = uri =>
-  typeof uri === 'string' &&
-  /^https?:\/\//i.test(uri.trim()) &&
-  uri.toLowerCase().includes('.svg');
+const isValidImageUri = uri =>
+  typeof uri === 'string' && /^https?:\/\//i.test(uri.trim());
 
 const getCategoryKey = item =>
   String(item?._id || item?.id || item?.slug || item?.name?.en || '');
@@ -34,30 +31,32 @@ const getInitial = label => {
   return trimmed ? trimmed.charAt(0).toUpperCase() : '?';
 };
 
-const SafeCategoryIcon = React.memo(({uri, size = 16, enabled = false}) => {
+const CategoryIcon = React.memo(({uri, size = 20}) => {
   const safeUri = typeof uri === 'string' ? uri.trim() : '';
 
-  if (!enabled || !isSafeSvgUri(safeUri) || failedIconUris.has(safeUri)) {
+  if (!isValidImageUri(safeUri)) {
     return (
       <View
-        style={[styles.iconFallback, {width: size, height: size, borderRadius: size / 2}]}
+        style={[
+          styles.iconFallback,
+          {width: size, height: size, borderRadius: size / 2},
+        ]}
       />
     );
   }
 
   return (
-    <SvgUri
-      width={size}
-      height={size}
-      uri={safeUri}
-      onError={() => {
-        failedIconUris.add(safeUri);
-      }}
+    <Image
+      source={{uri: safeUri}}
+      style={{width: size, height: size}}
+      resizeMode="contain"
     />
   );
 });
 
 const CategoryCard = React.memo(({item, isSelected, label, onPress}) => {
+  const hasIcon = isValidImageUri(item?.icon);
+
   return (
     <TouchableOpacity
       activeOpacity={0.85}
@@ -65,22 +64,22 @@ const CategoryCard = React.memo(({item, isSelected, label, onPress}) => {
       onPress={onPress}>
       <View style={[styles.cardShell, isSelected && styles.cardShellSelected]}>
         <View style={styles.iconWrapper}>
-          {isSelected ? (
-            <>
-              <LinearGradient
-                colors={BRAND_BUTTON_GRADIENT_COLORS}
-                locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 0}}
-                style={styles.activeIconGradient}
-              />
-              <View style={styles.iconCenter}>
-                <SafeCategoryIcon uri={item?.icon} enabled />
-              </View>
-            </>
-          ) : (
-            <Text style={styles.iconInitial}>{getInitial(label)}</Text>
+          {isSelected && (
+            <LinearGradient
+              colors={BRAND_BUTTON_GRADIENT_COLORS}
+              locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}
+              style={styles.activeIconGradient}
+            />
           )}
+          <View style={styles.iconCenter}>
+            {hasIcon ? (
+              <CategoryIcon uri={item?.icon} />
+            ) : (
+              <Text style={styles.iconInitial}>{getInitial(label)}</Text>
+            )}
+          </View>
         </View>
         <Text style={styles.cardText} numberOfLines={2}>
           {label}

@@ -3,6 +3,7 @@ import {StyleSheet, Text, TouchableOpacity, View, Switch} from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import {width} from 'react-native-dimension';
 import {COLORS, fontFamly} from '../../constants';
+import moment from 'moment';
 
 const DateRangePicker = ({
   startDate = new Date(),
@@ -41,15 +42,15 @@ const DateRangePicker = ({
     return `${hours}:${minutes} ${ampm}`;
   };
 
-  const formatDate = useMemo(() => {
-    const options = {month: 'short', day: 'numeric', year: 'numeric'};
-    return date => {
+  const formatDate = useMemo(
+    () => date => {
       if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
         return 'Select date';
       }
-      return date.toLocaleDateString(undefined, options);
-    };
-  }, []);
+      return moment(date).format('DD/MM/YYYY');
+    },
+    [],
+  );
 
   React.useEffect(() => {
     if (isSingleDay) {

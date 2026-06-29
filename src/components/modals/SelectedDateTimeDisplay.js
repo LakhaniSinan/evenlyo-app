@@ -12,12 +12,12 @@ const SelectedDateTimeDisplay = ({localStartDate, localEndDate}) => {
         <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
           {localStartDate && (
             <Text style={styles.dateValue}>
-              {moment(localStartDate).format('dddd, MMMM D')}
+              {moment(localStartDate).format('DD/MM/YYYY')}
             </Text>
           )}
           {localEndDate && (
             <Text style={styles.dateValue}>
-              , {moment(localEndDate).format('dddd, MMMM D')}
+              , {moment(localEndDate).format('DD/MM/YYYY')}
             </Text>
           )}
         </View>

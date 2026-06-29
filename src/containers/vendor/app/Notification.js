@@ -91,7 +91,7 @@ const Notification = ({navigation}) => {
       if (diffInDays < 7) {
         return t('timeRelativeDaysAgo', {count: diffInDays});
       }
-      return time.format('MMM D, YYYY');
+      return time.format('DD/MM/YYYY');
     },
     [currentLanguage, t],
   );

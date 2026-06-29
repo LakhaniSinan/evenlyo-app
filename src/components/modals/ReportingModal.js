@@ -25,7 +25,7 @@ import GradientText from '../gradiantText';
 const ReportingModal = ({data, visible, onClose}) => {
   const {t} = useTranslation();
   const earningsData = [
-    {label: 'Report Date:', value: moment().format('MMMM D, YYYY')},
+    {label: 'Report Date:', value: moment().format('DD/MM/YYYY')},
     {label: 'Today Earning:', value: formatEuro(data?.stats?.todayEarnings || 0)},
     {
       label: 'Last Week Earning:',
@@ -97,7 +97,7 @@ const ReportingModal = ({data, visible, onClose}) => {
     <h1>Analytics & Report</h1>
 
     <div class="report-date">
-      <span>Report Date:</span> ${moment().format('MM/DD/YYYY')}
+      <span>Report Date:</span> ${moment().format('DD/MM/YYYY')}
     </div>
 
     <h3>Earnings Summary</h3>

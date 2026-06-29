@@ -87,7 +87,7 @@ const CartCard = ({
   const renderDate = (labelKey, date) =>
     date ? (
       <Text style={styles.metaText}>
-        {t(labelKey)}: {moment(date).format('MM/DD/YYYY')}
+        {t(labelKey)}: {moment(date).format('DD/MM/YYYY')}
       </Text>
     ) : null;
 

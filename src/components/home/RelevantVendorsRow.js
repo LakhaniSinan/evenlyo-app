@@ -15,7 +15,7 @@ const RelevantVendorsRow = ({
   <FlatList
     data={vendors}
     horizontal
-    extraData={currentLanguage}
+    extraData={vendors}
     showsHorizontalScrollIndicator={false}
     keyExtractor={(item, index) => item?._id || String(index)}
     renderItem={({item}) => (

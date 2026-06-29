@@ -59,18 +59,9 @@ export const formatDate = (date, format = 'short') => {
 
   switch (format) {
     case 'short':
-      return dateObj.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
+      return moment(dateObj).format('DD/MM/YYYY');
     case 'long':
-      return dateObj.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
+      return moment(dateObj).format('DD/MM/YYYY');
     case 'time':
       return dateObj.toLocaleTimeString('en-US', {
         hour: 'numeric',
@@ -78,21 +69,21 @@ export const formatDate = (date, format = 'short') => {
         hour12: true,
       });
     default:
-      return dateObj.toLocaleDateString();
+      return moment(dateObj).format('DD/MM/YYYY');
   }
 };
 
-const PRICE_FORMATTER = new Intl.NumberFormat('en-US', {
+const PRICE_FORMATTER = new Intl.NumberFormat('nl-NL', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
-const PRICE_FORMATTER_WHOLE = new Intl.NumberFormat('en-US', {
+const PRICE_FORMATTER_WHOLE = new Intl.NumberFormat('nl-NL', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
 
-/** Netherlands display format: 4,010.00 */
+/** Netherlands display format: 4.010,00 */
 export const formatPrice = (amount, options = {}) => {
   const {decimals = 2} = options;
   const value = Number(amount) || 0;
@@ -102,7 +93,7 @@ export const formatPrice = (amount, options = {}) => {
   return PRICE_FORMATTER.format(value);
 };
 
-/** Netherlands euro display: €4,010.00 */
+/** Netherlands euro display: € 4.010,00 */
 export const formatEuro = (amount, options = {}) => {
   const {space = true, decimals = 2} = options;
   const formatted = formatPrice(amount, {decimals});
@@ -144,7 +135,7 @@ export const parsePrice = value => {
 };
 
 export const formatCurrency = (amount, currency = 'EUR') => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('nl-NL', {
     style: 'currency',
     currency,
   }).format(Number(amount) || 0);
@@ -295,7 +286,7 @@ export function formatRelativeTime(isoDateString) {
 
   if (diffDay < 7) {return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;}
 
-  return date.toLocaleDateString();
+  return moment(date).format('DD/MM/YYYY');
 }
 export const getDistance = (coords1, coords2) => {
   if (!coords1 || !coords2) {

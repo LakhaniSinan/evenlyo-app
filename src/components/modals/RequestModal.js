@@ -776,6 +776,10 @@ const NewRequestModal = ({
       uniqueId: editingItem?.uniqueId,
     };
 
+    console.log(finalItem, 'finalItemfinalItemfinalItemfinalItemfinalItem');
+
+    return;
+
     dispatch(addItem(finalItem));
     modalRef.current?.show({
       status: 'ok',
@@ -881,7 +885,8 @@ const NewRequestModal = ({
                   color: COLORS.textLight,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                {t('Base Rate')}: {formatEuro(selectedListing?.pricing?.amount || 0)}{' '}
+                {t('Base Rate')}:{' '}
+                {formatEuro(selectedListing?.pricing?.amount || 0)}{' '}
                 {selectedListing?.pricing?.type === 'perhour'
                   ? t('per hour')
                   : selectedListing?.pricing?.type}
@@ -892,7 +897,8 @@ const NewRequestModal = ({
                   color: COLORS.red,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                {t('Extra Time Cost')}: {formatEuro(selectedListing?.pricing?.extratimeCost || 0)}{' '}
+                {t('Extra Time Cost')}:{' '}
+                {formatEuro(selectedListing?.pricing?.extratimeCost || 0)}{' '}
                 {t('per hour beyond scheduled time')}
               </Text>
               <Text
@@ -901,7 +907,8 @@ const NewRequestModal = ({
                   color: COLORS.navyBlue,
                   fontFamily: fontFamly.PlusJakartaSansBold,
                 }}>
-                {t('Distance Cost')}: {formatEuro(selectedListing?.pricing?.pricePerKm || 0)} /
+                {t('Distance Cost')}:{' '}
+                {formatEuro(selectedListing?.pricing?.pricePerKm || 0)} /
                 {t('km per km from vendor location')}
               </Text>
               <Text
@@ -1037,11 +1044,15 @@ const NewRequestModal = ({
           <View style={styles.pricingCard}>
             <View style={styles.sectionTitleRow}>
               <Text style={styles.sectionTitleIcon}>€</Text>
-              <Text style={styles.sectionTitleText}>{t('Pricing Breakdown')}</Text>
+              <Text style={styles.sectionTitleText}>
+                {t('Pricing Breakdown')}
+              </Text>
             </View>
 
             <View style={styles.offerLabelRow}>
-              <Text style={styles.offerInputLabel}>{t('Your Offer Price (€)')}</Text>
+              <Text style={styles.offerInputLabel}>
+                {t('Your Offer Price (€)')}
+              </Text>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => setShowOfferInfoModal(true)}>
@@ -1082,14 +1093,16 @@ const NewRequestModal = ({
                 style={{marginRight: 6}}
               />
               <Text style={styles.checkboxLabel}>
-                {t('Include Security Fee')} ({formatEuro(securityFee || 0, {space: false})})
+                {t('Include Security Fee')} (
+                {formatEuro(securityFee || 0, {space: false})})
               </Text>
             </TouchableOpacity>
 
             <View style={styles.feeContainer}>
               <View style={styles.feeRow}>
                 <Text style={styles.feeLabel}>
-                  {t('Security Fee')} ({includeSecurityFee ? t('Included') : t('Excluded')})
+                  {t('Security Fee')} (
+                  {includeSecurityFee ? t('Included') : t('Excluded')})
                 </Text>
                 <Text style={styles.feeAmount}>
                   +{formatEuro(appliedSecurityFee, {space: false})}
@@ -1120,7 +1133,9 @@ const NewRequestModal = ({
             {hasEnteredOffer && safeOfferAmount > 0 && (
               <View style={styles.finalTotalInfoBox}>
                 <View style={styles.finalTotalRow}>
-                  <Text style={styles.finalTotalHeading}>{t('Final Total')}:</Text>
+                  <Text style={styles.finalTotalHeading}>
+                    {t('Final Total')}:
+                  </Text>
                   <Text style={styles.finalTotalAmount}>
                     {formatEuro(grandTotal, {space: false})}
                   </Text>
@@ -1222,10 +1237,14 @@ const NewRequestModal = ({
         style={styles.infoModalWrap}
         backdropOpacity={0.4}>
         <View style={styles.infoModalCard}>
-          <Text style={styles.infoModalTitle}>{t('Calculated pricing details')}</Text>
+          <Text style={styles.infoModalTitle}>
+            {t('Calculated pricing details')}
+          </Text>
 
           <View style={styles.infoModalRow}>
-            <Text style={styles.infoModalLabel}>{t('Calculated offer price')}</Text>
+            <Text style={styles.infoModalLabel}>
+              {t('Calculated offer price')}
+            </Text>
             <Text style={styles.infoModalValue}>
               {formatEuro(systemCalculatedOfferPrice, {space: false})}
             </Text>
@@ -1233,10 +1252,12 @@ const NewRequestModal = ({
 
           {normalizedDistanceCost > 0 && roundedDistanceKm != null && (
             <View style={styles.infoModalRow}>
-              <Text style={[styles.infoModalLabel, styles.infoModalDistanceLabel]}>
+              <Text
+                style={[styles.infoModalLabel, styles.infoModalDistanceLabel]}>
                 {t('distanceCostWithKm', {km: roundedDistanceKm})}
               </Text>
-              <Text style={[styles.infoModalValue, styles.infoModalDistanceValue]}>
+              <Text
+                style={[styles.infoModalValue, styles.infoModalDistanceValue]}>
                 +{formatEuro(normalizedDistanceCost, {space: false})}
               </Text>
             </View>
@@ -1244,17 +1265,21 @@ const NewRequestModal = ({
 
           {normalizedExtraTimeCost > 0 && (
             <View style={styles.infoModalRow}>
-              <Text style={[styles.infoModalLabel, styles.infoModalExtraTimeLabel]}>
+              <Text
+                style={[styles.infoModalLabel, styles.infoModalExtraTimeLabel]}>
                 {t('Extra Time Cost')}
               </Text>
-              <Text style={[styles.infoModalValue, styles.infoModalExtraTimeValue]}>
+              <Text
+                style={[styles.infoModalValue, styles.infoModalExtraTimeValue]}>
                 +{formatEuro(normalizedExtraTimeCost, {space: false})}
               </Text>
             </View>
           )}
 
           <View style={[styles.infoModalRow, styles.infoModalTotalRow]}>
-            <Text style={styles.infoModalTotalLabel}>{t('Calculated Total')}</Text>
+            <Text style={styles.infoModalTotalLabel}>
+              {t('Calculated Total')}
+            </Text>
             <Text style={styles.infoModalTotalValue}>
               {formatEuro(calculatedPricingTotal, {space: false})}
             </Text>

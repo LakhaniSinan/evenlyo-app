@@ -22,7 +22,7 @@ const EventListingCard = ({onEditIconPress, item, onDeleteIconPress}) => {
           <View style={styles.headerRow}>
             <View style={styles.statusBadge}>
               <Text style={styles.statusText}>
-                {moment(item?.date).format('DD-MMM-YYYY')}
+                {moment(item?.date).format('DD/MM/YYYY')}
               </Text>
               <View style={{flexDirection: 'row'}}>
                 <TouchableOpacity

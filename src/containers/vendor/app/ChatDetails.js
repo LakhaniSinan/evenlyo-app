@@ -630,7 +630,7 @@ const ChatDetail = ({navigation, route}) => {
         'hh:mm A',
       )}`;
     }
-    return messageTime.format('MMM DD, YYYY [at] hh:mm A');
+    return messageTime.format('DD/MM/YYYY [at] hh:mm A');
   }, []);
 
   /** ---------- send message ---------- **/

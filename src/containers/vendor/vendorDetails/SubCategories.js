@@ -7,8 +7,8 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
+import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
-import {SvgUri} from 'react-native-svg';
 
 import {ICONS} from '../../../assets';
 import GradientButton from '../../../components/button';
@@ -45,14 +45,22 @@ const SubCategoryItem = memo(
             end={{x: 0, y: 1}}
             style={containerStyle}>
             <View style={styles.iconWrapper}>
-              <SvgUri width={20} height={20} uri={subItem?.icon} />
+              <FastImage
+                source={{uri: subItem?.icon}}
+                style={styles.icon}
+                resizeMode={FastImage.resizeMode.contain}
+              />
             </View>
             <Text style={textStyle}>{name}</Text>
           </LinearGradient>
         ) : (
           <View style={containerStyle}>
             <View style={[styles.iconWrapper, styles.iconSpacing]}>
-              <SvgUri width={20} height={20} uri={subItem?.icon} />
+              <FastImage
+                source={{uri: subItem?.icon}}
+                style={styles.icon}
+                resizeMode={FastImage.resizeMode.contain}
+              />
             </View>
             <Text style={textStyle}>{name}</Text>
           </View>
@@ -186,7 +194,7 @@ const SubCategories = ({
     }
     console.log(selectedItems,"selectedItemsselectedItems");
     
-    // handleNextStep(Array.from(selectedItems));
+    handleNextStep(Array.from(selectedItems));
   };
 
   /* ---------------- UI ---------------- */

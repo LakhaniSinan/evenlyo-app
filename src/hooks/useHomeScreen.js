@@ -27,11 +27,8 @@ const normalizeHomePayload = payload => {
   if (!payload) {
     return {
       bookingItems: [],
-
       saleItems: [],
-
       otherSaleItemms: [],
-
       platformFeePercentage: 0,
     };
   }
@@ -39,23 +36,17 @@ const normalizeHomePayload = payload => {
   if (Array.isArray(payload)) {
     return {
       bookingItems: payload,
-
       saleItems: [],
-
       otherSaleItemms: [],
-
-      platformFeePercentage: payload?.saleItems?.platformFeePercentage || 0,
+      platformFeePercentage: 0,
     };
   }
 
   return {
     bookingItems: payload.bookingItems || [],
-
     saleItems: payload.saleItems || [],
-
     otherSaleItemms: payload.otherSaleItemms || [],
-
-    platformFeePercentage: payload?.saleItems?.platformFeePercentage || 0,
+    platformFeePercentage: payload?.platformFeePercentage || 0,
   };
 };
 
@@ -63,32 +54,25 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
   const {currentLanguage} = useTranslation();
 
   const subCategoryRequestRef = useRef(0);
-
   const homeDataRequestRef = useRef(0);
+  const activeFiltersRef = useRef({});
 
   const {categories, subCategories, fetchCategories, fetchSubCategories} =
     useCategories();
 
   const {user} = useSelector(state => state.LoginSlice);
 
-  const [homeData, setHomeData] = useState(null);
-
+  const [homeData, setHomeData] = useState(EMPTY_HOME_DATA);
   const [selectedCategory, setSelectedCategory] = useState(null);
-
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
-
   const [platformFeePercentage, setPlatformFeePercentage] = useState(0);
-
   const [isFilterVisible, setFilterVisible] = useState(false);
-
   const [refreshing, setRefreshing] = useState(false);
-
   const [isWishlistLoading, setWishlistLoading] = useState(false);
-
   const [isSubCategoriesLoading, setSubCategoriesLoading] = useState(false);
+  const [homeDataVersion, setHomeDataVersion] = useState(0);
 
   const selectedCategoryId = selectedCategory?._id;
-
   const selectedSubCategoryId = selectedSubCategory?._id;
 
   const hasSubCategories =
@@ -112,7 +96,6 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
 
       return String(message);
     },
-
     [currentLanguage],
   );
 
@@ -120,10 +103,8 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
     message =>
       modalRef.current?.show({
         status: 'error',
-
         message: getLocalizedMessage(message),
       }),
-
     [modalRef, getLocalizedMessage],
   );
 
@@ -131,11 +112,60 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
     (status, message) =>
       modalRef.current?.show({
         status,
-
         message: getLocalizedMessage(message),
       }),
-
     [modalRef, getLocalizedMessage],
+  );
+
+  const applyHomeResponse = useCallback((homeRes, vendorsRes) => {
+    console.log(
+      homeRes,
+      vendorsRes,
+      'homeRes, vendorsReshomeRes, vendorsReshomeRes, vendorsRes',
+    );
+
+    const normalized = normalizeHomePayload(homeRes?.data?.data);
+
+    setHomeData({
+      bookingItems: normalized.bookingItems,
+      releventVendors: vendorsRes?.data?.data || [],
+    });
+    setPlatformFeePercentage(normalized.platformFeePercentage);
+    setHomeDataVersion(version => version + 1);
+  }, []);
+
+  const fetchHomeData = useCallback(
+    async (categoryId, subCategoryId) => {
+      if (!categoryId || !subCategoryId) {
+        return;
+      }
+
+      const requestId = ++homeDataRequestRef.current;
+
+      const params = {
+        subCategoryId,
+        ...activeFiltersRef.current,
+      };
+
+      try {
+        const [homeRes, vendorsRes] = await Promise.all([
+          getHomeData(params),
+          getVendorsBySubCategory(categoryId, {userId: user?.id}),
+        ]);
+
+        if (homeRes?.status === 200 || homeRes?.status === 201) {
+          console.log('applyHomeResponse');
+          applyHomeResponse(homeRes, vendorsRes);
+        } else {
+          showError(homeRes?.data?.message);
+        }
+      } catch (err) {
+        if (requestId === homeDataRequestRef.current) {
+          console.log(err, 'fetchHomeData error');
+        }
+      }
+    },
+    [user?.id, applyHomeResponse, showError],
   );
 
   const loadCategories = useCallback(async () => {
@@ -158,15 +188,13 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
     }
 
     let isMounted = true;
-
     const requestId = ++subCategoryRequestRef.current;
 
     const loadSubCategories = async () => {
       try {
         setSubCategoriesLoading(true);
-
         setSelectedSubCategory(null);
-
+        setHomeData(EMPTY_HOME_DATA);
         homeDataRequestRef.current += 1;
 
         const subRes = await fetchSubCategories(selectedCategoryId);
@@ -195,63 +223,15 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
 
     return () => {
       isMounted = false;
-
       clearTimeout(timer);
     };
   }, [selectedCategoryId, fetchSubCategories]);
 
-  const applyHomeResponse = useCallback((homeRes, vendorsRes) => {
-    const normalized = normalizeHomePayload(homeRes?.data?.data);
-
-    setHomeData({
-      bookingItems: normalized.bookingItems,
-
-      releventVendors: vendorsRes?.data?.data || [],
-    });
-
-    setPlatformFeePercentage(normalized.platformFeePercentage);
-  }, []);
-
-  const fetchHomeData = useCallback(async () => {
-    if (!selectedCategoryId || !selectedSubCategoryId) {
-      return;
-    }
-
-    const requestId = ++homeDataRequestRef.current;
-
-    try {
-      const [homeRes, vendorsRes] = await Promise.all([
-        getHomeData({subCategoryId: selectedSubCategoryId}),
-
-        getVendorsBySubCategory(selectedCategoryId, {userId: user?.id}),
-      ]);
-
-      if (requestId !== homeDataRequestRef.current) {
-        return;
-      }
-
-      if (homeRes.status === 200 || homeRes.status === 201) {
-        applyHomeResponse(homeRes, vendorsRes);
-      } else {
-        // showError(homeRes?.data?.message);
-      }
-    } catch (err) {
-      if (requestId === homeDataRequestRef.current) {
-        console.log(err, 'fetchHomeData error');
-      }
-    }
-  }, [selectedCategoryId, selectedSubCategoryId, applyHomeResponse, showError]);
-
   useEffect(() => {
     if (selectedCategoryId && selectedSubCategoryId) {
-      fetchHomeData();
+      fetchHomeData(selectedCategoryId, selectedSubCategoryId);
     }
   }, [selectedCategoryId, selectedSubCategoryId, fetchHomeData]);
-
-  useEffect(() => {
-    setHomeData(EMPTY_HOME_DATA);
-    setPlatformFeePercentage(0);
-  }, [selectedCategoryId, selectedSubCategoryId]);
 
   const handleCategorySelect = useCallback(item => {
     const nextId = item?._id || item?.id;
@@ -262,35 +242,48 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
 
     setSelectedCategory(prev => {
       const prevId = prev?._id || prev?.id;
-
       return nextId === prevId ? prev : item;
     });
 
+    activeFiltersRef.current = {};
     setSelectedSubCategory(null);
     setHomeData(EMPTY_HOME_DATA);
     setPlatformFeePercentage(0);
-
     homeDataRequestRef.current += 1;
   }, []);
 
-  const handleSubCategorySelect = useCallback(subCategory => {
-    setSelectedSubCategory(subCategory);
-    setHomeData(EMPTY_HOME_DATA);
-    setPlatformFeePercentage(0);
-    homeDataRequestRef.current += 1;
-  }, []);
+  const handleSubCategorySelect = useCallback(
+    subCategory => {
+      const nextId = subCategory?._id || subCategory?.id;
+      const currentId = selectedSubCategory?._id || selectedSubCategory?.id;
+
+      if (!nextId || nextId === currentId) {
+        return;
+      }
+
+      setSelectedSubCategory(subCategory);
+      setHomeData(EMPTY_HOME_DATA);
+      homeDataRequestRef.current += 1;
+    },
+    [selectedSubCategory],
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-
     await loadCategories();
-
+    if (selectedCategoryId && selectedSubCategoryId) {
+      await fetchHomeData(selectedCategoryId, selectedSubCategoryId);
+    }
     setRefreshing(false);
-  }, [loadCategories]);
+  }, [
+    loadCategories,
+    selectedCategoryId,
+    selectedSubCategoryId,
+    fetchHomeData,
+  ]);
 
   const onBookingCardPress = useCallback(
     item => navigation.navigate('EventDetails', item),
-
     [navigation],
   );
 
@@ -300,13 +293,11 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
 
       if (token) {
         navigation.navigate('VendorDetails', {...item, platformFeePercentage});
-
         return;
       }
 
       openLogin();
     },
-
     [navigation, openLogin, platformFeePercentage],
   );
 
@@ -316,7 +307,6 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
 
       if (!token) {
         openLogin();
-
         return;
       }
 
@@ -325,9 +315,9 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
 
         const response = await listingAddToCart({listingId});
 
-        console.log(response, 'responseresponseresponseresponseresponse789');
-
-        await fetchHomeData();
+        if (selectedCategoryId && selectedSubCategoryId) {
+          await fetchHomeData(selectedCategoryId, selectedSubCategoryId);
+        }
 
         if (response.status === 200 || response.status === 201) {
           showAlert('ok', response?.data?.message);
@@ -340,72 +330,45 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
         setWishlistLoading(false);
       }
     },
-
-    [fetchHomeData, openLogin, showAlert, showError],
+    [
+      fetchHomeData,
+      openLogin,
+      selectedCategoryId,
+      selectedSubCategoryId,
+      showAlert,
+      showError,
+    ],
   );
 
   const onApplyFilters = useCallback(
-    async filters => {
-      try {
-        setFilterVisible(false);
+    filters => {
+      setFilterVisible(false);
 
-        if (filters?.subCategory) {
-          setSelectedSubCategory({_id: filters.subCategory});
-        }
+      activeFiltersRef.current = {
+        ...(filters?.lat && {latitude: filters.lat}),
+        ...(filters?.lng && {longitude: filters.lng}),
+        ...(filters?.startDate && {date: filters.startDate}),
+        ...(filters?.radius && {radius: Number(filters.radius)}),
+      };
 
-        const params = {
-          ...(filters?.subCategory && {subCategoryId: filters.subCategory}),
-
-          ...(filters?.lat && {latitude: filters.lat}),
-
-          ...(filters?.lng && {longitude: filters.lng}),
-
-          ...(filters?.startDate && {date: filters.startDate}),
-
-          ...(filters?.radius && {radius: Number(filters.radius)}),
-        };
-
-        setRefreshing(true);
-
-        const [homeRes, vendorsRes] = await Promise.all([
-          getHomeData(params),
-
-          getVendorsBySubCategory(selectedCategory?._id, {userId: user?.id}),
-        ]);
-
-        console.log(
-          homeRes,
-
-          vendorsRes,
-
-          'homeRes, vendorsReshomeRes, vendorsRes',
+      if (filters?.subCategory) {
+        const matchedSubCategory = subCategories.find(
+          item => item?._id === filters.subCategory,
         );
 
-        if (homeRes.status === 200 || homeRes.status === 201) {
-          const normalized = normalizeHomePayload(homeRes?.data?.data);
+        setSelectedSubCategory(
+          matchedSubCategory || {_id: filters.subCategory},
+        );
+        return;
+      }
 
-          setHomeData({
-            bookingItems: normalized.bookingItems,
-
-            saleItems: normalized.saleItems,
-
-            otherSaleItemms: normalized.otherSaleItemms,
-
-            releventVendors: vendorsRes?.data?.data || [],
-          });
-
-          setPlatformFeePercentage(normalized.platformFeePercentage);
-        } else {
-          showError(homeRes?.data?.message);
-        }
-      } catch (error) {
-        console.log(error, 'onApplyFilters error');
-      } finally {
-        setRefreshing(false);
+      if (selectedCategoryId && selectedSubCategoryId) {
+        setHomeData(EMPTY_HOME_DATA);
+        homeDataRequestRef.current += 1;
+        fetchHomeData(selectedCategoryId, selectedSubCategoryId);
       }
     },
-
-    [selectedCategory?._id, showError],
+    [subCategories, selectedCategoryId, selectedSubCategoryId, fetchHomeData],
   );
 
   const listSections = useMemo(() => {
@@ -417,11 +380,8 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
 
     sections.push(
       'bookingHeading',
-
       'bookingCards',
-
       'vendorsHeading',
-
       'vendors',
     );
 
@@ -430,43 +390,25 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
 
   return {
     categories,
-
     subCategories,
-
     homeData,
-
+    homeDataVersion,
     selectedCategory,
-
     selectedSubCategory,
-
     setSelectedSubCategory: handleSubCategorySelect,
-
     platformFeePercentage,
-
     hasSubCategories,
-
     isFilterVisible,
-
     setFilterVisible,
-
     refreshing,
-
     isWishlistLoading,
-
     isSubCategoriesLoading,
-
     listSections,
-
     handleCategorySelect,
-
     onRefresh,
-
     onBookingCardPress,
-
     onVendorCardPress,
-
     handleAddToWishList,
-
     onApplyFilters,
   };
 };

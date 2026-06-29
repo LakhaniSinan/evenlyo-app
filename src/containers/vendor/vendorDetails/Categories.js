@@ -19,10 +19,6 @@ import useCategories from '../../../hooks/getCategories';
 const GRADIENT_COLORS = ['#FF295D', '#E31B95', '#C817AE'];
 
 const CategoryItem = memo(({item, isSelected, onSelect, currentLanguage}) => {
-  const iconUri = item?.icon?.endsWith('.svg')
-    ? item.icon.replace('.svg', '.png')
-    : item.icon;
-
   return (
     <TouchableOpacity
       activeOpacity={0.8}
@@ -49,7 +45,7 @@ const CategoryItem = memo(({item, isSelected, onSelect, currentLanguage}) => {
           },
         ]}>
         <FastImage
-          source={{uri: iconUri}}
+          source={{uri: item?.icon}}
           style={styles.image}
           resizeMode={FastImage.resizeMode.contain}
         />
