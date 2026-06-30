@@ -1,11 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState, memo} from 'react';
-import {
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {width} from 'react-native-dimension';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
@@ -147,8 +141,11 @@ const SubCategories = ({
       updated.has(id) ? updated.delete(id) : updated.add(id);
       return updated;
     });
-    console.log(setSelectionVersion,"setSelectionVersionsetSelectionVersionsetSelectionVersion");
-    
+    console.log(
+      setSelectionVersion,
+      'setSelectionVersionsetSelectionVersionsetSelectionVersion',
+    );
+
     setSelectionVersion(v => v + 1);
   }, []);
 
@@ -192,8 +189,8 @@ const SubCategories = ({
       });
       return;
     }
-    console.log(selectedItems,"selectedItemsselectedItems");
-    
+    console.log(selectedItems, 'selectedItemsselectedItems');
+
     handleNextStep(Array.from(selectedItems));
   };
 
@@ -280,9 +277,14 @@ const styles = StyleSheet.create({
   activeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    // justifyContent:"center",
     borderRadius: 10,
-    paddingVertical: width(1.5),
-    paddingHorizontal: width(4),
+    height: 30,
+    width: width(70),
+    paddingLeft: 5,
+    // paddingHorizontal:5
+    // paddingVertical: width(1.5),
+    // paddingHorizontal: width(4),
   },
   inactiveContainer: {
     flexDirection: 'row',
@@ -293,12 +295,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   iconWrapper: {
-    height: width(8),
-    width: width(8),
-    borderRadius: width(2),
-    backgroundColor: COLORS.white,
-    justifyContent: 'center',
-    alignItems: 'center',
+    // height: width(8),
+    // width: width(8),
+    // borderRadius: width(2),
+    // backgroundColor: COLORS.white,
+    // justifyContent: 'center',
+    // alignItems: 'center',
   },
   iconSpacing: {
     marginRight: width(2),
