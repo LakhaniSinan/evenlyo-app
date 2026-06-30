@@ -22,8 +22,15 @@ export const getOfferItemPricing = item => {
   );
   const platformFee = Number(breakdown?.platformFee || 0);
   const vatFee = Number(breakdown?.vatFee || 0);
+  const evenlyoProtectFee = Number(breakdown?.evenlyoProtectFee || 0);
   const fullCalculatedTotal = Number(
-    (offerSubtotal + securityFee + platformFee + vatFee).toFixed(2),
+    (
+      offerSubtotal +
+      securityFee +
+      platformFee +
+      vatFee +
+      evenlyoProtectFee
+    ).toFixed(2),
   );
   const payableTotal = Number((offerSubtotal + securityFee).toFixed(2));
 
@@ -33,6 +40,7 @@ export const getOfferItemPricing = item => {
     securityFee,
     platformFee,
     vatFee,
+    evenlyoProtectFee,
     fullCalculatedTotal,
     payableTotal,
   };
@@ -45,6 +53,7 @@ export const getOfferPricingSummary = offerObject => {
     index,
     key: getOfferItemKey(item, index),
     ...getOfferItemPricing(item),
+    evenlyoProtectFee: Number(item?.pricingBreakdown?.evenlyoProtectFee || 0),
   }));
 
   const totals = items.reduce(
@@ -54,6 +63,7 @@ export const getOfferPricingSummary = offerObject => {
       securityFee: acc.securityFee + row.securityFee,
       platformFee: acc.platformFee + row.platformFee,
       vatFee: acc.vatFee + row.vatFee,
+      evenlyoProtectFee: acc.evenlyoProtectFee + row.evenlyoProtectFee,
     }),
     {
       listingBasePrice: 0,
@@ -61,6 +71,7 @@ export const getOfferPricingSummary = offerObject => {
       securityFee: 0,
       platformFee: 0,
       vatFee: 0,
+      evenlyoProtectFee: 0,
     },
   );
 
@@ -69,7 +80,8 @@ export const getOfferPricingSummary = offerObject => {
       totals.offerSubtotal +
       totals.securityFee +
       totals.platformFee +
-      totals.vatFee
+      totals.vatFee +
+      totals.evenlyoProtectFee
     ).toFixed(2),
   );
   const payableTotal = Number(

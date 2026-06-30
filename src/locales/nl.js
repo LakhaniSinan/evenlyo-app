@@ -475,6 +475,10 @@ export default {
   // Cart and booking actions
   'Book Now': 'Nu boeken',
   'Cancel Booking': 'Boeking annuleren',
+  bookingCancelWindowWarning:
+    'U kunt deze boeking alleen binnen 30 minuten na het plaatsen annuleren. Daarna kunt u niet meer annuleren.',
+  bookingCancelWindowExpired:
+    'Het annuleringsvenster van 30 minuten is verstreken. U kunt deze boeking niet meer annuleren.',
   'inStock': 'Op voorraad',
   'outOfStock': 'Niet op voorraad',
   'View Details': 'Details bekijken',
@@ -1156,6 +1160,7 @@ export default {
   offerStatus_REJECTED: 'AFGEWEZEN',
   offerStatus_EXPIRED: 'VERLOPEN',
   'Custom Offer': 'Aangepast aanbod',
+  'View & Accept Offer': 'Bekijk & accepteer offerte',
   'View Offer': 'Aanbod bekijken',
   backToSelectedItems: 'Terug naar geselecteerde items ({{count}})',
 

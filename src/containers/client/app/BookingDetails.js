@@ -54,6 +54,17 @@ const normalizeStatus = status =>
   status?.toLowerCase().replace(/\s+/g, '_') || 'default';
 
 const REVIEWABLE_BOOKING_STATUSES = ['completed', 'finished'];
+const CANCEL_WINDOW_MINUTES = 30;
+
+const formatCancelCountdown = remainingMs => {
+  const totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(
+    2,
+    '0',
+  )}`;
+};
 
 const PAYMENT_STATUS_LABEL_KEYS = {
   paid: 'Paid',
@@ -181,6 +192,48 @@ const BookingDetails = ({route, navigation}) => {
   const [payModalVisible, setPayModalVisible] = useState(false);
   const [clientSecret, setClientSecret] = useState(null);
   const [amountToPay, setAmountToPay] = useState(0);
+  const [cancelRemainingMs, setCancelRemainingMs] = useState(0);
+
+  const isUpfrontPaid = useMemo(() => {
+    const paymentStatus = normalizeStatus(bookingData?.paymentStatus);
+    return (
+      Boolean(bookingData?.isUpfrontPaid) ||
+      paymentStatus === 'upfront_paid' ||
+      paymentStatus === 'paid'
+    );
+  }, [bookingData?.isUpfrontPaid, bookingData?.paymentStatus]);
+
+  const isCancellableStatus = useMemo(() => {
+    const bookingStatus = normalizeStatus(bookingData?.status);
+    return (
+      (bookingStatus === 'pending' || bookingStatus === 'accepted') &&
+      !isUpfrontPaid
+    );
+  }, [bookingData?.status, isUpfrontPaid]);
+
+  const canCancelWithinWindow = useMemo(
+    () => isCancellableStatus && cancelRemainingMs > 0,
+    [cancelRemainingMs, isCancellableStatus],
+  );
+
+  useEffect(() => {
+    if (!bookingData?.createdAt || !isCancellableStatus) {
+      setCancelRemainingMs(0);
+      return;
+    }
+
+    const updateRemainingTime = () => {
+      const deadline = moment(bookingData.createdAt).add(
+        CANCEL_WINDOW_MINUTES,
+        'minutes',
+      );
+      setCancelRemainingMs(Math.max(0, deadline.diff(moment())));
+    };
+
+    updateRemainingTime();
+    const interval = setInterval(updateRemainingTime, 1000);
+    return () => clearInterval(interval);
+  }, [bookingData?.createdAt, isCancellableStatus]);
 
   const resolveApiMessage = useCallback(
     message => {
@@ -199,18 +252,14 @@ const BookingDetails = ({route, navigation}) => {
 
   const canProceedToCheckout = useMemo(() => {
     const paymentStatus = normalizeStatus(bookingData?.paymentStatus);
-    return paymentStatus === 'pending' || paymentStatus === 'unpaid';
-  }, [bookingData?.paymentStatus]);
+    const bookingStatus = normalizeStatus(bookingData?.status);
+    const hasPayableStatus =
+      paymentStatus === 'pending' ||
+      paymentStatus === 'unpaid' ||
+      paymentStatus === 'upfront_paid';
 
-  const isUpfrontPaid = useMemo(
-    () =>
-      Boolean(
-        bookingData?.isUpfrontPaid ||
-          bookingData?.paymentStatus === 'upfront_paid' ||
-          bookingData?.paymentStatus === 'paid',
-      ),
-    [bookingData?.isUpfrontPaid, bookingData?.paymentStatus],
-  );
+    return bookingStatus === 'accepted' && hasPayableStatus;
+  }, [bookingData?.paymentStatus, bookingData?.status]);
 
   const showPaymentSummary = useMemo(() => {
     if (!bookingData) {
@@ -688,7 +737,10 @@ const BookingDetails = ({route, navigation}) => {
                 if (!row?.value > 0) {
                   return null;
                 }
-                if (!bookingData?.willPayUpfront && row?.key === 'upfrontPaid') {
+                if (
+                  !bookingData?.willPayUpfront &&
+                  row?.key === 'upfrontPaid'
+                ) {
                   return null;
                 }
                 if (
@@ -699,10 +751,12 @@ const BookingDetails = ({route, navigation}) => {
                 }
                 return (
                   <View key={row.key} style={styles.paymentSummaryRow}>
-                    <Text style={[styles.paymentSummaryText, {color: row.color}]}>
+                    <Text
+                      style={[styles.paymentSummaryText, {color: row.color}]}>
                       {row.label}
                     </Text>
-                    <Text style={[styles.paymentSummaryText, {color: row.color}]}>
+                    <Text
+                      style={[styles.paymentSummaryText, {color: row.color}]}>
                       {!isNaN(row.value)
                         ? formatEuro(row.value, {space: false})
                         : row.value}
@@ -786,33 +840,67 @@ const BookingDetails = ({route, navigation}) => {
       </ScrollView>
 
       {bookingData && (
-        <View style={[styles.footerButtonSection, styles.actionButtonRow]}>
-          {(bookingData?.status == 'pending' ||
-            bookingData?.status == 'accepted') && (
-            <View style={styles.actionButtonWrapper}>
-              <GradientButton
-                onPress={() => setOpenCancelModal(true)}
-                text={localizedText.cancel}
-                type="outline"
-                useGradient
-                outlineButtonStyle={styles.outlineActionButton}
-                textStyle={styles.outlineActionText}
-              />
+        <View style={styles.footerButtonSection}>
+          {isCancellableStatus && (
+            <View
+              style={[
+                styles.cancelWindowMessageBox,
+                !canCancelWithinWindow && styles.cancelWindowMessageBoxExpired,
+              ]}>
+              <Text
+                style={[
+                  styles.cancelWindowMessageText,
+                  !canCancelWithinWindow &&
+                    styles.cancelWindowMessageTextExpired,
+                ]}>
+                {canCancelWithinWindow
+                  ? t('bookingCancelWindowWarning')
+                  : t('bookingCancelWindowExpired')}
+              </Text>
             </View>
           )}
-          <View style={styles.actionButtonWrapper}>
-            <GradientButton
-              text={localizedText.trackBooking}
-              type="filled"
-              onPress={() =>
-                navigation.navigate('TrackDirections', {
-                  ...bookingData,
-                  ...bookingData?.vendorDetails,
-                })
-              }
-              styleContainer={styles.filledActionButton}
-              textStyle={styles.filledActionText}
-            />
+
+          <View
+            style={[
+              styles.actionButtonRow,
+              isCancellableStatus &&
+                !canCancelWithinWindow &&
+                styles.actionButtonRowSingle,
+            ]}>
+            {canCancelWithinWindow && (
+              <View style={styles.actionButtonWrapper}>
+                <GradientButton
+                  onPress={() => setOpenCancelModal(true)}
+                  text={`${localizedText.cancel} (${formatCancelCountdown(
+                    cancelRemainingMs,
+                  )})`}
+                  type="outline"
+                  useGradient
+                  outlineButtonStyle={styles.outlineActionButton}
+                  textStyle={styles.outlineActionText}
+                />
+              </View>
+            )}
+            <View
+              style={[
+                styles.actionButtonWrapper,
+                isCancellableStatus &&
+                  !canCancelWithinWindow &&
+                  styles.actionButtonWrapperFull,
+              ]}>
+              <GradientButton
+                text={localizedText.trackBooking}
+                type="filled"
+                onPress={() =>
+                  navigation.navigate('TrackDirections', {
+                    ...bookingData,
+                    ...bookingData?.vendorDetails,
+                  })
+                }
+                styleContainer={styles.filledActionButton}
+                textStyle={styles.filledActionText}
+              />
+            </View>
           </View>
         </View>
       )}
@@ -1064,6 +1152,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: width(4),
     paddingVertical: width(2),
   },
+  cancelWindowMessageBox: {
+    marginBottom: width(2),
+    padding: width(2.5),
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    backgroundColor: '#FFFBEB',
+  },
+  cancelWindowMessageBoxExpired: {
+    borderColor: '#FECACA',
+    backgroundColor: '#FEF2F2',
+  },
+  cancelWindowMessageText: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#92400E',
+  },
+  cancelWindowMessageTextExpired: {
+    color: '#991B1B',
+  },
   actionButtonRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1072,6 +1181,13 @@ const styles = StyleSheet.create({
   },
   actionButtonWrapper: {
     flex: 1,
+  },
+  actionButtonWrapperFull: {
+    flex: 1,
+    width: '100%',
+  },
+  actionButtonRowSingle: {
+    justifyContent: 'center',
   },
   outlineActionButton: {
     backgroundColor: COLORS.backgroundLight,

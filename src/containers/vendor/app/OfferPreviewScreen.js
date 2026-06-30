@@ -20,12 +20,7 @@ import {COLORS, fontFamly} from '../../../constants';
 import {SocketContext} from '../../../context';
 import {useTranslation} from '../../../hooks';
 import {resetOffer} from '../../../redux/slice/offers';
-import {
-  formatEuro,
-  getOfferItemImage,
-  getOfferItemTitle,
-  getOfferPricingSummary,
-} from '../../../utils';
+import {formatEuro, getOfferItemTitle} from '../../../utils';
 
 const OfferPreviewScreen = ({navigation, route}) => {
   const {t, currentLanguage} = useTranslation();
@@ -142,7 +137,6 @@ const OfferPreviewScreen = ({navigation, route}) => {
       status: 'PENDING',
       uniqueId,
     };
-
     console.log(
       finalObject,
       'finalObjectfinalObjectfinalObjectfinalObjectfinalObject',

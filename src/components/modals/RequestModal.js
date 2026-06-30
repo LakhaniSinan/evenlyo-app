@@ -341,6 +341,21 @@ const NewRequestModal = ({
     hasEnteredOffer && safeOfferAmount > 0
       ? (safeOfferAmount * bookingVatFeePercent) / 100
       : 0;
+  const paymentPolicy =
+    selectedListing?.paymentPolicy || selectedListing?.subCategory;
+  const isEvenlyoProtectEnabled = Boolean(
+    paymentPolicy?.isEvenlyoProtectEnabled,
+  );
+  const evenlyoProtectFeePercent = parsePercent(
+    paymentPolicy?.evenlyoProtectFeePercent || 0,
+  );
+  const evenlyoProtectFee =
+    hasEnteredOffer &&
+    safeOfferAmount > 0 &&
+    isEvenlyoProtectEnabled &&
+    evenlyoProtectFeePercent > 0
+      ? (safeOfferAmount * evenlyoProtectFeePercent) / 100
+      : 0;
   const conditionalSecurityFee = includeSecurityFee ? securityFee : 0;
   const appliedSecurityFee = hasEnteredOffer ? conditionalSecurityFee : 0;
   const systemCalculatedOfferPrice = Number(discountBasePrice.toFixed(2));
@@ -361,6 +376,7 @@ const NewRequestModal = ({
     (hasEnteredOffer ? safeOfferAmount : 0) +
     platformFee +
     vatFee +
+    evenlyoProtectFee +
     appliedSecurityFee;
   const discountPercent =
     discountBasePrice > 0
@@ -411,9 +427,10 @@ const NewRequestModal = ({
     );
 
   const calculateOfferFees = (offerPrice, listing, offerSettings) => {
+    const paymentPolicy = listing?.paymentPolicy || listing?.subCategory;
     const platformFeePercent = parsePercent(
       offerSettings?.bookingItemPlatformFee ||
-        listing?.paymentPolicy?.platformFeePercent ||
+        paymentPolicy?.platformFeePercent ||
         5,
     );
     const vatFeePercent = parsePercent(
@@ -424,15 +441,26 @@ const NewRequestModal = ({
         offerSettings?.vatPercent ||
         0,
     );
+    const evenlyoProtectFeePercent = parsePercent(
+      paymentPolicy?.evenlyoProtectFeePercent || 0,
+    );
+    const isEvenlyoProtectEnabled = Boolean(
+      paymentPolicy?.isEvenlyoProtectEnabled,
+    );
     const platformFee = (offerPrice * platformFeePercent) / 100;
     const vatFee = (offerPrice * vatFeePercent) / 100;
+    const evenlyoProtectFee =
+      isEvenlyoProtectEnabled && evenlyoProtectFeePercent > 0
+        ? (offerPrice * evenlyoProtectFeePercent) / 100
+        : 0;
 
     return {
       platformFeePercent,
       vatFeePercent,
+      evenlyoProtectFeePercent,
       platformFee: Number(platformFee.toFixed(2)),
       vatFee: Number(vatFee.toFixed(2)),
-      evenlyoProtectFee: 0,
+      evenlyoProtectFee: Number(evenlyoProtectFee.toFixed(2)),
     };
   };
 
@@ -671,6 +699,11 @@ const NewRequestModal = ({
     const finalSecurityFee = includeSecurityFee
       ? selectedListing?.pricing?.securityFee || 0
       : 0;
+    const offerFees = calculateOfferFees(
+      offerPrice,
+      selectedListing,
+      settingsData || {bookingItemPlatformFee: 5},
+    );
     const pricingBreakdown = {
       baseAmount: Number(discountBasePrice.toFixed(2)),
       extraTimeCost: Number(totalExtraCost.toFixed(2)),
@@ -711,6 +744,15 @@ const NewRequestModal = ({
           amount: Number(vatFee.toFixed(2)),
           explanation: '',
         },
+        ...(offerFees.evenlyoProtectFee > 0
+          ? [
+              {
+                label: `Evenlyo Protect (${offerFees.evenlyoProtectFeePercent}%)`,
+                amount: offerFees.evenlyoProtectFee,
+                explanation: '',
+              },
+            ]
+          : []),
       ],
       validationErrors: [],
       numDays: selectedDaysCount,
@@ -721,17 +763,13 @@ const NewRequestModal = ({
       pricingBreakdown.breakdown,
       includeSecurityFee && finalSecurityFee > 0,
     );
-    const offerFees = calculateOfferFees(
-      offerPrice,
-      selectedListing,
-      settingsData || {bookingItemPlatformFee: 5},
-    );
     const payloadTotal = Number(
       (
         offerPrice +
         finalSecurityFee +
         offerFees.platformFee +
-        offerFees.vatFee
+        offerFees.vatFee +
+        offerFees.evenlyoProtectFee
       ).toFixed(2),
     );
 
@@ -767,6 +805,7 @@ const NewRequestModal = ({
         vatFeePercent: offerFees.vatFeePercent,
         platformFee: offerFees.platformFee,
         vatFee: offerFees.vatFee,
+        evenlyoProtectFeePercent: offerFees.evenlyoProtectFeePercent,
         evenlyoProtectFee: offerFees.evenlyoProtectFee,
         offerPrice: Number((offerPrice + finalSecurityFee).toFixed(2)),
         total: payloadTotal,
@@ -1115,7 +1154,7 @@ const NewRequestModal = ({
                 </View>
               )}
               {vatFee > 0 && (
-                <View style={[styles.feeRow, {borderBottomWidth: 0}]}>
+                <View style={styles.feeRow}>
                   <Text style={styles.feeLabel}>
                     {t('VAT Fee')} ({bookingVatFeePercent}%)
                   </Text>

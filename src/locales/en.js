@@ -475,6 +475,10 @@ export default {
   // Cart and booking actions
   'Book Now': 'Book Now',
   'Cancel Booking': 'Cancel Booking',
+  bookingCancelWindowWarning:
+    'You can only cancel this booking within 30 minutes of placing it. After that, you will no longer be able to cancel.',
+  bookingCancelWindowExpired:
+    'The 30-minute cancellation window has passed. You can no longer cancel this booking.',
   'inStock': 'In Stock',
   'outOfStock': 'Out of Stock',
   'View Details': 'View Details',
@@ -1151,6 +1155,7 @@ export default {
   offerStatus_REJECTED: 'REJECTED',
   offerStatus_EXPIRED: 'EXPIRED',
   'Custom Offer': 'Custom Offer',
+  'View & Accept Offer': 'View & Accept Offer',
   'View Offer': 'View Offer',
   backToSelectedItems: 'Back to selected items ({{count}})',
 

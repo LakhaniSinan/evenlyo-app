@@ -1,4 +1,4 @@
-import React, {memo, useMemo} from 'react';
+import React, {memo, useEffect, useMemo, useState} from 'react';
 import {
   Image,
   ScrollView,
@@ -10,13 +10,24 @@ import {
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {width} from 'react-native-dimension';
-import {IMAGES} from '../../assets';
+import {ICONS, IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
-import {formatEuro, getOfferItemImage, getOfferItemTitle, getOfferPricingSummary} from '../../utils';
+import {
+  formatEuro,
+  getOfferItemImage,
+  getOfferItemTitle,
+  getOfferPricingSummary,
+} from '../../utils';
 import {useTranslation} from '../../hooks';
 import GradientButton from '../button';
 
-const CustomOfferModal = ({isVisible, onClose, offerObject, onAccept, isAccepting}) => {
+const CustomOfferModal = ({
+  isVisible,
+  onClose,
+  offerObject,
+  onAccept,
+  isAccepting,
+}) => {
   const {t, currentLanguage} = useTranslation();
 
   const offerPricing = useMemo(
@@ -25,13 +36,102 @@ const CustomOfferModal = ({isVisible, onClose, offerObject, onAccept, isAcceptin
   );
   const isMultiItem = offerPricing.itemCount > 1;
   const offerItems = offerObject?.items || [];
-  const evenlyoProtectByItem = offerItems.map(() => true);
-  const selectedItems = offerItems.map(() => true);
+  const [evenlyoProtectByItem, setEvenlyoProtectByItem] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);
 
-  const totalAmount = Number(
-    offerPricing.payableTotal || offerObject?.finalTotal || 0,
-  );
-  const formatEuroAmount = value => formatEuro(value, {space: false});
+  useEffect(() => {
+    setEvenlyoProtectByItem(offerItems.map(() => true));
+    setSelectedItems(offerItems.map(() => true));
+  }, [offerObject?.uniqueId, offerItems.length]);
+
+  const getProtectPercent = row =>
+    Number(
+      row?.item?.pricingBreakdown?.evenlyoProtectFeePercent ||
+        row?.item?.paymentPolicy?.evenlyoProtectFeePercent ||
+        0,
+    );
+
+  const isProtectAvailable = row =>
+    Boolean(row?.item?.paymentPolicy?.isEvenlyoProtectEnabled) ||
+    getProtectPercent(row) > 0 ||
+    Number(row?.item?.pricingBreakdown?.evenlyoProtectFee || 0) > 0;
+
+  const getProtectFee = row => {
+    if (!isProtectAvailable(row)) {
+      return 0;
+    }
+    const storedFee = Number(
+      row?.evenlyoProtectFee ||
+        row?.item?.pricingBreakdown?.evenlyoProtectFee ||
+        0,
+    );
+    if (storedFee > 0) {
+      return storedFee;
+    }
+    const percent = getProtectPercent(row);
+    if (percent > 0) {
+      return Number(((row.offerSubtotal * percent) / 100).toFixed(2));
+    }
+    return 0;
+  };
+
+  const hasProtectOption = row =>
+    isProtectAvailable(row) && getProtectFee(row) > 0;
+
+  const getItemBaseTotal = row => {
+    const breakdown = row.item?.pricingBreakdown || {};
+    const storedTotal = Number(breakdown.total || 0);
+    const storedProtect = Number(breakdown.evenlyoProtectFee || 0);
+    if (storedTotal > 0) {
+      return Number((storedTotal - storedProtect).toFixed(2));
+    }
+    return Number(
+      (row.offerSubtotal + row.platformFee + row.vatFee).toFixed(2),
+    );
+  };
+
+  const getItemDisplayPrice = (row, index) => {
+    const protectFee = evenlyoProtectByItem[index]
+      ? getProtectFee(row)
+      : 0;
+    return Number((getItemBaseTotal(row) + protectFee).toFixed(2));
+  };
+
+  const getItemOrderTotal = (row, index) => {
+    const displayPrice = getItemDisplayPrice(row, index);
+    const protectFee = evenlyoProtectByItem[index]
+      ? getProtectFee(row)
+      : 0;
+    return Number((displayPrice + protectFee).toFixed(2));
+  };
+
+  const totalAmount = useMemo(() => {
+    return offerPricing.items.reduce((sum, row, idx) => {
+      if (!selectedItems[idx]) {
+        return sum;
+      }
+      return sum + getItemOrderTotal(row, idx);
+    }, 0);
+  }, [offerPricing.items, evenlyoProtectByItem, selectedItems]);
+
+  const formatEuroAmount = (value, options = {}) =>
+    formatEuro(value, {space: false, ...options});
+
+  const toggleProtect = index => {
+    setEvenlyoProtectByItem(prev => {
+      const next = [...prev];
+      next[index] = !next[index];
+      return next;
+    });
+  };
+
+  const toggleItemSelection = index => {
+    setSelectedItems(prev => {
+      const next = [...prev];
+      next[index] = !next[index];
+      return next;
+    });
+  };
 
   const getItemSubtitle = item => {
     if (currentLanguage === 'en') {
@@ -40,39 +140,156 @@ const CustomOfferModal = ({isVisible, onClose, offerObject, onAccept, isAcceptin
     return item?.subtitle?.nl || item?.subtitle || '';
   };
 
-  const singleItemBreakdown = offerPricing.items[0]?.item?.pricingBreakdown || {};
-  const platformPercent = Number(singleItemBreakdown?.platformFeePercent || 0);
+  const getPlatformPercent = row =>
+    Number(row?.item?.pricingBreakdown?.platformFeePercent || 0);
 
-  const renderBreakdown = ({
-    securityFee,
-    platformFee,
-    vatFee,
-    offerBasePrice,
-    platformPercentValue = platformPercent,
-  }) => (
+  const renderCheckbox = (isChecked, onPress, size = width(5.5)) => (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[
+        styles.checkboxBox,
+        {height: size, width: size},
+        isChecked && styles.checkboxBoxChecked,
+      ]}>
+      {isChecked && (
+        <Image
+          source={ICONS.cheackIcon}
+          style={{height: size, width: size}}
+          resizeMode="contain"
+        />
+      )}
+    </TouchableOpacity>
+  );
+
+  const renderProtectRow = (row, itemIndex) => {
+    if (!hasProtectOption(row)) {
+      return null;
+    }
+
+    const protectPercent = getProtectPercent(row);
+    const protectFee = getProtectFee(row);
+    const isSelected = Boolean(evenlyoProtectByItem[itemIndex]);
+
+    return (
+      <View style={styles.protectSection}>
+        <View style={styles.protectTopRow}>
+          {renderCheckbox(isSelected, () => toggleProtect(itemIndex))}
+          <View style={styles.protectContent}>
+            <View style={styles.protectLabelRow}>
+              <Text style={styles.protectLabel}>
+                {t('evenlyoProtectWithPercent', {percent: protectPercent})}
+              </Text>
+              <Text style={styles.protectValue}>
+                {formatEuroAmount(protectFee)}
+              </Text>
+            </View>
+            <Text style={styles.protectDescription}>
+              {t(
+                'Non-refundable additional security coverage for extra peace of mind during your event.',
+              )}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderBreakdown = (row, itemIndex) => (
     <View style={styles.breakdownBox}>
       <View style={styles.row}>
         <Text style={styles.rowLabel}>Security Deposit(Refundable)</Text>
-        <Text style={styles.rowValue}>{formatEuroAmount(securityFee)}</Text>
+        <Text style={styles.rowValue}>{formatEuroAmount(row.securityFee)}</Text>
       </View>
       <View style={styles.row}>
         <Text style={styles.rowLabel}>
-          Platform Service Fee ({platformPercentValue}%)
+          Platform Service Fee ({getPlatformPercent(row)}%)
         </Text>
-        <Text style={styles.rowValue}>{formatEuroAmount(platformFee)}</Text>
+        <Text style={styles.rowValue}>{formatEuroAmount(row.platformFee)}</Text>
       </View>
       <View style={styles.row}>
         <Text style={styles.rowLabel}>VAT</Text>
-        <Text style={styles.rowValue}>{formatEuroAmount(vatFee)}</Text>
+        <Text style={styles.rowValue}>{formatEuroAmount(row.vatFee)}</Text>
       </View>
       <View style={styles.offerPriceRow}>
         <Text style={styles.offerPriceLabel}>Offer Price</Text>
         <Text style={styles.offerPriceValue}>
-          {formatEuroAmount(offerBasePrice)}
+          {formatEuroAmount(row.offerSubtotal)}
         </Text>
       </View>
+      {renderProtectRow(row, itemIndex)}
     </View>
   );
+
+  const renderSelectRow = (row, index) => {
+    const itemImage = getOfferItemImage(row.item);
+    const itemTitle = getOfferItemTitle(row.item, currentLanguage);
+    const itemSubtitle = getItemSubtitle(row.item);
+    const isChecked = Boolean(selectedItems[index]);
+
+    return (
+      <TouchableOpacity
+        key={`select-${row.key}`}
+        activeOpacity={0.85}
+        onPress={() => toggleItemSelection(index)}
+        style={[styles.selectRow, index > 0 && styles.selectRowSpacing]}>
+        {renderCheckbox(isChecked, () => toggleItemSelection(index))}
+        <View style={styles.selectImageWrapper}>
+          <Image
+            source={itemImage ? {uri: itemImage} : IMAGES.backgroundImage2}
+            resizeMode="cover"
+            style={styles.selectImage}
+          />
+        </View>
+        <View style={styles.selectContent}>
+          <Text style={styles.itemTitle}>{itemTitle}</Text>
+          {!!itemSubtitle && (
+            <Text style={styles.itemSubTitle}>{itemSubtitle}</Text>
+          )}
+        </View>
+        <Text style={styles.selectPrice}>
+          {formatEuroAmount(getItemDisplayPrice(row, index), {decimals: 0})}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderSelectedItemCard = (row, index) => {
+    const itemImage = getOfferItemImage(row.item);
+    const itemTitle = getOfferItemTitle(row.item, currentLanguage);
+    const itemSubtitle = getItemSubtitle(row.item);
+
+    return (
+      <View
+        key={`selected-${row.key}`}
+        style={[styles.itemCard, index > 0 && styles.itemCardSpacing]}>
+        <View style={styles.itemTopRow}>
+          <View style={styles.imageWrapper}>
+            <Image
+              source={itemImage ? {uri: itemImage} : IMAGES.backgroundImage2}
+              resizeMode="cover"
+              style={styles.image}
+            />
+          </View>
+          <View style={styles.itemContent}>
+            <Text style={styles.itemTitle}>{itemTitle}</Text>
+            {!!itemSubtitle && (
+              <Text style={styles.itemSubTitle}>{itemSubtitle}</Text>
+            )}
+            <Text style={styles.mainPrice}>
+              {formatEuroAmount(getItemDisplayPrice(row, index))}
+            </Text>
+          </View>
+        </View>
+        {renderBreakdown(row, index)}
+      </View>
+    );
+  };
+
+  const selectedRows = offerPricing.items.filter((_, index) =>
+    Boolean(selectedItems[index]),
+  );
+
+  const hasSelectedItems = selectedItems.some(Boolean);
 
   return (
     <Modal
@@ -95,81 +312,56 @@ const CustomOfferModal = ({isVisible, onClose, offerObject, onAccept, isAcceptin
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
-          <Text style={styles.selectedHeading}>{t('selected')}</Text>
-
-          {offerPricing.items.map((row, index) => {
-            const itemImage = getOfferItemImage(row.item);
-            const itemTitle = getOfferItemTitle(row.item, currentLanguage);
-            const itemSubtitle = getItemSubtitle(row.item);
-            const itemDisplayPrice = isMultiItem
-              ? row.payableTotal
-              : totalAmount;
-
-            return (
-              <View
-                key={row.key}
-                style={[styles.itemCard, index > 0 && styles.itemCardSpacing]}>
-                <View style={styles.itemTopRow}>
-                  <View style={styles.imageWrapper}>
-                    <Image
-                      source={
-                        itemImage
-                          ? {uri: itemImage}
-                          : IMAGES.backgroundImage2
-                      }
-                      resizeMode="cover"
-                      style={styles.image}
-                    />
-                  </View>
-
-                  <View style={styles.itemContent}>
-                    <Text style={styles.itemTitle}>{itemTitle}</Text>
-                    {!!itemSubtitle && (
-                      <Text style={styles.itemSubTitle}>{itemSubtitle}</Text>
-                    )}
-                    <Text style={styles.mainPrice}>
-                      {formatEuroAmount(itemDisplayPrice)}
-                    </Text>
-                  </View>
-                </View>
-
-                {!isMultiItem &&
-                  renderBreakdown({
-                    securityFee: row.securityFee,
-                    platformFee: row.platformFee,
-                    vatFee: row.vatFee,
-                    offerBasePrice: row.offerSubtotal,
-                  })}
+          {isMultiItem ? (
+            <>
+              <Text style={styles.sectionHeading}>{t('Select Dates')}</Text>
+              <View style={styles.selectListCard}>
+                {offerPricing.items.map((row, index) =>
+                  renderSelectRow(row, index),
+                )}
               </View>
-            );
+            </>
+          ) : null}
+
+          <Text style={styles.sectionHeading}>{t('selected')}</Text>
+
+          {(isMultiItem ? selectedRows : offerPricing.items).map((row, index) => {
+            const itemIndex = isMultiItem
+              ? offerPricing.items.findIndex(item => item.key === row.key)
+              : index;
+            return renderSelectedItemCard(row, itemIndex);
           })}
 
-          {isMultiItem ? (
-            <View style={[styles.itemCard, styles.itemCardSpacing]}>
-              {renderBreakdown({
-                securityFee: offerPricing.securityFee,
-                platformFee: offerPricing.platformFee,
-                vatFee: offerPricing.vatFee,
-                offerBasePrice: offerPricing.offerSubtotal,
-              })}
-            </View>
+          {!hasSelectedItems ? (
+            <Text style={styles.emptySelectionText}>
+              {t('Please select at least one item to continue.')}
+            </Text>
           ) : null}
 
           <Text style={styles.summaryHeading}>{t('Order Summary')}</Text>
           <View style={styles.totalCard}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>{formatEuroAmount(totalAmount)}</Text>
+            <Text style={styles.totalValue}>
+              {formatEuroAmount(totalAmount)}
+            </Text>
           </View>
 
-          <View
-            style={{
-              margin: width(4),
-            }}>
+          <View style={styles.buttonWrap}>
             <GradientButton
-              text={isAccepting ? 'Processing...' : 'View & Accept Offer'}
+              text={isAccepting ? 'Processing' : 'View & Accept Offer'}
               type="filled"
-              onPress={() => onAccept?.(evenlyoProtectByItem, selectedItems)}
-              style={{marginTop: width(4)}}
+              onPress={() => {
+                if (!hasSelectedItems || isAccepting) {
+                  return;
+                }
+                onAccept?.(evenlyoProtectByItem, selectedItems);
+              }}
+              styleContainer={styles.acceptBtnContainer}
+              styleProps={[
+                styles.acceptBtnPressable,
+                {opacity: hasSelectedItems ? 1 : 0.5},
+              ]}
+              textStyle={styles.acceptBtnText}
             />
           </View>
 
@@ -225,12 +417,54 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.black,
   },
-  selectedHeading: {
+  sectionHeading: {
     marginTop: width(4),
     marginHorizontal: width(4),
     fontSize: 14,
     color: COLORS.black,
     fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  selectListCard: {
+    marginTop: width(2.5),
+    marginHorizontal: width(4),
+    borderWidth: 1,
+    borderColor: '#F6C2E2',
+    borderRadius: width(3),
+    backgroundColor: '#F5F5F8',
+    padding: width(2.5),
+  },
+  selectRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#F6C2E2',
+    borderRadius: width(2.5),
+    backgroundColor: '#F7F7FA',
+    padding: width(2.5),
+  },
+  selectRowSpacing: {
+    marginTop: width(2),
+  },
+  selectImageWrapper: {
+    height: width(12),
+    width: width(12),
+    borderRadius: width(2),
+    overflow: 'hidden',
+    marginLeft: width(2),
+  },
+  selectImage: {
+    height: '100%',
+    width: '100%',
+  },
+  selectContent: {
+    flex: 1,
+    marginLeft: width(2),
+    marginRight: width(2),
+  },
+  selectPrice: {
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 14,
+    color: COLORS.primary,
   },
   itemCard: {
     marginTop: width(3),
@@ -248,6 +482,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: width(3),
+    backgroundColor: '#F5F5F8',
   },
   imageWrapper: {
     height: width(15),
@@ -296,6 +531,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.textLight,
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    flex: 1,
+    paddingRight: width(2),
   },
   rowValue: {
     fontSize: 14,
@@ -319,6 +556,64 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.green,
     fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  protectSection: {
+    borderTopWidth: 1,
+    borderTopColor: '#E3E3E7',
+    marginTop: width(2),
+    paddingTop: width(2.5),
+  },
+  protectTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  checkboxBox: {
+    borderRadius: width(1.2),
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  checkboxBoxChecked: {
+    borderWidth: 0,
+    backgroundColor: COLORS.primary,
+  },
+  protectContent: {
+    flex: 1,
+    marginLeft: width(2.5),
+  },
+  protectLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  protectLabel: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.black,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    marginRight: width(2),
+  },
+  protectValue: {
+    fontSize: 14,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+  protectDescription: {
+    marginTop: width(1),
+    fontSize: 11,
+    lineHeight: 16,
+    color: COLORS.textLight,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  emptySelectionText: {
+    marginTop: width(3),
+    marginHorizontal: width(4),
+    fontSize: 12,
+    color: COLORS.textLight,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    textAlign: 'center',
   },
   summaryHeading: {
     marginTop: width(4),
@@ -350,9 +645,29 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
+  buttonWrap: {
+    margin: width(4),
+  },
+  acceptBtnContainer: {
+    height: width(13),
+    minHeight: width(13),
+  },
+  acceptBtnPressable: {
+    flex: 1,
+    height: '100%',
+    paddingVertical: width(2),
+    paddingHorizontal: width(3),
+  },
+  acceptBtnText: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLORS.white,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    textAlign: 'center',
+  },
   hintText: {
     marginHorizontal: width(4),
-    marginTop: width(4),
+    marginTop: width(1),
     paddingHorizontal: width(3),
     paddingVertical: width(3),
     borderRadius: width(3),
