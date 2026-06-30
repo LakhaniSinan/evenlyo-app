@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {API_BASE_URL} from '../config/server';
 
-export const baseUrl = API_BASE_URL?.LOCAL_API_BASE_URL;
+export const baseUrl = API_BASE_URL?.LOCAL_API_BASE_URL1;
 
 const api = async (path, params, method) => {
   let userToken = await AsyncStorage.getItem('token');

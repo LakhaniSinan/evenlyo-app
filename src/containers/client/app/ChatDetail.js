@@ -1,4 +1,9 @@
-import { pick, types, errorCodes, isErrorWithCode } from '@react-native-documents/picker';
+import {
+  errorCodes,
+  isErrorWithCode,
+  pick,
+  types,
+} from '@react-native-documents/picker';
 import moment from 'moment';
 import React, {
   useCallback,
@@ -23,13 +28,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { width } from 'react-native-dimension';
-import { launchImageLibrary } from 'react-native-image-picker';
+import {width} from 'react-native-dimension';
+import {launchImageLibrary} from 'react-native-image-picker';
 import LinearGradient from 'react-native-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useSelector } from 'react-redux';
-import { ICONS } from '../../../assets';
+import {useSelector} from 'react-redux';
+import RNFetchBlob from 'rn-fetch-blob';
+import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import CommonAlert from '../../../components/commanAlert';
 import EmojiPickerPopup from '../../../components/emojiModal';
@@ -42,9 +48,10 @@ import {
   COLORS,
   fontFamly,
 } from '../../../constants';
-import { SocketContext } from '../../../context';
-import { helper } from '../../../helper';
-import { useTranslation } from '../../../hooks';
+import {SocketContext} from '../../../context';
+import {helper} from '../../../helper';
+import {useTranslation} from '../../../hooks';
+import {conversationService, messageService} from '../../../services/Chat';
 import {
   formatEuro,
   getChatMessagePreview,
@@ -52,8 +59,6 @@ import {
   getOfferItemTitle,
   getOfferPricingSummary,
 } from '../../../utils';
-import { conversationService, messageService } from '../../../services/Chat';
-import RNFetchBlob from 'rn-fetch-blob';
 
 const IMAGE_EXT_REGEX = /\.(jpg|jpeg|png|gif|webp|bmp|heic)(\?.*)?$/i;
 
@@ -90,10 +95,10 @@ const normalizeMessageAttachment = message => {
 
   const url = String(
     attachment.url ||
-    attachment.secure_url ||
-    attachment.secureUrl ||
-    attachment.uri ||
-    '',
+      attachment.secure_url ||
+      attachment.secureUrl ||
+      attachment.uri ||
+      '',
   ).trim();
 
   if (!url) {
@@ -134,7 +139,7 @@ const normalizeChatMessage = message => {
   if (!attachment) {
     return message;
   }
-  return { ...message, attachment };
+  return {...message, attachment};
 };
 
 const isMessageImage = attachment => {
@@ -169,7 +174,10 @@ const handleDownloadPDF = async (url, name = 'Document') => {
     }
 
     const timeStamp = moment().format('YYYYMMDD_HHmmss');
-    const pdfFileName = `${(name || 'Document').replace(/\.pdf$/i, '')}_${timeStamp}.pdf`;
+    const pdfFileName = `${(name || 'Document').replace(
+      /\.pdf$/i,
+      '',
+    )}_${timeStamp}.pdf`;
     const isAndroid = Platform.OS === 'android';
     const folderPath = isAndroid
       ? RNFetchBlob.fs.dirs.DownloadDir
@@ -208,14 +216,14 @@ const handleDownloadPDF = async (url, name = 'Document') => {
   }
 };
 
-const ChatDetail = ({ navigation, route }) => {
+const ChatDetail = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
   const modalRef = useRef();
   const data = route.params;
-  const { socket } = useContext(SocketContext);
+  const {socket} = useContext(SocketContext);
   const [visible, setVisible] = useState(false);
   const [isError, setIsError] = useState(false);
-  const { t, currentLanguage } = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const isDutch = currentLanguage === 'nl';
   const localizedText = {
     vendor: isDutch ? 'Leverancier' : 'Vendor',
@@ -227,7 +235,9 @@ const ChatDetail = ({ navigation, route }) => {
     total: isDutch ? 'Totaal' : 'Total',
     validFor24Hours: isDutch ? '24 uur geldig' : 'Valid for 24 hours',
     accepted: isDutch ? 'GEACCEPTEERD' : 'ACCEPTED',
-    viewAcceptOffer: isDutch ? 'Bekijk & accepteer offerte' : 'View & Accept Offer',
+    viewAcceptOffer: isDutch
+      ? 'Bekijk & accepteer offerte'
+      : 'View & Accept Offer',
     storagePermissionTitle: isDutch
       ? 'Opslagtoestemming vereist'
       : 'Storage Permission Required',
@@ -236,7 +246,9 @@ const ChatDetail = ({ navigation, route }) => {
       : 'App needs access to your storage to select media',
     error: isDutch ? 'Fout' : 'Error',
     fileSelected: isDutch ? 'Bestand geselecteerd' : 'File Selected',
-    selectFileFailed: isDutch ? 'Selecteren van bestand mislukt' : 'Failed to select file',
+    selectFileFailed: isDutch
+      ? 'Selecteren van bestand mislukt'
+      : 'Failed to select file',
     deleteChat: isDutch ? 'Chat verwijderen' : 'Delete Chat',
     blockVendor: isDutch ? 'Leverancier blokkeren' : 'Block Vendor',
     unblockVendor: isDutch ? 'Leverancier deblokkeren' : 'Unblock Vendor',
@@ -269,7 +281,7 @@ const ChatDetail = ({ navigation, route }) => {
   const [allMessages, setAllMessages] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [offerObject, setOfferObject] = useState(null);
-  const { user } = useSelector(state => state.LoginSlice);
+  const {user} = useSelector(state => state.LoginSlice);
   const [attachedFile, setAttachedFile] = useState(null);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
@@ -301,7 +313,7 @@ const ChatDetail = ({ navigation, route }) => {
 
   useEffect(() => {
     if (socket && user) {
-      socket.emit('user_connected', { userId: user.id });
+      socket.emit('user_connected', {userId: user.id});
     }
   }, [socket, user]);
 
@@ -367,11 +379,14 @@ const ChatDetail = ({ navigation, route }) => {
 
   const lastMessagePreview = useMemo(() => {
     if (allMessages.length > 0) {
-      const preview = getChatMessagePreview(allMessages[allMessages.length - 1], {
-        customOfferLabel: localizedText.customOffer,
-        photoLabel: isDutch ? 'Foto' : 'Photo',
-        pdfLabel: localizedText.pdfDocument,
-      });
+      const preview = getChatMessagePreview(
+        allMessages[allMessages.length - 1],
+        {
+          customOfferLabel: localizedText.customOffer,
+          photoLabel: isDutch ? 'Foto' : 'Photo',
+          pdfLabel: localizedText.pdfDocument,
+        },
+      );
       if (preview) {
         return preview;
       }
@@ -480,12 +495,12 @@ const ChatDetail = ({ navigation, route }) => {
       return;
     }
 
-    socket.on('user_typing', ({ senderId }) => {
+    socket.on('user_typing', ({senderId}) => {
       setIsTyping(true);
       scrollToBottom();
     });
 
-    socket.on('user_stop_typing', ({ senderId }) => {
+    socket.on('user_stop_typing', ({senderId}) => {
       setIsTyping(false);
       scrollToBottom();
     });
@@ -511,7 +526,7 @@ const ChatDetail = ({ navigation, route }) => {
       });
     } catch (err) {
       // fallback if the list hasn't measured layout yet
-      flatListRef.current.scrollToEnd({ animated: true });
+      flatListRef.current.scrollToEnd({animated: true});
     }
   };
 
@@ -528,7 +543,7 @@ const ChatDetail = ({ navigation, route }) => {
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
 
     const scrollMessagesToEnd = () => {
-      flatListRef.current?.scrollToEnd({ animated: true });
+      flatListRef.current?.scrollToEnd({animated: true});
     };
 
     const showSub = Keyboard.addListener(showEvent, event => {
@@ -603,11 +618,13 @@ const ChatDetail = ({ navigation, route }) => {
         currentLanguage,
       );
 
+      console.log(response, 'responseresponseresponseresponseresponse');
+
       const responseMessages = Array.isArray(response?.data)
         ? response.data
         : Array.isArray(response)
-          ? response
-          : [];
+        ? response
+        : [];
 
       const isValidMessagesResponse =
         response?.success ||
@@ -650,15 +667,13 @@ const ChatDetail = ({ navigation, route }) => {
 
     // Agar iss week me hai
     if (messageTime.isAfter(moment().subtract(7, 'days'))) {
-      return `${messageTime.format('dddd')} ${localizedText.at} ${messageTime.format(
-        'hh:mm A',
-      )}`;
+      return `${messageTime.format('dddd')} ${
+        localizedText.at
+      } ${messageTime.format('hh:mm A')}`;
     }
 
     // Agar purana hai
-    return messageTime.format(
-      `DD/MM/YYYY [${localizedText.at}] hh:mm A`,
-    );
+    return messageTime.format(`DD/MM/YYYY [${localizedText.at}] hh:mm A`);
   };
 
   const onViewOffer = offerObject => {
@@ -694,20 +709,22 @@ const ChatDetail = ({ navigation, route }) => {
         ? Number(offerItem?.pricingBreakdown?.evenlyoProtectFee || 0)
         : 0;
       const baseTotal = Number(offerItem?.pricingBreakdown?.total || 0);
-      const subTotal = Number(obj?.subtotal || 0);
+      const subTotal = Number(offerItem?.pricingBreakdown?.subtotal || 0);
+      const total = 100;
+
       const rawDistanceKm = Number(offerItem?.distanceKm || 0);
       const pricePerKm = Number(offerItem?.pricing?.pricePerKm || 0);
       const distanceCost = Number(
         offerItem?.pricingBreakdown?.distanceCost ||
-        offerItem?.distanceCost ||
-        0,
+          offerItem?.distanceCost ||
+          0,
       );
       const derivedDistanceKm =
         rawDistanceKm > 0
           ? rawDistanceKm
           : pricePerKm > 0 && distanceCost > 0
-            ? distanceCost / pricePerKm
-            : 0;
+          ? distanceCost / pricePerKm
+          : 0;
       const safeDistanceKm =
         offerItem?.type === 'booking'
           ? Number((derivedDistanceKm > 0 ? derivedDistanceKm : 0.1).toFixed(2))
@@ -726,6 +743,8 @@ const ChatDetail = ({ navigation, route }) => {
       };
     });
 
+    console.log(items,'itemsitemsitemsitemsitemsitemsitems');
+    
     const totalProtectFee = items.reduce(
       (sum, i) => sum + Number(i?.pricingBreakdown?.evenlyoProtectFee || 0),
       0,
@@ -745,11 +764,14 @@ const ChatDetail = ({ navigation, route }) => {
       pricingBreakdown: {
         ...obj?.pricingBreakdown,
         evenlyoProtectFee: totalProtectFee,
-        total: itemsTotal,
+        total: 100,
         subtotal: subTotal,
       },
     };
 
+    console.log(finalObject, 'finalObjectfinalObjectfinalObject');
+
+    return;
     socket?.emit?.('accept_offer', finalObject);
 
     // Fallback: if socket success event is delayed/missed, poll latest messages
@@ -781,7 +803,7 @@ const ChatDetail = ({ navigation, route }) => {
             return;
           }
         }
-      } catch (error) { }
+      } catch (error) {}
 
       if (attempts >= maxAttempts) {
         clearInterval(intervalId);
@@ -790,7 +812,7 @@ const ChatDetail = ({ navigation, route }) => {
   };
 
   const renderMessage = useCallback(
-    ({ item }) => {
+    ({item}) => {
       const isOwn = item.senderId === user?.id;
       const isOfferMessage = Boolean(item?.isOffer || item?.offerObject);
       const offerObjectData = item?.offerObject || {};
@@ -799,8 +821,7 @@ const ChatDetail = ({ navigation, route }) => {
 
       const attachment = normalizeMessageAttachment(item) || item?.attachment;
       const isImage = isMessageImage(attachment);
-      const isSending =
-        item?.isPending && attachment && !isImage;
+      const isSending = item?.isPending && attachment && !isImage;
       const isPDF = isMessagePdf(attachment);
       const imageUri = attachment?.url;
 
@@ -821,10 +842,10 @@ const ChatDetail = ({ navigation, route }) => {
                   }}
                   style={[
                     styles.myMessageImageWrap,
-                    { maxWidth: width(80), alignSelf: 'flex-end' },
+                    {maxWidth: width(80), alignSelf: 'flex-end'},
                   ]}>
                   <Image
-                    source={{ uri: imageUri }}
+                    source={{uri: imageUri}}
                     resizeMode="cover"
                     style={styles.myMessageImage}
                   />
@@ -838,24 +859,33 @@ const ChatDetail = ({ navigation, route }) => {
                 <View
                   style={[
                     styles.myMessageBubble,
-                    { maxWidth: width(80), alignSelf: 'flex-end' },
+                    {maxWidth: width(80), alignSelf: 'flex-end'},
                   ]}>
                   <LinearGradient
                     colors={BRAND_BUTTON_GRADIENT_COLORS}
                     locations={BRAND_BUTTON_GRADIENT_LOCATIONS}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 0}}
                     pointerEvents="none"
                     style={styles.myMessageBubbleGradient}
                   />
                   <View style={styles.myMessageBubbleContent}>
                     {isSending ? (
-                      <Text style={styles.sendingText}>{localizedText.sending}</Text>
+                      <Text style={styles.sendingText}>
+                        {localizedText.sending}
+                      </Text>
                     ) : isPDF ? (
                       <View style={styles.myMessagePdf}>
-                        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+                        <View
+                          style={{
+                            flex: 1,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                          }}>
                           <Icon name="file-pdf-box" size={28} color="#FF0000" />
-                          <Text style={styles.myMessagePdfName} numberOfLines={1}>
+                          <Text
+                            style={styles.myMessagePdfName}
+                            numberOfLines={1}>
                             {attachment?.name || localizedText.pdfDocument}
                           </Text>
                         </View>
@@ -876,7 +906,7 @@ const ChatDetail = ({ navigation, route }) => {
               <View
                 style={[
                   styles.otherMessageBubble,
-                  { maxWidth: width(80), alignSelf: 'flex-start' },
+                  {maxWidth: width(80), alignSelf: 'flex-start'},
                 ]}>
                 {isImage && imageUri ? (
                   <TouchableOpacity
@@ -886,7 +916,7 @@ const ChatDetail = ({ navigation, route }) => {
                       setPreviewVisible(true);
                     }}>
                     <Image
-                      source={{ uri: imageUri }}
+                      source={{uri: imageUri}}
                       resizeMode="cover"
                       style={styles.otherMessageImage}
                     />
@@ -905,7 +935,12 @@ const ChatDetail = ({ navigation, route }) => {
                       backgroundColor: '#f4f4f4',
                       borderRadius: width(2),
                     }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        flex: 1,
+                      }}>
                       <Icon name="file-pdf-box" size={28} color="#FF0000" />
                       <Text
                         style={{
@@ -951,14 +986,14 @@ const ChatDetail = ({ navigation, route }) => {
                           key={row.key}
                           style={[
                             styles.offerMessageItemRow,
-                            rowIndex > 0 && { marginTop: width(2) },
+                            rowIndex > 0 && {marginTop: width(2)},
                           ]}>
                           <Image
-                            source={itemImage ? { uri: itemImage } : ICONS.event2}
+                            source={itemImage ? {uri: itemImage} : ICONS.event2}
                             style={styles.offerMessageItemImage}
                             resizeMode="cover"
                           />
-                          <View style={{ flex: 1, marginLeft: width(2) }}>
+                          <View style={{flex: 1, marginLeft: width(2)}}>
                             <Text
                               style={styles.offerMessageItemTitle}
                               numberOfLines={2}>
@@ -970,7 +1005,7 @@ const ChatDetail = ({ navigation, route }) => {
                                 offerPricing.itemCount === 1
                                   ? row.fullCalculatedTotal
                                   : row.payableTotal,
-                                { decimals: 0, space: false },
+                                {decimals: 0, space: false},
                               )}
                             </Text>
                             {offerPricing.itemCount === 1 ? (
@@ -989,10 +1024,15 @@ const ChatDetail = ({ navigation, route }) => {
                         {localizedText.total}
                       </Text>
                       <Text style={styles.offerMessageTotalAmount}>
-                        {formatEuro(offerPricing.payableTotal || offerObjectData?.finalTotal || 0, {
-                          decimals: 0,
-                          space: false,
-                        })}
+                        {formatEuro(
+                          offerPricing.payableTotal ||
+                            offerObjectData?.finalTotal ||
+                            0,
+                          {
+                            decimals: 0,
+                            space: false,
+                          },
+                        )}
                       </Text>
                     </View>
                     <Text style={styles.offerMessageSubText}>
@@ -1011,8 +1051,8 @@ const ChatDetail = ({ navigation, route }) => {
                     ) : (
                       <LinearGradient
                         colors={['#FF295D', '#E31B95', '#7A3FF2']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
+                        start={{x: 0, y: 0}}
+                        end={{x: 1, y: 1}}
                         style={styles.offerViewBtnGradient}>
                         <TouchableOpacity
                           activeOpacity={0.85}
@@ -1034,7 +1074,7 @@ const ChatDetail = ({ navigation, route }) => {
                 resizeMode="contain"
                 source={
                   user?.profileImage && String(user.profileImage).trim()
-                    ? { uri: String(user.profileImage).trim() }
+                    ? {uri: String(user.profileImage).trim()}
                     : ICONS.userIcon
                 }
                 style={styles.messageAvatar}
@@ -1124,11 +1164,11 @@ const ChatDetail = ({ navigation, route }) => {
         ...tempMessage,
         attachment: fileUrl
           ? {
-            url: fileUrl.url,
-            type: fileUrl.format === 'pdf' ? 'file' : 'image',
-            name: fileUrl.name,
-            size: fileUrl.size,
-          }
+              url: fileUrl.url,
+              type: fileUrl.format === 'pdf' ? 'file' : 'image',
+              name: fileUrl.name,
+              size: fileUrl.size,
+            }
           : undefined,
         isPending: false,
       });
@@ -1142,7 +1182,7 @@ const ChatDetail = ({ navigation, route }) => {
       //   message as failed
       setAllMessages(prev =>
         prev.map(msg =>
-          msg._id === tempId ? { ...msg, isPending: false, error: true } : msg,
+          msg._id === tempId ? {...msg, isPending: false, error: true} : msg,
         ),
       );
     }
@@ -1186,7 +1226,7 @@ const ChatDetail = ({ navigation, route }) => {
       return;
     }
 
-    launchImageLibrary({ mediaType: 'photo', selectionLimit: 1 }, response => {
+    launchImageLibrary({mediaType: 'photo', selectionLimit: 1}, response => {
       if (response.didCancel || response.errorCode) {
         if (response.errorMessage) {
           Alert.alert(localizedText.error, response.errorMessage);
@@ -1247,22 +1287,21 @@ const ChatDetail = ({ navigation, route }) => {
     conversation?.blockedBy && conversation?.blockedByRefrence === 'User';
 
   const menuContent = [
-    { icon: ICONS.deleteIcon, title: localizedText.deleteChat },
+    {icon: ICONS.deleteIcon, title: localizedText.deleteChat},
     {
       icon: ICONS.viewIcon,
       title: isBlockedByMe
         ? localizedText.unblockVendor
         : localizedText.blockVendor,
     },
-    { icon: ICONS.editGridientIcon, title: localizedText.reportVendor },
+    {icon: ICONS.editGridientIcon, title: localizedText.reportVendor},
   ];
 
   const handleSelectOption = type => {
     if (type === localizedText.deleteChat) {
       modalRef.current.show({
         status: 'alert',
-        message:
-          localizedText.deleteChatConfirm,
+        message: localizedText.deleteChatConfirm,
         handlePressOk: () => {
           modalRef.current.hide();
           handleDeleteChat();
@@ -1271,8 +1310,7 @@ const ChatDetail = ({ navigation, route }) => {
     } else if (type === localizedText.blockVendor) {
       modalRef.current.show({
         status: 'alert',
-        message:
-          localizedText.blockVendorConfirm,
+        message: localizedText.blockVendorConfirm,
         handlePressOk: () => {
           modalRef.current.hide();
           handleBlockConversation();
@@ -1281,8 +1319,7 @@ const ChatDetail = ({ navigation, route }) => {
     } else if (type === localizedText.unblockVendor) {
       modalRef.current.show({
         status: 'alert',
-        message:
-          localizedText.unblockVendorConfirm,
+        message: localizedText.unblockVendorConfirm,
         handlePressOk: () => {
           modalRef.current.hide();
           handleUnblockConversation();
@@ -1299,7 +1336,7 @@ const ChatDetail = ({ navigation, route }) => {
       const conversationId = conversation?._id || conversation?.conversationId;
       const response = await conversationService.blockConversation(
         conversationId,
-        { userId: user?.id, userType: 'User' },
+        {userId: user?.id, userType: 'User'},
       );
 
       if (response?.success) {
@@ -1425,7 +1462,7 @@ const ChatDetail = ({ navigation, route }) => {
         handleSelectOption={handleSelectOption}
         isShowMenuIcon={true}
         rightIcon={ICONS.menuIcon}
-        onRightIconPress={() => { }}
+        onRightIconPress={() => {}}
         chatHeaderData={{
           Icon: conversation?.participants?.vendor?.photo || null,
           name: vendorDisplayName,
@@ -1472,11 +1509,11 @@ const ChatDetail = ({ navigation, route }) => {
             </Text>
           </View>
         ) : (
-          <View style={{ marginBottom: bottomKeyboardInset }}>
+          <View style={{marginBottom: bottomKeyboardInset}}>
             {attachedFile && attachedFile?.type?.startsWith('image') && (
               <View style={styles.previewContainer}>
                 <Image
-                  source={{ uri: attachedFile?.uri }}
+                  source={{uri: attachedFile?.uri}}
                   style={styles.previewImage}
                   resizeMode="cover"
                 />
@@ -1502,19 +1539,15 @@ const ChatDetail = ({ navigation, route }) => {
                 }}>
                 <Text
                   numberOfLines={1}
-                  style={{ flex: 1, color: COLORS.textLight }}>
+                  style={{flex: 1, color: COLORS.textLight}}>
                   {attachedFile.name}
                 </Text>
                 <TouchableOpacity onPress={() => setAttachedFile(null)}>
-                  <Text style={{ color: 'red' }}>{localizedText.remove}</Text>
+                  <Text style={{color: 'red'}}>{localizedText.remove}</Text>
                 </TouchableOpacity>
               </View>
             )}
-            <View
-              style={[
-                styles.inputWrapper,
-                { flexDirection: 'column' },
-              ]}>
+            <View style={[styles.inputWrapper, {flexDirection: 'column'}]}>
               <View
                 style={{
                   flexDirection: 'row',
@@ -1527,14 +1560,14 @@ const ChatDetail = ({ navigation, route }) => {
                   <Image
                     resizeMode="contain"
                     source={ICONS.plusIcon}
-                    style={{ height: 22, width: 22 }}
+                    style={{height: 22, width: 22}}
                   />
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.emojiButton}
                   onPress={() => setShowEmojiPicker(true)}>
-                  <Text style={{ fontSize: 19 }}>😊</Text>
+                  <Text style={{fontSize: 19}}>😊</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -1542,7 +1575,7 @@ const ChatDetail = ({ navigation, route }) => {
                   onPress={() => handleUpload(setAttachedFile)}>
                   <Image
                     source={ICONS.attachmentIcon}
-                    style={{ height: width(4), width: width(4) }}
+                    style={{height: width(4), width: width(4)}}
                   />
                 </TouchableOpacity>
 
@@ -1577,7 +1610,7 @@ const ChatDetail = ({ navigation, route }) => {
                     ]}>
                     <Image
                       source={ICONS.sendIcon}
-                      style={{ height: width(10), width: width(10) }}
+                      style={{height: width(10), width: width(10)}}
                     />
                   </TouchableOpacity>
                 </View>
@@ -1614,39 +1647,37 @@ const ChatDetail = ({ navigation, route }) => {
         emojis={commonEmojis}
         onSelectEmoji={handleSelectEmoji}
       />
-      {
-        previewVisible && previewImage ? (
-          <View style={styles.fullScreenModal}>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setPreviewVisible(false)}>
-              <Text style={styles.closeText}>×</Text>
-            </TouchableOpacity>
-            <Image
-              source={{ uri: previewImage }}
-              style={styles.fullScreenImage}
-              resizeMode="contain"
-            />
-          </View>
-        ) : null
-      }
+      {previewVisible && previewImage ? (
+        <View style={styles.fullScreenModal}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setPreviewVisible(false)}>
+            <Text style={styles.closeText}>×</Text>
+          </TouchableOpacity>
+          <Image
+            source={{uri: previewImage}}
+            style={styles.fullScreenImage}
+            resizeMode="contain"
+          />
+        </View>
+      ) : null}
     </View>
   );
 };
 
-const { width: screenWidth } = Dimensions.get('window');
+const {width: screenWidth} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  chatBody: { flex: 1 },
-  messagesList: { flex: 1 },
+  container: {flex: 1},
+  chatBody: {flex: 1},
+  messagesList: {flex: 1},
   messageContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     marginVertical: width(1.5),
     paddingHorizontal: width(2),
   },
-  myMessageContainer: { justifyContent: 'flex-end', alignSelf: 'flex-end' },
+  myMessageContainer: {justifyContent: 'flex-end', alignSelf: 'flex-end'},
   otherMessageContainer: {
     justifyContent: 'flex-start',
     alignSelf: 'flex-start',
@@ -1743,7 +1774,7 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
     fontStyle: 'italic',
   },
-  myMessageText: { color: '#FFF', fontSize: 14, flexShrink: 1 },
+  myMessageText: {color: '#FFF', fontSize: 14, flexShrink: 1},
   otherMessageText: {
     color: COLORS.textDark,
     fontSize: 14,
@@ -1756,8 +1787,8 @@ const styles = StyleSheet.create({
     width: width(72),
     alignSelf: 'center',
   },
-  myMessageTime: { textAlign: 'right', marginRight: width(1) },
-  otherMessageTime: { textAlign: 'left', marginLeft: width(1) },
+  myMessageTime: {textAlign: 'right', marginRight: width(1)},
+  otherMessageTime: {textAlign: 'left', marginLeft: width(1)},
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',

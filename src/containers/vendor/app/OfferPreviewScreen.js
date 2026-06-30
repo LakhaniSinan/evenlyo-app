@@ -141,7 +141,6 @@ const OfferPreviewScreen = ({navigation, route}) => {
       finalObject,
       'finalObjectfinalObjectfinalObjectfinalObjectfinalObject',
     );
-
     const receiverId =
       activeChat?.participants?.user?.userId ||
       route?.params?.chatParams?.participants?.user?.userId ||
