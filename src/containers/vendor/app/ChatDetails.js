@@ -688,7 +688,7 @@ const ChatDetail = ({navigation, route}) => {
           const uploadRes = await helper.uploadMediaToCloudinary(attachedFile);
           if (uploadRes && (uploadRes.url || uploadRes.secure_url)) {
             fileUrl = {
-              url: uploadRes.url || uploadRes.secure_url,
+              url: uploadRes.secure_url,
               format:
                 uploadRes.format ||
                 (uploadRes.url && uploadRes.url.split('.').pop()),
@@ -711,9 +711,17 @@ const ChatDetail = ({navigation, route}) => {
           isPending: false,
         };
 
+        console.log(
+          finalMessage,
+          socket,
+          'finalMessagefinalMessagefinalMessage',
+        );
         // emit socket
-        socket?.emit?.('send_message', finalMessage);
-
+        if (socket?.connected) {
+          socket.emit('send_message', finalMessage);
+        } else {
+          console.log('Socket is not connected');
+        }
         // replace temp with final
         setAllMessages(prev => {
           const next = prev.map(m => (m._id === tempId ? finalMessage : m));
@@ -791,6 +799,8 @@ const ChatDetail = ({navigation, route}) => {
       }
 
       const asset = response?.assets?.[0];
+      console.log(asset, 'assetassetassetassetassetassetasset');
+
       if (!asset) {
         return;
       }
@@ -812,6 +822,11 @@ const ChatDetail = ({navigation, route}) => {
 
   const renderMessage = useCallback(
     ({item}) => {
+      console.log(
+        item?.attachment,
+        'tem?.attachmenttem?.attachmenttem?.attachment',
+      );
+
       const isOwn = item?.senderId === user?.vendorId;
       const isOfferMessage = Boolean(item?.isOffer || item?.offerObject);
 

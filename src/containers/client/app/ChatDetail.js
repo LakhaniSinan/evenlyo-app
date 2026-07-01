@@ -1172,6 +1172,8 @@ const ChatDetail = ({navigation, route}) => {
         isPending: false,
       });
 
+      console.log(finalMessage,"finalMessagefinalMessagefinalMessage");
+      
       socket.emit('send_message', finalMessage);
 
       setAllMessages(prev =>

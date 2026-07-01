@@ -32,7 +32,11 @@ const RegistrationOtp = ({route, navigation}) => {
   };
 
   const handleVerifyOtp = async () => {
+    if (isLoading) return;
+
     try {
+      setIsLoading(true);
+
       const vendorPersonalPayload = {
         accountType: data?.vendorType,
         firstName: data?.personalInfo?.firstName,
@@ -79,7 +83,7 @@ const RegistrationOtp = ({route, navigation}) => {
       };
 
       const vendorPayload =
-        data?.vendorType == 'business'
+        data?.vendorType === 'business'
           ? vendorBusinessPayload
           : vendorPersonalPayload;
 
@@ -95,42 +99,43 @@ const RegistrationOtp = ({route, navigation}) => {
         otp,
       };
 
-      setIsLoading(true);
-
       const response =
-        data?.type == 'client'
+        data?.type === 'client'
           ? await register(params)
           : await vendorRegister(vendorPayload);
-      console.log(response, 'responseresponseresponseresponseresponse');
 
-      setIsLoading(false);
+      console.log('API Response:', response);
 
       if (response?.status === 200 || response?.status === 201) {
         navigation.navigate('AuthSuccess', {
           userType: data?.type === 'vendor' ? 'vendor' : 'client',
-          message: response.data?.message.en
-            ? currentLanguage == 'en'
-              ? response.data?.message.en
-              : response.data?.message.nl
+          message: response.data?.message?.en
+            ? currentLanguage === 'en'
+              ? response.data.message.en
+              : response.data.message.nl
             : response.data?.message,
         });
-      } else {
+        return;
+      }
+
+      modalRef.current?.hide();
+
+      setTimeout(() => {
         modalRef.current?.show({
           status: 'error',
-          message: response.data?.message.en
-            ? currentLanguage == 'en'
-              ? response.data?.message.en
-              : response.data?.message.nl
+          message: response.data?.message?.en
+            ? currentLanguage === 'en'
+              ? response.data.message.en
+              : response.data.message.nl
             : response.data?.message,
         });
-      }
+      }, 100);
     } catch (error) {
       console.log('Registration error:', error);
     } finally {
       setIsLoading(false);
     }
   };
-  console.log(data, 'datadatadatadatadatadataasda');
 
   const handleResendCode = async () => {
     try {
