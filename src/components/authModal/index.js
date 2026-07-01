@@ -44,6 +44,8 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
 
   const handleGetFCM = async () => {
     const res = await helper.requestNotificationPermission();
+    console.log(res,"resresresresresresres");
+    
     if (res === 'granted') {
       getFCMToken();
     } else {

@@ -105,15 +105,12 @@ const SubCategories = ({data, subSelected, setsubSelected}) => {
     [currentLanguage],
   );
 
-  const handleSelect = useCallback(
-    item => {
+  const handleSelect = useCallback(item => {
       const itemId = item?._id || item?.id;
       if (!itemId || itemId === selectedId || isPressLockedRef.current) {
         return;
       }
-
       isPressLockedRef.current = true;
-
       InteractionManager.runAfterInteractions(() => {
         setsubSelected(item);
       });

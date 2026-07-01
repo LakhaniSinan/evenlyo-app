@@ -147,6 +147,8 @@ function CartScreen({navigation}) {
 
       if (response?.status === 200 || response?.status === 201) {
         const payableAmount = Number(response?.data?.amountToPay || 0);
+        console.log(payableAmount,"payableAmountpayableAmount");
+        
         if (!payableAmount) {
           modalRef.current?.show({
             status: 'error',
@@ -160,6 +162,8 @@ function CartScreen({navigation}) {
           amount: payableAmount.toFixed(2),
           bookingId: selectedData?._id,
         });
+        console.log(res,"resresresresres");
+        
         if (res?.data?.clientSecret) {
           setPayModalVisible(true);
           const clientSecretValue = res.data.clientSecret;
