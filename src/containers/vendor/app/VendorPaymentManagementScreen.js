@@ -23,6 +23,7 @@ import {
   getPayoutOrders,
 } from '../../../services/VendorPaymentManagement';
 import {vendorStripeOnboardingStatus} from '../../../services/VendorStripe';
+import moment from 'moment';
 
 const getOrderId = order => {
   return order?.trackingId;
@@ -84,6 +85,12 @@ const VendorPaymentManagementScreen = () => {
         getPayoutOrders(VENDOR_ID),
         vendorStripeOnboardingStatus(),
       ]);
+
+      console.log(
+        ordersRes,
+        stripeRes,
+        'ordersRes, stripeResordersRes, stripeResordersRes, stripeRes',
+      );
 
       if (ordersRes?.status === 200 || ordersRes?.status === 201) {
         const fetchedOrders = normalizeOrdersFromResponse(ordersRes?.data);
@@ -287,54 +294,116 @@ const VendorPaymentManagementScreen = () => {
       const paymentStatus = getPaymentStatus(order);
       const escrowDate = getEscrowDate(order);
       const escrowEnded = escrowDate ? new Date(escrowDate) <= now : false;
+
       const isSelected = selectedOrderIds.includes(orderId);
+
+      const serviceName =
+        order?.serviceName?.en || order?.serviceName?.nl || '-';
 
       return (
         <View key={orderId} style={styles.orderCard}>
+          {/* Header */}
+
           <View style={styles.orderTopStrip}>
-            <Text style={styles.orderId}>{orderId || t('N/A')}</Text>
-            <Text style={styles.orderStatusText}>
-              {getPaymentStatusLabel(paymentStatus)}
-            </Text>
-          </View>
-          <View style={styles.orderHeader}>
-            <Text style={styles.orderText}>
-              {order?.customerName ||
-                order?.customer?.name ||
-                t('vendorPaymentCustomerFallback')}
-            </Text>
-            {activeTab === 'ready' ? (
+            <View style={{flex: 1}}>
+              <Text style={styles.orderId}>{order?.trackingId}</Text>
+
+              <Text style={styles.serviceName}>{serviceName}</Text>
+            </View>
+
+            {activeTab === 'ready' && (
               <TouchableOpacity onPress={() => toggleOrderSelection(orderId)}>
                 <View
                   style={[
                     styles.checkbox,
                     isSelected && styles.checkboxChecked,
                   ]}>
-                  {isSelected ? (
+                  {isSelected && (
                     <Icon name="checkmark" size={14} color={COLORS.white} />
-                  ) : null}
+                  )}
                 </View>
               </TouchableOpacity>
-            ) : null}
+            )}
           </View>
-          <Text style={styles.orderAmount}>
-            {t('vendorPaymentAmountEur', {amount: formatPrice(amount)})}
-          </Text>
-          <Text style={styles.orderMeta}>
-            {escrowEnded
-              ? t('vendorPaymentEscrowCompleted')
-              : t('vendorPaymentEscrowInProgress')}
-          </Text>
+
+          {/* Customer */}
+
+          <View style={styles.section}>
+            <Text style={styles.customerName}>{order?.userName}</Text>
+
+            <Text style={styles.email}>{order?.userEmail}</Text>
+          </View>
+
+          {/* Details */}
+
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Booking Type</Text>
+            <Text style={styles.value}>
+              {order?.orderType === 'custom'
+                ? 'Custom Booking'
+                : 'Normal Booking'}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Vendor</Text>
+            <Text style={styles.value}>{order?.vendorName}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Booking Date</Text>
+            <Text style={styles.value}>
+              {order?.bookingDate
+                ? moment(order.bookingDate).format('DD MMM YYYY')
+                : 'N/A'}
+            </Text>
+          </View>
+
+          {/* <View style={styles.infoRow}>
+            <Text style={styles.label}>Payout Date</Text>
+            <Text style={styles.value}>
+              {order?.payoutReadyAt
+                ? moment(order.payoutReadyAt).format('DD MMM YYYY')
+                : 'N/A'}
+            </Text>
+          </View> */}
+
+          {order?.claimDetails?.status !== 'pending' && (
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Claim Status</Text>
+              <Text style={styles.value}>
+                {order?.claimDetails?.status || 'N/A'}
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Payment Status</Text>
+            <Text style={styles.value}>
+              {getPaymentStatusLabel(paymentStatus)}
+            </Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.footer}>
+            <View />
+
+            <View style={{alignItems: 'flex-end'}}>
+              <Text style={styles.footerLabel}>Total Amount</Text>
+
+              <Text style={styles.amount}>€{formatPrice(amount)}</Text>
+            </View>
+          </View>
         </View>
       );
     },
     [
       activeTab,
-      getPaymentStatusLabel,
       now,
       selectedOrderIds,
-      t,
       toggleOrderSelection,
+      getPaymentStatusLabel,
     ],
   );
 
@@ -438,130 +507,214 @@ const VendorPaymentManagementScreen = () => {
 export default VendorPaymentManagementScreen;
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#F8F9FC'},
+  container: {
+    flex: 1,
+    backgroundColor: '#F6F7FB',
+  },
+
   tabsContainer: {
     flexDirection: 'row',
-    borderRadius: width(3),
-    marginHorizontal: width(3.5),
-    marginTop: width(2),
+    marginHorizontal: width(4),
+    marginTop: width(3),
     backgroundColor: '#ECEEF4',
+    borderRadius: 14,
     padding: 4,
   },
+
   tabBtn: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: width(2),
+    justifyContent: 'center',
+    paddingVertical: 11,
+    borderRadius: 10,
   },
-  tabBtnActive: {backgroundColor: COLORS.white},
+
+  tabBtnActive: {
+    backgroundColor: COLORS.white,
+    elevation: 2,
+  },
+
   tabText: {
-    color: COLORS.textLight,
-    fontSize: 11,
+    fontSize: 12,
+    color: '#777',
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
   },
-  tabTextActive: {color: COLORS.black},
+
+  tabTextActive: {
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+
   warningText: {
     marginHorizontal: width(4),
-    marginTop: width(2),
-    color: '#C62828',
-    fontFamily: fontFamly.PlusJakartaSansSemiBold,
-    fontSize: 11,
-  },
-  scrollContent: {
-    paddingBottom: width(24),
-  },
-  ordersWrap: {
     marginTop: width(3),
-    marginHorizontal: width(3.5),
-    gap: width(2.5),
+    color: '#D32F2F',
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
   },
+
+  scrollContent: {
+    paddingBottom: width(28),
+  },
+
+  ordersWrap: {
+    marginHorizontal: width(4),
+    marginTop: width(3),
+    gap: width(3),
+  },
+
   orderCard: {
-    borderRadius: width(2.5),
-    borderWidth: 1.2,
-    borderColor: '#EFEFF4',
-    padding: width(3.5),
-    backgroundColor: COLORS.white,
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: width(4),
+    borderWidth: 1,
+    borderColor: '#ECECEC',
+    elevation: 2,
   },
+
   orderTopStrip: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: 8,
+    paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F1F5',
+    borderBottomColor: '#F2F2F2',
   },
-  orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 8,
-  },
+
   orderId: {
-    color: COLORS.black,
-    fontSize: 13,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-  },
-  orderStatusText: {
-    color: COLORS.textLight,
-    fontSize: 10,
-    fontFamily: fontFamly.PlusJakartaSansSemiBold,
-    textTransform: 'uppercase',
-  },
-  orderText: {
-    color: COLORS.black,
-    fontSize: 13,
-    fontFamily: fontFamly.PlusJakartaSansSemiBold,
-  },
-  orderAmount: {
-    color: COLORS.primary,
-    fontSize: 19,
-    marginTop: 8,
-    fontFamily: fontFamly.PlusJakartaSansBold,
-  },
-  orderMeta: {
-    color: COLORS.textLight,
     fontSize: 12,
-    marginTop: 5,
-    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
   },
+
+  serviceName: {
+    marginTop: 6,
+    fontSize: 17,
+    color: COLORS.black,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+
   checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 5,
+    width: 24,
+    height: 24,
+    borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: '#BDBFC7',
+    borderColor: '#CFCFCF',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
   },
+
   checkboxChecked: {
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
   },
+
+  section: {
+    marginTop: 16,
+    marginBottom: 14,
+  },
+
+  customerName: {
+    fontSize: 15,
+    color: COLORS.black,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+
+  email: {
+    marginTop: 4,
+    fontSize: 13,
+    color: '#8A8A8A',
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#F2F2F2',
+  },
+
+  label: {
+    flex: 1,
+    fontSize: 13,
+    color: '#7B7B7B',
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+
+  value: {
+    flex: 1,
+    textAlign: 'right',
+    fontSize: 13,
+    color: COLORS.black,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: '#ECECEC',
+    marginVertical: 18,
+  },
+
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  footerLabel: {
+    fontSize: 12,
+    color: '#888',
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+
+  footerValue: {
+    marginTop: 3,
+    fontSize: 14,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+
+  amount: {
+    marginTop: 3,
+    fontSize: 24,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+
   floatingButton: {
     position: 'absolute',
     left: width(4),
     right: width(4),
     bottom: width(4),
+    height: 56,
     backgroundColor: COLORS.primary,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
+    borderRadius: 16,
     justifyContent: 'center',
-    elevation: 5,
+    alignItems: 'center',
+    elevation: 6,
   },
+
   floatingButtonDisabled: {
-    backgroundColor: '#C6C8D0',
+    backgroundColor: '#C8CCD8',
   },
+
   floatingButtonText: {
-    color: COLORS.white,
-    fontSize: 14,
+    color: '#fff',
+    fontSize: 15,
     fontFamily: fontFamly.PlusJakartaSansBold,
   },
-  emptyWrap: {marginTop: width(10), alignItems: 'center'},
+
+  emptyWrap: {
+    marginTop: width(18),
+    alignItems: 'center',
+  },
+
   emptyText: {
-    color: COLORS.textLight,
-    fontSize: 13,
+    fontSize: 14,
+    color: '#888',
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
   },
 });

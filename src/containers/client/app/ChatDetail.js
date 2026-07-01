@@ -743,8 +743,8 @@ const ChatDetail = ({navigation, route}) => {
       };
     });
 
-    console.log(items,'itemsitemsitemsitemsitemsitemsitems');
-    
+    console.log(items, 'itemsitemsitemsitemsitemsitemsitems');
+
     const totalProtectFee = items.reduce(
       (sum, i) => sum + Number(i?.pricingBreakdown?.evenlyoProtectFee || 0),
       0,
@@ -771,7 +771,6 @@ const ChatDetail = ({navigation, route}) => {
 
     console.log(finalObject, 'finalObjectfinalObjectfinalObject');
 
-    return;
     socket?.emit?.('accept_offer', finalObject);
 
     // Fallback: if socket success event is delayed/missed, poll latest messages

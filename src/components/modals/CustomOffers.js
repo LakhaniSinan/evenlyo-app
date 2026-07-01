@@ -83,7 +83,7 @@ const CustomOfferModal = ({
     const storedTotal = Number(breakdown.total || 0);
     const storedProtect = Number(breakdown.evenlyoProtectFee || 0);
     if (storedTotal > 0) {
-      return Number((storedTotal - storedProtect).toFixed(2));
+      return storedTotal;
     }
     return Number(
       (row.offerSubtotal + row.platformFee + row.vatFee).toFixed(2),
@@ -91,17 +91,14 @@ const CustomOfferModal = ({
   };
 
   const getItemDisplayPrice = (row, index) => {
-    const protectFee = evenlyoProtectByItem[index]
-      ? getProtectFee(row)
-      : 0;
+    const protectFee = evenlyoProtectByItem[index] ? getProtectFee(row) : 0;
     return Number((getItemBaseTotal(row) + protectFee).toFixed(2));
   };
 
   const getItemOrderTotal = (row, index) => {
     const displayPrice = getItemDisplayPrice(row, index);
-    const protectFee = evenlyoProtectByItem[index]
-      ? getProtectFee(row)
-      : 0;
+    const protectFee = evenlyoProtectByItem[index] ? getProtectFee(row) : 0;
+
     return Number((displayPrice + protectFee).toFixed(2));
   };
 
@@ -110,7 +107,8 @@ const CustomOfferModal = ({
       if (!selectedItems[idx]) {
         return sum;
       }
-      return sum + getItemOrderTotal(row, idx);
+
+      return sum + getItemDisplayPrice(row, idx);
     }, 0);
   }, [offerPricing.items, evenlyoProtectByItem, selectedItems]);
 
@@ -325,12 +323,14 @@ const CustomOfferModal = ({
 
           <Text style={styles.sectionHeading}>{t('selected')}</Text>
 
-          {(isMultiItem ? selectedRows : offerPricing.items).map((row, index) => {
-            const itemIndex = isMultiItem
-              ? offerPricing.items.findIndex(item => item.key === row.key)
-              : index;
-            return renderSelectedItemCard(row, itemIndex);
-          })}
+          {(isMultiItem ? selectedRows : offerPricing.items).map(
+            (row, index) => {
+              const itemIndex = isMultiItem
+                ? offerPricing.items.findIndex(item => item.key === row.key)
+                : index;
+              return renderSelectedItemCard(row, itemIndex);
+            },
+          )}
 
           {!hasSelectedItems ? (
             <Text style={styles.emptySelectionText}>

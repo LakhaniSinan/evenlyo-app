@@ -13,19 +13,19 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import Modal from 'react-native-modal';
-import {useDispatch} from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {useDispatch} from 'react-redux';
 import {ICONS, IMAGES} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import {addItem} from '../../redux/slice/offers';
+import {formatEuro} from '../../utils';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
 import DateRangePicker from '../customDatePicker';
 import GradientText from '../gradiantText';
-import Loader from '../loder';
 import GooglePlacesInput from '../locationField';
-import {formatEuro} from '../../utils';
+import Loader from '../loder';
 
 const NESTED_MODAL_DISMISS_MS = 480;
 
@@ -768,8 +768,7 @@ const NewRequestModal = ({
         offerPrice +
         finalSecurityFee +
         offerFees.platformFee +
-        offerFees.vatFee +
-        offerFees.evenlyoProtectFee
+        offerFees.vatFee
       ).toFixed(2),
     );
 
