@@ -101,35 +101,31 @@ const RegistrationOtp = ({route, navigation}) => {
         data?.type == 'client'
           ? await register(params)
           : await vendorRegister(vendorPayload);
+      console.log(response, 'responseresponseresponseresponseresponse');
 
       setIsLoading(false);
 
       if (response?.status === 200 || response?.status === 201) {
         navigation.navigate('AuthSuccess', {
           userType: data?.type === 'vendor' ? 'vendor' : 'client',
-          message:
-            currentLanguage == 'en'
+          message: response.data?.message.en
+            ? currentLanguage == 'en'
               ? response.data?.message.en
-              : response.data?.message.nl,
+              : response.data?.message.nl
+            : response.data?.message,
         });
       } else {
         modalRef.current?.show({
           status: 'error',
-          message:
-            currentLanguage == 'en'
+          message: response.data?.message.en
+            ? currentLanguage == 'en'
               ? response.data?.message.en
-              : response.data?.message.nl,
+              : response.data?.message.nl
+            : response.data?.message,
         });
       }
     } catch (error) {
       console.log('Registration error:', error);
-      modalRef.current?.show({
-        status: 'error',
-        message:
-          currentLanguage == 'en'
-            ? 'Something went wrong, please try again.'
-            : 'Iets is misgegaan, probeer het opnieuw.',
-      });
     } finally {
       setIsLoading(false);
     }

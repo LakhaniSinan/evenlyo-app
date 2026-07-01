@@ -76,7 +76,7 @@ const App = () => {
         <Provider store={store}>
           <SocketProvider>
             <PaperProvider>
-              <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEYS.TEST}>
+              <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEYS.LIVE}>
                 <AppContent />
               </StripeProvider>
             </PaperProvider>
