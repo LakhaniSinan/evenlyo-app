@@ -190,9 +190,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
   button: {
     backgroundColor: COLORS.white,
