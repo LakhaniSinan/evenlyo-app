@@ -159,6 +159,10 @@ const ChatDetail = ({navigation, route}) => {
     'attachedFileattachedFileattachedFileattachedFileasdasd',
   );
 
+  useEffect(() => {
+    console.log('Chat Screen Socket:', socket?.id);
+  }, [socket]);
+
   const [isError, setIsError] = useState(false);
   const [isAcceptingOffer, setIsAcceptingOffer] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -555,7 +559,17 @@ const ChatDetail = ({navigation, route}) => {
       return;
     }
 
-    socket.emit('join_conversation_room', {conversationId: joinConvId});
+    console.log('Joining room:', data?.conversationId);
+
+    socket.emit(
+      'join_conversation_room',
+      {
+        conversationId: data?.conversationId,
+      },
+      res => {
+        console.log('JOIN ACK', res);
+      },
+    );
     socket.on('receive_message', handleReceiveMessage);
 
     return () => {
@@ -711,14 +725,23 @@ const ChatDetail = ({navigation, route}) => {
           isPending: false,
         };
 
-        console.log(
-          finalMessage,
-          socket,
-          'finalMessagefinalMessagefinalMessage',
-        );
+        console.log(socket, 'finalMessagefinalMessagefinalMessage');
         // emit socket
         if (socket?.connected) {
-          socket.emit('send_message', finalMessage);
+          socket.on('connect', () => {
+            console.log('CONNECTED', socket.id);
+          });
+
+          socket.on('disconnect', reason => {
+            console.log('DISCONNECTED', reason);
+          });
+
+          socket.io.on('reconnect', attempt => {
+            console.log('RECONNECTED', attempt, socket.id);
+          });
+          socket.emit('send_message', finalMessage, response => {
+            console.log('ACK_response', response);
+          });
         } else {
           console.log('Socket is not connected');
         }

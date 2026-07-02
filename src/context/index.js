@@ -13,19 +13,26 @@ export const SocketProvider = ({children}) => {
   useEffect(() => {
     console.log('🟡 Attempting to connect socket to:', SOCKET_URL);
 
-    const newSocket = io(SOCKET_URL, {
-      transports: ['websocket'],
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 1000,
-    });
+    const newSocket = io(SOCKET_URL);
 
     setSocket(newSocket);
 
+    newSocket.onAnyOutgoing((event, ...args) => {
+      console.log('📤 OUTGOING:', event, args);
+    });
+
+    newSocket.onAny((event, ...args) => {
+      console.log('📥 INCOMING:', event, args);
+    });
+
     newSocket.on('connect', () => {
-      console.log('✅ Socket successfully connected!');
-      console.log('🔗 Socket ID:', newSocket.id);
-      setIsConnected(true);
+      console.log('Connected', newSocket.id);
+
+      console.log('Transport:', newSocket.io.engine.transport.name);
+
+      newSocket.io.engine.on('packet', packet => {
+        console.log('PACKET', packet.type, packet);
+      });
     });
 
     newSocket.on('connect_error', error => {
@@ -48,6 +55,22 @@ export const SocketProvider = ({children}) => {
 
     newSocket.on('reconnect_failed', () => {
       console.log('💀 Socket reconnection failed.');
+    });
+
+    newSocket.io.on('open', () => {
+      console.log('ENGINE OPEN');
+    });
+
+    newSocket.io.on('close', reason => {
+      console.log('ENGINE CLOSE', reason);
+    });
+
+    newSocket.io.engine.on('upgrade', () => {
+      console.log('ENGINE UPGRADED TO', newSocket.io.engine.transport.name);
+    });
+
+    newSocket.io.engine.on('packet', packet => {
+      console.log('PACKET RECEIVED:', packet.type);
     });
 
     return () => {
