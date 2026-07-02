@@ -39,7 +39,7 @@ import {createPaymentIntent, getAmountToPay} from '../../../services/Payment';
 
 function CartScreen({navigation}) {
   const dispatch = useDispatch();
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const modalRef = useRef(null);
   const {user} = useSelector(state => state.LoginSlice);
   const isAuthenticated = Boolean(user?.id || user?._id);
@@ -143,14 +143,17 @@ function CartScreen({navigation}) {
     try {
       setIsLoadding(true);
       const response = await getAmountToPay(selectedData?._id);
-      console.log(response, 'responseresponseresponseresponseresponse');
 
       if (response?.status === 200 || response?.status === 201) {
         const payableAmount = Number(response?.data?.amountToPay || 0);
         if (!payableAmount) {
           modalRef.current?.show({
             status: 'error',
-            message: response?.data?.message || t('somethingWentWrong'),
+            message: response?.data?.message?.en
+              ? currentLanguage === 'en'
+                ? response?.data?.message?.en
+                : response?.data?.message?.nl
+              : response?.data?.message,
           });
           return;
         }
@@ -160,6 +163,7 @@ function CartScreen({navigation}) {
           amount: payableAmount.toFixed(2),
           bookingId: selectedData?._id,
         });
+
         if (res?.data?.clientSecret) {
           setPayModalVisible(true);
           const clientSecretValue = res.data.clientSecret;
@@ -167,21 +171,25 @@ function CartScreen({navigation}) {
         } else {
           modalRef.current?.show({
             status: 'error',
-            message: res?.data?.message || t('somethingWentWrong'),
+            message: res?.data?.message?.en
+              ? currentLanguage === 'en'
+                ? res?.data?.message?.en
+                : res?.data?.message?.nl
+              : res?.data?.message,
           });
         }
       } else {
         modalRef.current?.show({
           status: 'error',
-          message: response?.data?.message || t('somethingWentWrong'),
+          message: response?.data?.message?.en
+            ? currentLanguage === 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl
+            : response?.data?.message,
         });
       }
     } catch (err) {
       console.log('PAYMENT INTENT ERROR', err);
-      modalRef.current?.show({
-        status: 'error',
-        message: t('somethingWentWrong'),
-      });
     } finally {
       setIsLoadding(false);
     }
@@ -205,7 +213,11 @@ function CartScreen({navigation}) {
           if (response?.status == 200 || response.status == 201) {
             modalRef.current.show({
               status: 'ok',
-              message: response?.data?.message,
+              message: response?.data?.message?.en
+                ? currentLanguage === 'en'
+                  ? response?.data?.message?.en
+                  : response?.data?.message?.nl
+                : response?.data?.message,
               handlePressOk: () => {
                 modalRef.current.hide();
                 handleGetCartListing();
@@ -214,7 +226,11 @@ function CartScreen({navigation}) {
           } else {
             modalRef.current.show({
               status: 'error',
-              message: response?.data?.message,
+              message: response?.data?.message?.en
+                ? currentLanguage === 'en'
+                  ? response?.data?.message?.en
+                  : response?.data?.message?.nl
+                : response?.data?.message,
             });
           }
         } catch (error) {

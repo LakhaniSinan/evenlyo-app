@@ -172,7 +172,6 @@ const LoginScreen = ({navigation, route}) => {
       });
       if (response?.status === 200 || response?.status === 201) {
         const data = response?.data?.user;
-        console.log(data, 'datadatadatadatadatadata');
 
         console.log('User data:', data);
         await AsyncStorage.setItem(

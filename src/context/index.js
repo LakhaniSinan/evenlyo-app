@@ -3,7 +3,7 @@ import React, {createContext, useContext, useEffect, useState} from 'react';
 import io from 'socket.io-client';
 import {SOCKET_BASE_URL} from '../config/server';
 
-const SOCKET_URL = SOCKET_BASE_URL?.LIVE_SOCKET_BASE_URL  ;
+const SOCKET_URL = SOCKET_BASE_URL?.STAGING_SOCKET_BASE_URL;
 export const SocketContext = createContext();
 
 export const SocketProvider = ({children}) => {

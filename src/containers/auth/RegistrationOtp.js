@@ -14,7 +14,6 @@ import {globalStyles} from '../../styles/globalStyle';
 
 const RegistrationOtp = ({route, navigation}) => {
   const data = route.params;
-  console.log(data, 'datadatadatadatadatadata');
 
   const modalRef = useRef(null);
   const {t, currentLanguage} = useTranslation();
