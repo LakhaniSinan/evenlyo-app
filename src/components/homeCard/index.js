@@ -29,6 +29,7 @@ const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
     data?.isFavourite || false,
   );
 
+
   return (
     <FlatList
       data={data}
@@ -38,6 +39,7 @@ const HomeCard = ({data, onBookingCardPress, handleAddToWishList}) => {
       showsHorizontalScrollIndicator={false}
       extraData={data}
       renderItem={({item, index}) => {
+
         return (
           <TouchableOpacity
             style={styles.cardWrapper}

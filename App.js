@@ -9,10 +9,7 @@ import NotificationPopup from 'react-native-push-notification-popup';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {Provider, useDispatch} from 'react-redux';
 import LocationInitializer from './src/components/LocationInitializer';
-import {
-  STRIPE_PUBLISHABLE_KEY,
-  STRIPE_PUBLISHABLE_KEYS,
-} from './src/config/server';
+import {STRIPE_PUBLISHABLE_KEYS} from './src/config/server';
 import {notifications} from './src/constants/Variable';
 import {SocketProvider} from './src/context';
 import {helper} from './src/helper';

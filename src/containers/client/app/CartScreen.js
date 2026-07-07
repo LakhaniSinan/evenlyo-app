@@ -199,7 +199,6 @@ function CartScreen({navigation}) {
     if (!isAuthenticated) {
       return;
     }
-    console.log(item, 'itemitemitemitemitemitem');
 
     modalRef.current.show({
       status: 'alert',

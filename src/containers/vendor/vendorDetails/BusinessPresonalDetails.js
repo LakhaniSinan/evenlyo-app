@@ -74,17 +74,17 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
   };
 
   const [formData, setFormData] = useState({
-    companyName: 'name',
-    companyEmail: 'dd@gmail.com',
-    contact: '+923342989198',
-    companyAddress: 'Address',
+    companyName: '',
+    companyEmail: '',
+    contactNumber: '',
+    companyAddress: '',
     companyWebsite: '',
     passportNumber: '',
-    kvknumber: '123123123',
-    workType: 'Home',
-    teamSize: '1-5',
-    tagline: {en: '', nl: 'tagg'},
-    description: {en: '', nl: 'tag des'},
+    kvknumber: '',
+    workType: '',
+    teamSize: '',
+    tagline: {en: '', nl: ''},
+    description: {en: '', nl: ''},
   });
 
   // populate form data from props
@@ -93,9 +93,9 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
       setFormData({
         companyName: businessInfo?.companyName || '',
         companyEmail: businessInfo?.companyEmail || '',
-        contact:
-          normalizeToE164(businessInfo?.contact || '') ||
-          businessInfo?.contact ||
+        contactNumber:
+          normalizeToE164(businessInfo?.contactNumber || '') ||
+          businessInfo?.contactNumber ||
           '',
         companyAddress: businessInfo?.companyAddress || '',
         companyWebsite: businessInfo?.companyWebsite || '',
@@ -157,7 +157,7 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
     const {
       companyName,
       companyEmail,
-      contact,
+      contactNumber,
       companyAddress,
       workType,
       teamSize,
@@ -179,10 +179,10 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
     if (!emailRegex.test(companyEmail.trim())) {
       return showError(t('invalidEmail'));
     }
-    if (!contact || contact === '+') {
+    if (!contactNumber || contactNumber === '+') {
       return showError(t('validationContactRequired'));
     }
-    if (!isValidE164(contact)) {
+    if (!isValidE164(contactNumber)) {
       return showError(
         t('validationContactE164', {
           min: E164_MIN_DIGITS,
@@ -245,9 +245,9 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
           <TextField
             label={t('Company Number')}
             placeholder={t('+31612345678')}
-            value={formData.contact}
+            value={formData.contactNumber}
             onChangeText={val =>
-              handleInputChange('contact', normalizeToE164(val))
+              handleInputChange('contactNumber', normalizeToE164(val))
             }
             keyboardType="phone-pad"
             bgColor={COLORS.white}

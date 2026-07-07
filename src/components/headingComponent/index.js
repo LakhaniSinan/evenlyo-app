@@ -13,6 +13,7 @@ const HeadingComponent = ({rightArrow, heading, gradientText, onPress}) => {
         justifyContent: rightArrow ? 'space-between' : null,
         paddingHorizontal: 10,
         flexDirection: 'row',
+
       }}>
       <View
         style={{

@@ -58,15 +58,12 @@ const VendorPersonalDetails = ({navigation}) => {
   };
 
   const handleCategoriesNext = data => {
-    console.log('Selected categories:', data);
     setCategoriesSelected(data || []);
     setActiveStep(pre => pre + 1);
     // step will move after subcategories are fetched
   };
 
   const handleSubCategoriesNext = data => {
-    console.log(data, 'datadatadata12312');
-
     setSubCategoriesSelected(data || []);
     setActiveStep(pre => pre + 1);
   };
@@ -98,18 +95,13 @@ const VendorPersonalDetails = ({navigation}) => {
     });
   };
 
-  const validateAll = () => {};
-
   const handleVerifyNext = data => {
-    console.log(data, 'datadatadatadatadatadatadata');
-
     setVerification({
       phoneNumber: data?.phoneNumber || '',
       email: data?.email || '',
     });
 
     const nextTick = async () => {
-      // if (!validateAll()) return;
       try {
         const payload = {
           vendorType,
@@ -122,11 +114,8 @@ const VendorPersonalDetails = ({navigation}) => {
           verification,
         };
 
-        console.log(payload, 'payloadpayloadpayloadpayloadpayload');
-
         setIsLoading(true);
         const response = await registerUser({email: data?.email});
-        console.log(response, 'responseresponseresponse');
 
         setIsLoading(false);
         if (response?.status == 200 || response?.status == 201) {
