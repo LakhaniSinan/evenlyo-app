@@ -181,19 +181,26 @@ const CreateCustomOffer = ({route}) => {
             resizeMode="cover"
           />
         </View>
-        <View style={styles.textWrapper}>
-          <Text style={styles.typeText}>• {t('Listing')}</Text>
-          <Text style={styles.titleText} numberOfLines={2}>
-            {currentLanguage == 'en' ? item?.title?.en : item?.title?.nl}
-          </Text>
-        </View>
-        <View style={styles.priceWrapper}>
-          <Text style={styles.priceText}>
-            {formatEuro(item?.pricing?.amount, {space: false})}
-          </Text>
-          <Text style={styles.dayText}>
-            /{item?.pricing?.type.toUpperCase()}
-          </Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            width: '80%',
+          }}>
+          <View style={styles.textWrapper}>
+            <Text style={styles.typeText}>• {t('Listing')}</Text>
+            <Text style={styles.titleText} numberOfLines={2}>
+              {currentLanguage == 'en' ? item?.title?.en : item?.title?.nl}
+            </Text>
+          </View>
+          <View style={styles.priceWrapper}>
+            <Text style={styles.priceText}>
+              {formatEuro(item?.pricing?.amount, {space: false})}
+            </Text>
+            <Text style={styles.dayText}>
+              /{item?.pricing?.type.toUpperCase()}
+            </Text>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -288,9 +295,7 @@ const CreateCustomOffer = ({route}) => {
           }
           data={offerItems}
           renderItem={selectedOfferItem}
-          keyExtractor={item =>
-            String(item?.uniqueId || item?.id || item?._id)
-          }
+          keyExtractor={item => String(item?.uniqueId || item?.id || item?._id)}
           ListFooterComponent={
             <View style={{width: width(46), marginLeft: width(3)}}>
               <GradientButton
@@ -443,7 +448,6 @@ const styles = StyleSheet.create({
   },
   textWrapper: {
     marginLeft: width(3),
-    width: width(55),
   },
   selectedTextWrapper: {
     marginLeft: width(3),

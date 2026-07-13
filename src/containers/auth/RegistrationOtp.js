@@ -14,7 +14,7 @@ import {globalStyles} from '../../styles/globalStyle';
 
 const RegistrationOtp = ({route, navigation}) => {
   const data = route.params;
-  console.log(data, 'datadatadatadatadatadata');
+  console.log(data, 'datadatadatadatadata');
 
   const modalRef = useRef(null);
   const {t, currentLanguage} = useTranslation();
@@ -62,7 +62,7 @@ const RegistrationOtp = ({route, navigation}) => {
         accountType: data?.vendorType,
         businessName: data?.businessInfo?.companyName,
         teamType: data?.businessInfo?.workType,
-        businessNumber: data?.businessInfo?.contact,
+        contactNumber: data?.businessInfo?.contactNumber,
         businessWebsite: data?.businessInfo?.companyWebsite,
         teamSize: data?.businessInfo?.teamSize,
         businessEmail: data?.businessInfo?.companyEmail,
@@ -86,6 +86,7 @@ const RegistrationOtp = ({route, navigation}) => {
         data?.vendorType === 'business'
           ? vendorBusinessPayload
           : vendorPersonalPayload;
+      console.log(vendorPayload, 'vendorPayloadvendorPayloadvendorPayload');
 
       const params = {
         firstName: data?.firstName,

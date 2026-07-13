@@ -175,10 +175,18 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
   const [availableDays, setAvailableDays] = useState([]);
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
+  const [isTwentyFourSeven, setIsTwentyFourSeven] = useState(false);
   const [isStartPickerOpen, setIsStartPickerOpen] = useState(false);
   const [isEndPickerOpen, setIsEndPickerOpen] = useState(false);
   const [termsModalVisible, setTermsModalVisible] = useState(false);
   const modalRef = useRef(null);
+
+  const clearAvailability = useCallback(() => {
+    setIsTwentyFourSeven(false);
+    setAvailableDays([]);
+    setStartTime(null);
+    setEndTime(null);
+  }, []);
 
   const pricingTypeOptions = useMemo(
     () =>
@@ -240,8 +248,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
             subCategory: selectedSubCat || null,
             pricingType: priceType?.name || '',
             cost: toEditData?.pricing?.amount?.toString() || '',
-            extraTimeCost:
-              toEditData?.pricing?.extratimeCost?.toString() || '',
+            extraTimeCost: toEditData?.pricing?.extratimeCost?.toString() || '',
             perKm: toEditData?.pricing?.pricePerKm?.toString() || '',
             securityFeeAmount:
               toEditData?.pricing?.securityFee?.toString() || '',
@@ -252,8 +259,13 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
           });
 
           // ✅ preselect security fee toggle and available days
-          setIsCheck(toEditData?.pricing?.securityFee > 0);
-          setAvailableDays(toEditData?.availability?.availableDays || []);
+          const hasSecurityFee = toEditData?.pricing?.securityFee > 0;
+          setIsCheck(hasSecurityFee);
+          if (hasSecurityFee) {
+            clearAvailability();
+          } else {
+            setAvailableDays(toEditData?.availability?.availableDays || []);
+          }
 
           // ✅ preselect time slots if available
           if (
@@ -261,17 +273,23 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
             toEditData?.availability?.availableTimeSlots.length > 0
           ) {
             const slot = toEditData.availability.availableTimeSlots[0];
-            if (slot.startTime) {
+            if (!hasSecurityFee && slot.startTime) {
               setStartTime(moment(slot.startTime, 'HH:mm').toDate());
             }
-            if (slot.endTime) {
+            if (!hasSecurityFee && slot.endTime) {
               setEndTime(moment(slot.endTime, 'HH:mm').toDate());
             }
           }
         }
       })();
     }
-  }, [isVisible, toEditData, vendorsCategories, pricingTypeOptions]);
+  }, [
+    isVisible,
+    toEditData,
+    vendorsCategories,
+    pricingTypeOptions,
+    clearAvailability,
+  ]);
 
   // useEffect(() => {
   //   let selectedSubCats = allSubCategories?.find(
@@ -453,14 +471,24 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
     if (!productImage?.length) {
       return showError(t('At least one listing image is required'));
     }
-    if (availableDays.length === 0) {
-      return showError(t('Select at least one available day'));
-    }
-    if (!startTime) {
-      return showError(t('Start Time is required'));
-    }
-    if (!endTime) {
-      return showError(t('End Time is required'));
+    if (isCheck) {
+      if (!isNonEmpty(securityFeeAmount) || !isValidAmount(securityFeeAmount)) {
+        return showError(
+          t(
+            'Security Fee Amount is required and must be a valid amount greater than 0',
+          ),
+        );
+      }
+    } else if (!isTwentyFourSeven) {
+      if (availableDays.length === 0) {
+        return showError(t('Select at least one available day'));
+      }
+      if (!startTime) {
+        return showError(t('Start Time is required'));
+      }
+      if (!endTime) {
+        return showError(t('End Time is required'));
+      }
     }
     const locationCoords = resolveLocationCoords(selectedCoords);
     const locationAddress =
@@ -499,16 +527,19 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
           longitude: locationCoords.longitude,
         },
       },
-      availability: {
-        isAvailable: true,
-        availableDays: availableDays,
-        availableTimeSlots: [
-          {
-            startTime: startTime ? moment(startTime).format('HH:mm') : '',
-            endTime: endTime ? moment(endTime).format('HH:mm') : '',
-          },
-        ],
-      },
+      availability:
+        isCheck || isTwentyFourSeven
+          ? null
+          : {
+              isAvailable: true,
+              availableDays: availableDays,
+              availableTimeSlots: [
+                {
+                  startTime: startTime ? moment(startTime).format('HH:mm') : '',
+                  endTime: endTime ? moment(endTime).format('HH:mm') : '',
+                },
+              ],
+            },
       vendorId: user?.id,
       status: 'active',
       isActive: true,
@@ -519,7 +550,6 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
       const response = toEditData
         ? await updateVendorListing(toEditData?._id, payload)
         : await createVendorLosting(payload);
-      console.log(response, 'responseresponseresponseresponse');
       const isSuccess = response?.status === 200 || response?.status === 201;
       modalRef.current.show({
         status: isSuccess ? 'ok' : 'error',
@@ -676,6 +706,7 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
     setStartTime('');
     setEndTime('');
     setIsCheck(false);
+    setIsTwentyFourSeven(false);
   };
 
   const closeModal = useCallback(() => {
@@ -715,7 +746,12 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         <View
           style={[
             styles.container,
-            {paddingBottom: Math.max(insets.bottom, Platform.OS === 'android' ? 16 : 12)},
+            {
+              paddingBottom: Math.max(
+                insets.bottom,
+                Platform.OS === 'android' ? 16 : 12,
+              ),
+            },
           ]}>
           {/* Header */}
           <View style={styles.header}>
@@ -884,7 +920,13 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
 
               <TouchableOpacity
                 style={styles.optionRow}
-                onPress={() => setIsCheck(!isCheck)}>
+                onPress={() => {
+                  const next = !isCheck;
+                  setIsCheck(next);
+                  if (next) {
+                    clearAvailability();
+                  }
+                }}>
                 <View
                   style={[
                     styles.checkbox,
@@ -929,98 +971,147 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
                 padding: width(4),
                 marginBottom: width(3),
               }}>
-              <Text style={styles.sectionTitle}>{t('Booking Date/Time ')}</Text>
-              <Text style={styles.sectionTitle}>{t('Available Days')}</Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  marginVertical: width(3),
-                }}>
-                {DAYS_OF_WEEK.map(item => {
-                  const isSelected = availableDays.includes(item);
-
-                  return (
-                    <TouchableOpacity
-                      key={item}
-                      onPress={() => {
-                        setAvailableDays(prev =>
-                          prev.includes(item)
-                            ? prev.filter(d => d !== item)
-                            : [...prev, item],
-                        );
-                      }}
-                      style={{margin: width(1)}}>
-                      {isSelected ? (
-                        <LinearGradient
-                          colors={['#FF295D', '#FF517B']}
-                          start={{x: 0, y: 0}}
-                          end={{x: 1, y: 1}}
-                          style={{
-                            height: width(8),
-                            width: width(15),
-                            borderRadius: 100,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}>
-                          <Text
-                            style={{color: COLORS.white, fontWeight: 'bold'}}>
-                            {t(DAY_LABEL_KEYS[item])}
-                          </Text>
-                        </LinearGradient>
-                      ) : (
-                        <View
-                          style={{
-                            height: width(8),
-                            width: width(15),
-                            borderRadius: 100,
-                            backgroundColor: COLORS.white,
-                            borderWidth: 1,
-                            borderColor: COLORS.primary,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}>
-                          <Text style={{color: COLORS.black}}>
-                            {item.toUpperCase()}
-                          </Text>
-                        </View>
+              {!isCheck && (
+                <>
+                  <Text style={styles.sectionTitle}>
+                    {t('Booking Date/Time ')}
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.optionRow, {marginTop: width(2)}]}
+                    onPress={() => {
+                      const next = !isTwentyFourSeven;
+                      setIsTwentyFourSeven(next);
+                      if (next) {
+                        setAvailableDays([]);
+                        setStartTime(null);
+                        setEndTime(null);
+                      }
+                    }}>
+                    <View
+                      style={[
+                        styles.checkbox,
+                        isTwentyFourSeven && {backgroundColor: COLORS.primary},
+                      ]}>
+                      {isTwentyFourSeven && (
+                        <Icon name="checkmark" size={16} color={COLORS.white} />
                       )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <Text style={styles.sectionTitle}>{t('Available Time')}</Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  marginBottom: width(4),
-                }}>
-                {/* Start Date */}
-                <TouchableOpacity
-                  style={styles.dateBox}
-                  onPress={() => setIsStartPickerOpen(true)}>
-                  <Text style={styles.dateLabel}>{t('startTime')}</Text>
-                  <Text style={styles.dateValue}>
-                    {startTime
-                      ? moment(startTime).format('hh:mm A')
-                      : t('Select Time')}
-                  </Text>
-                </TouchableOpacity>
+                    </View>
+                    <View style={{flex: 1}}>
+                      <Text style={styles.optionLabel}>
+                        {t('24/7 Availability')}
+                      </Text>
+                      <Text style={styles.optionSubLabel}>
+                        {t(
+                          'Item will be available 24 hours a day, 7 days a week',
+                        )}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
 
-                {/* End Date */}
-                <TouchableOpacity
-                  style={styles.dateBox}
-                  onPress={() => setIsEndPickerOpen(true)}>
-                  <Text style={styles.dateLabel}>{t('endTime')}</Text>
-                  <Text style={styles.dateValue}>
-                    {endTime
-                      ? moment(endTime).format('hh:mm A')
-                      : t('Select Time')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                  {!isTwentyFourSeven && (
+                    <>
+                      <Text style={styles.sectionTitle}>
+                        {t('Available Days')}
+                      </Text>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          marginVertical: width(3),
+                        }}>
+                        {DAYS_OF_WEEK.map(item => {
+                          const isSelected = availableDays.includes(item);
+
+                          return (
+                            <TouchableOpacity
+                              key={item}
+                              onPress={() => {
+                                setAvailableDays(prev =>
+                                  prev.includes(item)
+                                    ? prev.filter(d => d !== item)
+                                    : [...prev, item],
+                                );
+                              }}
+                              style={{margin: width(1)}}>
+                              {isSelected ? (
+                                <LinearGradient
+                                  colors={['#FF295D', '#FF517B']}
+                                  start={{x: 0, y: 0}}
+                                  end={{x: 1, y: 1}}
+                                  style={{
+                                    height: width(8),
+                                    width: width(15),
+                                    borderRadius: 100,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                  }}>
+                                  <Text
+                                    style={{
+                                      color: COLORS.white,
+                                      fontWeight: 'bold',
+                                    }}>
+                                    {t(DAY_LABEL_KEYS[item])}
+                                  </Text>
+                                </LinearGradient>
+                              ) : (
+                                <View
+                                  style={{
+                                    height: width(8),
+                                    width: width(15),
+                                    borderRadius: 100,
+                                    backgroundColor: COLORS.white,
+                                    borderWidth: 1,
+                                    borderColor: COLORS.primary,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                  }}>
+                                  <Text style={{color: COLORS.black}}>
+                                    {item.toUpperCase()}
+                                  </Text>
+                                </View>
+                              )}
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                      <Text style={styles.sectionTitle}>
+                        {t('Available Time')}
+                      </Text>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          marginBottom: width(4),
+                        }}>
+                        {/* Start Date */}
+                        <TouchableOpacity
+                          style={styles.dateBox}
+                          onPress={() => setIsStartPickerOpen(true)}>
+                          <Text style={styles.dateLabel}>{t('startTime')}</Text>
+                          <Text style={styles.dateValue}>
+                            {startTime
+                              ? moment(startTime).format('hh:mm A')
+                              : t('Select Time')}
+                          </Text>
+                        </TouchableOpacity>
+
+                        {/* End Date */}
+                        <TouchableOpacity
+                          style={styles.dateBox}
+                          onPress={() => setIsEndPickerOpen(true)}>
+                          <Text style={styles.dateLabel}>{t('endTime')}</Text>
+                          <Text style={styles.dateValue}>
+                            {endTime
+                              ? moment(endTime).format('hh:mm A')
+                              : t('Select Time')}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </>
+                  )}
+                </>
+              )}
             </View>
             {/* Terms & Conditions */}
             <View
@@ -1140,7 +1231,9 @@ const EventListingModal = ({isVisible, onClose, toEditData}) => {
         <View style={styles.termsModalOverlay}>
           <View style={styles.termsModalCard}>
             <View style={styles.termsModalHeader}>
-              <Text style={styles.termsModalTitle}>{t('termsAndConditions')}</Text>
+              <Text style={styles.termsModalTitle}>
+                {t('termsAndConditions')}
+              </Text>
               <TouchableOpacity
                 onPress={() => setTermsModalVisible(false)}
                 hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
@@ -1295,6 +1388,12 @@ const styles = StyleSheet.create({
     fontFamily: fontFamly.PlusJakartaSansBold,
     fontSize: 11,
     color: COLORS.black,
+  },
+  optionSubLabel: {
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    fontSize: 10,
+    color: COLORS.textLight,
+    marginTop: 2,
   },
   modal: {
     margin: 0,

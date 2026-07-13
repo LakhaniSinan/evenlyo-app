@@ -26,8 +26,6 @@ const HomeListSection = ({
   onVendorPress,
   onAddToWishList,
 }) => {
-  console.log(homeData, 'homeDatahomeDatahomeDatahomeDatahomeData');
-
   switch (sectionId) {
     case 'header':
       return (
