@@ -1215,4 +1215,9 @@ export default {
   imageUploadFailed: 'Image upload failed. Please try again.',
   taglineEnglishOptional: 'Tagline (English) (optional)',
   descriptionEnglishOptional: 'Description (English) (optional)',
+
+  // Update popup
+  updatePopupTitle: 'New Features Available!',
+  updatePopupDescription:
+    'A new version brings performance boosts and exciting features. Please update to continue.',
 };

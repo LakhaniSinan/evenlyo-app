@@ -1220,4 +1220,9 @@ export default {
   imageUploadFailed: 'Afbeelding uploaden mislukt. Probeer het opnieuw.',
   taglineEnglishOptional: 'Tagline (Engels) (optioneel)',
   descriptionEnglishOptional: 'Omschrijving (Engels) (optioneel)',
+
+  // Update popup
+  updatePopupTitle: 'Nieuwe functies beschikbaar!',
+  updatePopupDescription:
+    'Een nieuwe versie biedt betere prestaties en spannende functies. Werk bij om door te gaan.',
 };
