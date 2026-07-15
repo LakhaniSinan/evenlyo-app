@@ -22,15 +22,32 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.evenlyo</string>
-			</array>
-		</dict>
-	</array>
+<key>CFBundleURLTypes</key>
+<array>
+	<!-- Your custom URL scheme -->
+	<dict>
+		<key>CFBundleTypeRole</key>
+		<string>Editor</string>
+		<key>CFBundleURLName</key>
+		<string>com.evenlyo</string>
+		<key>CFBundleURLSchemes</key>
+		<array>
+			<string>com.evenlyo</string>
+		</array>
+	</dict>
+
+	<!-- Google Sign-In URL scheme -->
+	<dict>
+		<key>CFBundleTypeRole</key>
+		<string>Editor</string>
+		<key>CFBundleURLName</key>
+		<string>Google</string>
+		<key>CFBundleURLSchemes</key>
+		<array>
+			<string>com.googleusercontent.apps.800391339545-n0g6981vi1rk2tdmr89hqfv50v29qonl</string>
+		</array>
+	</dict>
+</array>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<true/>
 	<key>GMSApiKey</key>

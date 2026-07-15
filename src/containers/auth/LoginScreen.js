@@ -146,6 +146,8 @@ const LoginScreen = ({navigation, route}) => {
       setIsLoading(true);
       await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
       const userInfo = await GoogleSignin.signIn();
+      console.log(userInfo, 'userInfouserInfouserInfo');
+
       let user = userInfo?.data?.user || userInfo?.user;
 
       if (!user) {
@@ -165,14 +167,16 @@ const LoginScreen = ({navigation, route}) => {
         userType: type,
         picture: user?.photo,
       };
+      console.log(params, 'PARAMSSSS');
+
       const response = await socialLogin({
         userData: params,
         type: 'App',
         appFcm: fcmToken || '',
       });
+        console.log(response.data,"responseresponseresponseresponse");
       if (response?.status === 200 || response?.status === 201) {
         const data = response?.data?.user;
-
         console.log('User data:', data);
         await AsyncStorage.setItem(
           'token',
