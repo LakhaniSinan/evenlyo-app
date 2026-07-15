@@ -838,6 +838,8 @@ export default {
   pleaseAddAddressFirst: 'Please add address first.',
   pleaseSelectStartDateFirst: 'Please select start date first.',
   pleaseSelectStartAndEndTime: 'Please select start and end time.',
+  endTimeMustBeAfterStartTime: 'End time must be after start time.',
+  minimumBookingDurationOneHour: 'Booking duration must be at least 1 hour.',
   pleaseAcceptTermsAndConditionsFirst:
     'Please accept terms and conditions first.',
   fullPaymentRequiredTitle: 'Full Payment Required',

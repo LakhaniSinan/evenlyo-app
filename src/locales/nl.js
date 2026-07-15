@@ -842,6 +842,8 @@ export default {
   pleaseAddAddressFirst: 'Voeg eerst een adres toe.',
   pleaseSelectStartDateFirst: 'Selecteer eerst een startdatum.',
   pleaseSelectStartAndEndTime: 'Selecteer een begin- en eindtijd.',
+  endTimeMustBeAfterStartTime: 'Eindtijd moet na de begintijd zijn.',
+  minimumBookingDurationOneHour: 'Boeking moet minimaal 1 uur duren.',
   pleaseAcceptTermsAndConditionsFirst:
     'Accepteer eerst de algemene voorwaarden.',
   fullPaymentRequiredTitle: 'Volledige betaling vereist',

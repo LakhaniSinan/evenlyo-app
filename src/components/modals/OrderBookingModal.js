@@ -126,6 +126,33 @@ const getPickerTimeDate = existingTime => {
   return moment().minute(0).second(0).millisecond(0).toDate();
 };
 
+const MIN_BOOKING_HOURS = 1;
+
+const getTimeRangeHours = (referenceDate, startTime, endTime) => {
+  if (!startTime || !endTime) {
+    return null;
+  }
+
+  const dateStr = referenceDate
+    ? moment(referenceDate, 'YYYY-MM-DD', true).isValid()
+      ? moment(referenceDate, 'YYYY-MM-DD').format('YYYY-MM-DD')
+      : moment(referenceDate).format('YYYY-MM-DD')
+    : moment().format('YYYY-MM-DD');
+
+  const start = moment(dateStr, 'YYYY-MM-DD')
+    .hour(moment(startTime).hour())
+    .minute(0)
+    .second(0)
+    .millisecond(0);
+  const end = moment(dateStr, 'YYYY-MM-DD')
+    .hour(moment(endTime).hour())
+    .minute(0)
+    .second(0)
+    .millisecond(0);
+
+  return end.diff(start, 'hours', true);
+};
+
 const OrderBooking = ({
   data,
   type,
@@ -483,7 +510,8 @@ const OrderBooking = ({
     // For single-date selection, requested hours come from startTime/endTime
     let requestedHours = calcTotalHours;
     if (requiresTimeSelection && startTime && endTime) {
-      requestedHours = moment(endTime).diff(moment(startTime), 'hours', true);
+      const rangeHours = getTimeRangeHours(startDateStr, startTime, endTime);
+      requestedHours = rangeHours > 0 ? rangeHours : 0;
     }
 
     let baseHours = calcTotalHours;
@@ -558,6 +586,7 @@ const OrderBooking = ({
     roundedDistanceKm,
     isChecked,
     data,
+    startDateStr,
     startTime,
     endTime,
     hoursPerDay,
@@ -616,6 +645,40 @@ const OrderBooking = ({
     }
   }, [data, requiresTimeSelection, startDateStr, referenceDate, startTime, endTime]);
 
+  const validateTimeSelection = useCallback(() => {
+    if (!requiresTimeSelection) {
+      return true;
+    }
+
+    if (!startTime || !endTime) {
+      modalRef.current?.show({
+        status: 'error',
+        message: t('pleaseSelectStartAndEndTime'),
+      });
+      return false;
+    }
+
+    const hoursDiff = getTimeRangeHours(startDateStr, startTime, endTime);
+
+    if (hoursDiff <= 0) {
+      modalRef.current?.show({
+        status: 'error',
+        message: t('endTimeMustBeAfterStartTime'),
+      });
+      return false;
+    }
+
+    if (hoursDiff < MIN_BOOKING_HOURS) {
+      modalRef.current?.show({
+        status: 'error',
+        message: t('minimumBookingDurationOneHour'),
+      });
+      return false;
+    }
+
+    return true;
+  }, [requiresTimeSelection, startTime, endTime, startDateStr, t]);
+
   const handleBooking = useCallback(async () => {
     if (isSubmittingRef.current) {
       return;
@@ -637,11 +700,7 @@ const OrderBooking = ({
       return;
     }
 
-    if (requiresTimeSelection && (!startTime || !endTime)) {
-      modalRef.current?.show({
-        status: 'error',
-        message: t('pleaseSelectStartAndEndTime'),
-      });
+    if (!validateTimeSelection()) {
       return;
     }
 
@@ -785,6 +844,7 @@ const OrderBooking = ({
     availableSelectedDays,
     data,
     handleSendBookingRequest,
+    validateTimeSelection,
   ]);
 
   const handleDayPress = day => {
@@ -946,6 +1006,10 @@ const OrderBooking = ({
   ]);
 
   const handleUpdateCart = async () => {
+    if (!validateTimeSelection()) {
+      return;
+    }
+
     try {
       const slot = data?.availability?.availableTimeSlots?.[0] || {};
       const slotStart = slot.startTime || '';
@@ -1085,6 +1149,10 @@ const OrderBooking = ({
   };
 
   const handleAddToCart = () => {
+    if (!validateTimeSelection()) {
+      return;
+    }
+
     const details = {
       listingId: data?._id,
       startDate: startDateStr,
@@ -1208,7 +1276,29 @@ const OrderBooking = ({
                   minuteInterval={60}
                   onConfirm={date => {
                     setShowStartPicker(false);
-                    setStartTime(normalizeToHour(date));
+                    const normalized = normalizeToHour(date);
+                    if (endTime) {
+                      const hoursDiff = getTimeRangeHours(
+                        startDateStr,
+                        normalized,
+                        endTime,
+                      );
+                      if (hoursDiff <= 0) {
+                        modalRef.current?.show({
+                          status: 'error',
+                          message: t('endTimeMustBeAfterStartTime'),
+                        });
+                        return;
+                      }
+                      if (hoursDiff < MIN_BOOKING_HOURS) {
+                        modalRef.current?.show({
+                          status: 'error',
+                          message: t('minimumBookingDurationOneHour'),
+                        });
+                        return;
+                      }
+                    }
+                    setStartTime(normalized);
                   }}
                   onCancel={() => setShowStartPicker(false)}
                 />
@@ -1223,7 +1313,29 @@ const OrderBooking = ({
                   minuteInterval={60}
                   onConfirm={date => {
                     setShowEndPicker(false);
-                    setEndTime(normalizeToHour(date));
+                    const normalized = normalizeToHour(date);
+                    if (startTime) {
+                      const hoursDiff = getTimeRangeHours(
+                        startDateStr,
+                        startTime,
+                        normalized,
+                      );
+                      if (hoursDiff <= 0) {
+                        modalRef.current?.show({
+                          status: 'error',
+                          message: t('endTimeMustBeAfterStartTime'),
+                        });
+                        return;
+                      }
+                      if (hoursDiff < MIN_BOOKING_HOURS) {
+                        modalRef.current?.show({
+                          status: 'error',
+                          message: t('minimumBookingDurationOneHour'),
+                        });
+                        return;
+                      }
+                    }
+                    setEndTime(normalized);
                   }}
                   onCancel={() => setShowEndPicker(false)}
                 />
