@@ -626,7 +626,7 @@ console.log(response,"responseresponseresponseresponseasdasdsd");
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
           headingText={localizedText.booking}
-          rightIcon={ICONS.chatIcon}
+          // rightIcon={ICONS.chatIcon}
           onLeftIconPress={() => navigation.goBack()}
           onRightIconPress={handleOpenChat}
         />

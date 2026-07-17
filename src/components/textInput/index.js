@@ -29,6 +29,10 @@ const TextField = ({
   inputContainer,
   label,
   editable,
+  returnKeyType,
+  blurOnSubmit,
+  onSubmitEditing,
+  textAlignVertical,
 }) => {
   return (
     <>
@@ -71,7 +75,7 @@ const TextField = ({
             {
               height: multiline ? 200 : 40,
               paddingLeft: startIcon ? 10 : 5,
-              textAlignVertical: 'top',
+              textAlignVertical: textAlignVertical || 'top',
               backgroundColor: bgColor ? bgColor : '#F6F6F6',
               borderColor: inputBorderColor ? inputBorderColor : '#F6F6F6',
               ...styleProps,
@@ -81,6 +85,9 @@ const TextField = ({
           numberOfLines={numberOfLines}
           editable={editable}
           onChangeText={onChangeText}
+          returnKeyType={returnKeyType}
+          blurOnSubmit={blurOnSubmit}
+          onSubmitEditing={onSubmitEditing}
         />
         {passwordToggle ? (
           <TouchableOpacity

@@ -44,6 +44,7 @@ const Home = ({navigation}) => {
     refreshing,
     isWishlistLoading,
     isSubCategoriesLoading,
+    isHomeDataLoading,
     listSections,
     handleCategorySelect,
     onRefresh,
@@ -135,7 +136,11 @@ const Home = ({navigation}) => {
       />
 
       <CommonAlert ref={modalRef} />
-      <Loader isLoading={isWishlistLoading || isSubCategoriesLoading} />
+      <Loader
+        isLoading={
+          isWishlistLoading || isSubCategoriesLoading || isHomeDataLoading
+        }
+      />
 
       <AuthModalsGroup
         showLogin={showLogin}

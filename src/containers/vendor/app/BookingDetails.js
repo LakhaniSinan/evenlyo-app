@@ -156,6 +156,21 @@ function BookingDetails({route}) {
     });
   };
 
+  const confirmAcceptBooking = () => {
+    const confirmMessage =
+      currentLanguage === 'nl'
+        ? 'Weet je zeker dat je deze boeking wilt accepteren?'
+        : 'Are you sure you want to accept this booking?';
+
+    alertRef.current?.show({
+      status: 'alert',
+      message: confirmMessage,
+      handlePressOk: () => {
+        handleAcceptBooking();
+      },
+    });
+  };
+
   const handleAcceptBooking = async () => {
     try {
       setIsLoading(true);
@@ -440,7 +455,7 @@ function BookingDetails({route}) {
               <View style={styles.actionButton}>
                 <GradientButton
                   text="Accept"
-                  onPress={handleAcceptBooking}
+                  onPress={confirmAcceptBooking}
                   type="outline"
                   textStyle={styles.pendingAcceptOutlineText}
                   styleContainer={styles.pendingPairBtnOuter}

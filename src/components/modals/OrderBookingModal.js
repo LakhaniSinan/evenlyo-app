@@ -33,7 +33,8 @@ import GooglePlacesInput from '../locationField';
 import Loader from '../loder';
 import TextField from '../textInput';
 
-const TERMS_AND_CONDITIONS_TEXT = `I accept the terms and conditions
+const TERMS_AND_CONDITIONS_TEXT = {
+  en: `I accept the terms and conditions
 
 Welcome to Evenlyo
 By accessing and using our platform, you agree to the following terms and conditions.
@@ -61,8 +62,37 @@ Cancellation policies are determined by individual vendors.
 Vendors are responsible for service delivery.
 Clients are responsible for timely payments and providing accurate event details.
 Neither party may hold Evenlyo liable for any performance or service issues.
-If full payment is not completed before the event, Evenlyo or the supplier reserves the right to cancel the booking without refunding the deposit.`;
+If full payment is not completed before the event, Evenlyo or the supplier reserves the right to cancel the booking without refunding the deposit.`,
+  nl: `Ik accepteer de algemene voorwaarden
 
+Welkom bij Evenlyo
+Door toegang te krijgen tot en gebruik te maken van ons platform, gaat u akkoord met de volgende algemene voorwaarden.
+
+Deze voorwaarden zijn bedoeld om zowel klanten als leveranciers te beschermen, en zorgen voor een veilige, eerlijke en transparante ervaring voor iedereen.
+
+1. Algemene voorwaarden
+Evenlyo fungeert als platform om klanten en leveranciers te verbinden voor evenementdiensten.
+Gebruikers moeten accurate informatie verstrekken bij het aanmaken van boekingen en profielen.
+Alle communicatie en transacties zijn de verantwoordelijkheid van de gebruiker en niet van Evenlyo.
+
+2. Regels voor platformgebruik
+Klanten kunnen diensten rechtstreeks via Evenlyo boeken.
+Leveranciers zijn verantwoordelijk voor het up-to-date houden van hun dienstdetails, prijzen en beschikbaarheid.
+Zowel klanten als leveranciers moeten respectvol en te goeder trouw communiceren.
+
+3. Betalingen en kosten
+Betalingen worden veilig verwerkt via ons geïntegreerde systeem.
+Kosten voor leveranciers (indien van toepassing) worden duidelijk vermeld vóór de aanmelding.
+Restitutiebeleid is onderhevig aan het beleid van de leverancier en de platformregels.
+
+4. Aansprakelijkheid en annuleringen
+Evenlyo is geen partij bij contracten tussen klanten en leveranciers.
+Annuleringsvoorwaarden worden bepaald door individuele leveranciers.
+Leveranciers zijn verantwoordelijk voor de dienstverlening.
+Klanten zijn verantwoordelijk voor tijdige betalingen en het verstrekken van accurate evenementgegevens.
+Geen van beide partijen mag Evenlyo aansprakelijk stellen voor prestatie- of dienstproblemen.
+Als de volledige betaling niet vóór het evenement is voltooid, behoudt Evenlyo of de leverancier het recht om de boeking te annuleren zonder restitutie van de aanbetaling.`,
+};
 const DAY_KEY_ALIASES = {
   mon: 'mon',
   monday: 'mon',
@@ -1370,6 +1400,9 @@ const OrderBooking = ({
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
+                returnKeyType="done"
+                blurOnSubmit
+                onSubmitEditing={Keyboard.dismiss}
               />
             </View>
 
@@ -1634,7 +1667,9 @@ const OrderBooking = ({
           <View style={styles.termsModalOverlay}>
             <View style={styles.termsModalContainer}>
               <View style={styles.termsModalHeader}>
-                <Text style={styles.termsModalTitle}>Terms & Conditions</Text>
+                <Text style={styles.termsModalTitle}>
+                  {t('termsAndConditions')}
+                </Text>
                 <TouchableOpacity onPress={() => setShowTermsModal(false)}>
                   <Icon name="close" size={20} color={COLORS.textDark} />
                 </TouchableOpacity>
@@ -1644,7 +1679,9 @@ const OrderBooking = ({
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.termsModalContent}>
                 <Text style={styles.termsBodyText}>
-                  {TERMS_AND_CONDITIONS_TEXT}
+                  {currentLanguage === 'nl'
+                    ? TERMS_AND_CONDITIONS_TEXT.nl
+                    : TERMS_AND_CONDITIONS_TEXT.en}
                 </Text>
               </ScrollView>
             </View>
