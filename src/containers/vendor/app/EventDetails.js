@@ -269,7 +269,6 @@ function EventDetailsScreen({navigation, route}) {
         <OrderBooking
           isVisible={modalVisible}
           onClose={() => setModalVisible(false)}
-          nestedFilter
           handleSendBookingRequest={handleSendBookingRequest}
         />
         <RequestConfirmation

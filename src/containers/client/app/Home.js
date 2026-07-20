@@ -51,6 +51,7 @@ const Home = ({navigation}) => {
     handleCategorySelect,
     onRefresh,
     onBookingCardPress,
+    onResetFilters, 
     onVendorCardPress,
     handleAddToWishList,
     onApplyFilters,
@@ -134,7 +135,7 @@ const Home = ({navigation}) => {
         isVisible={isFilterVisible}
         onClose={() => setFilterVisible(false)}
         onApplyPress={onApplyFilters}
-        modalRef={modalRef}
+        onResetPress={onResetFilters}
         nestedFilter
       />
 

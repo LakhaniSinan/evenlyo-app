@@ -44,7 +44,7 @@ const FilterModal = ({
   isVisible,
   onClose,
   nestedFilter = false,
-  modalRef,
+  onResetPress = () => {},
   onApplyPress = () => {},
 }) => {
   const {t, currentLanguage} = useTranslation();
@@ -121,14 +121,21 @@ const FilterModal = ({
   const handleReset = useCallback(() => {
     setFilters(INITIAL_FILTERS);
     setDates(INITIAL_DATES);
-    setAddress({fullAddress: '', lat: 0, lng: 0});
+    setAddress({
+      fullAddress: '',
+      lat: 0,
+      lng: 0,
+    });
     setRadius(null);
     setSubCatQuery('');
     setSubCatList([]);
     setSelectedSubCategory(null);
-    onClose();
+
     setFormKey(prev => prev + 1);
-  }, []);
+
+    onResetPress();
+    onClose();
+  }, [onClose, onResetPress]);
 
   const handleApply = useCallback(() => {
     const payload = {
@@ -156,9 +163,7 @@ const FilterModal = ({
   const FooterButtons = memo(() => (
     <View style={styles.buttonRow}>
       <View style={styles.buttonWrapper}>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={nestedFilter ? handleReset : onClose}>
+        <TouchableOpacity style={styles.cancelButton} onPress={handleReset}>
           {nestedFilter ? (
             <GradientText text={t('Reset Filter')} />
           ) : (
@@ -196,7 +201,7 @@ const FilterModal = ({
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          {nestedFilter && (
+          {/* {nestedFilter && (
             <>
               <CustomPicker
                 ref={mainCategoryRef}
@@ -217,7 +222,7 @@ const FilterModal = ({
                 handleSelectValue={handleSelect}
               />
             </>
-          )}
+          )} */}
 
           {/* SubCategory Search */}
           <View style={styles.searchWrapper}>
@@ -395,7 +400,7 @@ const styles = StyleSheet.create({
   buttonWrapper: {flex: 1, paddingHorizontal: 6},
 
   cancelButton: {
-    height: 48,
+    height: 44,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.primary,
