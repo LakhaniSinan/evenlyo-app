@@ -1146,7 +1146,7 @@ const ChatDetail = ({navigation, route}) => {
         const uploadRes = await helper.uploadMediaToCloudinary(attachedFile);
         if (uploadRes && (uploadRes.url || uploadRes.secure_url)) {
           fileUrl = {
-            url: uploadRes.url || uploadRes.secure_url,
+            url:uploadRes.secure_url,
             format:
               uploadRes.format ||
               (uploadRes.secure_url && uploadRes.secure_url.split('.').pop()),
@@ -1450,6 +1450,9 @@ const ChatDetail = ({navigation, route}) => {
       setRefreshing(false);
     }
   };
+
+  console.log(allMessages,"ALL_MeSSageSS");
+  
 
   return (
     <View style={styles.container}>

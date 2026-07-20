@@ -509,6 +509,7 @@ const BookingDetails = ({route, navigation}) => {
     try {
       setIsLoading(true);
       const response = await getAmountToPay(bookingData._id);
+console.log(response,"responseresponseresponseresponseasdasdsd");
 
       if (response?.status === 200 || response?.status === 201) {
         const payableAmount = Number(response?.data?.amountToPay || 0);
@@ -625,7 +626,7 @@ const BookingDetails = ({route, navigation}) => {
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
           headingText={localizedText.booking}
-          rightIcon={ICONS.chatIcon}
+          // rightIcon={ICONS.chatIcon}
           onLeftIconPress={() => navigation.goBack()}
           onRightIconPress={handleOpenChat}
         />

@@ -9,7 +9,7 @@ import NotificationPopup from 'react-native-push-notification-popup';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {Provider, useDispatch} from 'react-redux';
 import LocationInitializer from './src/components/LocationInitializer';
-import {STRIPE_PUBLISHABLE_KEYS} from './src/config/server';
+import {STRIPE_PUBLISHABLE_KEYS, STRIPE_URL_SCHEME} from './src/config/server';
 import {notifications} from './src/constants/Variable';
 import {SocketProvider} from './src/context';
 import {helper} from './src/helper';
@@ -20,6 +20,7 @@ import AppNavigator from './src/navigation';
 import store from './src/redux';
 import {initializeLanguageFromStorage} from './src/redux/slice/language';
 import './src/services/i18n';
+import {preloadVectorIcons} from './src/utils/preloadVectorIcons';
 
 const AppContent = () => {
   const dispatch = useDispatch();
@@ -33,6 +34,10 @@ const AppContent = () => {
     return () => {
       notifications.popup = null;
     };
+  }, []);
+
+  useEffect(() => {
+    preloadVectorIcons();
   }, []);
 
   useEffect(() => {
@@ -65,6 +70,7 @@ const AppContent = () => {
     </SafeAreaView>
   );
 };
+//hello
 
 const App = () => {
   return (

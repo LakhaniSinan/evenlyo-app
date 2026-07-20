@@ -33,7 +33,8 @@ import GooglePlacesInput from '../locationField';
 import Loader from '../loder';
 import TextField from '../textInput';
 
-const TERMS_AND_CONDITIONS_TEXT = `I accept the terms and conditions
+const TERMS_AND_CONDITIONS_TEXT = {
+  en: `I accept the terms and conditions
 
 Welcome to Evenlyo
 By accessing and using our platform, you agree to the following terms and conditions.
@@ -61,8 +62,37 @@ Cancellation policies are determined by individual vendors.
 Vendors are responsible for service delivery.
 Clients are responsible for timely payments and providing accurate event details.
 Neither party may hold Evenlyo liable for any performance or service issues.
-If full payment is not completed before the event, Evenlyo or the supplier reserves the right to cancel the booking without refunding the deposit.`;
+If full payment is not completed before the event, Evenlyo or the supplier reserves the right to cancel the booking without refunding the deposit.`,
+  nl: `Ik accepteer de algemene voorwaarden
 
+Welkom bij Evenlyo
+Door toegang te krijgen tot en gebruik te maken van ons platform, gaat u akkoord met de volgende algemene voorwaarden.
+
+Deze voorwaarden zijn bedoeld om zowel klanten als leveranciers te beschermen, en zorgen voor een veilige, eerlijke en transparante ervaring voor iedereen.
+
+1. Algemene voorwaarden
+Evenlyo fungeert als platform om klanten en leveranciers te verbinden voor evenementdiensten.
+Gebruikers moeten accurate informatie verstrekken bij het aanmaken van boekingen en profielen.
+Alle communicatie en transacties zijn de verantwoordelijkheid van de gebruiker en niet van Evenlyo.
+
+2. Regels voor platformgebruik
+Klanten kunnen diensten rechtstreeks via Evenlyo boeken.
+Leveranciers zijn verantwoordelijk voor het up-to-date houden van hun dienstdetails, prijzen en beschikbaarheid.
+Zowel klanten als leveranciers moeten respectvol en te goeder trouw communiceren.
+
+3. Betalingen en kosten
+Betalingen worden veilig verwerkt via ons geïntegreerde systeem.
+Kosten voor leveranciers (indien van toepassing) worden duidelijk vermeld vóór de aanmelding.
+Restitutiebeleid is onderhevig aan het beleid van de leverancier en de platformregels.
+
+4. Aansprakelijkheid en annuleringen
+Evenlyo is geen partij bij contracten tussen klanten en leveranciers.
+Annuleringsvoorwaarden worden bepaald door individuele leveranciers.
+Leveranciers zijn verantwoordelijk voor de dienstverlening.
+Klanten zijn verantwoordelijk voor tijdige betalingen en het verstrekken van accurate evenementgegevens.
+Geen van beide partijen mag Evenlyo aansprakelijk stellen voor prestatie- of dienstproblemen.
+Als de volledige betaling niet vóór het evenement is voltooid, behoudt Evenlyo of de leverancier het recht om de boeking te annuleren zonder restitutie van de aanbetaling.`,
+};
 const DAY_KEY_ALIASES = {
   mon: 'mon',
   monday: 'mon',
@@ -124,6 +154,33 @@ const getPickerTimeDate = existingTime => {
     return normalizeToHour(existingTime);
   }
   return moment().minute(0).second(0).millisecond(0).toDate();
+};
+
+const MIN_BOOKING_HOURS = 1;
+
+const getTimeRangeHours = (referenceDate, startTime, endTime) => {
+  if (!startTime || !endTime) {
+    return null;
+  }
+
+  const dateStr = referenceDate
+    ? moment(referenceDate, 'YYYY-MM-DD', true).isValid()
+      ? moment(referenceDate, 'YYYY-MM-DD').format('YYYY-MM-DD')
+      : moment(referenceDate).format('YYYY-MM-DD')
+    : moment().format('YYYY-MM-DD');
+
+  const start = moment(dateStr, 'YYYY-MM-DD')
+    .hour(moment(startTime).hour())
+    .minute(0)
+    .second(0)
+    .millisecond(0);
+  const end = moment(dateStr, 'YYYY-MM-DD')
+    .hour(moment(endTime).hour())
+    .minute(0)
+    .second(0)
+    .millisecond(0);
+
+  return end.diff(start, 'hours', true);
 };
 
 const OrderBooking = ({
@@ -483,7 +540,8 @@ const OrderBooking = ({
     // For single-date selection, requested hours come from startTime/endTime
     let requestedHours = calcTotalHours;
     if (requiresTimeSelection && startTime && endTime) {
-      requestedHours = moment(endTime).diff(moment(startTime), 'hours', true);
+      const rangeHours = getTimeRangeHours(startDateStr, startTime, endTime);
+      requestedHours = rangeHours > 0 ? rangeHours : 0;
     }
 
     let baseHours = calcTotalHours;
@@ -558,6 +616,7 @@ const OrderBooking = ({
     roundedDistanceKm,
     isChecked,
     data,
+    startDateStr,
     startTime,
     endTime,
     hoursPerDay,
@@ -616,6 +675,40 @@ const OrderBooking = ({
     }
   }, [data, requiresTimeSelection, startDateStr, referenceDate, startTime, endTime]);
 
+  const validateTimeSelection = useCallback(() => {
+    if (!requiresTimeSelection) {
+      return true;
+    }
+
+    if (!startTime || !endTime) {
+      modalRef.current?.show({
+        status: 'error',
+        message: t('pleaseSelectStartAndEndTime'),
+      });
+      return false;
+    }
+
+    const hoursDiff = getTimeRangeHours(startDateStr, startTime, endTime);
+
+    if (hoursDiff <= 0) {
+      modalRef.current?.show({
+        status: 'error',
+        message: t('endTimeMustBeAfterStartTime'),
+      });
+      return false;
+    }
+
+    if (hoursDiff < MIN_BOOKING_HOURS) {
+      modalRef.current?.show({
+        status: 'error',
+        message: t('minimumBookingDurationOneHour'),
+      });
+      return false;
+    }
+
+    return true;
+  }, [requiresTimeSelection, startTime, endTime, startDateStr, t]);
+
   const handleBooking = useCallback(async () => {
     if (isSubmittingRef.current) {
       return;
@@ -637,11 +730,7 @@ const OrderBooking = ({
       return;
     }
 
-    if (requiresTimeSelection && (!startTime || !endTime)) {
-      modalRef.current?.show({
-        status: 'error',
-        message: t('pleaseSelectStartAndEndTime'),
-      });
+    if (!validateTimeSelection()) {
       return;
     }
 
@@ -785,6 +874,7 @@ const OrderBooking = ({
     availableSelectedDays,
     data,
     handleSendBookingRequest,
+    validateTimeSelection,
   ]);
 
   const handleDayPress = day => {
@@ -946,6 +1036,10 @@ const OrderBooking = ({
   ]);
 
   const handleUpdateCart = async () => {
+    if (!validateTimeSelection()) {
+      return;
+    }
+
     try {
       const slot = data?.availability?.availableTimeSlots?.[0] || {};
       const slotStart = slot.startTime || '';
@@ -1085,6 +1179,10 @@ const OrderBooking = ({
   };
 
   const handleAddToCart = () => {
+    if (!validateTimeSelection()) {
+      return;
+    }
+
     const details = {
       listingId: data?._id,
       startDate: startDateStr,
@@ -1208,7 +1306,29 @@ const OrderBooking = ({
                   minuteInterval={60}
                   onConfirm={date => {
                     setShowStartPicker(false);
-                    setStartTime(normalizeToHour(date));
+                    const normalized = normalizeToHour(date);
+                    if (endTime) {
+                      const hoursDiff = getTimeRangeHours(
+                        startDateStr,
+                        normalized,
+                        endTime,
+                      );
+                      if (hoursDiff <= 0) {
+                        modalRef.current?.show({
+                          status: 'error',
+                          message: t('endTimeMustBeAfterStartTime'),
+                        });
+                        return;
+                      }
+                      if (hoursDiff < MIN_BOOKING_HOURS) {
+                        modalRef.current?.show({
+                          status: 'error',
+                          message: t('minimumBookingDurationOneHour'),
+                        });
+                        return;
+                      }
+                    }
+                    setStartTime(normalized);
                   }}
                   onCancel={() => setShowStartPicker(false)}
                 />
@@ -1223,7 +1343,29 @@ const OrderBooking = ({
                   minuteInterval={60}
                   onConfirm={date => {
                     setShowEndPicker(false);
-                    setEndTime(normalizeToHour(date));
+                    const normalized = normalizeToHour(date);
+                    if (startTime) {
+                      const hoursDiff = getTimeRangeHours(
+                        startDateStr,
+                        startTime,
+                        normalized,
+                      );
+                      if (hoursDiff <= 0) {
+                        modalRef.current?.show({
+                          status: 'error',
+                          message: t('endTimeMustBeAfterStartTime'),
+                        });
+                        return;
+                      }
+                      if (hoursDiff < MIN_BOOKING_HOURS) {
+                        modalRef.current?.show({
+                          status: 'error',
+                          message: t('minimumBookingDurationOneHour'),
+                        });
+                        return;
+                      }
+                    }
+                    setEndTime(normalized);
                   }}
                   onCancel={() => setShowEndPicker(false)}
                 />
@@ -1258,6 +1400,9 @@ const OrderBooking = ({
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
+                returnKeyType="done"
+                blurOnSubmit
+                onSubmitEditing={Keyboard.dismiss}
               />
             </View>
 
@@ -1522,7 +1667,9 @@ const OrderBooking = ({
           <View style={styles.termsModalOverlay}>
             <View style={styles.termsModalContainer}>
               <View style={styles.termsModalHeader}>
-                <Text style={styles.termsModalTitle}>Terms & Conditions</Text>
+                <Text style={styles.termsModalTitle}>
+                  {t('termsAndConditions')}
+                </Text>
                 <TouchableOpacity onPress={() => setShowTermsModal(false)}>
                   <Icon name="close" size={20} color={COLORS.textDark} />
                 </TouchableOpacity>
@@ -1532,7 +1679,9 @@ const OrderBooking = ({
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.termsModalContent}>
                 <Text style={styles.termsBodyText}>
-                  {TERMS_AND_CONDITIONS_TEXT}
+                  {currentLanguage === 'nl'
+                    ? TERMS_AND_CONDITIONS_TEXT.nl
+                    : TERMS_AND_CONDITIONS_TEXT.en}
                 </Text>
               </ScrollView>
             </View>

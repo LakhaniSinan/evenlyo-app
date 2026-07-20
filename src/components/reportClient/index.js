@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {
   Modal,
   StyleSheet,
@@ -17,9 +17,7 @@ const ReportUserModal = ({visible, onClose, onSubmit, userName}) => {
   const localizedText = {
     reportUser: isDutch ? 'Gebruiker melden' : 'Report User',
     report: isDutch ? 'Melden' : 'Report',
-    reportReasonLabel: isDutch
-      ? 'Reden van melding'
-      : 'Reason for reporting',
+    reportReasonLabel: isDutch ? 'Reden van melding' : 'Reason for reporting',
     reportPlaceholder: isDutch
       ? 'Beschrijf waarom je deze gebruiker meldt...'
       : 'Please describe why you are reporting this user...',
@@ -29,11 +27,15 @@ const ReportUserModal = ({visible, onClose, onSubmit, userName}) => {
   const [reason, setReason] = useState('');
 
   const handleReport = () => {
-    if (reason.trim().length === 0) {return;}
+    if (reason.trim().length === 0) {
+      return;
+    }
     onSubmit(reason);
     setReason('');
     onClose();
   };
+
+  const inputRef = useRef(null);
 
   return (
     <Modal
@@ -64,12 +66,17 @@ const ReportUserModal = ({visible, onClose, onSubmit, userName}) => {
           {/* Input Field */}
           <Text style={styles.label}>{localizedText.reportReasonLabel}</Text>
           <TextInput
+            ref={inputRef}
             placeholder={localizedText.reportPlaceholder}
             placeholderTextColor={COLORS.textLight}
             value={reason}
             onChangeText={setReason}
-            maxLength={500}
             multiline
+            blurOnSubmit={true}
+            returnKeyType="done"
+            onSubmitEditing={() => {
+              inputRef.current?.blur();
+            }}
             style={styles.textArea}
           />
           <Text style={styles.charCount}>

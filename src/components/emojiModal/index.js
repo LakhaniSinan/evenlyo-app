@@ -7,9 +7,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Pressable,
 } from 'react-native';
 import {width} from 'react-native-dimension';
-import { COLORS, fontFamly } from '../../constants';
+import {COLORS, fontFamly} from '../../constants';
 
 const EmojiPickerPopup = ({visible, onClose, onSelectEmoji, emojis = []}) => {
   return (
@@ -18,10 +19,8 @@ const EmojiPickerPopup = ({visible, onClose, onSelectEmoji, emojis = []}) => {
       transparent
       visible={visible}
       onRequestClose={onClose}>
-      <TouchableOpacity
-        activeOpacity={1}
-        onPress={onClose}
-        style={styles.overlay}>
+      <View style={styles.overlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={styles.popupContainer}>
           <Text style={styles.title}>Select Emoji</Text>
           <ScrollView
@@ -30,17 +29,14 @@ const EmojiPickerPopup = ({visible, onClose, onSelectEmoji, emojis = []}) => {
             {emojis.map((emoji, index) => (
               <TouchableOpacity
                 key={index}
-                onPress={() => {
-                  onSelectEmoji(emoji);
-                  onClose();
-                }}
+                onPress={() => onSelectEmoji(emoji)}
                 style={styles.emojiButton}>
                 <Text style={styles.emoji}>{emoji}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 };
@@ -61,6 +57,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 5,
+    zIndex: 2,
   },
   title: {
     fontFamily: fontFamly.PlusJakartaSansBold,

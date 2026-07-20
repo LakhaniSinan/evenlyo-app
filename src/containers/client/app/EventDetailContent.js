@@ -371,7 +371,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         setResponeData(response?.data?.data?.bookingRequest);
         setStartDate(null);
         setModalVisible(false);
-        setTimeout(() => setResuestModalVisible(true), 500);
+        setTimeout(() => setResuestModalVisible(true), 1200);
       } else {
         modalRef.current.show({
           status: 'error',

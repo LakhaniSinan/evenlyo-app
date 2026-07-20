@@ -6,11 +6,17 @@ import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import {COLORS, fontFamly} from '../../constants';
+import {STRIPE_RETURN_URL} from '../../config/server';
 import {useTranslation} from '../../hooks';
 import {saveBookingOrder} from '../../services/ListingsItem';
 import {formatEuro, parsePrice} from '../../utils';
 import GradientButton from '../button';
 import CommonAlert from '../commanAlert';
+
+const PAYMENT_METHODS = {
+  CARD: 'card',
+  IDEAL: 'ideal',
+};
 
 const PaymentModal = ({
   onClose,
@@ -23,6 +29,7 @@ const PaymentModal = ({
 }) => {
   const {t} = useTranslation();
   const {confirmPayment} = useStripe();
+  const [selectedMethod, setSelectedMethod] = useState(PAYMENT_METHODS.CARD);
   const [cardComplete, setCardComplete] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -35,9 +42,14 @@ const PaymentModal = ({
       subtitle: t('paymentDetailsSubtitle'),
       summaryTitle: t('paymentSummaryTitle'),
       bookingAmount: t('bookingAmountLabel'),
+      methodTitle: t('paymentMethodTitle'),
+      cardOption: t('paymentMethodCard'),
+      idealOption: t('paymentMethodIdeal'),
       secureTitle: t('securePaymentTitle'),
       secureSubtitle: t('securePaymentSubtitle'),
-      pay: t('payButton'),
+      idealInfo: t('idealPaymentInfo'),
+      payCard: t('payWithCard'),
+      payIdeal: t('payWithIdeal'),
       processing: t('Processing'),
       completeCard: t('pleaseCompleteCardDetails'),
       notInitialized: t('paymentNotInitialized'),
@@ -45,6 +57,14 @@ const PaymentModal = ({
     }),
     [t],
   );
+
+  useEffect(() => {
+    if (!isVisible) {
+      setSelectedMethod(PAYMENT_METHODS.CARD);
+      setCardComplete(false);
+      setProcessing(false);
+    }
+  }, [isVisible]);
 
   const handleBackdropPress = () => {
     if (keyboardVisible) {
@@ -69,14 +89,6 @@ const PaymentModal = ({
   }, []);
 
   const validatePayment = () => {
-    if (!cardComplete) {
-      modalRef.current.show({
-        status: 'error',
-        message: labels.completeCard,
-      });
-      return false;
-    }
-
     if (!clientSecret) {
       modalRef.current.show({
         status: 'error',
@@ -85,19 +97,71 @@ const PaymentModal = ({
       return false;
     }
 
+    if (selectedMethod === PAYMENT_METHODS.CARD && !cardComplete) {
+      modalRef.current.show({
+        status: 'error',
+        message: labels.completeCard,
+      });
+      return false;
+    }
+
     return true;
   };
 
-  const onPay = useCallback(async () => {
-    if (!validatePayment() || processing) return;
-    Keyboard.dismiss();
+  const recordPayment = useCallback(
+    async paymentIntentId => {
+      const params = {
+        bookingId: selectedData?._id,
+        paymentIntent: paymentIntentId,
+        amount: payableAmount,
+      };
+      const res = await saveBookingOrder(params);
 
+      if (res.status === 200 || res.status === 201) {
+        modalRef.current?.show({
+          status: 'ok',
+          message: res?.data?.message,
+          handlePressOk: () => {
+            modalRef.current?.hide();
+            setTimeout(() => {
+              onPaymentSuccess?.();
+              onClose();
+            }, 500);
+          },
+        });
+        return;
+      }
+
+      modalRef.current?.show({
+        status: 'error',
+        message: res?.data?.message || labels.paymentFailed,
+      });
+    },
+    [selectedData, payableAmount, modalRef, labels, onPaymentSuccess, onClose],
+  );
+
+  const onPay = useCallback(async () => {
+    if (!validatePayment() || processing) {
+      return;
+    }
+
+    Keyboard.dismiss();
     setProcessing(true);
 
     try {
-      const {error, paymentIntent} = await confirmPayment(clientSecret, {
-        paymentMethodType: 'Card',
-      });
+      const isIdeal = selectedMethod === PAYMENT_METHODS.IDEAL;
+      const confirmParams = {
+        paymentMethodType: isIdeal ? 'Ideal' : 'Card',
+      };
+
+      if (isIdeal) {
+        confirmParams.returnURL = STRIPE_RETURN_URL;
+      }
+
+      const {error, paymentIntent} = await confirmPayment(
+        clientSecret,
+        confirmParams,
+      );
 
       if (error) {
         modalRef.current.show({
@@ -107,53 +171,38 @@ const PaymentModal = ({
         return;
       }
 
-      if (paymentIntent) {
-        try {
-          const params = {
-            bookingId: selectedData?._id,
-            paymentIntent: paymentIntent?.id,
-            amount: payableAmount,
-          };
-          const res = await saveBookingOrder(params);
-          if (res.status === 200 || res.status === 201) {
-            modalRef.current?.show({
-              status: 'ok',
-              message: res?.data?.message,
-              handlePressOk: () => {
-                modalRef.current?.hide();
-                setTimeout(() => {
-                  onPaymentSuccess?.();
-                  onClose();
-                }, 500);
-              },
-            });
-          } else {
-            modalRef.current?.show({
-              status: 'error',
-              message: res?.data?.message,
-            });
-          }
-        } catch (err) {
-          console.log('PAY ERROR', err);
-        }
+      if (paymentIntent?.id) {
+        await recordPayment(paymentIntent.id);
       }
     } catch (err) {
-      console.log(err, 'errerrerrerrerrerrerrerrasd2qedasc');
+      console.log('Payment error', err);
+      modalRef.current?.show({
+        status: 'error',
+        message: labels.paymentFailed,
+      });
     } finally {
       setProcessing(false);
     }
   }, [
+    selectedMethod,
     cardComplete,
     clientSecret,
     processing,
     confirmPayment,
     labels,
-    selectedData,
-    payableAmount,
+    recordPayment,
     modalRef,
-    onClose,
-    onPaymentSuccess,
   ]);
+
+  const handleSelectMethod = method => {
+    setSelectedMethod(method);
+    if (method === PAYMENT_METHODS.IDEAL) {
+      Keyboard.dismiss();
+    }
+  };
+
+  const payButtonLabel =
+    selectedMethod === PAYMENT_METHODS.IDEAL ? labels.payIdeal : labels.payCard;
 
   return (
     <Modal
@@ -183,25 +232,81 @@ const PaymentModal = ({
           </View>
         </View>
 
-        <Text style={styles.title}>{labels.secureTitle}</Text>
-        <Text style={styles.subTitle}>{labels.secureSubtitle}</Text>
-        <View style={{height: width(3)}} />
-        <CardField
-          postalCodeEnabled={false}
-          style={styles.cardFieldContainer}
-          cardStyle={styles.cardField}
-          onCardChange={card => {
-            const isComplete = Boolean(card?.complete);
-            setCardComplete(isComplete);
-            if (isComplete) {
-              Keyboard.dismiss();
-            }
-          }}
-        />
+        <Text style={styles.methodTitle}>{labels.methodTitle}</Text>
+        <View style={styles.methodRow}>
+          <TouchableOpacity
+            style={[
+              styles.methodCard,
+              selectedMethod === PAYMENT_METHODS.CARD && styles.methodCardActive,
+            ]}
+            onPress={() => handleSelectMethod(PAYMENT_METHODS.CARD)}
+            activeOpacity={0.8}>
+            <Icon
+              name="card-outline"
+              size={22}
+              color={
+                selectedMethod === PAYMENT_METHODS.CARD
+                  ? COLORS.primary
+                  : COLORS.textLight
+              }
+            />
+            <Text
+              style={[
+                styles.methodLabel,
+                selectedMethod === PAYMENT_METHODS.CARD && styles.methodLabelActive,
+              ]}>
+              {labels.cardOption}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.methodCard,
+              selectedMethod === PAYMENT_METHODS.IDEAL && styles.methodCardActive,
+            ]}
+            onPress={() => handleSelectMethod(PAYMENT_METHODS.IDEAL)}
+            activeOpacity={0.8}>
+            <View style={styles.idealBadge}>
+              <Text style={styles.idealBadgeText}>iDEAL</Text>
+            </View>
+            <Text
+              style={[
+                styles.methodLabel,
+                selectedMethod === PAYMENT_METHODS.IDEAL && styles.methodLabelActive,
+              ]}>
+              {labels.idealOption}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {selectedMethod === PAYMENT_METHODS.CARD ? (
+          <>
+            <Text style={styles.title}>{labels.secureTitle}</Text>
+            <Text style={styles.subTitle}>{labels.secureSubtitle}</Text>
+            <View style={{height: width(3)}} />
+            <CardField
+              postalCodeEnabled={false}
+              style={styles.cardFieldContainer}
+              cardStyle={styles.cardField}
+              onCardChange={card => {
+                const isComplete = Boolean(card?.complete);
+                setCardComplete(isComplete);
+                if (isComplete) {
+                  Keyboard.dismiss();
+                }
+              }}
+            />
+          </>
+        ) : (
+          <View style={styles.idealBox}>
+            <Text style={styles.title}>{labels.secureTitle}</Text>
+            <Text style={styles.subTitle}>{labels.idealInfo}</Text>
+          </View>
+        )}
 
         {!keyboardVisible && (
           <GradientButton
-            text={processing ? labels.processing : labels.pay}
+            text={processing ? labels.processing : payButtonLabel}
             onPress={onPay}
             disabled={processing}
             type="filled"
@@ -222,7 +327,7 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    height: '70%',
+    minHeight: '70%',
     backgroundColor: COLORS.white,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
@@ -251,9 +356,9 @@ const styles = StyleSheet.create({
   },
 
   amountBox: {
-    height: width(20),
-    marginVertical: width(5),
+    marginVertical: width(4),
     paddingHorizontal: width(3),
+    paddingVertical: width(4),
     justifyContent: 'center',
     backgroundColor: COLORS.backgroundLight,
     borderRadius: width(3),
@@ -263,6 +368,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: COLORS.black,
     fontFamily: fontFamly.PlusJakartaSansSemiBold,
+    marginBottom: width(2),
   },
 
   amountRow: {
@@ -281,6 +387,69 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.black,
     fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+
+  methodTitle: {
+    fontSize: 14,
+    color: COLORS.black,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
+    marginBottom: width(2),
+  },
+
+  methodRow: {
+    flexDirection: 'row',
+    gap: width(3),
+    marginBottom: width(4),
+  },
+
+  methodCard: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.backgroundLight,
+    borderRadius: width(3),
+    padding: width(3),
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: width(22),
+    backgroundColor: COLORS.white,
+  },
+
+  methodCardActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: '#FDF0FA',
+  },
+
+  methodLabel: {
+    marginTop: width(2),
+    fontSize: 12,
+    color: COLORS.textLight,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    textAlign: 'center',
+  },
+
+  methodLabelActive: {
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
+  },
+
+  idealBadge: {
+    backgroundColor: '#CC0066',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+
+  idealBadgeText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+
+  idealBox: {
+    marginBottom: width(4),
+    padding: width(4),
+    borderRadius: width(3),
+    backgroundColor: COLORS.backgroundLight,
   },
 
   cardFieldContainer: {

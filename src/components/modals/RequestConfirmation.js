@@ -30,7 +30,7 @@ const RequestConfirmation = ({responeData, visible, onClose}) => {
     requestMessageSuffix: isDutch
       ? '. Wacht op hun bevestiging.'
       : '. Please wait for their confirmation.',
-    copyTrackingId: isDutch ? 'Tracking-ID kopieren *' : 'Copy Tracking Id *',
+    copyTrackingId: isDutch ? 'Tracking-ID' : 'Tracking Id',
     backToListing: isDutch ? 'Terug naar overzicht' : 'Back To Listing',
   };
   const navigation = useNavigation();
@@ -66,7 +66,7 @@ const RequestConfirmation = ({responeData, visible, onClose}) => {
             <Text style={styles.messageText}>
               {localizedText.requestMessagePrefix}{' '}
               <Text style={styles.vendorCode}>
-                #{responeData?.vendorId?.businessName}
+                {responeData?.vendorId?.businessName}
               </Text>
               {localizedText.requestMessageSuffix}
             </Text>
@@ -74,18 +74,20 @@ const RequestConfirmation = ({responeData, visible, onClose}) => {
 
           {/* Location Input Field */}
           <View style={styles.locationSection}>
-            <Text style={styles.locationLabel}>{localizedText.copyTrackingId}</Text>
+            <Text style={styles.locationLabel}>
+              {localizedText.copyTrackingId}
+            </Text>
             <View style={styles.locationInputContainer}>
               <Text style={styles.locationInputText}>
                 {responeData?.trackingId}
               </Text>
-              <TouchableOpacity style={styles.copyButton}>
+              {/* <TouchableOpacity style={styles.copyButton}>
                 <Image
                   source={ICONS.copyIcon}
                   style={{height: 20, width: 20}}
                   resizeMode="contain"
                 />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </View>
 

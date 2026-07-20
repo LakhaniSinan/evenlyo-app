@@ -6,9 +6,11 @@ import FastImage from 'react-native-fast-image';
 import Modal from 'react-native-modal';
 import { IMAGES } from '../../assets';
 import { COLORS, fontFamly } from '../../constants';
+import { useTranslation } from '../../hooks';
 import GradientButton from '../button';
 
 const UpdatePopUp = React.forwardRef((props, ref) => {
+  const { t } = useTranslation();
   const [isVisible, ModalVisibility] = useState(false);
 
   const handleCancel = () => {
@@ -56,7 +58,7 @@ const UpdatePopUp = React.forwardRef((props, ref) => {
             textAlign: 'center',
             marginTop: width(5),
           }}>
-          New Features Available!
+          {t('updatePopupTitle')}
         </Text>
         <Text
           style={{
@@ -66,8 +68,7 @@ const UpdatePopUp = React.forwardRef((props, ref) => {
             textAlign: 'center',
             marginTop: width(5),
           }}>
-          A new version brings performance boosts and exciting features. Please
-          update to continue.
+          {t('updatePopupDescription')}
         </Text>
         <View
           style={{
@@ -76,15 +77,15 @@ const UpdatePopUp = React.forwardRef((props, ref) => {
             marginTop: width(5),
           }}>
           <View style={{ width: '46%', height: width(14) }}>
-            <GradientButton text="Cancel" onPress={handleCancel} />
+            <GradientButton text={t('Cancel')} onPress={handleCancel} />
           </View>
           <View style={{ width: '46%', height: width(14) }}>
             <GradientButton
-              text="Update"
+              text={t('Update')}
               onPress={() => {
                 const url =
                   Platform.OS === 'android'
-                    ? 'https://play.google.com/store/apps'
+                    ? 'https://play.google.com/store/apps/details?id=com.evenlyo'
                     : 'itms-apps://itunes.apple.com';
                 Linking.openURL(url);
               }}

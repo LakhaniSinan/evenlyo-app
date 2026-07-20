@@ -199,8 +199,10 @@ const styles = StyleSheet.create({
 
   buyBtn: {
     borderRadius: 14,
-    paddingVertical: 10,
+    // paddingVertical: 10,
+    height:width(10),
     alignItems: 'center',
+    justifyContent:"center"
   },
 
   buyText: {

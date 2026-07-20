@@ -780,8 +780,15 @@ export default {
   paymentDetailsSubtitle: 'Complete your booking payment',
   paymentSummaryTitle: 'Payment Summary',
   bookingAmountLabel: 'Booking Amount',
+  paymentMethodTitle: 'Choose payment method',
+  paymentMethodCard: 'Card',
+  paymentMethodIdeal: 'iDEAL',
   securePaymentTitle: 'Secure Payment',
   securePaymentSubtitle: 'Your card information is encrypted and secure',
+  payWithCard: 'Pay with Card',
+  payWithIdeal: 'Pay with iDEAL',
+  idealPaymentInfo:
+    'You will be redirected to your bank to complete the payment securely via iDEAL.',
   payButton: 'Pay',
   pleaseCompleteCardDetails: 'Please complete card details',
   paymentNotInitialized: 'Payment not initialized',
@@ -831,6 +838,8 @@ export default {
   pleaseAddAddressFirst: 'Please add address first.',
   pleaseSelectStartDateFirst: 'Please select start date first.',
   pleaseSelectStartAndEndTime: 'Please select start and end time.',
+  endTimeMustBeAfterStartTime: 'End time must be after start time.',
+  minimumBookingDurationOneHour: 'Booking duration must be at least 1 hour.',
   pleaseAcceptTermsAndConditionsFirst:
     'Please accept terms and conditions first.',
   fullPaymentRequiredTitle: 'Full Payment Required',
@@ -1208,4 +1217,9 @@ export default {
   imageUploadFailed: 'Image upload failed. Please try again.',
   taglineEnglishOptional: 'Tagline (English) (optional)',
   descriptionEnglishOptional: 'Description (English) (optional)',
+
+  // Update popup
+  updatePopupTitle: 'New Features Available!',
+  updatePopupDescription:
+    'A new version brings performance boosts and exciting features. Please update to continue.',
 };

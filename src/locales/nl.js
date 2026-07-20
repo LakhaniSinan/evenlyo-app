@@ -784,8 +784,15 @@ export default {
   paymentDetailsSubtitle: 'Voltooi de betaling van je boeking',
   paymentSummaryTitle: 'Betalingsoverzicht',
   bookingAmountLabel: 'Boekingsbedrag',
+  paymentMethodTitle: 'Kies betaalmethode',
+  paymentMethodCard: 'Kaart',
+  paymentMethodIdeal: 'iDEAL',
   securePaymentTitle: 'Veilige betaling',
   securePaymentSubtitle: 'Je kaartgegevens zijn versleuteld en beveiligd',
+  payWithCard: 'Betaal met kaart',
+  payWithIdeal: 'Betaal met iDEAL',
+  idealPaymentInfo:
+    'Je wordt doorgestuurd naar je bank om de betaling veilig via iDEAL af te ronden.',
   payButton: 'Betalen',
   pleaseCompleteCardDetails: 'Vul de kaartgegevens volledig in',
   paymentNotInitialized: 'Betaling is niet geïnitialiseerd',
@@ -835,6 +842,8 @@ export default {
   pleaseAddAddressFirst: 'Voeg eerst een adres toe.',
   pleaseSelectStartDateFirst: 'Selecteer eerst een startdatum.',
   pleaseSelectStartAndEndTime: 'Selecteer een begin- en eindtijd.',
+  endTimeMustBeAfterStartTime: 'Eindtijd moet na de begintijd zijn.',
+  minimumBookingDurationOneHour: 'Boeking moet minimaal 1 uur duren.',
   pleaseAcceptTermsAndConditionsFirst:
     'Accepteer eerst de algemene voorwaarden.',
   fullPaymentRequiredTitle: 'Volledige betaling vereist',
@@ -1213,4 +1222,9 @@ export default {
   imageUploadFailed: 'Afbeelding uploaden mislukt. Probeer het opnieuw.',
   taglineEnglishOptional: 'Tagline (Engels) (optioneel)',
   descriptionEnglishOptional: 'Omschrijving (Engels) (optioneel)',
+
+  // Update popup
+  updatePopupTitle: 'Nieuwe functies beschikbaar!',
+  updatePopupDescription:
+    'Een nieuwe versie biedt betere prestaties en spannende functies. Werk bij om door te gaan.',
 };

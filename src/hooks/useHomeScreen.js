@@ -70,6 +70,7 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
   const [refreshing, setRefreshing] = useState(false);
   const [isWishlistLoading, setWishlistLoading] = useState(false);
   const [isSubCategoriesLoading, setSubCategoriesLoading] = useState(false);
+  const [isHomeDataLoading, setHomeDataLoading] = useState(false);
   const [homeDataVersion, setHomeDataVersion] = useState(0);
 
   const selectedCategoryId = selectedCategory?._id;
@@ -148,10 +149,15 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
       };
 
       try {
+        setHomeDataLoading(true);
         const [homeRes, vendorsRes] = await Promise.all([
           getHomeData(params),
           getVendorsBySubCategory(categoryId, {userId: user?.id}),
         ]);
+
+        if (requestId !== homeDataRequestRef.current) {
+          return;
+        }
 
         if (homeRes?.status === 200 || homeRes?.status === 201) {
           console.log('applyHomeResponse');
@@ -162,6 +168,10 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
       } catch (err) {
         if (requestId === homeDataRequestRef.current) {
           console.log(err, 'fetchHomeData error');
+        }
+      } finally {
+        if (requestId === homeDataRequestRef.current) {
+          setHomeDataLoading(false);
         }
       }
     },
@@ -403,6 +413,7 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
     refreshing,
     isWishlistLoading,
     isSubCategoriesLoading,
+    isHomeDataLoading,
     listSections,
     handleCategorySelect,
     onRefresh,

@@ -527,48 +527,56 @@ function VendorDetails({navigation, route}) {
             />
           </TouchableOpacity> */}
         </View>
-        <View
-          style={{
-            backgroundColor: COLORS.backgroundLight,
-            padding: width(5),
-            borderRadius: width(5),
-            margin: width(5),
-          }}>
-          <Text
+        {vendorDetail?.businessDetails?.phone ||
+        vendorDetail?.businessDetails?.email ? (
+          <View
             style={{
-              fontSize: 12,
-              fontFamily: fontFamly.PlusJakartaSansSemiBold,
-              color: COLORS.textLight,
-              marginTop: width(2),
+              backgroundColor: COLORS.backgroundLight,
+              padding: width(5),
+              borderRadius: width(5),
+              margin: width(5),
             }}>
-            📞 {localizedText.call}:{' '}
-            {vendorDetail?.businessDetails?.phone
-              ? `+${vendorDetail?.businessDetails?.phone}`
-              : localizedText.notAvailable}
-          </Text>
-          <Text
-            style={{
-              fontSize: 12,
-              fontFamily: fontFamly.PlusJakartaSansSemiBold,
-              color: COLORS.textLight,
-              marginTop: width(2),
-            }}>
-            ✉️ {localizedText.email}:{' '}
-            {getDisplayValue(vendorDetail?.businessDetails?.email)}
-          </Text>
-          <Text
-            style={{
-              fontSize: 12,
-              fontFamily: fontFamly.PlusJakartaSansSemiBold,
-              color: COLORS.textLight,
-              marginTop: width(2),
-            }}>
-            📍{vendorDetail?.businessDetails?.location}
-          </Text>
-        </View>
+            {vendorDetail?.businessDetails?.phone ? (
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontFamily: fontFamly.PlusJakartaSansSemiBold,
+                  color: COLORS.textLight,
+                  marginTop: width(2),
+                }}>
+                📞 {localizedText.call}:{' '}
+                {vendorDetail?.businessDetails?.phone
+                  ? `+${vendorDetail?.businessDetails?.phone}`
+                  : localizedText.notAvailable}
+              </Text>
+            ) : null}
+            {vendorDetail?.businessDetails?.email ? (
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontFamily: fontFamly.PlusJakartaSansSemiBold,
+                  color: COLORS.textLight,
+                  marginTop: width(2),
+                }}>
+                ✉️ {localizedText.email}:{' '}
+                {getDisplayValue(vendorDetail?.businessDetails?.email)}
+              </Text>
+            ) : null}
+            <Text
+              style={{
+                fontSize: 12,
+                fontFamily: fontFamly.PlusJakartaSansSemiBold,
+                color: COLORS.textLight,
+                marginTop: width(2),
+              }}>
+              📍{vendorDetail?.businessDetails?.location}
+            </Text>
+          </View>
+        ) : null}
         <View
           style={{
             marginHorizontal: width(5),
+            marginTop: width(3),
           }}>
           <Text
             style={{
