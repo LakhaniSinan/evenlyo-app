@@ -15,9 +15,11 @@ import useTranslation from '../../../hooks/useTranslation';
 const Home = ({navigation}) => {
   const modalRef = useRef();
   const {t, currentLanguage} = useTranslation();
-  const {address, city, state: regionState} = useSelector(
-    state => state.LocationSlice,
-  );
+  const {
+    address,
+    city,
+    state: regionState,
+  } = useSelector(state => state.LocationSlice);
 
   const {
     showLogin,
@@ -132,6 +134,7 @@ const Home = ({navigation}) => {
         onClose={() => setFilterVisible(false)}
         onApplyPress={onApplyFilters}
         modalRef={modalRef}
+        nestedFilter
       />
 
       <CommonAlert ref={modalRef} />

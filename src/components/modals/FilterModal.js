@@ -126,6 +126,7 @@ const FilterModal = ({
     setSubCatQuery('');
     setSubCatList([]);
     setSelectedSubCategory(null);
+    onClose();
     setFormKey(prev => prev + 1);
   }, []);
 
@@ -141,7 +142,7 @@ const FilterModal = ({
     };
 
     onApplyPress(payload);
-    handleReset();
+    // handleReset();
   }, [dates, address, radius, selectedSubCategory, onApplyPress, handleReset]);
 
   const onLocationSelect = useCallback(item => {
@@ -225,7 +226,7 @@ const FilterModal = ({
             <View style={styles.searchBox}>
               <TextInput
                 value={subCatQuery}
-                placeholder={t('typeToSearch')} 
+                placeholder={t('typeToSearch')}
                 placeholderTextColor={COLORS.textLight}
                 onChangeText={handleSubCatSearch}
                 style={styles.input}

@@ -73,7 +73,7 @@ const App = () => {
         <Provider store={store}>
           <SocketProvider>
             <PaperProvider>
-              <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEYS.LIVE}>
+              <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEYS.TEST}>
                 <AppContent />
               </StripeProvider>
             </PaperProvider>
