@@ -245,8 +245,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 10,
     borderColor: COLORS.border,
-    top: width(32),
-    right: width(9),
+    // top: width(32),
+    // right: width(9),
     borderWidth: 1,
   },
   menuItemTitle: {
