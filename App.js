@@ -20,8 +20,7 @@ import AppNavigator from './src/navigation';
 import store from './src/redux';
 import {initializeLanguageFromStorage} from './src/redux/slice/language';
 import './src/services/i18n';
-import { preloadVectorIcons } from './src/utils/preloadVectorIcons';
-
+import {preloadVectorIcons} from './src/utils/preloadVectorIcons';
 
 const AppContent = () => {
   const dispatch = useDispatch();
@@ -71,6 +70,7 @@ const AppContent = () => {
     </SafeAreaView>
   );
 };
+//hello
 
 const App = () => {
   return (
