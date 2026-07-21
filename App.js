@@ -70,7 +70,7 @@ const AppContent = () => {
     </SafeAreaView>
   );
 };
-//hello
+
 
 const App = () => {
   return (
