@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 18,
-    fontFamily: fontFamly.bold,
+    fontFamily: fontFamly.PlusJakartaSansBold,
     color: COLORS.black,
   },
 
