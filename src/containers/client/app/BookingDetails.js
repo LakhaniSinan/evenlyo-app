@@ -553,7 +553,9 @@ console.log(response,"responseresponseresponseresponseasdasdsd");
   };
 
   const handlePaymentSuccess = useCallback(() => {
+    setTimeout(() => {
     setPayModalVisible(false);
+    }, 2500);
     setClientSecret(null);
     fetchBookingDetails();
   }, [fetchBookingDetails]);

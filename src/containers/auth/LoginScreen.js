@@ -101,6 +101,8 @@ const LoginScreen = ({navigation, route}) => {
     } else {
       try {
         const fcmToken = (await ensureFcmTokenForAuth()) || fcm;
+        console.log(fcmToken,"fcmTokenfcmTokenfcmTokenfcmToken");
+        
         let payload = {
           email: email,
           password: password,
