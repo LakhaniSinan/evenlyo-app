@@ -17,6 +17,9 @@ end
 target 'Evenlyo' do
   # Firebase Swift pods need module maps when linked statically (GoogleUtilities is Obj-C).
   pod 'GoogleUtilities', :modular_headers => true
+  pod 'RecaptchaInterop', :modular_headers => true
+  pod 'FirebaseCore', :modular_headers => true
+  pod 'AppCheckCore', :modular_headers => true
 
   config = use_native_modules!
 

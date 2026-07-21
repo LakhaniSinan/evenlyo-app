@@ -152,7 +152,6 @@ const Settings = ({navigation}) => {
           </TouchableOpacity>
         );
       })}
-
       <ChangeLanguageModal
         visible={showLanguageModal}
         onClose={() => setShowLanguageModal(false)}

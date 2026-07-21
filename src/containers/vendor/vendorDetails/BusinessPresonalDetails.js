@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   ScrollView,
   StyleSheet,
@@ -375,7 +376,10 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
             }
             bgColor={COLORS.white}
             multiline
-            numberOfLines={3}
+            returnKeyType="done"
+            // numberOfLines={3}
+            // blurOnSubmit
+            // onSubmitEditing={Keyboard.dismiss}
           />
 
           <Spacing />
@@ -393,6 +397,8 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
             bgColor={COLORS.white}
             multiline
             numberOfLines={3}
+            blurOnSubmit
+            onSubmitEditing={Keyboard.dismiss}
           />
 
           {/* Buttons */}

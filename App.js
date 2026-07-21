@@ -1,7 +1,7 @@
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import {StripeProvider} from '@stripe/stripe-react-native';
+import {handleURLCallback, StripeProvider} from '@stripe/stripe-react-native';
 import React, {useEffect, useRef} from 'react';
-import {Platform, StatusBar} from 'react-native';
+import {Linking, Platform, StatusBar} from 'react-native';
 import 'react-native-gesture-handler';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {Provider as PaperProvider} from 'react-native-paper';
@@ -41,6 +41,20 @@ const AppContent = () => {
   }, []);
 
   useEffect(() => {
+    Linking.getInitialURL().then(url => {
+      console.log('INITIAL URL:', url);
+      if (url) handleURLCallback(url);
+    });
+
+    const subscription = Linking.addEventListener('url', ({url}) => {
+      console.log('DEEPLINK RECEIVED:', url);
+      handleURLCallback(url);
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
     helper.requestNotificationPermission().catch(() => {});
     dispatch(initializeLanguageFromStorage());
     fetchNotifications();
@@ -71,7 +85,6 @@ const AppContent = () => {
   );
 };
 
-
 const App = () => {
   return (
     <GestureHandlerRootView style={{flex: 1}}>
@@ -79,7 +92,9 @@ const App = () => {
         <Provider store={store}>
           <SocketProvider>
             <PaperProvider>
-              <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEYS.TEST}>
+              <StripeProvider
+                publishableKey={STRIPE_PUBLISHABLE_KEYS.TEST}
+                urlScheme="com.evenlyo">
                 <AppContent />
               </StripeProvider>
             </PaperProvider>

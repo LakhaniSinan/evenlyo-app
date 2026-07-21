@@ -35,7 +35,7 @@ i18n
       },
     },
     fallbackLng: 'nl',
-    debug: __DEV__,
+    debug: false,
 
     interpolation: {
       escapeValue: false,
@@ -44,6 +44,7 @@ i18n
     react: {
       useSuspense: false,
     },
+    missingKeyHandler: false,
   });
 
 export default i18n;

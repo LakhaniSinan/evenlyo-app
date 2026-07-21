@@ -141,7 +141,7 @@ const RenderCards = React.memo(({title, isCheckIn, data}) => {
 /* -------------------------------------------------------------------------- */
 
 const BookingDetails = ({route, navigation}) => {
-  console.log(route?.params, 'routerouterouterouterouterouterouteroute');
+  // console.log(route?.params, 'routerouterouterouterouterouterouteroute');
 
   const {t, currentLanguage} = useTranslation();
   const isDutch = currentLanguage === 'nl';
@@ -184,7 +184,7 @@ const BookingDetails = ({route, navigation}) => {
   const [reviewModal, setReviewModal] = useState(false);
 
   const [bookingData, setBookingData] = useState(null);
-  console.log(bookingData, 'bookingDatabookingDatabookingDatabookingData');
+  // console.log(bookingData, 'bookingDatabookingDatabookingDatabookingData');
 
   const [chatData, setChatData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -572,14 +572,15 @@ console.log(response,"responseresponseresponseresponseasdasdsd");
     }
   };
   const handleClaimed = async note => {
+    setIsLoading(true);
     try {
       let params = {
         claimType: note?.type,
         reason: note?.note,
       };
-      setIsLoading(true);
       await markAsClaimed(bookingId, params);
       setClaimedPopUp(false);
+      setIsLoading(true);
       fetchBookingDetails();
     } catch (e) {
       console.log('Cancel error', e);
@@ -622,6 +623,8 @@ console.log(response,"responseresponseresponseresponseasdasdsd");
     }
   };
 
+  console.log(isLoading,"ISLOADINGGGG");
+  
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
