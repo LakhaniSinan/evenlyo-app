@@ -186,8 +186,8 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingBottom: width(5),
     flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    // alignItems: 'center',
+    // justifyContent: 'center',
   },
 
   emptyContainer: {
@@ -196,6 +196,7 @@ const styles = StyleSheet.create({
   },
 
   emptyWrapper: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 30,

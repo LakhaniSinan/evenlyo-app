@@ -27,7 +27,7 @@ const PaymentModal = ({
   selectedData,
   amountToPay,
 }) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const {confirmPayment} = useStripe();
   const [selectedMethod, setSelectedMethod] = useState(PAYMENT_METHODS.CARD);
   const [cardComplete, setCardComplete] = useState(false);
@@ -120,7 +120,11 @@ const PaymentModal = ({
       if (res.status === 200 || res.status === 201) {
         modalRef.current?.show({
           status: 'ok',
-          message: res?.data?.message,
+          message: res?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? res.data.message.en
+              : res.data.message.nl
+            : res?.data?.message,
           handlePressOk: () => {
             modalRef.current?.hide();
             setTimeout(() => {
@@ -130,12 +134,16 @@ const PaymentModal = ({
           },
         });
         return;
+      } else {
+        modalRef.current?.show({
+          status: 'error',
+          message: res?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? res.data.message.en
+              : res.data.message.nl
+            : res?.data?.message,
+        });
       }
-
-      modalRef.current?.show({
-        status: 'error',
-        message: res?.data?.message || labels.paymentFailed,
-      });
     },
     [selectedData, payableAmount, modalRef, labels, onPaymentSuccess, onClose],
   );
@@ -237,7 +245,8 @@ const PaymentModal = ({
           <TouchableOpacity
             style={[
               styles.methodCard,
-              selectedMethod === PAYMENT_METHODS.CARD && styles.methodCardActive,
+              selectedMethod === PAYMENT_METHODS.CARD &&
+                styles.methodCardActive,
             ]}
             onPress={() => handleSelectMethod(PAYMENT_METHODS.CARD)}
             activeOpacity={0.8}>
@@ -253,7 +262,8 @@ const PaymentModal = ({
             <Text
               style={[
                 styles.methodLabel,
-                selectedMethod === PAYMENT_METHODS.CARD && styles.methodLabelActive,
+                selectedMethod === PAYMENT_METHODS.CARD &&
+                  styles.methodLabelActive,
               ]}>
               {labels.cardOption}
             </Text>
@@ -262,7 +272,8 @@ const PaymentModal = ({
           <TouchableOpacity
             style={[
               styles.methodCard,
-              selectedMethod === PAYMENT_METHODS.IDEAL && styles.methodCardActive,
+              selectedMethod === PAYMENT_METHODS.IDEAL &&
+                styles.methodCardActive,
             ]}
             onPress={() => handleSelectMethod(PAYMENT_METHODS.IDEAL)}
             activeOpacity={0.8}>
@@ -272,7 +283,8 @@ const PaymentModal = ({
             <Text
               style={[
                 styles.methodLabel,
-                selectedMethod === PAYMENT_METHODS.IDEAL && styles.methodLabelActive,
+                selectedMethod === PAYMENT_METHODS.IDEAL &&
+                  styles.methodLabelActive,
               ]}>
               {labels.idealOption}
             </Text>
