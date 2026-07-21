@@ -21,7 +21,7 @@
 		7B260F44DC8E45EBB620BB8D /* PlusJakartaSans-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 72ABD06669954E91AE5313C3 /* PlusJakartaSans-LightItalic.ttf */; };
 		7D4CA9CCD2F1488BAE8C27AE /* PlusJakartaSans-ExtraBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A344784857C349478462A856 /* PlusJakartaSans-ExtraBoldItalic.ttf */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		86571A4E2FD1BADC00FD87FE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 86571A4D2FD1BADC00FD87FE /* GoogleService-Info.plist */; };
+		86FAB3FE300F906800EE75A9 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 86FAB3FD300F906800EE75A9 /* GoogleService-Info.plist */; };
 		885594864D274CC3BB351832 /* PlusJakartaSans-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D38F89BED472492A8E646116 /* PlusJakartaSans-BoldItalic.ttf */; };
 		EC5F55FF20ED4D2DA438E51F /* PlusJakartaSans-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BF3FACE03BB242E2A3838309 /* PlusJakartaSans-Light.ttf */; };
 		F244AAB3358B4EF09A6A64ED /* PlusJakartaSans-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B1F9ECD0F02743AF931BCD47 /* PlusJakartaSans-MediumItalic.ttf */; };
@@ -45,7 +45,7 @@
 		72ABD06669954E91AE5313C3 /* PlusJakartaSans-LightItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-LightItalic.ttf"; path = "../src/assets/fonts/PlusJakartaSans-LightItalic.ttf"; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Evenlyo/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Evenlyo/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		86571A4D2FD1BADC00FD87FE /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Evenlyo/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		86FAB3FD300F906800EE75A9 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		A344784857C349478462A856 /* PlusJakartaSans-ExtraBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-ExtraBoldItalic.ttf"; path = "../src/assets/fonts/PlusJakartaSans-ExtraBoldItalic.ttf"; sourceTree = "<group>"; };
 		A5B8720444CD46BCA37B9CC3 /* PlusJakartaSans-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-Italic.ttf"; path = "../src/assets/fonts/PlusJakartaSans-Italic.ttf"; sourceTree = "<group>"; };
 		AE18E3B499144A9BA2E1FCD2 /* PlusJakartaSans-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-SemiBold.ttf"; path = "../src/assets/fonts/PlusJakartaSans-SemiBold.ttf"; sourceTree = "<group>"; };
@@ -73,10 +73,10 @@
 		13B07FAE1A68108700A75B9A /* Evenlyo */ = {
 			isa = PBXGroup;
 			children = (
+				86FAB3FD300F906800EE75A9 /* GoogleService-Info.plist */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				F1A2B3C41A68108700A75B9A /* Evenlyo.entitlements */,
-				86571A4D2FD1BADC00FD87FE /* GoogleService-Info.plist */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
@@ -230,7 +230,7 @@
 				4128A51BED8B4451AC503573 /* PlusJakartaSans-Italic.ttf in Resources */,
 				EC5F55FF20ED4D2DA438E51F /* PlusJakartaSans-Light.ttf in Resources */,
 				7B260F44DC8E45EBB620BB8D /* PlusJakartaSans-LightItalic.ttf in Resources */,
-				86571A4E2FD1BADC00FD87FE /* GoogleService-Info.plist in Resources */,
+				86FAB3FE300F906800EE75A9 /* GoogleService-Info.plist in Resources */,
 				34ED087195AA457D932FDB33 /* PlusJakartaSans-Medium.ttf in Resources */,
 				F244AAB3358B4EF09A6A64ED /* PlusJakartaSans-MediumItalic.ttf in Resources */,
 				07DD974A536A4DAEB44BD3FD /* PlusJakartaSans-Regular.ttf in Resources */,

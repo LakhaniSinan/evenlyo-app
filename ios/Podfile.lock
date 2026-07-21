@@ -1489,7 +1489,7 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
-  - react-native-app-auth (8.4.0):
+  - react-native-app-auth (8.4.1):
     - AppAuth (>= 1.7.6)
     - React-Core
   - react-native-blur (4.4.1):
@@ -3147,7 +3147,7 @@ SPEC CHECKSUMS:
   React-logger: 85fa3509931497c72ccd2547fcc91e7299d8591e
   React-Mapbuffer: 96a2f2a176268581733be182fa6eebab1c0193be
   React-microtasksnativemodule: bda561d2648e1e52bd9e5a87f8889836bdbde2e2
-  react-native-app-auth: e25699baefe53d43c81dc3e3f1f4f19f8e782ab2
+  react-native-app-auth: 916c98d47b92bfc5c7273a946f98a0ec5bbcee60
   react-native-blur: 06d0f9906ecd6cde3a42de16c6cd829a2bf0710c
   react-native-date-picker: e687e018f66da4734b3db3ddf3d323e930425d56
   react-native-document-picker: 493b6fa99574e9548901acc64af14e3d89022977
