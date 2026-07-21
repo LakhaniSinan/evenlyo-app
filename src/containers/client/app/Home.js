@@ -51,7 +51,7 @@ const Home = ({navigation}) => {
     handleCategorySelect,
     onRefresh,
     onBookingCardPress,
-    onResetFilters, 
+    onResetFilters,
     onVendorCardPress,
     handleAddToWishList,
     onApplyFilters,

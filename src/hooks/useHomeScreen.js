@@ -446,6 +446,7 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
     onBookingCardPress,
     onVendorCardPress,
     handleAddToWishList,
+
     onApplyFilters,
   };
 };

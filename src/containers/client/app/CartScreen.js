@@ -379,6 +379,8 @@ function CartScreen({navigation}) {
       <AppHeader
         headingText={t('addToWishlistButton')}
         rightIcon={ICONS.chatIcon}
+        notificationsIcon={true}
+        onNotificationsPress={() => navigation.navigate('Notifications')}
         onRightIconPress={() => navigation.navigate('MessagesScreen')}
       />
 

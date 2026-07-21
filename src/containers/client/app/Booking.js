@@ -128,8 +128,7 @@ const BooKings = () => {
   const fetchBookingHistory = useCallback(
     async (page = 1, reset = false) => {
       try {
-        const status =
-          bookingStatusTab === 'all' ? '' : bookingStatusTab;
+        const status = bookingStatusTab === 'all' ? '' : bookingStatusTab;
         const res = await getAllBookingHistory(
           status,
           page,
@@ -193,7 +192,13 @@ const BooKings = () => {
       return () => {
         isActive = false;
       };
-    }, [user?.id, mainTab, bookingStatusTab, fetchBookingHistory, fetchSaleOrders]),
+    }, [
+      user?.id,
+      mainTab,
+      bookingStatusTab,
+      fetchBookingHistory,
+      fetchSaleOrders,
+    ]),
   );
 
   const loadMoreBookings = useCallback(async () => {
@@ -391,34 +396,22 @@ const BooKings = () => {
       <AppHeader
         headingText={t('History')}
         rightIcon={ICONS.chatIcon}
+        notificationsIcon={true}
+        onNotificationsPress={() => navigation.navigate('Notifications')}
         onRightIconPress={() => navigation.navigate('MessagesScreen')}
       />
       <FlatList
-        data={
-          mainTab === MAIN_TAB_BOOKING
-            ? bookingHistory
-            : filteredSaleItems
-        }
+        data={mainTab === MAIN_TAB_BOOKING ? bookingHistory : filteredSaleItems}
         renderItem={
-          mainTab === MAIN_TAB_BOOKING
-            ? renderBookingItem
-            : renderSaleItem
+          mainTab === MAIN_TAB_BOOKING ? renderBookingItem : renderSaleItem
         }
         keyExtractor={item => String(item?._id || item?.id || item?.trackingId)}
         ListHeaderComponent={
           <>
             <FlatList
-              data={
-                mainTab === MAIN_TAB_BOOKING
-                  ? BOOKING_FILTER_TABS
-                  : SALE_FILTER_TABS
-              }
+              data={BOOKING_FILTER_TABS}
               horizontal
-              renderItem={
-                mainTab === MAIN_TAB_BOOKING
-                  ? renderBookingTab
-                  : renderSaleTab
-              }
+              renderItem={renderBookingTab}
               keyExtractor={item => item.id}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.tabContainer}
