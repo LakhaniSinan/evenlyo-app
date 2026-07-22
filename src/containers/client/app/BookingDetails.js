@@ -6,7 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
+  RefreshControl,
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
@@ -141,7 +141,7 @@ const RenderCards = React.memo(({title, isCheckIn, data}) => {
 /* -------------------------------------------------------------------------- */
 
 const BookingDetails = ({route, navigation}) => {
-  // console.log(route?.params, 'routerouterouterouterouterouterouteroute');
+  const [refreshing, setRefreshing] = useState(false);
 
   const {t, currentLanguage} = useTranslation();
   const isDutch = currentLanguage === 'nl';
@@ -164,6 +164,13 @@ const BookingDetails = ({route, navigation}) => {
     complete: isDutch ? 'Voltooien' : 'Complete',
     complain: isDutch ? 'Klacht indienen' : 'Complain',
     trackBooking: isDutch ? 'Boeking volgen' : 'Track Booking',
+    claimDetails: isDutch ? 'Claimgegevens' : 'Claim Details',
+    claimedBy: isDutch ? 'Geclaimd door' : 'Claimed By',
+    claimType: isDutch ? 'Claimtype' : 'Claim Type',
+    claimDate: isDutch ? 'Claimdatum' : 'Claim Date',
+    refundAmount: isDutch ? 'Terugbetalingsbedrag' : 'Refund Amount',
+    vendorRefund: isDutch ? 'Terugbetaling verkoper' : 'Vendor Refund',
+    complaintReason: isDutch ? 'Reden van klacht' : 'Complaint Reason',
   };
   const statusLabelMap = {
     pending: isDutch ? 'IN AFWACHTING' : 'PENDING',
@@ -184,7 +191,7 @@ const BookingDetails = ({route, navigation}) => {
   const [reviewModal, setReviewModal] = useState(false);
 
   const [bookingData, setBookingData] = useState(null);
-  // console.log(bookingData, 'bookingDatabookingDatabookingDatabookingData');
+  console.log(bookingData, 'bookingDatabookingDatabookingDatabookingData');
 
   const [chatData, setChatData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -509,7 +516,6 @@ const BookingDetails = ({route, navigation}) => {
     try {
       setIsLoading(true);
       const response = await getAmountToPay(bookingData._id);
-console.log(response,"responseresponseresponseresponseasdasdsd");
 
       if (response?.status === 200 || response?.status === 201) {
         const payableAmount = Number(response?.data?.amountToPay || 0);
@@ -554,11 +560,10 @@ console.log(response,"responseresponseresponseresponseasdasdsd");
 
   const handlePaymentSuccess = useCallback(() => {
     setTimeout(() => {
-    setPayModalVisible(false);
+      setPayModalVisible(false);
     }, 2500);
     setClientSecret(null);
-    fetchBookingDetails();
-  }, [fetchBookingDetails]);
+  }, []);
 
   const handleMarkAsComplete = async () => {
     try {
@@ -622,12 +627,27 @@ console.log(response,"responseresponseresponseresponseasdasdsd");
       setIsLoading(false);
     }
   };
+  const onRefresh = useCallback(async () => {
+    try {
+      setRefreshing(true);
+      await fetchBookingDetails();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchBookingDetails]);
 
-  console.log(isLoading,"ISLOADINGGGG");
-  
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }>
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
           headingText={localizedText.booking}
@@ -816,33 +836,70 @@ console.log(response,"responseresponseresponseresponseasdasdsd");
             </View>
           )}
         </View>
-        {/* LOCATION
-        {hasLocation && (
-          <View style={{paddingHorizontal: width(4)}}>
-            <Text
-              style={{
-                fontFamily: fontFamly.PlusJakartaSansBold,
-                fontSize: 12,
-                color: COLORS.black,
-              }}>
-              Location:
-            </Text>
-            <View style={styles.mapWrapper}>
-              <MapView ref={mapRef} style={StyleSheet.absoluteFillObject}>
-                <Marker
-                  coordinate={{
-                    latitude: Number(bookingData.details.eventLatitude),
-                    longitude: Number(bookingData.details.eventLongitude),
-                  }}
-                />
-              </MapView>
+        {bookingData?.status === 'complain' && bookingData?.claimDetails && (
+          <View style={styles.card}>
+            <Text style={styles.heading}>{localizedText.claimDetails}</Text>
 
-              <TouchableOpacity style={styles.locateBtn} onPress={animateMap}>
-                <Image source={ICONS.locationIcon} style={styles.locateIcon} />
-              </TouchableOpacity>
+            <InfoRow
+              label={localizedText.claimedBy}
+              value={
+                bookingData?.claimDetails?.claimedBy?.toUpperCase() || '--'
+              }
+            />
+
+            <InfoRow
+              label={localizedText.claimType}
+              value={bookingData?.claimDetails?.claimType
+                ?.replaceAll('_', ' ')
+                ?.replace(/\b\w/g, l => l.toUpperCase())}
+            />
+
+            <InfoRow
+              label={localizedText.claimDate}
+              value={
+                bookingData?.claimDetails?.claimedAt
+                  ? moment(bookingData?.claimDetails?.claimedAt).format(
+                      'DD MMM YYYY, hh:mm A',
+                    )
+                  : '--'
+              }
+            />
+
+            {bookingData?.claimDetails?.refundAmount > 0 && (
+              <InfoRow
+                label={localizedText.refundAmount}
+                value={formatEuro(
+                  bookingData?.claimDetails?.refundAmount || 0,
+                  {
+                    space: false,
+                  },
+                )}
+              />
+            )}
+
+            {bookingData?.claimDetails?.refundVendorAmount > 0 && (
+              <InfoRow
+                label={localizedText.vendorRefund}
+                value={formatEuro(
+                  bookingData?.claimDetails?.refundVendorAmount || 0,
+                  {
+                    space: false,
+                  },
+                )}
+              />
+            )}
+
+            <View style={{marginTop: 15}}>
+              <Text style={styles.label}>{localizedText.complaintReason}</Text>
+
+              <View style={styles.claimReasonBox}>
+                <Text style={styles.claimReasonText}>
+                  {bookingData?.claimDetails?.reason || '--'}
+                </Text>
+              </View>
             </View>
           </View>
-        )} */}
+        )}
       </ScrollView>
 
       {bookingData && (
@@ -986,6 +1043,7 @@ console.log(response,"responseresponseresponseresponseasdasdsd");
         onClose={() => {
           setPayModalVisible(false);
           setClientSecret(null);
+          fetchBookingDetails();
         }}
       />
       <CommonAlert ref={modalRef} />
@@ -1128,7 +1186,21 @@ const styles = StyleSheet.create({
     height: 7,
     marginHorizontal: 10,
   },
+  claimReasonBox: {
+    marginTop: 8,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#F8F9FA',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
 
+  claimReasonText: {
+    fontSize: 12,
+    color: COLORS.textLight,
+    lineHeight: 18,
+    fontFamily: fontFamly.PlusJakartaSansMedium,
+  },
   mapWrapper: {
     height: 200,
     marginVertical: 20,

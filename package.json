@@ -26,7 +26,7 @@
     "@react-navigation/native-stack": "^7.3.14",
     "@react-navigation/stack": "^7.3.3",
     "@reduxjs/toolkit": "^2.8.2",
-    "@stripe/stripe-react-native": "latest",
+    "@stripe/stripe-react-native": "^0.51.0",
     "add": "^2.0.6",
     "axios": "^1.7.4",
     "dayjs": "^1.11.15",

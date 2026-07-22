@@ -27,6 +27,8 @@ const getLocalizedField = (field, currentLanguage) => {
 };
 
 const BookingCard = ({item}) => {
+  console.log(item, 'itemitemitemitemitemitem');
+
   const navigation = useNavigation();
   const {t, currentLanguage} = useTranslation();
 
@@ -46,6 +48,10 @@ const BookingCard = ({item}) => {
           </Text>
           <Text style={styles.location} numberOfLines={1}>
             📍 {item?.eventLocation}
+          </Text>
+          <Text style={styles.vendorText} numberOfLines={1}>
+            {t('Vendor')}:{' '}
+            {item?.vendor?.firstName || item?.vendorId?.firstName}
           </Text>
         </View>
         <View style={styles.footer}>
@@ -215,5 +221,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
     color: COLORS.textDark,
+  },
+  vendorText: {
+    marginTop: 4,
+    marginBottom: width(2),
+    fontSize: 12,
+    color: COLORS.primary,
+    fontFamily: fontFamly.PlusJakartaSansSemiBold,
   },
 });
