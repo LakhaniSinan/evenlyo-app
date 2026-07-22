@@ -24,6 +24,8 @@ import {COLORS, fontFamly} from '../../../constants';
 import useTranslation from '../../../hooks/useTranslation';
 import {setUserData} from '../../../redux/slice/auth';
 import useProfile from '../../../hooks/getProfileData';
+import {setVendorUnreadCount} from '../../../redux/slice/vendorNotificationsCount';
+import { setUnreadCount } from '../../../redux/slice/notifications';
 
 const AUTH_MODAL_SWITCH_MS = 480;
 
@@ -229,6 +231,8 @@ const Profile = () => {
 
   const handleNavigate = async navigate => {
     if (navigate === 'Logout') {
+      dispatch(setVendorUnreadCount(0));
+      dispatch(setUnreadCount(0));
       dispatch(setUserData(null));
       await AsyncStorage.multiRemove(['userData', 'token']);
       setIsLoggedIn(false);

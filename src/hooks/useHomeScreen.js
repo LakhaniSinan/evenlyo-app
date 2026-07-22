@@ -13,6 +13,7 @@ import {useTranslation} from '../hooks';
 import {getStoredToken} from '../utils/authToken';
 
 import useCategories from './getCategories';
+import useNotifications from './notifications';
 
 const SUB_CATEGORY_DEBOUNCE_MS = 450;
 
@@ -52,7 +53,7 @@ const normalizeHomePayload = payload => {
 
 const useHomeScreen = ({modalRef, navigation, openLogin}) => {
   const {currentLanguage} = useTranslation();
-
+  const {fetchNotifications} = useNotifications();
   const subCategoryRequestRef = useRef(0);
   const homeDataRequestRef = useRef(0);
   const activeFiltersRef = useRef({});
@@ -204,6 +205,7 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
 
   useEffect(() => {
     loadCategories();
+    fetchNotifications();
   }, [loadCategories]);
 
   useEffect(() => {

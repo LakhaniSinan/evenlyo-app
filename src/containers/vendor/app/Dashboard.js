@@ -23,6 +23,7 @@ import {COLORS, fontFamly} from '../../../constants';
 import useTranslation from '../../../hooks/useTranslation';
 import {getDashboard} from '../../../services/Dashboard';
 import {formatEuro} from '../../../utils';
+import useVendorNotifications from '../../../hooks/vendorNotification';
 
 const ViewMoreButton = React.memo(
   ({heading, onPress, showViewAll, viewAllLabel}) => (
@@ -53,6 +54,7 @@ const Dashboard = () => {
   const navigation = useNavigation();
   const {t, currentLanguage} = useTranslation();
   const {user} = useSelector(state => state.LoginSlice);
+  const {fetchVendorNotifications} = useVendorNotifications();
 
   const tRef = useRef(t);
   tRef.current = t;
@@ -60,6 +62,10 @@ const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('Booking');
+
+  useEffect(() => {
+    fetchVendorNotifications();
+  }, []);
 
   const dashboardStats = useMemo(
     () => [

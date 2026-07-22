@@ -20,6 +20,8 @@ import useProfile from '../../../hooks/getProfileData';
 import useTranslation from '../../../hooks/useTranslation';
 import {setUserData} from '../../../redux/slice/auth';
 import {getVendorProfile} from '../../../services/Vendor';
+import {setVendorUnreadCount} from '../../../redux/slice/vendorNotificationsCount';
+import {setUnreadCount} from '../../../redux/slice/notifications';
 
 const getProfileMenuData = t => [
   {
@@ -74,6 +76,8 @@ const ProfileScreen = () => {
 
   const handleNavigate = navigate => {
     if (navigate === 'Logout') {
+      dispatch(setVendorUnreadCount(0));
+      dispatch(setUnreadCount(0));
       dispatch(setUserData(null));
       AsyncStorage.removeItem('userData');
       AsyncStorage.removeItem('token');
