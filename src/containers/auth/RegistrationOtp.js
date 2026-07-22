@@ -14,7 +14,6 @@ import {globalStyles} from '../../styles/globalStyle';
 
 const RegistrationOtp = ({route, navigation}) => {
   const data = route.params;
-  console.log(data, 'datadatadatadatadata');
 
   const modalRef = useRef(null);
   const {t, currentLanguage} = useTranslation();
@@ -36,27 +35,6 @@ const RegistrationOtp = ({route, navigation}) => {
 
     try {
       setIsLoading(true);
-
-      const vendorPersonalPayload = {
-        accountType: data?.vendorType,
-        firstName: data?.personalInfo?.firstName,
-        lastName: data?.personalInfo?.lastName,
-        email: data?.personalInfo?.email,
-        contactNumber: data?.personalInfo?.contact,
-        city: data?.personalInfo?.city,
-        postalCode: data?.personalInfo?.postalCode,
-        fullAddress: data?.personalInfo?.address,
-        passportDetails: data?.personalInfo?.cnicPassport,
-        mainCategories: data?.categories,
-        subCategories: data?.subCategories,
-        businessLogo: data?.media?.workImages,
-        businessImage: data?.media?.banner,
-        description: normalizeLocalizedValue(data?.personalInfo?.description),
-        tagline: normalizeLocalizedValue(data?.personalInfo?.tagline),
-        password: data?.security?.password,
-        confirmPassword: data?.security?.confirmPassword,
-        otp,
-      };
 
       const vendorBusinessPayload = {
         accountType: data?.vendorType,
@@ -82,10 +60,7 @@ const RegistrationOtp = ({route, navigation}) => {
         otp,
       };
 
-      const vendorPayload =
-        data?.vendorType === 'business'
-          ? vendorBusinessPayload
-          : vendorPersonalPayload;
+      const vendorPayload = vendorBusinessPayload;
       console.log(vendorPayload, 'vendorPayloadvendorPayloadvendorPayload');
 
       const params = {
@@ -142,7 +117,9 @@ const RegistrationOtp = ({route, navigation}) => {
     try {
       setIsLoading(true);
 
-      const email = data?.verification?.email || data?.email;
+      const email = data?.businessInfo?.companyEmail;
+
+      console.log(email, 'emailemailemailemail');
 
       const response = await registerUser({email});
       setIsLoading(false);

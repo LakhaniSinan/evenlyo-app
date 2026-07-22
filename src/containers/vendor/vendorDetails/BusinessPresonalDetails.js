@@ -87,6 +87,7 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
     tagline: {en: '', nl: ''},
     description: {en: '', nl: ''},
   });
+  console.log(formData, 'formDataformData');
 
   // populate form data from props
   useEffect(() => {
@@ -239,6 +240,14 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
             keyboardType="email-address"
             bgColor={COLORS.white}
           />
+          <Text
+            style={{
+              fontFamily: fontFamly.PlusJakartaSansBold,
+              fontSize: 10,
+              color: COLORS.textLight,
+            }}>
+            Please use this email address to log in to your account.
+          </Text>
 
           <Spacing />
 
