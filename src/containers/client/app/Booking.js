@@ -395,10 +395,8 @@ const BooKings = () => {
     <SafeAreaView style={styles.container}>
       <AppHeader
         headingText={t('History')}
-        rightIcon={ICONS.chatIcon}
         notificationsIcon={true}
         onNotificationsPress={() => navigation.navigate('Notifications')}
-        onRightIconPress={() => navigation.navigate('MessagesScreen')}
       />
       <FlatList
         data={mainTab === MAIN_TAB_BOOKING ? bookingHistory : filteredSaleItems}

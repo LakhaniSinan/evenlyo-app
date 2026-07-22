@@ -21,10 +21,12 @@ import {
   getVendorNotifications,
   markVendorNotificationAsRead,
 } from '../../../services/Notifications';
+import useVendorNotifications from '../../../hooks/vendorNotification';
 
 const FILTER_OPTIONS = ['all', 'read', 'unread'];
 
 const Notification = ({navigation}) => {
+  const {fetchVendorNotifications} = useVendorNotifications();
   const modalRef = useRef();
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -172,6 +174,7 @@ const Notification = ({navigation}) => {
 
         try {
           await markVendorNotificationAsRead(item._id);
+          fetchVendorNotifications();
         } catch (error) {
           console.log('markVendorNotificationAsRead error:', error);
         }

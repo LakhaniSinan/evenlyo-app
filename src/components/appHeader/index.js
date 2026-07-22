@@ -22,6 +22,8 @@ const AppHeader = ({
   setCommentType,
   commentType,
   onNotificationsPress,
+  onVendorNotificationsPress,
+  vendorNotificationsIcon,
   notificationsIcon,
   handleSelectOption,
   /** When set, overrides default header bar color (e.g. white for Role Management). */
@@ -88,6 +90,11 @@ const AppHeader = ({
   }, []);
 
   const {unreadCount} = useSelector(state => state.notification);
+  const {vendorUnreadCount} = useSelector(state => state.vendorNotifications);
+  console.log(
+    vendorUnreadCount,
+    'vendorUnreadCountvendorUnreadCountvendorUnreadCount',
+  );
 
   return (
     <View
@@ -122,55 +129,77 @@ const AppHeader = ({
           {typeof headingText === 'string' ? t(headingText) : headingText}
         </Text>
       </View>
-      {!isMenu && (filterIcon || rightIcon) && (
-        <View
-          style={{
-            position: 'absolute',
-            right: width(3),
-            top: width(4),
-            flexDirection: 'row',
-            alignItems: 'center',
-          }}>
-          {notificationsIcon && (
-            <TouchableOpacity
-              style={{marginRight: rightIcon ? 10 : 0}}
-              onPress={onNotificationsPress}>
-              <Image
-                source={ICONS.notificationIcon}
-                resizeMode="contain"
-                style={{width: 40, height: 40}}
-              />
-              {unreadCount > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          )}
-          {filterIcon && (
-            <TouchableOpacity
-              onPress={onFilterPress}
-              style={{marginRight: rightIcon ? 10 : 0}}>
-              <Image
-                resizeMode="contain"
-                style={{width: 40, height: 40}}
-                source={filterIcon}
-              />
-            </TouchableOpacity>
-          )}
-          {rightIcon && (
-            <TouchableOpacity onPress={() => onRightIconPress()}>
-              <Image
-                resizeMode="contain"
-                style={{width: 40, height: 40}}
-                source={rightIcon}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
+      {!isMenu &&
+        (filterIcon ||
+          rightIcon ||
+          vendorNotificationsIcon ||
+          notificationsIcon) && (
+          <View
+            style={{
+              position: 'absolute',
+              right: width(3),
+              top: width(4),
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+            {notificationsIcon && (
+              <TouchableOpacity
+                style={{marginRight: rightIcon ? 10 : 0}}
+                onPress={onNotificationsPress}>
+                <Image
+                  source={ICONS.notificationIcon}
+                  resizeMode="contain"
+                  style={{width: 40, height: 40}}
+                />
+                {unreadCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
+            {vendorNotificationsIcon && (
+              <TouchableOpacity
+                style={{marginRight: rightIcon ? 10 : 0}}
+                onPress={onVendorNotificationsPress}>
+                <Image
+                  source={ICONS.notificationIcon}
+                  resizeMode="contain"
+                  style={{width: 40, height: 40}}
+                />
+                {vendorUnreadCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>
+                      {vendorUnreadCount > 99 ? '99+' : vendorUnreadCount}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
+            {filterIcon && (
+              <TouchableOpacity
+                onPress={onFilterPress}
+                style={{marginLeft: vendorNotificationsIcon ? 10 : 0}}>
+                <Image
+                  resizeMode="contain"
+                  style={{width: 40, height: 40}}
+                  source={filterIcon}
+                />
+              </TouchableOpacity>
+            )}
+            {rightIcon && (
+              <TouchableOpacity onPress={() => onRightIconPress()}>
+                <Image
+                  resizeMode="contain"
+                  style={{width: 40, height: 40}}
+                  source={rightIcon}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       {isMenu && (
         <TouchableOpacity
           style={{position: 'absolute', right: width(3), top: width(4)}}

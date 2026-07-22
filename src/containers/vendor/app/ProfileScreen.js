@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   Image,
   SafeAreaView,
@@ -19,7 +19,7 @@ import {COLORS, fontFamly} from '../../../constants';
 import useProfile from '../../../hooks/getProfileData';
 import useTranslation from '../../../hooks/useTranslation';
 import {setUserData} from '../../../redux/slice/auth';
-import {getVendorDetails, getVendorProfile} from '../../../services/Vendor';
+import {getVendorProfile} from '../../../services/Vendor';
 
 const getProfileMenuData = t => [
   {
@@ -32,11 +32,7 @@ const getProfileMenuData = t => [
     navigate: 'ResetPassword',
     icon: ICONS.security,
   },
-  // {
-  //   name: t('Billing Management'),
-  //   navigate: 'BillingManagement',
-  //   icon: ICONS.wallet,
-  // },
+
   {
     name: t('Settings'),
     navigate: 'Settings',
@@ -90,7 +86,6 @@ const ProfileScreen = () => {
     try {
       setIsLoading(true);
       const responce = await getVendorProfile();
-      console.log(responce, 'responceresponceresponceresponceresponce');
 
       setIsLoading(false);
       if (responce?.status == 200 || responce.status == 201) {
@@ -111,7 +106,15 @@ const ProfileScreen = () => {
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <ScrollView style={styles.container}>
-        <AppHeader headingText={t('Profile')} />
+        <AppHeader
+          headingText={t('Profile')}
+          leftIcon={ICONS.drawerIcon}
+          vendorNotificationsIcon={true}
+          onVendorNotificationsPress={() =>
+            navigation.navigate('Notifications')
+          }
+          onLeftIconPress={() => navigation.openDrawer()}
+        />
         <View style={{alignItems: 'center', marginTop: width(4)}}>
           <Image
             style={{

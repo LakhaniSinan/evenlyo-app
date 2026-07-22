@@ -140,13 +140,7 @@ const RegistrationOtp = ({route, navigation}) => {
 
   const handleResendCode = async () => {
     try {
-      // setIsLoading(true);
-      // const email =
-      // data?.type == 'vendor'
-      //   ? data?.personalInfo?.email
-      //   : data?.businessInfo?.companyEmail ||
-      //     data?.email ||
-      //     data?.verification?.email;
+      setIsLoading(true);
 
       const email = data?.verification?.email || data?.email;
 

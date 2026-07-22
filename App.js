@@ -21,10 +21,13 @@ import store from './src/redux';
 import {initializeLanguageFromStorage} from './src/redux/slice/language';
 import './src/services/i18n';
 import {preloadVectorIcons} from './src/utils/preloadVectorIcons';
+import useVendorNotifications from './src/hooks/vendorNotification';
 
 const AppContent = () => {
   const dispatch = useDispatch();
   const {fetchNotifications} = useNotifications();
+  const {fetchVendorNotifications} = useVendorNotifications();
+
   const notificationPopupRef = useRef(null);
   useFirebaseMessaging();
   useSyncFcmToken();
@@ -58,6 +61,7 @@ const AppContent = () => {
     helper.requestNotificationPermission().catch(() => {});
     dispatch(initializeLanguageFromStorage());
     fetchNotifications();
+    fetchVendorNotifications();
     // Initialize Google Signin
     try {
       GoogleSignin.configure({

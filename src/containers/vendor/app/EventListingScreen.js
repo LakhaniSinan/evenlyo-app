@@ -39,6 +39,7 @@ import {
   deleteVendorListing,
   updateVendorDetails,
 } from '../../../services/Vendor';
+import AppHeader from '../../../components/appHeader';
 
 const renderTabs = ['Booking Items', 'Sale Items'];
 const requested = [];
@@ -363,8 +364,20 @@ const EventListingScreen = ({navigation}) => {
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
+      <AppHeader
+        headingText={t('All Listings')}
+        leftIcon={ICONS.drawerIcon}
+        vendorNotificationsIcon={true}
+        onVendorNotificationsPress={() => navigation.navigate('Notifications')}
+        onLeftIconPress={() => navigation.openDrawer()}
+        rightIcon={ICONS.plusIcon}
+        onRightIconPress={() => {
+          setEditData(null);
+          setEventModal(true);
+        }}
+      />
       <View style={styles.headerSection}>
-        <View style={styles.headerTopRow}>
+        {/* <View style={styles.headerTopRow}>
           <TouchableOpacity
             style={{marginLeft: width(2)}}
             onPress={() => navigation.openDrawer()}>
@@ -387,7 +400,7 @@ const EventListingScreen = ({navigation}) => {
               source={ICONS.plusIcon}
             />
           </TouchableOpacity>
-        </View>
+        </View> */}
         <View style={styles.searchRow}>
           <TextField
             placeholder={t('searchEvent')}

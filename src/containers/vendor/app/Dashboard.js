@@ -169,9 +169,9 @@ const Dashboard = () => {
       <AppHeader
         headingText={t('dashboard')}
         leftIcon={ICONS.drawerIcon}
-        rightIcon={ICONS.notificationIcon}
+        vendorNotificationsIcon={true}
+        onVendorNotificationsPress={() => navigation.navigate('Notifications')}
         onLeftIconPress={() => navigation.openDrawer()}
-        onRightIconPress={() => navigation.navigate('Notifications')}
       />
 
       <ScrollView

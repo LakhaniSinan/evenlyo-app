@@ -102,6 +102,11 @@ const Profile = () => {
       icon: ICONS.security,
     },
     {name: t('Settings'), navigate: 'Settings', icon: ICONS.settings},
+    {
+      name: t('Chat List'),
+      navigate: 'MessagesScreen',
+      icon: ICONS.chatIcon,
+    },
   ];
 
   const supportOptions = [
@@ -127,22 +132,25 @@ const Profile = () => {
     }
   };
 
-  const checkUserLoggedIn = useCallback(async ({showBlockingLoader = true} = {}) => {
-    try {
-      if (showBlockingLoader) {
-        setCheckingAuth(true);
+  const checkUserLoggedIn = useCallback(
+    async ({showBlockingLoader = true} = {}) => {
+      try {
+        if (showBlockingLoader) {
+          setCheckingAuth(true);
+        }
+        const token = await getParsedToken();
+        setIsLoggedIn(!!token);
+      } catch (error) {
+        console.log('Auth check error:', error);
+        setIsLoggedIn(false);
+      } finally {
+        if (showBlockingLoader) {
+          setCheckingAuth(false);
+        }
       }
-      const token = await getParsedToken();
-      setIsLoggedIn(!!token);
-    } catch (error) {
-      console.log('Auth check error:', error);
-      setIsLoggedIn(false);
-    } finally {
-      if (showBlockingLoader) {
-        setCheckingAuth(false);
-      }
-    }
-  }, []);
+    },
+    [],
+  );
 
   const profileFirstFocusRef = useRef(true);
 
@@ -299,7 +307,11 @@ const Profile = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeader headingText={t('Profile')} />
+      <AppHeader
+        headingText={t('Profile')}
+        notificationsIcon={true}
+        onNotificationsPress={() => navigation.navigate('Notifications')}
+      />
 
       {checkingAuth ? (
         <Loader isLoading />
