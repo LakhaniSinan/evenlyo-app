@@ -60,7 +60,7 @@ const useSyncFcmToken = () => {
       }
     };
 
-    // syncToken();
+    syncToken();
 
     const onAppStateChange = nextState => {
       if (nextState === 'active') {

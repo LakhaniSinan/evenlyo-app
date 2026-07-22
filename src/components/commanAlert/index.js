@@ -24,6 +24,7 @@ const CommonAlert = forwardRef((props, ref) => {
   }));
 
   const {message, status, handleDelete, handlePressOk} = modalData;
+
   const normalizedStatus =
     status === 'ok' || status === 'alert' || status === 'error'
       ? status

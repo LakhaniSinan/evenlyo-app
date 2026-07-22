@@ -74,8 +74,13 @@ const VendorPaymentManagementScreen = () => {
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [orders, setOrders] = useState([]);
   const [readyOrdersApi, setReadyOrdersApi] = useState([]);
+
   const [pendingOrdersApi, setPendingOrdersApi] = useState([]);
   const [paidOrdersApi, setPaidOrdersApi] = useState([]);
+  console.log(
+    paidOrdersApi,
+    'readyOrdersApireadyOrdersApireadyOrdersApireadyOrdersApi',
+  );
   const [stripeConnected, setStripeConnected] = useState(false);
   const alertRef = useRef(null);
   const fetchScreenData = useCallback(async () => {
@@ -85,12 +90,6 @@ const VendorPaymentManagementScreen = () => {
         getPayoutOrders(VENDOR_ID),
         vendorStripeOnboardingStatus(),
       ]);
-
-      console.log(
-        ordersRes,
-        stripeRes,
-        'ordersRes, stripeResordersRes, stripeResordersRes, stripeRes',
-      );
 
       if (ordersRes?.status === 200 || ordersRes?.status === 201) {
         const fetchedOrders = normalizeOrdersFromResponse(ordersRes?.data);
@@ -247,15 +246,16 @@ const VendorPaymentManagementScreen = () => {
 
   const handlePaySelected = async () => {
     if (!stripeConnected) {
-      alertRef.current.showAlert(
+      alertRef.current.show(
         'error',
         t('vendorPaymentStripeRequiredTitle'),
         t('vendorPaymentConnectStripeFirst'),
       );
       return;
+      s;
     }
     if (!selectedOrderIds.length) {
-      alertRef.current.showAlert(
+      alertRef.current.show(
         'error',
         t('vendorPaymentSelectOrdersTitle'),
         t('vendorPaymentSelectOneOrder'),
@@ -276,13 +276,13 @@ const VendorPaymentManagementScreen = () => {
         setSelectedOrderIds([]);
         fetchScreenData();
       } else {
-        alertRef.current.showAlert('error', response?.data?.message);
+        alertRef.current.show({
+          status: 'error',
+          message: response?.data?.message,
+        });
       }
     } catch (error) {
-      alertRef.current.showAlert(
-        'error',
-        t('Something went wrong. Please try again.'),
-      );
+      console.log(error, 'errorerrorerrorerrorerrorerror');
     } finally {
       setLoading(false);
     }
@@ -300,6 +300,10 @@ const VendorPaymentManagementScreen = () => {
       const serviceName =
         order?.serviceName?.en || order?.serviceName?.nl || '-';
 
+      const shouldShowCheckbox =
+        order?.status !== 'complain' ||
+        !!order?.claimDetails?.refundVendorAmount;
+
       return (
         <View key={orderId} style={styles.orderCard}>
           {/* Header */}
@@ -311,7 +315,7 @@ const VendorPaymentManagementScreen = () => {
               <Text style={styles.serviceName}>{serviceName}</Text>
             </View>
 
-            {activeTab === 'ready' && (
+            {shouldShowCheckbox && activeTab === 'ready' && (
               <TouchableOpacity onPress={() => toggleOrderSelection(orderId)}>
                 <View
                   style={[

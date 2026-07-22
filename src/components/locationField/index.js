@@ -34,10 +34,20 @@ const GooglePlacesInput = ({
   const [results, setResults] = useState([]);
 
   useEffect(() => {
-    if (selectedLocation?.userAddress || selectedLocation?.fullAddress) {
-      setQuery(selectedLocation.userAddress || selectedLocation?.fullAddress);
+    if (!selectedLocation) {
+      setQuery('');
+      return;
     }
-  }, [selectedLocation?.userAddress || selectedLocation?.fullAddress]);
+
+    if (typeof selectedLocation === 'string') {
+      setQuery(selectedLocation);
+      return;
+    }
+
+    setQuery(
+      selectedLocation.userAddress || selectedLocation.fullAddress || '',
+    );
+  }, [selectedLocation]);
 
   const fetchPlaces = async text => {
     if (!text || text.length < 1) {

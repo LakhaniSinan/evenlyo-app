@@ -3,6 +3,8 @@ import {useEffect} from 'react';
 import {displayPushNotification} from '../utils/displayNotification';
 import {getMessagingOrNull} from '../utils/firebaseMessagingSafe';
 import {navigateFromNotificationData} from '../utils/notificationNavigation';
+import useNotifications from './notifications';
+import useVendorNotifications from './vendorNotification';
 
 const handleOpenedNotification = remoteMessage => {
   const data = remoteMessage?.data || {};
@@ -10,6 +12,8 @@ const handleOpenedNotification = remoteMessage => {
 };
 
 const useFirebaseMessaging = () => {
+  const {fetchNotifications} = useNotifications();
+  const {fetchVendorNotifications} = useVendorNotifications();
   useEffect(() => {
     const msg = getMessagingOrNull();
     if (!msg) {
@@ -21,6 +25,8 @@ const useFirebaseMessaging = () => {
       .then(remoteMessage => {
         if (remoteMessage) {
           handleOpenedNotification(remoteMessage);
+          fetchNotifications();
+          fetchVendorNotifications();
         }
       })
       .catch(console.error);
@@ -36,18 +42,21 @@ const useFirebaseMessaging = () => {
 
     const unsubscribeOpened = msg.onNotificationOpenedApp(remoteMessage => {
       handleOpenedNotification(remoteMessage);
+      fetchNotifications();
+      fetchVendorNotifications();
     });
 
     const unsubscribeForeground = msg.onMessage(async remoteMessage => {
       const notification = remoteMessage.notification || {};
       const data = remoteMessage.data || {};
-      const title =
-        notification.title || data.title || 'Evenlyo';
+      const title = notification.title || data.title || 'Evenlyo';
       const body =
         notification.body || data.body || data.message || 'New notification';
 
       try {
         await displayPushNotification({title, body, data});
+        await fetchNotifications();
+        await fetchVendorNotifications();
       } catch (error) {
         console.log('displayPushNotification error:', error);
       }

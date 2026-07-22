@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   ScrollView,
   StyleSheet,
@@ -76,7 +77,7 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
   const [formData, setFormData] = useState({
     companyName: '',
     companyEmail: '',
-    contactNumber: '',
+    contactNumber: '+31',
     companyAddress: '',
     companyWebsite: '',
     passportNumber: '',
@@ -86,6 +87,7 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
     tagline: {en: '', nl: ''},
     description: {en: '', nl: ''},
   });
+  console.log(formData, 'formDataformData');
 
   // populate form data from props
   useEffect(() => {
@@ -238,6 +240,14 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
             keyboardType="email-address"
             bgColor={COLORS.white}
           />
+          <Text
+            style={{
+              fontFamily: fontFamly.PlusJakartaSansBold,
+              fontSize: 10,
+              color: COLORS.textLight,
+            }}>
+            Please use this email address to log in to your account.
+          </Text>
 
           <Spacing />
 
@@ -375,7 +385,10 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
             }
             bgColor={COLORS.white}
             multiline
-            numberOfLines={3}
+            returnKeyType="done"
+            // numberOfLines={3}
+            // blurOnSubmit
+            // onSubmitEditing={Keyboard.dismiss}
           />
 
           <Spacing />
@@ -393,6 +406,8 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
             bgColor={COLORS.white}
             multiline
             numberOfLines={3}
+            blurOnSubmit
+            onSubmitEditing={Keyboard.dismiss}
           />
 
           {/* Buttons */}

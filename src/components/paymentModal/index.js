@@ -27,7 +27,7 @@ const PaymentModal = ({
   selectedData,
   amountToPay,
 }) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const {confirmPayment} = useStripe();
   const [selectedMethod, setSelectedMethod] = useState(PAYMENT_METHODS.CARD);
   const [cardComplete, setCardComplete] = useState(false);
@@ -116,28 +116,45 @@ const PaymentModal = ({
         amount: payableAmount,
       };
       const res = await saveBookingOrder(params);
+      console.log(res, 'RRRRRRRRRRRRRR');
+
+      const message = res?.data?.message?.en
+        ? currentLanguage === 'en'
+          ? res.data.message.en
+          : res.data.message.nl
+        : res?.data?.message;
 
       if (res.status === 200 || res.status === 201) {
+        // Close the payment modal first, then wait for its native dismiss
+        // animation to fully complete before presenting the alert.
+        onClose();
+        setTimeout(() => {
+          modalRef.current?.show({
+            status: 'ok',
+            message,
+            handlePressOk: () => {
+              modalRef.current?.hide();
+              setTimeout(() => {
+                onPaymentSuccess?.();
+              }, 300);
+            },
+          });
+        }, 2000);
+      } else {
         modalRef.current?.show({
-          status: 'ok',
-          message: res?.data?.message,
-          handlePressOk: () => {
-            modalRef.current?.hide();
-            setTimeout(() => {
-              onPaymentSuccess?.();
-              onClose();
-            }, 500);
-          },
+          status: 'error',
+          message,
         });
-        return;
       }
-
-      modalRef.current?.show({
-        status: 'error',
-        message: res?.data?.message || labels.paymentFailed,
-      });
     },
-    [selectedData, payableAmount, modalRef, labels, onPaymentSuccess, onClose],
+    [
+      selectedData,
+      payableAmount,
+      modalRef,
+      currentLanguage,
+      onPaymentSuccess,
+      onClose,
+    ],
   );
 
   const onPay = useCallback(async () => {
@@ -152,16 +169,21 @@ const PaymentModal = ({
       const isIdeal = selectedMethod === PAYMENT_METHODS.IDEAL;
       const confirmParams = {
         paymentMethodType: isIdeal ? 'Ideal' : 'Card',
+        returnURL: 'com.evenlyo://stripe-redirect',
       };
 
       if (isIdeal) {
         confirmParams.returnURL = STRIPE_RETURN_URL;
       }
 
+      console.log('STRIPE_RETURN_URL:', STRIPE_RETURN_URL);
+      console.log('confirmParams:', confirmParams);
+
       const {error, paymentIntent} = await confirmPayment(
         clientSecret,
         confirmParams,
       );
+      console.log(error, paymentIntent, 'VALUESS');
 
       if (error) {
         modalRef.current.show({
@@ -237,7 +259,8 @@ const PaymentModal = ({
           <TouchableOpacity
             style={[
               styles.methodCard,
-              selectedMethod === PAYMENT_METHODS.CARD && styles.methodCardActive,
+              selectedMethod === PAYMENT_METHODS.CARD &&
+                styles.methodCardActive,
             ]}
             onPress={() => handleSelectMethod(PAYMENT_METHODS.CARD)}
             activeOpacity={0.8}>
@@ -253,7 +276,8 @@ const PaymentModal = ({
             <Text
               style={[
                 styles.methodLabel,
-                selectedMethod === PAYMENT_METHODS.CARD && styles.methodLabelActive,
+                selectedMethod === PAYMENT_METHODS.CARD &&
+                  styles.methodLabelActive,
               ]}>
               {labels.cardOption}
             </Text>
@@ -262,7 +286,8 @@ const PaymentModal = ({
           <TouchableOpacity
             style={[
               styles.methodCard,
-              selectedMethod === PAYMENT_METHODS.IDEAL && styles.methodCardActive,
+              selectedMethod === PAYMENT_METHODS.IDEAL &&
+                styles.methodCardActive,
             ]}
             onPress={() => handleSelectMethod(PAYMENT_METHODS.IDEAL)}
             activeOpacity={0.8}>
@@ -272,7 +297,8 @@ const PaymentModal = ({
             <Text
               style={[
                 styles.methodLabel,
-                selectedMethod === PAYMENT_METHODS.IDEAL && styles.methodLabelActive,
+                selectedMethod === PAYMENT_METHODS.IDEAL &&
+                  styles.methodLabelActive,
               ]}>
               {labels.idealOption}
             </Text>

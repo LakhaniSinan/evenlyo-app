@@ -4,49 +4,55 @@ import {width} from 'react-native-dimension';
 import PhoneInput from 'react-native-phone-number-input';
 import {fontFamly} from '../../constants';
 
-const ContactNumberInput = forwardRef(({
-  labelColor,
-  phoneNumber,
-  value, // ✅ controlled value
-  containerStyle,
-  onChange,
-  labelText,
-  endIcon,
-}, inputRef) => {
-  return (
-    <View style={styles.container}>
-      <Text
-        style={{
-          color: labelColor ? labelColor : '#000',
-          fontSize: 12,
-          fontFamily: fontFamly.PlusJakartaSansBold,
-        }}>
-        {labelText}
-      </Text>
+const ContactNumberInput = forwardRef(
+  (
+    {
+      labelColor,
+      phoneNumber,
+      value, // ✅ controlled value
+      containerStyle,
+      onChange,
+      labelText,
+      endIcon,
+    },
+    inputRef,
+  ) => {
+    return (
+      <View style={styles.container}>
+        <Text
+          style={{
+            color: labelColor ? labelColor : '#000',
+            fontSize: 12,
+            fontFamily: fontFamly.PlusJakartaSansBold,
+          }}>
+          {labelText}
+        </Text>
 
-      <PhoneInput
-        ref={inputRef}
-        defaultCode="US"
-        layout="first"
-        withShadow={false}
-        withDarkTheme={false}
-        placeholder="0000******"
-        value={value || phoneNumber} // ✅ controlled
-        onChangeFormattedText={text => onChange(text)}
-        containerStyle={[styles.phoneContainer, {...containerStyle}]}
-        textContainerStyle={styles.textInput}
-        textInputStyle={styles.textInputStyle}
-        codeTextStyle={styles.codeTextStyle}
-        countryPickerButtonStyle={styles.flagButton}
-        textInputProps={{
-          placeholderTextColor: '#aaa',
-        }}
-      />
+        <PhoneInput
+          ref={inputRef}
+          defaultCode="NL"
+          defaultValue=""
+          layout="first"
+          withShadow={false}
+          withDarkTheme={false}
+          placeholder="0000******"
+          value={value ?? phoneNumber}
+          onChangeFormattedText={text => onChange(text)}
+          containerStyle={[styles.phoneContainer, containerStyle]}
+          textContainerStyle={styles.textInput}
+          textInputStyle={styles.textInputStyle}
+          codeTextStyle={styles.codeTextStyle}
+          countryPickerButtonStyle={styles.flagButton}
+          textInputProps={{
+            placeholderTextColor: '#aaa',
+          }}
+        />
 
-      {endIcon && <View>{endIcon}</View>}
-    </View>
-  );
-});
+        {endIcon && <View>{endIcon}</View>}
+      </View>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   container: {

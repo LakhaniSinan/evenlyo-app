@@ -7,6 +7,8 @@ import LanguageSlice from './slice/language';
 import LocationSlice from './slice/location';
 import activeChatSlice from './slice/chat';
 import OffersSlice from './slice/offers';
+import notificationReducer from './slice/notifications';
+import vendorNotificationsCount from './slice/vendorNotificationsCount';
 
 const rootReducer = combineReducers({
   LoginSlice: LoginSlice,
@@ -14,6 +16,8 @@ const rootReducer = combineReducers({
   LocationSlice: LocationSlice,
   CartSlice: CartSlice,
   OffersSlice: OffersSlice,
+  notification: notificationReducer,
+  vendorNotifications: vendorNotificationsCount,
   activeChat: activeChatSlice,
 });
 

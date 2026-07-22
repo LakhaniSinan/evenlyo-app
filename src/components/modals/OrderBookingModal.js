@@ -848,6 +848,9 @@ const OrderBooking = ({
     setIsLoadding(true);
 
     try {
+
+      console.log(payload,"payloadpayloadpayloadpayloadpayload");
+      
       await handleSendBookingRequest(payload);
     } catch (error) {
       console.log(error, 'handleBooking error');

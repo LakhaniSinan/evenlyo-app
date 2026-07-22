@@ -378,8 +378,8 @@ function CartScreen({navigation}) {
     <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
       <AppHeader
         headingText={t('addToWishlistButton')}
-        rightIcon={ICONS.chatIcon}
-        onRightIconPress={() => navigation.navigate('MessagesScreen')}
+        notificationsIcon={true}
+        onNotificationsPress={() => navigation.navigate('Notifications')}
       />
 
       <ScrollView
@@ -390,39 +390,17 @@ function CartScreen({navigation}) {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           ) : undefined
         }>
-        {/* {renderTabs()} */}
-
-        {isEmpty ? (
-          <View
-            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <Text
-              style={{
-                fontSize: 14,
-                fontFamily: fontFamly.PlusJakartaSansMedium,
-                color: COLORS.textLight,
-              }}>
-              {activeTab === 'bookingItem'
-                ? t('noBookingItemsInCart')
-                : t('noSaleItemsInCart')}
-            </Text>
-          </View>
-        ) : activeTab === 'bookingItem' ? (
-          <>
-            {renderSection(
-              'listingCart',
-              'Request Add To Cart',
-              listingCartData,
-              () => navigation.navigate('SeeAllRequestCart'),
-            )}
-            {renderSection(
-              'acceptedOrder',
-              'Accepted Order',
-              accepetedBookings,
-              () => navigation.navigate('SeeAllRequestCart'),
-            )}
-          </>
-        ) : (
-          renderSection('saleItem', 'Sale Items', saleItem)
+        {renderSection(
+          'listingCart',
+          'Request Add To Cart',
+          listingCartData,
+          () => navigation.navigate('SeeAllRequestCart'),
+        )}
+        {renderSection(
+          'acceptedOrder',
+          'Accepted Order',
+          accepetedBookings,
+          () => navigation.navigate('SeeAllRequestCart'),
         )}
       </ScrollView>
       {accepetedBookings?.length > 0 && activeTab === 'bookingItem' && (
@@ -455,22 +433,7 @@ function CartScreen({navigation}) {
         onConfirm={handleConfirmCancel}
       />
       <CancellationConfirm visible={cancelConfirmation} />
-      <ShippingFromModal
-        isVisible={shippingForm}
-        onClose={() => setshippingForm(false)}
-        nestedFilter={true}
-        onContinueToShipping={onContinueToShipping}
-      />
-      <InfoModal
-        isVisible={showInfoModal}
-        onClose={() => setShowInfoModal(false)}
-        nestedFilter={true}
-        onContinueToShipping={() => {
-          setshippingForm(false);
-          setModalVisible(false);
-          setShowInfoModal(false);
-        }}
-      />
+
       <PaymentModal
         selectedData={selectedData}
         amountToPay={amountToPay}

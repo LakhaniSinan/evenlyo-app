@@ -5,6 +5,7 @@ import {Menu} from 'react-native-paper';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
+import {useSelector} from 'react-redux';
 
 const AppHeader = ({
   isMenu,
@@ -20,6 +21,10 @@ const AppHeader = ({
   isShowMenuIcon,
   setCommentType,
   commentType,
+  onNotificationsPress,
+  onVendorNotificationsPress,
+  vendorNotificationsIcon,
+  notificationsIcon,
   handleSelectOption,
   /** When set, overrides default header bar color (e.g. white for Role Management). */
   backgroundColor,
@@ -84,6 +89,13 @@ const AppHeader = ({
     setOpenMenu(true);
   }, []);
 
+  const {unreadCount} = useSelector(state => state.notification);
+  const {vendorUnreadCount} = useSelector(state => state.vendorNotifications);
+  console.log(
+    vendorUnreadCount,
+    'vendorUnreadCountvendorUnreadCountvendorUnreadCount',
+  );
+
   return (
     <View
       style={{
@@ -117,37 +129,77 @@ const AppHeader = ({
           {typeof headingText === 'string' ? t(headingText) : headingText}
         </Text>
       </View>
-      {!isMenu && (filterIcon || rightIcon) && (
-        <View
-          style={{
-            position: 'absolute',
-            right: width(3),
-            top: width(4),
-            flexDirection: 'row',
-            alignItems: 'center',
-          }}>
-          {filterIcon && (
-            <TouchableOpacity
-              onPress={onFilterPress}
-              style={{marginRight: rightIcon ? 10 : 0}}>
-              <Image
-                resizeMode="contain"
-                style={{width: 40, height: 40}}
-                source={filterIcon}
-              />
-            </TouchableOpacity>
-          )}
-          {rightIcon && (
-            <TouchableOpacity onPress={() => onRightIconPress()}>
-              <Image
-                resizeMode="contain"
-                style={{width: 40, height: 40}}
-                source={rightIcon}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
+      {!isMenu &&
+        (filterIcon ||
+          rightIcon ||
+          vendorNotificationsIcon ||
+          notificationsIcon) && (
+          <View
+            style={{
+              position: 'absolute',
+              right: width(3),
+              top: width(4),
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+            {notificationsIcon && (
+              <TouchableOpacity
+                style={{marginRight: rightIcon ? 10 : 0}}
+                onPress={onNotificationsPress}>
+                <Image
+                  source={ICONS.notificationIcon}
+                  resizeMode="contain"
+                  style={{width: 40, height: 40}}
+                />
+                {unreadCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
+            {vendorNotificationsIcon && (
+              <TouchableOpacity
+                style={{marginRight: rightIcon ? 10 : 0}}
+                onPress={onVendorNotificationsPress}>
+                <Image
+                  source={ICONS.notificationIcon}
+                  resizeMode="contain"
+                  style={{width: 40, height: 40}}
+                />
+                {vendorUnreadCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>
+                      {vendorUnreadCount > 99 ? '99+' : vendorUnreadCount}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
+            {filterIcon && (
+              <TouchableOpacity
+                onPress={onFilterPress}
+                style={{marginLeft: vendorNotificationsIcon ? 10 : 0}}>
+                <Image
+                  resizeMode="contain"
+                  style={{width: 40, height: 40}}
+                  source={filterIcon}
+                />
+              </TouchableOpacity>
+            )}
+            {rightIcon && (
+              <TouchableOpacity onPress={() => onRightIconPress()}>
+                <Image
+                  resizeMode="contain"
+                  style={{width: 40, height: 40}}
+                  source={rightIcon}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       {isMenu && (
         <TouchableOpacity
           style={{position: 'absolute', right: width(3), top: width(4)}}
@@ -271,5 +323,35 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
     textTransform: 'capitalize',
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  badge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: COLORS.backgroundLight,
+    zIndex: 999,
+  },
+
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+    textAlign: 'center',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+    // Agar font available ho to ye use kar sakte ho:
+    // fontFamily: fontFamly.PlusJakartaSansBold,
+  },
+
+  spacer: {
+    height: 10,
   },
 });

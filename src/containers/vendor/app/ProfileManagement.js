@@ -1,5 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Alert,
   Image,
@@ -41,7 +48,6 @@ function ProfileManagement({navigation, route}) {
   const data = route.params;
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.LoginSlice);
-  console.log(user, 'useruseruseruseruseruser');
 
   const teamSizeRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -856,7 +862,10 @@ function ProfileManagement({navigation, route}) {
           await handleUpdate({[field]: uploadedUrl}, true);
         } catch (err) {
           console.error('Upload error:', err);
-          Alert.alert(t('Error'), t('Failed to upload image. Please try again.'));
+          Alert.alert(
+            t('Error'),
+            t('Failed to upload image. Please try again.'),
+          );
         } finally {
           setIsLoading(false);
         }

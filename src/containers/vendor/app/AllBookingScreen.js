@@ -701,11 +701,11 @@ function AllBookingScreen() {
         headingText={t('All Bookings')}
         leftIcon={ICONS.drawerIcon}
         filterIcon={ICONS.filters}
-        rightIcon={ICONS.notificationIcon}
+        vendorNotificationsIcon={true}
+        onVendorNotificationsPress={() => navigation.navigate('Notifications')}
         onLeftIconPress={() => navigation.openDrawer()}
         onFilterPress={() => setModalVisible(true)}
-        onRightIconPress={() => navigation.navigate('Notifications')}
-      />
+        />
 
       {/* <View style={styles.tabContainer}>
         {TABS.map(t => (

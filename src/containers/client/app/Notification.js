@@ -67,6 +67,7 @@ const Notification = ({navigation}) => {
 
         try {
           await markClientNotificationAsRead(item._id);
+          await fetchNotifications();
         } catch (error) {
           console.log('markClientNotificationAsRead error:', error);
         }

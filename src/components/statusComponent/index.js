@@ -3,6 +3,7 @@ import {StyleSheet, Text, View} from 'react-native';
 import {fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
 import {normalizeStatusKey} from '../../utils/translatePricingBreakdownLabel';
+import i18n from '../../services/i18n';
 
 const BOOKING_STATUS_I18N = {
   pending: 'statusPending',
@@ -15,6 +16,7 @@ const BOOKING_STATUS_I18N = {
   received_back: 'statusReceivedBack',
   completed: 'statusCompleted',
   cancelled: 'statusCancelled',
+  complain: 'statusComplain',
   claim: 'statusClaim',
 };
 
@@ -31,11 +33,12 @@ const STATUS_COLORS = {
   cancelled: {bg: '#FFEBEE', text: '#D32F2F'},
   claim: {bg: '#FFF8E1', text: '#FBC02D'},
   paid: {bg: '#E0F7FA', text: '#0097A7'},
+  complain: {bg: '#FCE4EC', text: '#C2185B'},
   new_request: {bg: '#FFE8F0', text: '#E91E63'},
 };
 
 const StatusBadge = ({status}) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
 
   if (!status) {
     return null;
@@ -43,12 +46,12 @@ const StatusBadge = ({status}) => {
 
   const statusKey = normalizeStatusKey(status);
   const labelKey = BOOKING_STATUS_I18N[statusKey];
-  const formattedStatus = labelKey
-    ? t(labelKey)
-    : String(status).trim();
+  const formattedStatus = labelKey ? t(labelKey) : String(status).trim();
 
-  const {bg, text} =
-    STATUS_COLORS[statusKey] || {bg: '#ECEFF1', text: '#37474F'};
+  const {bg, text} = STATUS_COLORS[statusKey] || {
+    bg: '#ECEFF1',
+    text: '#37474F',
+  };
 
   return (
     <View style={[styles.statusBadge, {backgroundColor: bg}]}>

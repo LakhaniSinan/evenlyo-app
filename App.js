@@ -1,7 +1,7 @@
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import {StripeProvider} from '@stripe/stripe-react-native';
+import {handleURLCallback, StripeProvider} from '@stripe/stripe-react-native';
 import React, {useEffect, useRef} from 'react';
-import {Platform, StatusBar} from 'react-native';
+import {Linking, Platform, StatusBar} from 'react-native';
 import 'react-native-gesture-handler';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {Provider as PaperProvider} from 'react-native-paper';
@@ -21,10 +21,13 @@ import store from './src/redux';
 import {initializeLanguageFromStorage} from './src/redux/slice/language';
 import './src/services/i18n';
 import {preloadVectorIcons} from './src/utils/preloadVectorIcons';
+import useVendorNotifications from './src/hooks/vendorNotification';
 
 const AppContent = () => {
   const dispatch = useDispatch();
   const {fetchNotifications} = useNotifications();
+  const {fetchVendorNotifications} = useVendorNotifications();
+
   const notificationPopupRef = useRef(null);
   useFirebaseMessaging();
   useSyncFcmToken();
@@ -41,9 +44,24 @@ const AppContent = () => {
   }, []);
 
   useEffect(() => {
+    Linking.getInitialURL().then(url => {
+      console.log('INITIAL URL:', url);
+      if (url) handleURLCallback(url);
+    });
+
+    const subscription = Linking.addEventListener('url', ({url}) => {
+      console.log('DEEPLINK RECEIVED:', url);
+      handleURLCallback(url);
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
     helper.requestNotificationPermission().catch(() => {});
     dispatch(initializeLanguageFromStorage());
     fetchNotifications();
+    fetchVendorNotifications();
     // Initialize Google Signin
     try {
       GoogleSignin.configure({
@@ -70,7 +88,6 @@ const AppContent = () => {
     </SafeAreaView>
   );
 };
-//hello
 
 const App = () => {
   return (

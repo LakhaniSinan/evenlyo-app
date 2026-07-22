@@ -7,6 +7,7 @@ import {
   View,
   TouchableOpacity,
   FlatList,
+  Keyboard,
 } from 'react-native';
 import GradientButton from '../button';
 import {COLORS, fontFamly} from '../../constants';
@@ -111,6 +112,9 @@ const ComplaintPopup = ({visible, onClose, onConfirm}) => {
             value={note}
             onChangeText={setNote}
             multiline
+            returnKeyType="done"
+            blurOnSubmit
+            onSubmitEditing={Keyboard.dismiss}
           />
 
           <View style={styles.buttonRow}>

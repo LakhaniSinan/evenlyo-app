@@ -5,6 +5,7 @@ import {
   Text,
   TextInput,
   View,
+  Keyboard,
   TouchableOpacity,
 } from 'react-native';
 import {width} from 'react-native-dimension';
@@ -99,6 +100,9 @@ const ReviewModal = ({visible, onClose, onConfirm}) => {
             value={review}
             onChangeText={setReview}
             multiline
+            blurOnSubmit={true}
+            returnKeyType="done"
+            onSubmitEditing={() => Keyboard.dismiss()}
           />
 
           {/* Buttons */}

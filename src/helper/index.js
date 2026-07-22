@@ -175,14 +175,13 @@ export const helper = {
     });
   },
   async uploadMediaToCloudinary(file) {
+    console.log(file, 'filefilefilefilefilefile');
     if (!file || !file.uri || !file.type) {
       console.warn('Invalid file object');
       return null;
     }
-
     const isVideo = file.type.startsWith('video/');
     const resourceType = isVideo ? 'video' : 'image';
-
     const formData = new FormData();
     formData.append('file', {
       uri: file.uri,
@@ -190,7 +189,6 @@ export const helper = {
       name: file.fileName || `upload.${file.type.split('/')[1]}`,
     });
     formData.append('upload_preset', UPLOAD_PRESET);
-
     try {
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`,
@@ -202,9 +200,10 @@ export const helper = {
           },
         },
       );
+      console.log(response, 'responseresponseresponse');
 
       const data = await response.json();
-
+      console.log(data, 'DDDDD');
       if (!response.ok) {
         throw new Error(data.error?.message || 'Upload failed');
       }

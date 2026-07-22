@@ -113,7 +113,77 @@ const resolveLocationLine = (address, eventLocation, lang) => {
   }
   return '';
 };
+const getStatusConfig = status => {
+  const statusMap = {
+    pending: {
+      label: 'Pending',
+      bg: '#FEF3C7',
+      color: '#D97706',
+    },
 
+    accepted: {
+      label: 'Accepted',
+      bg: '#DCFCE7',
+      color: '#15803D',
+    },
+
+    cancelled: {
+      label: 'Cancelled',
+      bg: '#FEE2E2',
+      color: '#DC2626',
+    },
+
+    completed: {
+      label: 'Completed',
+      bg: '#DBEAFE',
+      color: '#2563EB',
+    },
+
+    rejected: {
+      label: 'Rejected',
+      bg: '#FECACA',
+      color: '#B91C1C',
+    },
+
+    finished: {
+      label: 'Finished',
+      bg: '#EDE9FE',
+      color: '#6D28D9',
+    },
+
+    complain: {
+      label: 'Complaint',
+      bg: '#FCE7F3',
+      color: '#BE185D',
+    },
+
+    claim: {
+      label: 'Claim',
+      bg: '#F3E8FF',
+      color: '#7E22CE',
+    },
+
+    on_the_way: {
+      label: 'On The Way',
+      bg: '#E0F2FE',
+      color: '#0284C7',
+    },
+
+    received_back: {
+      label: 'Received Back',
+      bg: '#ECFCCB',
+      color: '#4D7C0F',
+    },
+  };
+
+  return (
+    statusMap[(status || '').toLowerCase()] || {
+      label: status || 'Unknown',
+      bg: '#F3F4F6',
+      color: '#6B7280',
+    }
+  );
+};
 const BookingsByStatus = ({navigation, route}) => {
   const {t, currentLanguage} = useTranslation();
   const event = route.params;
@@ -224,7 +294,10 @@ const BookingsByStatus = ({navigation, route}) => {
   const listingCartData = useMemo(() => {
     let result = rawListingData;
 
-    if (filterMode === 'date' && (dateFilters?.startDate || dateFilters?.endDate)) {
+    if (
+      filterMode === 'date' &&
+      (dateFilters?.startDate || dateFilters?.endDate)
+    ) {
       result = result.filter(item =>
         bookingOverlapsDateRange(
           item,
@@ -274,6 +347,8 @@ const BookingsByStatus = ({navigation, route}) => {
         item?.endDate ||
         startRaw;
 
+      const status = getStatusConfig(item?.status);
+
       return (
         <View style={styles.card}>
           <View style={styles.cardImageWrapper}>
@@ -287,9 +362,37 @@ const BookingsByStatus = ({navigation, route}) => {
           </View>
 
           <View style={styles.cardDetails}>
-            <Text style={styles.title}>
-              {(listingTitle || '').trim() || t('Untitled')}
-            </Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: 6,
+              }}>
+              <Text
+                numberOfLines={2}
+                style={[styles.title, {flex: 1, marginRight: 10}]}>
+                {(listingTitle || '').trim() || t('Untitled')}
+              </Text>
+
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: status.bg,
+                  },
+                ]}>
+                <Text
+                  style={[
+                    styles.statusText,
+                    {
+                      color: status.color,
+                    },
+                  ]}>
+                  {status.label}
+                </Text>
+              </View>
+            </View>
 
             <Text numberOfLines={2} style={styles.bookingId}>
               {`${t('bookingsByStatusLocationLabel')}: `}
@@ -324,13 +427,7 @@ const BookingsByStatus = ({navigation, route}) => {
         </View>
       );
     },
-    [
-      activeTab,
-      currentLanguage,
-      formatListingDate,
-      navigation,
-      t,
-    ],
+    [activeTab, currentLanguage, formatListingDate, navigation, t],
   );
 
   return (
@@ -353,9 +450,7 @@ const BookingsByStatus = ({navigation, route}) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          !loading ? (
-            <Text style={styles.emptyText}>{emptyMessage}</Text>
-          ) : null
+          !loading ? <Text style={styles.emptyText}>{emptyMessage}</Text> : null
         }
         contentContainerStyle={{paddingBottom: 20}}
       />
@@ -473,5 +568,18 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: 'gray',
     fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  statusText: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'capitalize',
   },
 });

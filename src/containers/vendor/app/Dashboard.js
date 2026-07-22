@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import {width} from 'react-native-dimension';
+import {useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
 import ActivityLogCard from '../../../components/activityLogCard';
 import AppHeader from '../../../components/appHeader';
@@ -19,10 +20,10 @@ import DashboardCard from '../../../components/dashboardCard';
 import RecentBookingCards from '../../../components/recentBookingCards';
 import RecentClientsCard from '../../../components/recentClientsCard';
 import {COLORS, fontFamly} from '../../../constants';
-import {getDashboard} from '../../../services/Dashboard';
 import useTranslation from '../../../hooks/useTranslation';
+import {getDashboard} from '../../../services/Dashboard';
 import {formatEuro} from '../../../utils';
-import {useSelector} from 'react-redux';
+import useVendorNotifications from '../../../hooks/vendorNotification';
 
 const ViewMoreButton = React.memo(
   ({heading, onPress, showViewAll, viewAllLabel}) => (
@@ -53,7 +54,7 @@ const Dashboard = () => {
   const navigation = useNavigation();
   const {t, currentLanguage} = useTranslation();
   const {user} = useSelector(state => state.LoginSlice);
-  console.log(user, 'useruseruseruseruseruser');
+  const {fetchVendorNotifications} = useVendorNotifications();
 
   const tRef = useRef(t);
   tRef.current = t;
@@ -61,6 +62,10 @@ const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('Booking');
+
+  useEffect(() => {
+    fetchVendorNotifications();
+  }, []);
 
   const dashboardStats = useMemo(
     () => [
@@ -93,7 +98,9 @@ const Dashboard = () => {
         id: 'revenue',
         title: t('Revenue'),
         icon: ICONS.earningIcon,
-        value: formatEuro(dashboardData?.stats?.monthlyRevenue ?? 0, {space: false}),
+        value: formatEuro(dashboardData?.stats?.monthlyRevenue ?? 0, {
+          space: false,
+        }),
       },
     ],
     [dashboardData, t],
@@ -103,10 +110,6 @@ const Dashboard = () => {
     setRefreshing(true);
     try {
       const response = await getDashboard();
-      console.log(
-        response,
-        'responseresponseresponseresponseresponseresponseasdd',
-      );
 
       if (response?.status === 200 || response?.status === 201) {
         setDashboardData(response?.data || null);
@@ -172,9 +175,9 @@ const Dashboard = () => {
       <AppHeader
         headingText={t('dashboard')}
         leftIcon={ICONS.drawerIcon}
-        rightIcon={ICONS.notificationIcon}
+        vendorNotificationsIcon={true}
+        onVendorNotificationsPress={() => navigation.navigate('Notifications')}
         onLeftIconPress={() => navigation.openDrawer()}
-        onRightIconPress={() => navigation.navigate('Notifications')}
       />
 
       <ScrollView

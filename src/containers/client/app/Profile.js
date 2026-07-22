@@ -24,6 +24,8 @@ import {COLORS, fontFamly} from '../../../constants';
 import useTranslation from '../../../hooks/useTranslation';
 import {setUserData} from '../../../redux/slice/auth';
 import useProfile from '../../../hooks/getProfileData';
+import {setVendorUnreadCount} from '../../../redux/slice/vendorNotificationsCount';
+import { setUnreadCount } from '../../../redux/slice/notifications';
 
 const AUTH_MODAL_SWITCH_MS = 480;
 
@@ -102,6 +104,11 @@ const Profile = () => {
       icon: ICONS.security,
     },
     {name: t('Settings'), navigate: 'Settings', icon: ICONS.settings},
+    {
+      name: t('Chat List'),
+      navigate: 'MessagesScreen',
+      icon: ICONS.chatIcon,
+    },
   ];
 
   const supportOptions = [
@@ -127,22 +134,25 @@ const Profile = () => {
     }
   };
 
-  const checkUserLoggedIn = useCallback(async ({showBlockingLoader = true} = {}) => {
-    try {
-      if (showBlockingLoader) {
-        setCheckingAuth(true);
+  const checkUserLoggedIn = useCallback(
+    async ({showBlockingLoader = true} = {}) => {
+      try {
+        if (showBlockingLoader) {
+          setCheckingAuth(true);
+        }
+        const token = await getParsedToken();
+        setIsLoggedIn(!!token);
+      } catch (error) {
+        console.log('Auth check error:', error);
+        setIsLoggedIn(false);
+      } finally {
+        if (showBlockingLoader) {
+          setCheckingAuth(false);
+        }
       }
-      const token = await getParsedToken();
-      setIsLoggedIn(!!token);
-    } catch (error) {
-      console.log('Auth check error:', error);
-      setIsLoggedIn(false);
-    } finally {
-      if (showBlockingLoader) {
-        setCheckingAuth(false);
-      }
-    }
-  }, []);
+    },
+    [],
+  );
 
   const profileFirstFocusRef = useRef(true);
 
@@ -221,6 +231,8 @@ const Profile = () => {
 
   const handleNavigate = async navigate => {
     if (navigate === 'Logout') {
+      dispatch(setVendorUnreadCount(0));
+      dispatch(setUnreadCount(0));
       dispatch(setUserData(null));
       await AsyncStorage.multiRemove(['userData', 'token']);
       setIsLoggedIn(false);
@@ -299,7 +311,11 @@ const Profile = () => {
 
   return (
     <View style={styles.container}>
-      <AppHeader headingText={t('Profile')} />
+      <AppHeader
+        headingText={t('Profile')}
+        notificationsIcon={true}
+        onNotificationsPress={() => navigation.navigate('Notifications')}
+      />
 
       {checkingAuth ? (
         <Loader isLoading />

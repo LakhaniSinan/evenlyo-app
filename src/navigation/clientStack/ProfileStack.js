@@ -5,6 +5,8 @@ import PersonalInfo from '../../containers/client/app/personalInfo';
 import Profile from '../../containers/client/app/Profile';
 import ResetPassword from '../../containers/client/app/ResetPasswordScreen';
 import Settings from '../../containers/client/app/Settings';
+import Notification from '../../containers/client/app/Notification';
+import Messages from '../../containers/client/app/Messages';
 
 const Stack = createStackNavigator();
 
@@ -48,6 +50,20 @@ const ProfileStack = () => {
         component={ResetPassword}
         options={{
           title: 'Reset Password',
+        }}
+      />
+      <Stack.Screen
+        name="Notifications"
+        component={Notification}
+        options={{
+          title: 'Notifications',
+        }}
+      />
+      <Stack.Screen
+        name="MessagesScreen"
+        component={Messages}
+        options={{
+          title: 'Messages',
         }}
       />
     </Stack.Navigator>

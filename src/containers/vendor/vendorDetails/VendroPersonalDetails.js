@@ -7,26 +7,23 @@ import CommonAlert from '../../../components/commanAlert';
 import Header from '../../../components/header';
 import Loader from '../../../components/loder';
 import {COLORS} from '../../../constants';
+import {useTranslation} from '../../../hooks';
 import {registerUser} from '../../../services/Auth';
 import BusinessPersonalInfo from './BusinessPresonalDetails';
 import Categories from './Categories';
 import MultipleMediaUpload from './GalleryForBusiness';
-import PersonalInfo from './PrsonalInfo';
 import SecurityTab from './SecurityTab';
 import SubCategories from './SubCategories';
-import VendorTypeScreen from './VendorTypeScreen';
-import VerifyTab from './VerifyTab';
-import {useTranslation} from '../../../hooks';
 
 const VendorPersonalDetails = ({navigation}) => {
   const {t, currentLanguage} = useTranslation();
   const [activeStep, setActiveStep] = useState(0);
-  const [selectedType, setSelectedType] = useState('');
-  const [vendorType, setVendorType] = useState('business');
   const modalRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [personalInfo, setPersonalInfo] = useState(null);
+
   const [businessInfo, setBusinessInfo] = useState(null);
+  console.log(businessInfo, 'businessInfobusinessInfobusinessInfobusinessInfo');
+
   const [categoriesSelected, setCategoriesSelected] = useState([]);
   const [subCategoriesSelected, setSubCategoriesSelected] = useState([]);
 
@@ -36,21 +33,6 @@ const VendorPersonalDetails = ({navigation}) => {
     workVideos: '',
   });
   const [security, setSecurity] = useState({password: '', confirmPassword: ''});
-  const [verification, setVerification] = useState({
-    phoneNumber: '',
-    email: '',
-  });
-
-  const handleNextStep = type => {
-    setSelectedType(type);
-    setVendorType(type);
-    setActiveStep(prev => prev + 1);
-  };
-
-  const handlePersonalNext = data => {
-    setPersonalInfo(data);
-    setActiveStep(pre => pre + 1);
-  };
 
   const handleBusinessNext = data => {
     setBusinessInfo(data);
@@ -60,7 +42,6 @@ const VendorPersonalDetails = ({navigation}) => {
   const handleCategoriesNext = data => {
     setCategoriesSelected(data || []);
     setActiveStep(pre => pre + 1);
-    // step will move after subcategories are fetched
   };
 
   const handleSubCategoriesNext = data => {
@@ -80,12 +61,68 @@ const VendorPersonalDetails = ({navigation}) => {
     setActiveStep(pre => pre + 1);
   };
 
-  const handleSecurityNext = data => {
-    setSecurity({
-      password: data?.password || '',
-      confirmPassword: data?.confirmPassword || '',
-    });
-    setActiveStep(pre => pre + 1);
+  const handleSecurityNext = async data => {
+    try {
+      const securityData = {
+        password: data?.password || '',
+        confirmPassword: data?.confirmPassword || '',
+      };
+
+      setSecurity(securityData);
+
+      const payload = {
+        vendorType: 'business',
+        personalInfo: null,
+        businessInfo,
+        categories: categoriesSelected,
+        subCategories: subCategoriesSelected,
+        media,
+        security: securityData,
+      };
+
+      setIsLoading(true);
+      console.log(businessInfo?.companyEmail, 'businessInfo?.companyEmail');
+
+      const response = await registerUser({
+        email: businessInfo?.companyEmail,
+      });
+
+      if (response?.status === 200 || response?.status === 201) {
+        modalRef.current.show({
+          status: 'ok',
+          message:
+            currentLanguage === 'en'
+              ? response.data?.message.en
+              : response.data?.message.nl,
+          handlePressOk: () => {
+            modalRef.current.hide();
+
+            navigation.navigate('RegistrationOtp', {
+              ...payload,
+              type: 'vendor',
+            });
+          },
+        });
+      } else {
+        modalRef.current.show({
+          status: 'error',
+          message:
+            currentLanguage === 'en'
+              ? response.data?.message.en
+              : response.data?.message.nl,
+        });
+      }
+    } catch (error) {
+      console.log('Registration Error:', error);
+
+      showAlert(
+        error?.response?.data?.message?.en ||
+          error?.message ||
+          'Something went wrong',
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const showAlert = message => {
@@ -93,62 +130,6 @@ const VendorPersonalDetails = ({navigation}) => {
       status: 'error',
       message: message,
     });
-  };
-
-  const handleVerifyNext = data => {
-    setVerification({
-      phoneNumber: data?.phoneNumber || '',
-      email: data?.email || '',
-    });
-
-    const nextTick = async () => {
-      try {
-        const payload = {
-          vendorType,
-          personalInfo: personalInfo,
-          businessInfo: businessInfo,
-          categories: categoriesSelected,
-          subCategories: subCategoriesSelected,
-          media: media,
-          security,
-          verification,
-        };
-
-        setIsLoading(true);
-        const response = await registerUser({email: data?.email});
-
-        setIsLoading(false);
-        if (response?.status == 200 || response?.status == 201) {
-          modalRef.current.show({
-            status: 'ok',
-            message:
-              currentLanguage == 'en'
-                ? response.data?.message.en
-                : response.data?.message.nl,
-            handlePressOk: () => {
-              modalRef.current.hide();
-              navigation.navigate('RegistrationOtp', {
-                ...payload,
-                type: 'vendor',
-              });
-            },
-          });
-        } else {
-          modalRef.current.show({
-            status: 'error',
-            message:
-              currentLanguage == 'en'
-                ? response.data?.message.en
-                : response.data?.message.nl,
-          });
-        }
-      } catch (error) {
-        console.log(error, 'errorerrorerrorerrorerror123123');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    setTimeout(nextTick, 0);
   };
 
   return (
@@ -176,27 +157,6 @@ const VendorPersonalDetails = ({navigation}) => {
               activeStepIconBorderColor="#FF2B7A"
               activeLabelColor="#FF2B7A"
               labelColor="#d3d3d3">
-              {/* <ProgressStep removeBtnRow>
-                <VendorTypeScreen onSelectType={handleNextStep} />
-              </ProgressStep> */}
-
-              {/* {selectedType === 'personal' ? (
-                <ProgressStep removeBtnRow>
-                  <PersonalInfo
-                    personalInfo={personalInfo}
-                    onPressBack={() => setActiveStep(pre => pre - 1)}
-                    handleNextStep={handlePersonalNext}
-                  />
-                </ProgressStep>
-              ) : (
-                <ProgressStep removeBtnRow>
-                  <BusinessPersonalInfo
-                    businessInfo={businessInfo}
-                    onPressBack={() => setActiveStep(pre => pre - 1)}
-                    handleNextStep={handleBusinessNext}
-                  />
-                </ProgressStep>
-                )} */}
               <ProgressStep removeBtnRow>
                 <BusinessPersonalInfo
                   businessInfo={businessInfo}
@@ -234,14 +194,6 @@ const VendorPersonalDetails = ({navigation}) => {
                   enteredPass={security}
                   onPressBack={handleBackStep}
                   handleNextStep={handleSecurityNext}
-                />
-              </ProgressStep>
-
-              <ProgressStep removeBtnRow>
-                <VerifyTab
-                  setVerification={setVerification}
-                  onPressBack={handleBackStep}
-                  handleNextStep={handleVerifyNext}
                 />
               </ProgressStep>
             </ProgressSteps>

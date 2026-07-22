@@ -8,15 +8,22 @@ export default function OTPInputScreen({onResendPress, setOtp}) {
   const {t} = useTranslation();
   const [timer, setTimer] = useState(30);
 
-
   useEffect(() => {
-    if (timer > 0) {
-      const countdown = setInterval(() => {
-        setTimer(prev => prev - 1);
-      }, 1000);
-      return () => clearInterval(countdown);
+    if (timer <= 0) {
+      return;
     }
+
+    const countdown = setInterval(() => {
+      setTimer(prev => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(countdown);
   }, [timer]);
+
+  const handleResend = () => {
+    setTimer(30); // Counter restart
+    onResendPress?.(); // Resend API
+  };
 
   return (
     <View style={styles.container}>
@@ -31,11 +38,13 @@ export default function OTPInputScreen({onResendPress, setOtp}) {
           pinCodeTextStyle: styles.otpText,
         }}
       />
-      <Text style={styles.timerText}>
-        {t('otpTimerSeconds', {seconds: timer})}
-      </Text>
-      {timer == 0 && (
-        <TouchableOpacity onPress={onResendPress}>
+
+      {timer > 0 ? (
+        <Text style={styles.timerText}>
+          {t('otpTimerSeconds', {seconds: timer})}
+        </Text>
+      ) : (
+        <TouchableOpacity onPress={handleResend}>
           <Text style={styles.timerText2}>{t('resendCode')}</Text>
         </TouchableOpacity>
       )}
@@ -70,8 +79,8 @@ const styles = StyleSheet.create({
   timerText2: {
     fontSize: 12,
     textAlign: 'center',
-    color: '#4E4E4E',
-    marginTop: 5,
-    fontFamily: fontFamly.PlusJakartaSansSemiBold,
+    color: '#4A90E2',
+    marginTop: 10,
+    fontFamily: fontFamly.PlusJakartaSansBold,
   },
 });

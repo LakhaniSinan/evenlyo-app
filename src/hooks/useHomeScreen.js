@@ -13,6 +13,7 @@ import {useTranslation} from '../hooks';
 import {getStoredToken} from '../utils/authToken';
 
 import useCategories from './getCategories';
+import useNotifications from './notifications';
 
 const SUB_CATEGORY_DEBOUNCE_MS = 450;
 
@@ -52,7 +53,7 @@ const normalizeHomePayload = payload => {
 
 const useHomeScreen = ({modalRef, navigation, openLogin}) => {
   const {currentLanguage} = useTranslation();
-
+  const {fetchNotifications} = useNotifications();
   const subCategoryRequestRef = useRef(0);
   const homeDataRequestRef = useRef(0);
   const activeFiltersRef = useRef({});
@@ -142,6 +143,14 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
       }
 
       const requestId = ++homeDataRequestRef.current;
+      console.log(
+        'START',
+        requestId,
+        homeDataRequestRef.current,
+        subCategoryId,
+      );
+
+      console.log('hellooooooooooo');
 
       const params = {
         subCategoryId,
@@ -154,6 +163,12 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
           getHomeData(params),
           getVendorsBySubCategory(categoryId, {userId: user?.id}),
         ]);
+
+        console.log(
+          homeRes,
+          vendorsRes,
+          'homeRes, vendorsReshomeRes, vendorsRes',
+        );
 
         if (requestId !== homeDataRequestRef.current) {
           return;
@@ -190,6 +205,7 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
 
   useEffect(() => {
     loadCategories();
+    fetchNotifications();
   }, [loadCategories]);
 
   useEffect(() => {
@@ -205,7 +221,6 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
         setSubCategoriesLoading(true);
         setSelectedSubCategory(null);
         setHomeData(EMPTY_HOME_DATA);
-        homeDataRequestRef.current += 1;
 
         const subRes = await fetchSubCategories(selectedCategoryId);
 
@@ -259,7 +274,6 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
     setSelectedSubCategory(null);
     setHomeData(EMPTY_HOME_DATA);
     setPlatformFeePercentage(0);
-    homeDataRequestRef.current += 1;
   }, []);
 
   const handleSubCategorySelect = useCallback(
@@ -273,7 +287,6 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
 
       setSelectedSubCategory(subCategory);
       setHomeData(EMPTY_HOME_DATA);
-      homeDataRequestRef.current += 1;
     },
     [selectedSubCategory],
   );
@@ -398,6 +411,20 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
     return sections;
   }, [hasSubCategories]);
 
+  const onResetFilters = useCallback(() => {
+    activeFiltersRef.current = {};
+
+    if (categories.length > 0 && subCategories.length > 0) {
+      const firstSubCategory = subCategories[0];
+
+      setSelectedSubCategory(firstSubCategory);
+
+      fetchHomeData(selectedCategoryId, firstSubCategory._id);
+    }
+
+    setFilterVisible(false);
+  }, [categories, subCategories, selectedCategoryId, fetchHomeData]);
+
   return {
     categories,
     subCategories,
@@ -405,6 +432,7 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
     homeDataVersion,
     selectedCategory,
     selectedSubCategory,
+    onResetFilters,
     setSelectedSubCategory: handleSubCategorySelect,
     platformFeePercentage,
     hasSubCategories,
@@ -420,6 +448,7 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
     onBookingCardPress,
     onVendorCardPress,
     handleAddToWishList,
+
     onApplyFilters,
   };
 };

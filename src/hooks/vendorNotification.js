@@ -1,22 +1,23 @@
 import {useCallback, useState} from 'react';
 import {useDispatch} from 'react-redux';
 import {setUnreadCount} from '../redux/slice/notifications';
-import {getNotifications} from '../services/Notifications';
+import {getVendorNotifications} from '../services/Notifications';
+import {setVendorUnreadCount} from '../redux/slice/vendorNotificationsCount';
 
-const useNotifications = () => {
+const useVendorNotifications = () => {
   const [notification, setNotificaiton] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
 
-  const fetchNotifications = useCallback(
+  const fetchVendorNotifications = useCallback(
     async ({isRefresh = false} = {}) => {
       try {
         if (!isRefresh) {
           setLoading(true);
         }
 
-        const res = await getNotifications();
+        const res = await getVendorNotifications();
 
         const status = res?.status || 0;
         const data = res?.data || {};
@@ -24,12 +25,9 @@ const useNotifications = () => {
         if (status === 200 || status === 201) {
           const list = Array.isArray(data?.data) ? data.data : [];
 
+          const unreadCount = list.filter(item => !item?.isRead).length;
 
-          const unreadCount = list.filter(item => !item?.isClientRead).length;
-          console.log(unreadCount, 'unreadCountunreadCountunreadCount');
-          console.log(list, 'unreadCountunreadCountunreadCount');
-
-          dispatch(setUnreadCount(unreadCount));
+          dispatch(setVendorUnreadCount(unreadCount));
 
           setNotificaiton(list);
 
@@ -41,10 +39,10 @@ const useNotifications = () => {
 
         return {
           success: false,
-          message: data?.message || 'Failed to fetch notifications',
+          message: data?.message || 'Failed to fetch vendor notifications',
         };
       } catch (error) {
-        console.log('fetchNotifications error:', error);
+        console.log('fetchVendorNotifications error:', error);
 
         return {
           success: false,
@@ -63,9 +61,9 @@ const useNotifications = () => {
     notification,
     loading,
     setLoading,
-    fetchNotifications,
+    fetchVendorNotifications,
     setNotificaiton,
   };
 };
 
-export default useNotifications;
+export default useVendorNotifications;
