@@ -77,7 +77,7 @@ const BusinessPersonalInfo = ({businessInfo, onPressBack, handleNextStep}) => {
   const [formData, setFormData] = useState({
     companyName: '',
     companyEmail: '',
-    contactNumber: '',
+    contactNumber: '+31',
     companyAddress: '',
     companyWebsite: '',
     passportNumber: '',
