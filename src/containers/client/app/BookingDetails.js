@@ -2,15 +2,15 @@ import moment from 'moment';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Image,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
-  RefreshControl,
   View,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import {width} from 'react-native-dimension';
-import MapView, {Marker} from 'react-native-maps';
 import {useSelector} from 'react-redux';
 
 import {ICONS} from '../../../assets';
@@ -26,9 +26,9 @@ import Loader from '../../../components/loder';
 import CancelBookingModal from '../../../components/modals/CancellationModal';
 import ComplaintPopup from '../../../components/modals/ComplaintModal';
 import ReviewModal from '../../../components/modals/ReviewModal';
+import PaymentModal from '../../../components/paymentModal';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
-import {formatEuro, formatPrice} from '../../../utils';
 import {
   addReview,
   cancelBooking,
@@ -39,7 +39,7 @@ import {
 } from '../../../services/BookingItem';
 import {checkIsChatedBefore, createConnection} from '../../../services/Chat';
 import {createPaymentIntent, getAmountToPay} from '../../../services/Payment';
-import PaymentModal from '../../../components/paymentModal';
+import {formatEuro, formatPrice} from '../../../utils';
 
 /* -------------------------------------------------------------------------- */
 /*                                HELPERS                                     */
@@ -140,8 +140,9 @@ const RenderCards = React.memo(({title, isCheckIn, data}) => {
 /*                              MAIN SCREEN                                   */
 /* -------------------------------------------------------------------------- */
 
-const BookingDetails = ({route, navigation}) => {
+const BookingDetails = ({route}) => {
   const [refreshing, setRefreshing] = useState(false);
+  const navigation = useNavigation();
 
   const {t, currentLanguage} = useTranslation();
   const isDutch = currentLanguage === 'nl';
@@ -651,7 +652,7 @@ const BookingDetails = ({route, navigation}) => {
         <AppHeader
           leftIcon={ICONS.leftArrowIcon}
           headingText={localizedText.booking}
-          // rightIcon={ICONS.chatIcon}
+          rightIcon={ICONS.chatIcon}
           onLeftIconPress={() => navigation.goBack()}
           onRightIconPress={handleOpenChat}
         />
