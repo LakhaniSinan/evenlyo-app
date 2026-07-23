@@ -1,8 +1,7 @@
-import React, {forwardRef, useImperativeHandle, useState} from 'react';
-import {Text, View} from 'react-native';
+import React, {forwardRef, useImperativeHandle, useState, useRef} from 'react';
+import {Animated, Text, View, StyleSheet} from 'react-native';
 import {width} from 'react-native-dimension';
 import FastImage from 'react-native-fast-image';
-import Modal from 'react-native-modal';
 import {ICONS} from '../../assets';
 import {COLORS, fontFamly} from '../../constants';
 import {useTranslation} from '../../hooks';
@@ -11,19 +10,31 @@ import GradientButton from '../button';
 const CommonAlert = forwardRef((props, ref) => {
   const [isVisible, setIsVisible] = useState(false);
   const [modalData, setModalData] = useState({});
+  const opacity = useRef(new Animated.Value(0)).current;
   const {t} = useTranslation();
+
+  const animateTo = (toValue, cb) => {
+    Animated.timing(opacity, {
+      toValue,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(cb);
+  };
 
   useImperativeHandle(ref, () => ({
     show(params) {
       setModalData(params);
       setIsVisible(true);
+      animateTo(1);
     },
     hide() {
-      setIsVisible(false);
+      animateTo(0, () => setIsVisible(false));
     },
   }));
 
-  const {message, status, handleDelete, handlePressOk} = modalData;
+  if (!isVisible) return null;
+
+  const {message, status, handlePressOk} = modalData;
 
   const normalizedStatus =
     status === 'ok' || status === 'alert' || status === 'error'
@@ -34,15 +45,10 @@ const CommonAlert = forwardRef((props, ref) => {
       ? message
       : 'Something went wrong.';
 
+  const close = () => animateTo(0, () => setIsVisible(false));
+
   return (
-    <Modal
-      style={{alignSelf: 'center', alignItems: 'center'}}
-      isVisible={isVisible}
-      animationIn="fadeIn"
-      animationOut="fadeOut"
-      backdropOpacity={0.5}
-      useNativeDriver
-      hideModalContentWhileAnimating>
+    <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, {opacity}]}>
       <View
         style={{
           width: width(86),
@@ -88,10 +94,8 @@ const CommonAlert = forwardRef((props, ref) => {
             <GradientButton
               text={t('OK')}
               onPress={() => {
-                if (handlePressOk) {
-                  handlePressOk();
-                }
-                setIsVisible(false);
+                if (handlePressOk) handlePressOk();
+                close();
               }}
               type="filled"
               textStyle={{
@@ -106,9 +110,7 @@ const CommonAlert = forwardRef((props, ref) => {
           <View style={{justifyContent: 'center', height: width(14)}}>
             <GradientButton
               text={t('OK')}
-              onPress={() => {
-                setIsVisible(false);
-              }}
+              onPress={close}
               type="filled"
               textStyle={{
                 fontSize: 12,
@@ -130,9 +132,7 @@ const CommonAlert = forwardRef((props, ref) => {
             <View style={{width: width(33)}}>
               <GradientButton
                 text={t('No')}
-                onPress={() => {
-                  setIsVisible(false);
-                }}
+                onPress={close}
                 type="filled"
                 textStyle={{
                   fontSize: 12,
@@ -145,10 +145,8 @@ const CommonAlert = forwardRef((props, ref) => {
               <GradientButton
                 text={t('Yes')}
                 onPress={() => {
-                  if (handlePressOk) {
-                    handlePressOk();
-                  }
-                  setIsVisible(false);
+                  if (handlePressOk) handlePressOk();
+                  close();
                 }}
                 type="filled"
                 textStyle={{
@@ -161,8 +159,18 @@ const CommonAlert = forwardRef((props, ref) => {
           </View>
         )}
       </View>
-    </Modal>
+    </Animated.View>
   );
+});
+
+const styles = StyleSheet.create({
+  backdrop: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+    elevation: 999, // Android stacking within a View
+  },
 });
 
 export default CommonAlert;
