@@ -44,8 +44,8 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
 
   const handleGetFCM = async () => {
     const res = await helper.requestNotificationPermission();
-    console.log(res,"resresresresresresres");
-    
+    console.log(res, 'resresresresresresres');
+
     if (res === 'granted') {
       getFCMToken();
     } else {
@@ -103,6 +103,7 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
 
       const {status, data} = response;
       setIsLoading(false);
+      console.log(status, data, 'statusstatusstatusstatus');
 
       if (status === 200 || status === 201) {
         const userData = data?.user;
@@ -112,6 +113,7 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
           ['token', JSON.stringify(accessToken)],
           ['userData', JSON.stringify(userData)],
         ]);
+        console.log(userData, 'userDatauserDatauserData');
 
         dispatch(setUserData(userData));
       } else {
