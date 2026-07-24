@@ -102,6 +102,8 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
           : await loginClient(payload);
 
       const {status, data} = response;
+      console.log(status,data,"VALUESS");
+      
       setIsLoading(false);
 
       if (status === 200 || status === 201) {
