@@ -17,6 +17,10 @@ export const markVendorNotificationAsRead = notificationId => {
   );
 };
 
+export const markAllNotificationsRead = id => {
+  return Api(`${endPoints.markAllAsRead}/${id}`, null, requestType.POST);
+};
+
 export const markClientNotificationAsRead = notificationId => {
   return Api(
     endPoints.markClientNotificationRead(notificationId),

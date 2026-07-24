@@ -24,10 +24,7 @@ const useNotifications = () => {
         if (status === 200 || status === 201) {
           const list = Array.isArray(data?.data) ? data.data : [];
 
-
           const unreadCount = list.filter(item => !item?.isClientRead).length;
-          console.log(unreadCount, 'unreadCountunreadCountunreadCount');
-          console.log(list, 'unreadCountunreadCountunreadCount');
 
           dispatch(setUnreadCount(unreadCount));
 

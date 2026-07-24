@@ -380,6 +380,8 @@ function CartScreen({navigation}) {
         headingText={t('addToWishlistButton')}
         notificationsIcon={true}
         onNotificationsPress={() => navigation.navigate('Notifications')}
+        rightIcon={ICONS.chatIcon}
+        onRightIconPress={() => navigation.navigate('MessagesScreen')}
       />
 
       <ScrollView

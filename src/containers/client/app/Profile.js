@@ -25,7 +25,7 @@ import useTranslation from '../../../hooks/useTranslation';
 import {setUserData} from '../../../redux/slice/auth';
 import useProfile from '../../../hooks/getProfileData';
 import {setVendorUnreadCount} from '../../../redux/slice/vendorNotificationsCount';
-import { setUnreadCount } from '../../../redux/slice/notifications';
+import {setUnreadCount} from '../../../redux/slice/notifications';
 
 const AUTH_MODAL_SWITCH_MS = 480;
 
@@ -314,6 +314,8 @@ const Profile = () => {
       <AppHeader
         headingText={t('Profile')}
         notificationsIcon={true}
+        rightIcon={ICONS.chatIcon}
+        onRightIconPress={() => navigation.navigate('MessagesScreen')}
         onNotificationsPress={() => navigation.navigate('Notifications')}
       />
 

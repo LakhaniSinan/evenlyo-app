@@ -396,6 +396,8 @@ const BooKings = () => {
       <AppHeader
         headingText={t('History')}
         notificationsIcon={true}
+        rightIcon={ICONS.chatIcon}
+        onRightIconPress={() => navigation.navigate('MessagesScreen')}
         onNotificationsPress={() => navigation.navigate('Notifications')}
       />
       <FlatList

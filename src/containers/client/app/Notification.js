@@ -14,11 +14,13 @@ import {useTranslation} from '../../../hooks';
 import useNotifications from '../../../hooks/notifications';
 import {markClientNotificationAsRead} from '../../../services/Notifications';
 import {formatRelativeTime} from '../../../utils';
+import AppHeader from '../../../components/appHeader';
 
 const Notification = ({navigation}) => {
   const {t, currentLanguage} = useTranslation();
   const {fetchNotifications, loading, notification, setNotificaiton} =
     useNotifications();
+  const [markAllLoading, setMarkAllLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const skeletonData = useMemo(() => Array(6).fill({}), []);
@@ -32,6 +34,26 @@ const Notification = ({navigation}) => {
     await fetchNotifications({isRefresh: true});
     setRefreshing(false);
   }, [fetchNotifications]);
+
+  const handleMarkAllAsRead = useCallback(async () => {
+    try {
+      setMarkAllLoading(true);
+      // const responce = await markClientNotificationAsRead('all');
+
+      setNotificaiton(prev =>
+        prev.map(item => ({
+          ...item,
+          isClientRead: true,
+          isRead: true,
+        })),
+      );
+
+      await fetchNotifications();
+    } catch (error) {
+    } finally {
+      setMarkAllLoading(false);
+    }
+  }, [fetchNotifications, setNotificaiton]);
 
   const getLocalizedField = useCallback(
     (field, language = currentLanguage) => {
@@ -166,36 +188,40 @@ const Notification = ({navigation}) => {
   );
 
   return (
-    <FlatList
-      keyExtractor={(item, index) => item?._id || index.toString()}
-      ListHeaderComponent={
-        <View style={styles.headerContainer}>
-          <View style={styles.headerTop}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Image
-                resizeMode="contain"
-                style={styles.backIcon}
-                source={ICONS.leftArrowIcon}
-              />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>{t('Notifications')}</Text>
-            <View style={styles.headerSpacer} />
+    <View>
+      <AppHeader
+        leftIcon={ICONS.leftArrowIcon}
+        headingText={t('Notifications')}
+        onLeftIconPress={() => navigation.goBack()}
+      />
+      <FlatList
+        keyExtractor={(item, index) => item?._id || index.toString()}
+        data={loading ? skeletonData : notification}
+        ListHeaderComponent={
+          <View style={styles.container}>
+            {/* <TouchableOpacity
+              style={styles.button}
+              disabled={markAllLoading}
+              onPress={handleMarkAllAsRead}>
+              <Text style={styles.markAllText}>
+                {markAllLoading ? t('Reading...') : t('Mark all as read')}
+              </Text>
+            </TouchableOpacity> */}
           </View>
-        </View>
-      }
-      data={loading ? skeletonData : notification}
-      renderItem={renderItem}
-      contentContainerStyle={styles.listContent}
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      ListEmptyComponent={
-        !loading && (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>{t('No Notifications')}</Text>
-          </View>
-        )
-      }
-    />
+        }
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContent}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        ListEmptyComponent={
+          !loading && (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>{t('No Notifications')}</Text>
+            </View>
+          )
+        }
+      />
+    </View>
   );
 };
 
@@ -292,6 +318,26 @@ const styles = StyleSheet.create({
     marginHorizontal: width(1),
   },
   bellIcon: {height: width(3), width: width(3), marginTop: width(1)},
+  markAllText: {
+    textAlign: 'right',
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 12,
+    color: COLORS.white,
+  },
+  button: {
+    height: width(10),
+    width: width(40),
+    borderRadius: width(5),
+    marginVertical: width(3),
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: width(3),
+  },
 });
 
 export default Notification;
