@@ -34,7 +34,7 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
     firstName: '',
     lastName: '',
     email: '',
-    contact: '',
+    contact: '+31',
     address: '',
     password: '',
     confirmPassword: '',
@@ -127,7 +127,7 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
       console.error('Registration Error:', err);
       modalRef.current.show({
         status: 'error',
-        message: 'An unexpected error occurred. Please try again.',
+        message: 'An unexpected error occurred. Please try againsdasd.',
       });
     } finally {
       setIsLoading(false);
@@ -268,16 +268,14 @@ const RegistrationModal = ({onClose, isVisible, handlePressFun}) => {
                 </View>
               ))}
 
-              <View style={styles.inputGap}>
-                <ContactNumberInput
-                  labelText={t('contactNumber')}
-                  labelColor="#000"
-                  phoneNumber={formData.contact}
-                  onChange={val => handleInputChange('contact', val)}
-                  ref={phoneInput}
-                  containerStyle={{backgroundColor: COLORS.backgroundLight}}
-                />
-              </View>
+              <TextField
+                label={t('contactNumber')}
+                placeholder={t('Please enter your contact number')}
+                value={formData.contact}
+                onChangeText={val => handleInputChange('contact', val)}
+                keyboardType="numeric"
+                autoCapitalize="none"
+              />
 
               <View style={styles.inputGap}>
                 <TextField

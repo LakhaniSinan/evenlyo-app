@@ -29,7 +29,7 @@ import {helper} from '../../helper';
 import {ensureFcmTokenForAuth} from '../../utils/fcmToken';
 
 const LoginModal = ({onClose, isVisible, handlePressFun}) => {
-  const {t} = useTranslation();
+  const {t, currentLanguage} = useTranslation();
   const modalRef = useRef(null);
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.LoginSlice);
@@ -44,8 +44,8 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
 
   const handleGetFCM = async () => {
     const res = await helper.requestNotificationPermission();
-    console.log(res,"resresresresresresres");
-    
+    console.log(res, 'resresresresresresres');
+
     if (res === 'granted') {
       getFCMToken();
     } else {
@@ -102,8 +102,13 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
           : await loginClient(payload);
 
       const {status, data} = response;
-      console.log(status,data,"VALUESS");
-      
+      console.log(status, data?.message?.en, 'VALUESS');
+      const message = data?.message?.en
+        ? currentLanguage == 'en'
+          ? data?.message?.en
+          : data?.message?.nl
+        : data?.message;
+
       setIsLoading(false);
 
       if (status === 200 || status === 201) {
@@ -117,7 +122,7 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
 
         dispatch(setUserData(userData));
       } else {
-        showAlert(data?.message || 'Login failed. Please try again.');
+        showAlert(message || 'Login failed. Please try again.');
       }
     } catch (error) {
       console.log('Login Error:', error);
@@ -168,7 +173,11 @@ const LoginModal = ({onClose, isVisible, handlePressFun}) => {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: response?.data?.message || 'Login failed. Please try again.',
+          message: response?.data?.message?.en
+            ? currentLanguage == 'en'
+              ? response?.data?.message?.en
+              : response?.data?.message?.nl
+            : response?.data?.message || 'Login failed. Please try again.',
         });
       }
     } catch (error) {
@@ -336,7 +345,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   loginButtonContainer: {
-    height: width(14),
+    // height: width(14),
   },
 });
 

@@ -29,7 +29,13 @@ import {setUnreadCount} from '../../../redux/slice/notifications';
 
 const AUTH_MODAL_SWITCH_MS = 480;
 
-const UserLoginPlaceholder = ({onLoginPress}) => {
+const UserLoginPlaceholder = ({
+  onLoginPress,
+  dispatch,
+  setVendorUnreadCount,
+  setUnreadCount,
+  setUserData,
+}) => {
   const {t} = useTranslation();
 
   return (
@@ -49,6 +55,20 @@ const UserLoginPlaceholder = ({onLoginPress}) => {
           onPress={onLoginPress}
           textStyle={styles.loginButtonText}
           styleProps={styles.loginButtonInner}
+        />
+      </View>
+      <View style={{marginTop: 10, width: width(75)}}>
+        <GradientButton
+          text={t('Login As Vendor')}
+          onPress={async () => {
+            dispatch(setVendorUnreadCount(0));
+            dispatch(setUnreadCount(0));
+            dispatch(setUserData(null));
+            await AsyncStorage.multiRemove(['userData', 'token']);
+          }}
+          type="outline"
+          styleContainer={styles.socialButtonContainer}
+          outlineButtonStyle={styles.socialButton}
         />
       </View>
     </View>
@@ -314,8 +334,6 @@ const Profile = () => {
       <AppHeader
         headingText={t('Profile')}
         notificationsIcon={true}
-        rightIcon={ICONS.chatIcon}
-        onRightIconPress={() => navigation.navigate('MessagesScreen')}
         onNotificationsPress={() => navigation.navigate('Notifications')}
       />
 
@@ -324,7 +342,13 @@ const Profile = () => {
       ) : isLoggedIn ? (
         <RenderProfileContent />
       ) : (
-        <UserLoginPlaceholder onLoginPress={handleOpenLoginModal} />
+        <UserLoginPlaceholder
+          onLoginPress={handleOpenLoginModal}
+          dispatch={dispatch}
+          setUnreadCount={setUnreadCount}
+          setVendorUnreadCount={setVendorUnreadCount}
+          setUserData={setUserData}
+        />
       )}
 
       <AuthModals

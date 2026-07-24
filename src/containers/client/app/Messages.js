@@ -130,7 +130,6 @@ const Messages = ({navigation}) => {
           'user',
         );
 
-
         if (response?.success && Array.isArray(response?.data)) {
           const formattedData = response.data.map(item => ({
             ...item,
@@ -264,6 +263,14 @@ const Messages = ({navigation}) => {
           <View style={styles.loginButtonWrapper}>
             <GradientButton
               text={t('Login Now')}
+              onPress={() => setShowLoginModal(true)}
+              textStyle={styles.loginButtonText}
+              styleProps={styles.loginButtonInner}
+            />
+          </View>
+          <View style={styles.loginButtonWrapper}>
+            <GradientButton
+              text={t('Login As Vendor')}
               onPress={() => setShowLoginModal(true)}
               textStyle={styles.loginButtonText}
               styleProps={styles.loginButtonInner}
