@@ -1,26 +1,31 @@
-import { NavigationContainer } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {Platform} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 import useProfile from '../hooks/getProfileData';
 import AuthStack from './clientStack/AuthStack';
 import ClientAppStack from './clientStack/ClientAppStack';
 import VendorAppStack from './vendorStack/VendorAppStack';
 import VendorDetailStack from './vendorStack/VendorDetailStack';
 import UpdatePopUp from '../components/updatePopup';
-import { getSettings } from '../services/Settings';
-import { navigationRef } from './navigationRef';
+import {getSettings} from '../services/Settings';
+import {navigationRef} from './navigationRef';
 
 const AppNavigator = () => {
-  const { user } = useSelector(state => state.LoginSlice);
-  const { fetchProfile } = useProfile();
+  const {user, authFlow} = useSelector(state => state.LoginSlice);
+  const {fetchProfile} = useProfile();
   const normalizedUserType = user?.userType?.toLowerCase();
   const isClient = normalizedUserType === 'client';
   const isVendor = normalizedUserType === 'vendor';
   const isVendorRoleUser = Array.isArray(user?.pages);
-  const shouldOpenVendorDetails = isVendor && user?.vendorDetails == null && !isVendorRoleUser;
+  const shouldOpenVendorDetails =
+    isVendor && user?.vendorDetails == null && !isVendorRoleUser;
   const updateVar = useRef(null);
+  console.log('AppNavigator:', {
+    user,
+    authFlow,
+  });
 
   const checkAppVersion = useCallback(apiRes => {
     if (!apiRes) {
@@ -66,7 +71,7 @@ const AppNavigator = () => {
   return (
     <NavigationContainer ref={navigationRef}>
       {!user ? (
-        <AuthStack />
+        <AuthStack authFlow={authFlow} />
       ) : isClient ? (
         <ClientAppStack />
       ) : shouldOpenVendorDetails ? (

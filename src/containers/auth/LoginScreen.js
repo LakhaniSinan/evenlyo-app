@@ -33,7 +33,7 @@ import {loginClient, loginVendor, socialLogin} from '../../services/Auth';
 import {globalStyles} from '../../styles/globalStyle';
 
 const LoginScreen = ({navigation, route}) => {
-  const {type} = route.params;
+  const type = route?.params?.type ?? 'client';
 
   const [fcm, setFcm] = useState('');
   const [email, setEmail] = useState('');

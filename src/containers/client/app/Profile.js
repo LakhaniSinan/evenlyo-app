@@ -22,7 +22,7 @@ import CommonAlert from '../../../components/commanAlert';
 import Loader from '../../../components/loder';
 import {COLORS, fontFamly} from '../../../constants';
 import useTranslation from '../../../hooks/useTranslation';
-import {setUserData} from '../../../redux/slice/auth';
+import {setUserData, setAuthFlow} from '../../../redux/slice/auth';
 import useProfile from '../../../hooks/getProfileData';
 import {setVendorUnreadCount} from '../../../redux/slice/vendorNotificationsCount';
 import {setUnreadCount} from '../../../redux/slice/notifications';
@@ -63,7 +63,11 @@ const UserLoginPlaceholder = ({
           onPress={async () => {
             dispatch(setVendorUnreadCount(0));
             dispatch(setUnreadCount(0));
+
+            dispatch(setAuthFlow('vendorLogin'));
+
             dispatch(setUserData(null));
+
             await AsyncStorage.multiRemove(['userData', 'token']);
           }}
           type="outline"
