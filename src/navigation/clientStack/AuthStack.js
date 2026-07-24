@@ -46,10 +46,10 @@ export const MyTransition = {
   },
 };
 
-const AuthStack = () => {
+const AuthStack = ({authFlow}) => {
   return (
     <Stack.Navigator
-      initialRouteName="Onboarding"
+      initialRouteName={authFlow === 'vendorLogin' ? 'Login' : 'Onboarding'}
       screenOptions={{
         headerShown: false,
         // Let each screen (e.g. Background + LinearGradient) own the color; white card hid iOS gradients.
@@ -57,7 +57,13 @@ const AuthStack = () => {
         ...MyTransition,
       }}>
       <Stack.Screen name="Onboarding" component={Onboarding} />
-      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        initialParams={{
+          type: authFlow === 'vendorLogin' ? 'vendor' : 'client',
+        }}
+      />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen

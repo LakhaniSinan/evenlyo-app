@@ -115,7 +115,7 @@ const ProfileScreen = () => {
           leftIcon={ICONS.drawerIcon}
           vendorNotificationsIcon={true}
           onVendorNotificationsPress={() =>
-            navigation.navigate('Notifications')
+            navigation.navigate('Notification')
           }
           onLeftIconPress={() => navigation.openDrawer()}
         />

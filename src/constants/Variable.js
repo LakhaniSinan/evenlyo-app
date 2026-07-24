@@ -69,6 +69,7 @@ export const endPoints = {
   filterListings: '/vendor/listings/listings/filter',
 
   //Notifications
+  markAllAsRead :'/notifications/mark-all-as-read',
   notifications: '/notifications',
   vendorNotifications: '/notifications/vendor-notifications',
   markVendorNotificationRead: id => `/notifications/${id}/read`,

@@ -97,8 +97,8 @@ const App = () => {
           <SocketProvider>
             <PaperProvider>
               <StripeProvider
-                publishableKey={STRIPE_PUBLISHABLE_KEYS.TEST}
-                urlScheme="com.evenlyo">
+                publishableKey={STRIPE_PUBLISHABLE_KEYS.LIVE}
+                urlScheme={STRIPE_URL_SCHEME}>
                 <AppContent />
               </StripeProvider>
             </PaperProvider>

@@ -43,7 +43,10 @@ const useSyncFcmToken = () => {
         return;
       }
       try {
+        console.log(token, 'tokentokentoken');
+
         const res = await updateFcmToken({appFcm: token});
+        console.log(res, 'resresres');
 
         if (res?.status !== 200) {
           console.log('FCM sync API failed:', res?.status, res?.data);

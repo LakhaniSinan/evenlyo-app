@@ -22,14 +22,20 @@ import CommonAlert from '../../../components/commanAlert';
 import Loader from '../../../components/loder';
 import {COLORS, fontFamly} from '../../../constants';
 import useTranslation from '../../../hooks/useTranslation';
-import {setUserData} from '../../../redux/slice/auth';
+import {setUserData, setAuthFlow} from '../../../redux/slice/auth';
 import useProfile from '../../../hooks/getProfileData';
 import {setVendorUnreadCount} from '../../../redux/slice/vendorNotificationsCount';
-import { setUnreadCount } from '../../../redux/slice/notifications';
+import {setUnreadCount} from '../../../redux/slice/notifications';
 
 const AUTH_MODAL_SWITCH_MS = 480;
 
-const UserLoginPlaceholder = ({onLoginPress}) => {
+const UserLoginPlaceholder = ({
+  onLoginPress,
+  dispatch,
+  setVendorUnreadCount,
+  setUnreadCount,
+  setUserData,
+}) => {
   const {t} = useTranslation();
 
   return (
@@ -49,6 +55,24 @@ const UserLoginPlaceholder = ({onLoginPress}) => {
           onPress={onLoginPress}
           textStyle={styles.loginButtonText}
           styleProps={styles.loginButtonInner}
+        />
+      </View>
+      <View style={{marginTop: 10, width: width(75)}}>
+        <GradientButton
+          text={t('Login As Vendor')}
+          onPress={async () => {
+            dispatch(setVendorUnreadCount(0));
+            dispatch(setUnreadCount(0));
+
+            dispatch(setAuthFlow('vendorLogin'));
+
+            dispatch(setUserData(null));
+
+            await AsyncStorage.multiRemove(['userData', 'token']);
+          }}
+          type="outline"
+          styleContainer={styles.socialButtonContainer}
+          outlineButtonStyle={styles.socialButton}
         />
       </View>
     </View>
@@ -322,7 +346,13 @@ const Profile = () => {
       ) : isLoggedIn ? (
         <RenderProfileContent />
       ) : (
-        <UserLoginPlaceholder onLoginPress={handleOpenLoginModal} />
+        <UserLoginPlaceholder
+          onLoginPress={handleOpenLoginModal}
+          dispatch={dispatch}
+          setUnreadCount={setUnreadCount}
+          setVendorUnreadCount={setVendorUnreadCount}
+          setUserData={setUserData}
+        />
       )}
 
       <AuthModals

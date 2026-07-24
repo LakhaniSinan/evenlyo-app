@@ -19,6 +19,7 @@ import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {
   getVendorNotifications,
+  markAllNotificationsRead,
   markVendorNotificationAsRead,
 } from '../../../services/Notifications';
 import useVendorNotifications from '../../../hooks/vendorNotification';
@@ -26,16 +27,36 @@ import useVendorNotifications from '../../../hooks/vendorNotification';
 const FILTER_OPTIONS = ['all', 'read', 'unread'];
 
 const Notification = ({navigation}) => {
-  const {fetchVendorNotifications} = useVendorNotifications();
+  const {fetchVendorNotifications, setNotificaiton} = useVendorNotifications();
   const modalRef = useRef();
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [vendorNotifications, setVendorNotifications] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [readFilter, setReadFilter] = useState('all');
-
   const {t, currentLanguage} = useTranslation();
   const skeletonData = useMemo(() => Array(6).fill({}), []);
+  const [markAllLoading, setMarkAllLoading] = useState(false);
+
+  const handleMarkAllAsRead = useCallback(async () => {
+    try {
+      setMarkAllLoading(true);
+      const responce = await markAllNotificationsRead(user?._id);
+
+      setNotificaiton(prev =>
+        prev.map(item => ({
+          ...item,
+          isClientRead: true,
+          isRead: true,
+        })),
+      );
+
+      await fetchVendorNotifications();
+    } catch (error) {
+    } finally {
+      setMarkAllLoading(false);
+    }
+  }, [fetchVendorNotifications, setNotificaiton]);
 
   const getLocalizedField = useCallback(
     field => {
@@ -310,9 +331,18 @@ const Notification = ({navigation}) => {
             styleProps={styles.inputText}
           />
         </View>
-
         <View style={styles.filterRow}>
           {FILTER_OPTIONS.map(renderFilterChip)}
+          <View style={styles.container}>
+            {/* <TouchableOpacity
+              style={styles.button}
+              disabled={markAllLoading}
+              onPress={handleMarkAllAsRead}>
+              <Text style={styles.markAllText}>
+                {markAllLoading ? t('Reading...') : t('Mark all as read')}
+              </Text>
+            </TouchableOpacity> */}
+          </View>
         </View>
       </View>
     ),
@@ -321,9 +351,9 @@ const Notification = ({navigation}) => {
 
   return (
     <>
+      {listHeader}
       <FlatList
         keyExtractor={(item, index) => item?._id || index.toString()}
-        ListHeaderComponent={listHeader}
         data={isLoading ? skeletonData : filteredNotifications}
         renderItem={renderItem}
         extraData={currentLanguage}
@@ -493,6 +523,25 @@ const styles = StyleSheet.create({
     width: '90%',
     marginTop: 6,
     borderRadius: 4,
+  },
+  markAllText: {
+    textAlign: 'right',
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    fontSize: 12,
+    color: COLORS.white,
+  },
+  button: {
+    height: width(10),
+    width: width(40),
+    borderRadius: width(5),
+    marginVertical: width(3),
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
 });
 

@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import {height, width} from 'react-native-dimension';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {ICONS, IMAGES} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import LoginModal from '../../../components/authModal';
@@ -24,11 +24,15 @@ import TextField from '../../../components/textInput';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
 import {conversationService} from '../../../services/Chat';
+import {setVendorUnreadCount} from '../../../redux/slice/vendorNotificationsCount';
+import {setUnreadCount} from '../../../redux/slice/notifications';
+import {setAuthFlow, setUserData} from '../../../redux/slice/auth';
 
 const Messages = ({navigation}) => {
   const {t} = useTranslation();
   const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
   const {user} = useSelector(state => state.LoginSlice);
 
   const [isError, setIsError] = useState(false);
@@ -129,7 +133,6 @@ const Messages = ({navigation}) => {
           user?.id,
           'user',
         );
-
 
         if (response?.success && Array.isArray(response?.data)) {
           const formattedData = response.data.map(item => ({
@@ -267,6 +270,24 @@ const Messages = ({navigation}) => {
               onPress={() => setShowLoginModal(true)}
               textStyle={styles.loginButtonText}
               styleProps={styles.loginButtonInner}
+            />
+          </View>
+          <View style={styles.loginButtonWrapper}>
+            <GradientButton
+              text={t('Login As Vendor')}
+              onPress={async () => {
+                dispatch(setVendorUnreadCount(0));
+                dispatch(setUnreadCount(0));
+
+                dispatch(setAuthFlow('vendorLogin'));
+
+                dispatch(setUserData(null));
+
+                await AsyncStorage.multiRemove(['userData', 'token']);
+              }}
+              type="outline"
+              styleContainer={styles.socialButtonContainer}
+              outlineButtonStyle={styles.socialButton}
             />
           </View>
         </View>
