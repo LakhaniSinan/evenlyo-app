@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {width} from 'react-native-dimension';
 import {Rating} from 'react-native-ratings';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 import {ICONS} from '../../../assets';
 import AppHeader from '../../../components/appHeader';
 import GradientButton from '../../../components/button';
@@ -22,7 +22,6 @@ import PopularCard from '../../../components/popularCard';
 import ReviewsCard from '../../../components/reviewsCard';
 import {COLORS, fontFamly} from '../../../constants';
 import {useTranslation} from '../../../hooks';
-import {setCartData} from '../../../redux/slice/cart';
 import {checkIsChatedBefore, createConnection} from '../../../services/Chat';
 import {listingAddToCart} from '../../../services/ListingsItem';
 import {getVendorDetails} from '../../../services/Vendor';
@@ -30,7 +29,6 @@ import {getVendorDetails} from '../../../services/Vendor';
 function VendorDetails({navigation, route}) {
   const item = route.params;
   const modalRef = useRef();
-  const dispatch = useDispatch();
   const {currentLanguage} = useTranslation();
   const {user} = useSelector(state => state.LoginSlice);
   const isDutch = currentLanguage === 'nl';
@@ -66,8 +64,31 @@ function VendorDetails({navigation, route}) {
   const [showAll, setShowAll] = useState(false);
   const reviews = vendorDetail?.reviews || [];
   const displayedReviews = showAll ? reviews : reviews.slice(0, 4);
-  const {cartData} = useSelector(state => state.CartSlice);
   const [chatData, setChatData] = useState(null);
+
+  const getLocalizedMessage = message => {
+    if (!message) {
+      return '';
+    }
+    if (typeof message === 'string') {
+      return message;
+    }
+    return isDutch
+      ? message?.nl || message?.en || ''
+      : message?.en || message?.nl || '';
+  };
+
+  const getLocalizedDescription = description => {
+    if (!description) {
+      return localizedText.notAvailable;
+    }
+    if (typeof description === 'string') {
+      return description;
+    }
+    return isDutch
+      ? description?.nl || description?.en || localizedText.notAvailable
+      : description?.en || description?.nl || localizedText.notAvailable;
+  };
 
   useEffect(() => {
     getVendorDetailsByID();
@@ -141,11 +162,7 @@ function VendorDetails({navigation, route}) {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: responce?.data?.message?.en
-            ? currentLanguage == 'en'
-              ? responce?.data?.message?.en
-              : responce?.data?.message?.nl
-            : responce?.data?.message,
+          message: getLocalizedMessage(responce?.data?.message),
         });
       }
     } catch (error) {
@@ -173,11 +190,7 @@ function VendorDetails({navigation, route}) {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: responce?.data?.message?.en
-            ? currentLanguage == 'en'
-              ? responce?.data?.message?.en
-              : responce?.data?.message?.nl
-            : responce?.data?.message,
+          message: getLocalizedMessage(responce?.data?.message),
         });
       }
     } catch (error) {
@@ -216,11 +229,7 @@ function VendorDetails({navigation, route}) {
       } else {
         modalRef.current.show({
           status: 'error',
-          message: responce?.data?.message?.en
-            ? currentLanguage == 'en'
-              ? responce?.data?.message?.en
-              : responce?.data?.message?.nl
-            : responce?.data?.message,
+          message: getLocalizedMessage(responce?.data?.message),
         });
       }
     } catch (error) {
@@ -248,20 +257,12 @@ function VendorDetails({navigation, route}) {
         if (response.status == 200 || response.status == 201) {
           modalRef.current.show({
             status: 'ok',
-            message: response?.data?.message?.en
-              ? currentLanguage == 'en'
-                ? response?.data?.message?.en
-                : response?.data?.message?.nl
-              : response?.data?.message,
+            message: getLocalizedMessage(response?.data?.message),
           });
         } else {
           modalRef.current.show({
             status: 'error',
-            message: response?.data?.message?.en
-              ? currentLanguage == 'en'
-                ? response?.data?.message?.en
-                : response?.data?.message?.nl
-              : response?.data?.message,
+            message: getLocalizedMessage(response?.data?.message),
           });
         }
       } catch (error) {
@@ -306,74 +307,6 @@ function VendorDetails({navigation, route}) {
       return {uri: imageUrl};
     }
     return ICONS.personalIcon;
-  };
-
-  const handleAddToCart = async item => {
-    try {
-      let updatedCart = JSON.parse(JSON.stringify(cartData || []));
-      const vendorId = item?.vendor?._id;
-
-      const vendorIndex = updatedCart.findIndex(v => v.vendorId === vendorId);
-
-      const productObject = {
-        _id: item?._id,
-        title: item?.title,
-        image: item?.image,
-        sellingPrice: item?.sellingPrice,
-        quantity: 1,
-        stockQuantity: item?.stockQuantity,
-        extraDeliveryCharges: item?.extraDeliveryCharges || 0,
-        platformFeePercentage: item?.platformFeePercentage || 10,
-        vendor: {
-          ...item?.vendor,
-          _id: item?.vendor?._id,
-          businessName: item?.vendor?.fullName,
-          businessLogo: item?.vendor?.businessLogo,
-          location: item?.location,
-        },
-        linkedListing: item?.linkedListing,
-        orderStatus: 'Pending',
-        type: 'saleItem',
-        createdAt: new Date().toISOString(),
-      };
-
-      if (vendorIndex !== -1) {
-        const alreadyExists = updatedCart[vendorIndex].products.some(
-          p => p._id === item._id,
-        );
-
-        if (alreadyExists) {
-          modalRef.current.show({
-            status: 'error',
-            message: 'Item already exists in your cart',
-          });
-          return;
-        } else {
-          updatedCart[vendorIndex].products.push(productObject);
-        }
-      } else {
-        updatedCart.push({
-          vendorId: vendorId,
-          products: [productObject],
-          vendorName: item?.vendor?.fullName,
-          businessLocation: item?.location?.fullAddress,
-        });
-      }
-
-      dispatch(setCartData(updatedCart));
-      await AsyncStorage.setItem('cartData', JSON.stringify(updatedCart));
-
-      modalRef.current.show({
-        status: 'ok',
-        message: 'Item added to cart successfully!',
-      });
-    } catch (error) {
-      console.log('Add to Cart Error:', error);
-      modalRef.current.show({
-        status: 'error',
-        message: 'Something went wrong while adding to cart',
-      });
-    }
   };
 
   const hasCoverImage = Boolean(
@@ -602,9 +535,9 @@ function VendorDetails({navigation, route}) {
               fontSize: 10,
               fontFamily: fontFamly.PlusJakartaSansSemiRegular,
             }}>
-            {currentLanguage == 'en'
-              ? vendorDetail?.businessDetails?.description?.en
-              : vendorDetail?.businessDetails?.description?.nl}
+            {getLocalizedDescription(
+              vendorDetail?.businessDetails?.description,
+            )}
           </Text>
         </View>
 
@@ -632,7 +565,7 @@ function VendorDetails({navigation, route}) {
           {(vendorDetail?.popularItems || []).length > 0 ? (
             <PopularCard
               data={vendorDetail?.popularItems || []}
-              handleAddToCart={handleAddToCart}
+              onCardPress={onBookingCardPress}
             />
           ) : (
             <Text

@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import { useState } from 'react';
 import {
   FlatList,
   Image,
@@ -7,76 +7,72 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {width} from 'react-native-dimension';
+import { width } from 'react-native-dimension';
 import LinearGradient from 'react-native-linear-gradient';
-import {ICONS} from '../../assets';
-import {COLORS, fontFamly} from '../../constants';
+import { ICONS } from '../../assets';
+import { COLORS, fontFamly } from '../../constants';
 import useTranslation from '../../hooks/useTranslation';
-import {formatPrice} from '../../utils';
+import { formatPrice } from '../../utils';
 
-const PopularCard = ({data, onCardPress, type, handleAddToCart}) => {
-  const {currentLanguage} = useTranslation();
+const PopularCard = ({ data, onCardPress, type }) => {
+  const { t, currentLanguage } = useTranslation();
   const isDutch = currentLanguage === 'nl';
   const localizedText = {
     inStock: isDutch ? 'Op voorraad' : 'In Stock',
-    buyNow: isDutch ? 'Koop nu' : 'Buy Now',
+    bookNow: t('Book Now'),
     noProductFound: isDutch ? 'Geen producten gevonden.' : 'No Product Found.',
   };
   const [activeHeart, setActiveHeart] = useState(null);
 
-  const renderItem = ({item, index}) => {
+  const handleBookNow = item => {
+    if (typeof onCardPress === 'function') {
+      onCardPress({ ...item, type });
+    }
+  };
+
+  const renderItem = ({ item, index }) => {
     const imageUri = item?.images?.length > 0 ? item.images[0] : item?.image;
+    const title =
+      currentLanguage === 'en'
+        ? item?.title?.en || item?.title?.nl || item?.title
+        : item?.title?.nl || item?.title?.en || item?.title;
 
     return (
-      <View
+      <TouchableOpacity
         activeOpacity={0.9}
-        // onPress={() => onCardPress({...item, type})}
+        onPress={() => handleBookNow(item)}
         style={styles.card}>
         <View style={styles.imageWrapper}>
-          <Image source={{uri: imageUri}} style={styles.image} />
+          <Image source={{ uri: imageUri }} style={styles.image} />
 
           <View style={styles.stockBadge}>
             <View style={styles.dot} />
             <Text style={styles.stockText}>{localizedText.inStock}</Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.heartBtn}
-            onPress={() =>
-              setActiveHeart(activeHeart === index ? null : index)
-            }>
-            <Image
-              source={
-                activeHeart === index
-                  ? ICONS.activeHeartIocn
-                  : ICONS.inactiveHeartIcon
-              }
-              style={styles.heartIcon}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
+
         </View>
 
         <View style={styles.content}>
           <Text numberOfLines={1} style={styles.title}>
-            {currentLanguage === 'en' ? item?.title?.en : item?.title?.nl}
+            {title}
           </Text>
 
           <Text style={styles.price}>
             € {formatPrice(item?.pricing?.totalPrice || item?.sellingPrice || 0)}
           </Text>
 
-          <TouchableOpacity onPress={() => handleAddToCart(item)}>
+          <TouchableOpacity onPress={() => handleBookNow(item)}>
             <LinearGradient
               colors={['#ff2d95', '#c800c8']}
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 0}}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
               style={styles.buyBtn}>
-              <Text style={styles.buyText}>{localizedText.buyNow}</Text>
+              <Text style={styles.buyText}>{localizedText.bookNow}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -87,7 +83,7 @@ const PopularCard = ({data, onCardPress, type, handleAddToCart}) => {
       renderItem={renderItem}
       keyExtractor={(item, index) => index.toString()}
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{paddingHorizontal: 10}}
+      contentContainerStyle={{ paddingHorizontal: 10 }}
       ListEmptyComponent={
         <View
           style={{
@@ -200,9 +196,9 @@ const styles = StyleSheet.create({
   buyBtn: {
     borderRadius: 14,
     // paddingVertical: 10,
-    height:width(10),
+    height: width(10),
     alignItems: 'center',
-    justifyContent:"center"
+    justifyContent: "center"
   },
 
   buyText: {
