@@ -49,6 +49,7 @@ const CustomDrawer = ({navigation}) => {
     hasPageAccess(VENDOR_PAGE_KEYS.ANALYTICS_REPORTS) && {
       label: t('analytics'),
       onPress: () => {
+        navigation.closeDrawer();
         navigation.navigate('Dashboard', {
           screen: 'Home',
           params: {screen: 'AnalyticsReport'},
@@ -58,6 +59,7 @@ const CustomDrawer = ({navigation}) => {
     hasPageAccess(VENDOR_PAGE_KEYS.CHAT) && {
       label: t('messages'),
       onPress: () => {
+        navigation.closeDrawer();
         navigation.navigate('Dashboard', {
           screen: 'Home',
           params: {screen: 'Messages'},

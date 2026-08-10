@@ -143,8 +143,13 @@ function ProfileManagement({navigation, route}) {
         companyEmail: data?.businessEmail || '',
         companyAddress: data?.businessLocation || '',
         companyWebsite: data?.businessWebsite || '',
-        selecctSizeRef: data?.teamType === 'Single' ? 'Single' : 'Team',
-        teamSize: data?.teamSize || '',
+        selecctSizeRef: data?.teamType || '',
+        teamSize:
+          data?.teamType === 'Single'
+            ? "It's Just Me"
+            : data?.teamSize === "It's Just Me"
+            ? ''
+            : data?.teamSize || '',
         kvkNumber: data?.kvkNumber || '',
       }));
     } else {
@@ -279,7 +284,22 @@ function ProfileManagement({navigation, route}) {
   }, []);
 
   const handleSelectValue = useCallback((name, value) => {
-    setFormData(prev => ({...prev, [name]: value?.name || value}));
+    const selectedValue = value?.name || value;
+    setFormData(prev => {
+      if (name === 'selecctSizeRef') {
+        const isSingle = selectedValue === 'Single';
+        return {
+          ...prev,
+          selecctSizeRef: selectedValue,
+          teamSize: isSingle
+            ? "It's Just Me"
+            : prev.teamSize === "It's Just Me"
+            ? ''
+            : prev.teamSize,
+        };
+      }
+      return {...prev, [name]: selectedValue};
+    });
   }, []);
 
   const getLocalizedName = useCallback(
@@ -397,18 +417,21 @@ function ProfileManagement({navigation, route}) {
         handleSelectValue={handleSelectValue}
       />
 
-      <Spacing height={15} />
-
-      <TextField
-        label={t('Team Size')}
-        placeholder={t('Number of team')}
-        value={formData.teamSize}
-        onChangeText={val =>
-          handleInputChange('teamSize', val.replace(/[^0-9]/g, ''))
-        }
-        bgColor={COLORS.backgroundLight}
-        keyboardType="numeric"
-      />
+      {formData.selecctSizeRef === 'Team' && (
+        <>
+          <Spacing height={15} />
+          <TextField
+            label={t('Team Size')}
+            placeholder={t('Number of team')}
+            value={formData.teamSize}
+            onChangeText={val =>
+              handleInputChange('teamSize', val.replace(/[^0-9]/g, ''))
+            }
+            bgColor={COLORS.backgroundLight}
+            keyboardType="numeric"
+          />
+        </>
+      )}
 
       <Spacing />
 
@@ -694,6 +717,26 @@ function ProfileManagement({navigation, route}) {
       const subCategoryIdsForPayload = selectedSubCategoryIds;
 
       if (!isPartial) {
+        if (data?.accountType === 'business') {
+          if (!dataToUse.selecctSizeRef) {
+            modalRef.current?.show({
+              status: 'error',
+              message: t('validationWorkTypeRequired'),
+            });
+            return;
+          }
+          if (
+            dataToUse.selecctSizeRef === 'Team' &&
+            !String(dataToUse.teamSize || '').trim()
+          ) {
+            modalRef.current?.show({
+              status: 'error',
+              message: t('validationTeamSizeRequired'),
+            });
+            return;
+          }
+        }
+
         if (!categoryIdsForPayload.length) {
           modalRef.current?.show({
             status: 'error',
@@ -741,7 +784,11 @@ function ProfileManagement({navigation, route}) {
             businessLogo: dataToUse.businessLogo,
             businessImage: dataToUse.businessImage,
             description: dataToUse.description,
-            teamSize: dataToUse.teamSize,
+            teamType: dataToUse.selecctSizeRef,
+            teamSize:
+              dataToUse.selecctSizeRef === 'Single'
+                ? "It's Just Me"
+                : dataToUse.teamSize,
             kvkNumber: dataToUse.kvkNumber,
             mainCategories: categoryIdsForPayload,
             subCategories: subCategoryIdsForPayload,
