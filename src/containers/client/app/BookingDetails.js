@@ -169,6 +169,9 @@ const BookingDetails = ({route}) => {
     claimedBy: isDutch ? 'Geclaimd door' : 'Claimed By',
     claimType: isDutch ? 'Claimtype' : 'Claim Type',
     claimDate: isDutch ? 'Claimdatum' : 'Claim Date',
+    claimAmount: isDutch ? 'Claimbedrag' : 'Claim Amount',
+    claimDescription: isDutch ? 'Claimomschrijving' : 'Claim Description',
+    claimStatus: isDutch ? 'Claimstatus' : 'Claim Status',
     refundAmount: isDutch ? 'Terugbetalingsbedrag' : 'Refund Amount',
     vendorRefund: isDutch ? 'Terugbetaling verkoper' : 'Vendor Refund',
     complaintReason: isDutch ? 'Reden van klacht' : 'Complaint Reason',
@@ -837,7 +840,7 @@ const BookingDetails = ({route}) => {
             </View>
           )}
         </View>
-        {bookingData?.status === 'complain' && bookingData?.claimDetails && (
+        {bookingData?.status === 'claim' && bookingData?.claimDetails && (
           <View style={styles.card}>
             <Text style={styles.heading}>{localizedText.claimDetails}</Text>
 
@@ -848,12 +851,14 @@ const BookingDetails = ({route}) => {
               }
             />
 
-            <InfoRow
-              label={localizedText.claimType}
-              value={bookingData?.claimDetails?.claimType
-                ?.replaceAll('_', ' ')
-                ?.replace(/\b\w/g, l => l.toUpperCase())}
-            />
+            {!!bookingData?.claimDetails?.claimType && (
+              <InfoRow
+                label={localizedText.claimType}
+                value={bookingData?.claimDetails?.claimType
+                  ?.replaceAll('_', ' ')
+                  ?.replace(/\b\w/g, l => l.toUpperCase())}
+              />
+            )}
 
             <InfoRow
               label={localizedText.claimDate}
@@ -865,6 +870,24 @@ const BookingDetails = ({route}) => {
                   : '--'
               }
             />
+
+            <InfoRow
+              label={localizedText.claimAmount}
+              value={formatEuro(bookingData?.claimDetails?.amount || 0, {
+                space: false,
+              })}
+            />
+
+            {!!bookingData?.claimDetails?.status && (
+              <InfoRow
+                label={localizedText.claimStatus}
+                value={
+                  bookingData?.claimDetails?.status
+                    ?.replaceAll('_', ' ')
+                    ?.replace(/\b\w/g, l => l.toUpperCase()) || '--'
+                }
+              />
+            )}
 
             {bookingData?.claimDetails?.refundAmount > 0 && (
               <InfoRow
@@ -891,7 +914,9 @@ const BookingDetails = ({route}) => {
             )}
 
             <View style={{marginTop: 15}}>
-              <Text style={styles.label}>{localizedText.complaintReason}</Text>
+              <Text style={styles.label}>
+                {localizedText.claimDescription}
+              </Text>
 
               <View style={styles.claimReasonBox}>
                 <Text style={styles.claimReasonText}>

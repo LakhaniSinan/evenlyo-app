@@ -38,6 +38,7 @@ const BOOKING_STATUS_I18N = {
   received_back: 'statusReceivedBack',
   completed: 'statusCompleted',
   rejected: 'statusRejected',
+  claim: 'statusClaim',
 };
 
 const resolveApiMessage = (message, language) => {
@@ -61,6 +62,7 @@ const STATUS_COLORS = {
   received_back: {bg: '#E0F2F1', text: '#00695C'},
   completed: {bg: '#E8F5E9', text: '#1B5E20'},
   rejected: {bg: '#FDECEA', text: '#D32F2F'},
+  claim: {bg: '#FFF4E5', text: '#FF9800'},
 };
 
 const PRICING_TYPE_LABEL_KEYS = {
@@ -446,6 +448,52 @@ function BookingDetails({route}) {
             booking?.details?.eventLocation,
           )}
         </View>
+
+        {booking?.status === 'claim' && booking?.claimDetails && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{t('Claim Details')}</Text>
+
+            {renderInfoRow(
+              ICONS.ticketIcon,
+              'Claimed By',
+              booking?.claimDetails?.claimedBy?.toUpperCase() || '--',
+            )}
+
+            {renderInfoRow(
+              ICONS.clockIcon,
+              'Claim Date',
+              booking?.claimDetails?.claimedAt
+                ? moment(booking?.claimDetails?.claimedAt).format(
+                    'DD MMM YYYY, hh:mm A',
+                  )
+                : '--',
+            )}
+
+            {renderInfoRow(
+              ICONS.ticketIcon,
+              'Claim Amount',
+              `€ ${formatPrice(booking?.claimDetails?.amount || 0)}`,
+            )}
+
+            {!!booking?.claimDetails?.status &&
+              renderInfoRow(
+                ICONS.ticketIcon,
+                'Claim Status',
+                booking?.claimDetails?.status
+                  ?.replaceAll('_', ' ')
+                  ?.replace(/\b\w/g, l => l.toUpperCase()) || '--',
+              )}
+
+            <View style={styles.claimReasonSection}>
+              <Text style={styles.infoValue}>{t('Claim Description')}</Text>
+              <View style={styles.claimReasonBox}>
+                <Text style={styles.claimReasonText}>
+                  {booking?.claimDetails?.reason || '--'}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       {booking && (
@@ -590,6 +638,21 @@ const styles = StyleSheet.create({
     marginTop: width(3),
     color: COLORS.textDark,
     fontFamily: fontFamly.PlusJakartaSansMedium,
+  },
+  claimReasonSection: {
+    marginTop: width(3),
+  },
+  claimReasonBox: {
+    marginTop: width(2),
+    backgroundColor: COLORS.white,
+    borderRadius: width(2),
+    padding: width(3),
+  },
+  claimReasonText: {
+    fontSize: 13,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    lineHeight: 20,
   },
   infoRow: {
     flexDirection: 'row',
