@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Animated,
   FlatList,
@@ -10,16 +10,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {width} from 'react-native-dimension';
-import {ICONS} from '../../assets';
-import {COLORS, fontFamly} from '../../constants';
-import {useTranslation} from '../../hooks';
+import { width } from 'react-native-dimension';
+import { ICONS } from '../../assets';
+import { COLORS, fontFamly } from '../../constants';
+import { useTranslation } from '../../hooks';
 import GradientButton from '../button';
 import GradientText from '../gradiantText';
 import TextField from '../textInput';
 
-const RejectRequestModal = ({visible, onClose, onConfirm}) => {
-  const {t} = useTranslation();
+const RejectRequestModal = ({ visible, onClose, onConfirm }) => {
+  const { t } = useTranslation();
   const [selectedReason, setSelectedReason] = useState('');
   const [customReason, setCustomReason] = useState('');
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -96,12 +96,12 @@ const RejectRequestModal = ({visible, onClose, onConfirm}) => {
 
   return (
     <Modal visible={visible} transparent animationType="none">
-      <Animated.View style={[styles.overlay, {opacity: fadeAnim}]}>
+      <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
         <Animated.View
           style={[
             styles.container,
             {
-              transform: [{scale: scaleAnim}],
+              transform: [{ scale: scaleAnim }],
               opacity: fadeAnim,
             },
           ]}>
@@ -110,7 +110,7 @@ const RejectRequestModal = ({visible, onClose, onConfirm}) => {
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <GradientText
                 text="✕"
-                customStyles={{fontFamily: fontFamly.PlusJakartaSansBold}}
+                customStyles={{ fontFamily: fontFamly.PlusJakartaSansBold }}
               />
             </TouchableOpacity>
           </View>
@@ -122,7 +122,7 @@ const RejectRequestModal = ({visible, onClose, onConfirm}) => {
           <FlatList
             data={reasons}
             keyExtractor={item => item}
-            renderItem={({item}) => (
+            renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.reasonItem}
                 onPress={() => handleSelect(item)}>
@@ -169,7 +169,7 @@ const RejectRequestModal = ({visible, onClose, onConfirm}) => {
             </View>
             <View style={styles.buttonHalf}>
               <GradientButton
-                text={t('Confirm Rejection')}
+                text={t('Confirm')}
                 onPress={handleConfirm}
                 type="filled"
                 textStyle={styles.confirmBtnText}
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     borderRadius: width(6),
     padding: width(4),
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 10},
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 10,
