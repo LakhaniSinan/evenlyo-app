@@ -1,21 +1,28 @@
 import React from 'react';
-import {ActivityIndicator} from 'react-native';
-import Spinner from 'react-native-loading-spinner-overlay';
-import { COLORS } from '../../constants';
+import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import {COLORS} from '../../constants';
 
 const Loader = ({isLoading, showContent}) => {
+  if (!isLoading) {
+    return null;
+  }
+
   return (
-    <Spinner
-      visible={Boolean(isLoading)}
-      animation="fade"
-      cancelable={false}
-      overlayColor="rgba(0,0,0,0.35)"
-      customIndicator={
-        <ActivityIndicator color={COLORS.primary} size="large" />
-      }
-      textContent={showContent}
-    />
+    <View style={styles.overlay} pointerEvents="auto">
+      <ActivityIndicator color={COLORS.primary} size="large" />
+    </View>
   );
 };
 
 export default Loader;
+
+const styles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999,
+    elevation: 9999,
+  },
+});

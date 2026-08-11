@@ -57,6 +57,8 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
   const subCategoryRequestRef = useRef(0);
   const homeDataRequestRef = useRef(0);
   const activeFiltersRef = useRef({});
+  const currentLanguageRef = useRef(currentLanguage);
+  currentLanguageRef.current = currentLanguage;
 
   const {categories, subCategories, fetchCategories, fetchSubCategories} =
     useCategories();
@@ -80,26 +82,25 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
   const hasSubCategories =
     Array.isArray(subCategories) && subCategories.length > 0;
 
-  const getLocalizedMessage = useCallback(
-    message => {
-      if (!message) {
-        return '';
-      }
+  // Keep localization helpers stable so language change does NOT recreate
+  // fetchHomeData/loadCategories and re-trigger background Home refetches.
+  const getLocalizedMessage = useCallback(message => {
+    if (!message) {
+      return '';
+    }
 
-      if (typeof message === 'string') {
-        return message;
-      }
+    if (typeof message === 'string') {
+      return message;
+    }
 
-      if (typeof message === 'object') {
-        return currentLanguage === 'nl'
-          ? message?.nl || message?.en || ''
-          : message?.en || message?.nl || '';
-      }
+    if (typeof message === 'object') {
+      return currentLanguageRef.current === 'nl'
+        ? message?.nl || message?.en || ''
+        : message?.en || message?.nl || '';
+    }
 
-      return String(message);
-    },
-    [currentLanguage],
-  );
+    return String(message);
+  }, []);
 
   const showError = useCallback(
     message =>

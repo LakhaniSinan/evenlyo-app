@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import moment from 'moment';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {
   Image,
   InteractionManager,
@@ -8,7 +7,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {Calendar} from 'react-native-calendars';
 import {width} from 'react-native-dimension';
 import MapView, {Marker} from 'react-native-maps';
 import {Rating} from 'react-native-ratings';
@@ -32,7 +30,7 @@ import {
   listingAddToCart,
   sendBookingRequest,
 } from '../../../services/ListingsItem';
-import {formatPrice, getDistance, resolveAvailableDays} from '../../../utils';
+import {formatPrice, getDistance} from '../../../utils';
 
 const AUTH_MODAL_SWITCH_MS = 480;
 
@@ -40,50 +38,10 @@ const DEFAULT_MAP_COORDINATE = {
   latitude: 24.860966,
   longitude: 67.001137,
 };
-const DAY_KEYS_BY_ISO = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-
-const DAY_KEY_ALIASES = {
-  mon: 'mon',
-  monday: 'mon',
-  maandag: 'mon',
-  tue: 'tue',
-  tues: 'tue',
-  tuesday: 'tue',
-  dinsdag: 'tue',
-  wed: 'wed',
-  wednesday: 'wed',
-  woensdag: 'wed',
-  thu: 'thu',
-  thur: 'thu',
-  thurs: 'thu',
-  thursday: 'thu',
-  donderdag: 'thu',
-  fri: 'fri',
-  friday: 'fri',
-  vrijdag: 'fri',
-  sat: 'sat',
-  saturday: 'sat',
-  zaterdag: 'sat',
-  sun: 'sun',
-  sunday: 'sun',
-  zondag: 'sun',
-};
 
 const parseFiniteNumber = value => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
-};
-
-const normalizeDayKey = day => {
-  const key = String(day || '')
-    .trim()
-    .toLowerCase();
-  return DAY_KEY_ALIASES[key] || null;
-};
-
-const getDayKeyFromMoment = dateMoment => {
-  const isoDay = dateMoment.isoWeekday();
-  return DAY_KEYS_BY_ISO[isoDay - 1] || null;
 };
 
 const getResolvedMapCoordinates = listingData => {
@@ -124,79 +82,6 @@ const getResolvedMapCoordinates = listingData => {
   }
 
   return {latitude, longitude};
-};
-
-const getInitialMarkedDates = availableDays => {
-  let marked = {};
-  const start = moment();
-  const end = moment().add(6, 'months');
-  const availableSet = new Set(availableDays);
-
-  for (let m = start.clone(); m.isBefore(end); m.add(1, 'day')) {
-    const dayName = getDayKeyFromMoment(m);
-    const dateStr = m.format('YYYY-MM-DD');
-    const isPast = m.isBefore(moment(), 'day');
-    const isAvailable = availableSet.has(dayName);
-
-    marked[dateStr] =
-      isPast || !isAvailable
-        ? {
-            disabled: true,
-            disableTouchEvent: true,
-            customStyles: {
-              container: {backgroundColor: '#f0f0f0'},
-              text: {color: '#999'},
-            },
-          }
-        : {
-            disabled: false,
-            customStyles: {
-              container: {backgroundColor: '#fff'},
-              text: {color: '#000'},
-            },
-          };
-  }
-  return marked;
-};
-
-const getMarkedDatesForRange = (availableDays, startDate, endDate) => {
-  const updatedMarked = getInitialMarkedDates(availableDays);
-  if (!startDate) {
-    return updatedMarked;
-  }
-
-  if (!endDate || startDate === endDate) {
-    const startDayName = getDayKeyFromMoment(moment(startDate));
-    if (availableDays.includes(startDayName)) {
-      updatedMarked[startDate] = {
-        ...updatedMarked[startDate],
-        customStyles: {
-          container: {backgroundColor: '#FF295D', borderRadius: 5},
-          text: {color: '#fff', fontWeight: 'bold'},
-        },
-      };
-    }
-    return updatedMarked;
-  }
-
-  let curr = moment(startDate);
-  const rangeEnd = moment(endDate);
-  while (curr.isSameOrBefore(rangeEnd)) {
-    const currDayName = getDayKeyFromMoment(curr);
-    const currDateStr = curr.format('YYYY-MM-DD');
-    if (availableDays.includes(currDayName)) {
-      updatedMarked[currDateStr] = {
-        ...updatedMarked[currDateStr],
-        customStyles: {
-          container: {backgroundColor: '#FF295D', borderRadius: 5},
-          text: {color: '#fff', fontWeight: 'bold'},
-        },
-      };
-    }
-    curr.add(1, 'day');
-  }
-
-  return updatedMarked;
 };
 
 const DetailsContent = ({data, selectedTab, navigation}) => {
@@ -254,24 +139,11 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     [markerCoordinate],
   );
 
-  const availableDays = useMemo(
-    () => resolveAvailableDays(data?.availability, data?.availableDays),
-    [data?.availability, data?.availableDays],
-  );
-
   const [modalVisible, setModalVisible] = useState(false);
   const [resuestModalVisible, setResuestModalVisible] = useState(false);
   const [chatData, setChatData] = useState(null);
-  const [markedDates, setMarkedDates] = useState(() =>
-    getInitialMarkedDates(availableDays),
-  );
-
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-
-  useEffect(() => {
-    setMarkedDates(getMarkedDatesForRange(availableDays, startDate, endDate));
-  }, [availableDays, startDate, endDate]);
 
   const closeAllAuthModals = useCallback(() => {
     setShowLoginModal(false);
@@ -315,50 +187,10 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
     [closeAllAuthModals],
   );
 
-  const handleDayPress = day => {
-    const date = day.dateString;
-    const m = moment(date, 'YYYY-MM-DD');
-    const dayName = getDayKeyFromMoment(m);
-    const isPast = m.isBefore(moment(), 'day');
-    const isAvailable = availableDays.includes(dayName);
-
-    if (isPast || !isAvailable) {
-      return;
-    }
-
-    let newStartDate = startDate;
-    let newEndDate = endDate;
-
-    if (!startDate || (startDate && endDate)) {
-      newStartDate = date;
-      newEndDate = null;
-      setStartDate(newStartDate);
-      setEndDate(null);
-    } else if (moment(date).isBefore(moment(startDate))) {
-      newStartDate = date;
-      newEndDate = null;
-      setStartDate(newStartDate);
-      setEndDate(null);
-    } else {
-      newEndDate = date;
-      setEndDate(newEndDate);
-    }
-
-    setMarkedDates(
-      getMarkedDatesForRange(availableDays, newStartDate, newEndDate),
-    );
-  };
-
   const handleModalDateChange = useCallback((nextStartDate, nextEndDate) => {
     setStartDate(nextStartDate || null);
     setEndDate(nextEndDate || null);
   }, []);
-  const selectedRangeText =
-    startDate && endDate
-      ? `${startDate} → ${endDate}`
-      : startDate
-      ? `${startDate}`
-      : localizedText.noDateSelected;
 
   const handleSendBookingRequest = async details => {
     try {
@@ -370,17 +202,22 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
       if (response.status == 200 || response.status == 201) {
         setResponeData(response?.data?.data?.bookingRequest);
         setStartDate(null);
+        setEndDate(null);
         setModalVisible(false);
         setTimeout(() => setResuestModalVisible(true), 1200);
       } else {
-        modalRef.current.show({
-          status: 'error',
-          message: response?.data?.message?.en
-            ? currentLanguage == 'en'
-              ? response?.data?.message?.en
-              : response?.data?.message?.nl
-            : response?.data?.message,
-        });
+        const errorMessage = response?.data?.message?.en
+          ? currentLanguage == 'en'
+            ? response?.data?.message?.en
+            : response?.data?.message?.nl
+          : response?.data?.message;
+        setModalVisible(false);
+        setTimeout(() => {
+          modalRef.current?.show({
+            status: 'error',
+            message: errorMessage,
+          });
+        }, 300);
       }
       setIsLoadding(false);
     } catch (error) {
@@ -466,8 +303,8 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
         let payload = {
           listingId: listingId?.listingId || listingId?._id,
           tempDetails: {
-            startDate: startDate,
-            endDate: endDate,
+            startDate: listingId?.startDate || startDate,
+            endDate: listingId?.endDate || endDate,
             startTime: listingId?.startTime,
             endTime: listingId?.endTime,
             distance: listingId?.distance,
@@ -639,43 +476,7 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
 
   return (
     <>
-      {selectedTab === 'gallery' ? (
-        <CarouselComponent data={data?.images || []} />
-      ) : (
-        <>
-          <Calendar
-            onDayPress={handleDayPress}
-            markedDates={markedDates}
-            markingType="custom"
-            minDate={moment().format('YYYY-MM-DD')}
-            maxDate={moment().add(6, 'months').format('YYYY-MM-DD')}
-            theme={{
-              todayTextColor: 'red',
-              arrowColor: 'blue',
-            }}
-            disableAllTouchEventsForDisabledDays
-          />
-
-          <View style={{marginHorizontal: 20, marginTop: 10}}>
-            <Text
-              style={{
-                fontFamily: fontFamly.PlusJakartaSansSemiBold,
-                fontSize: 12,
-                color: COLORS.black,
-              }}>
-              {localizedText.selectedDateRange}
-            </Text>
-            <Text
-              style={{
-                fontFamily: fontFamly.PlusJakartaSansMedium,
-                fontSize: 10,
-                color: COLORS.textLight,
-              }}>
-              {selectedRangeText}
-            </Text>
-          </View>
-        </>
-      )}
+      <CarouselComponent data={data?.images || []} />
       <View style={{marginHorizontal: 10, marginTop: width(3)}}>
         <View
           style={{
@@ -925,13 +726,6 @@ const DetailsContent = ({data, selectedTab, navigation}) => {
                       setShowLoginModal(true);
                       return;
                     }
-                    if (startDate == null) {
-                      return modalRef.current.show({
-                        status: 'error',
-                        message: localizedText.selectAvailableDateFirst,
-                      });
-                    }
-
                     setModalVisible(true);
                   }}
                 />
