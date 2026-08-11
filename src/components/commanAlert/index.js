@@ -1,5 +1,5 @@
 import React, {forwardRef, useImperativeHandle, useState, useRef} from 'react';
-import {Animated, Text, View, StyleSheet} from 'react-native';
+import {Animated, Modal, Text, View, StyleSheet} from 'react-native';
 import {width} from 'react-native-dimension';
 import FastImage from 'react-native-fast-image';
 import {ICONS} from '../../assets';
@@ -32,8 +32,6 @@ const CommonAlert = forwardRef((props, ref) => {
     },
   }));
 
-  if (!isVisible) return null;
-
   const {message, status, handlePressOk} = modalData;
 
   const normalizedStatus =
@@ -48,128 +46,125 @@ const CommonAlert = forwardRef((props, ref) => {
   const close = () => animateTo(0, () => setIsVisible(false));
 
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, {opacity}]}>
-      <View
-        style={{
-          width: width(86),
-          backgroundColor: 'white',
-          borderRadius: width(2),
-          padding: width(8),
-        }}>
-        <View style={{alignItems: 'center', justifyContent: 'center'}}>
-          {normalizedStatus === 'ok' && (
-            <FastImage
-              source={ICONS.checkedCircle}
-              style={{height: width(25), width: width(25)}}
-            />
-          )}
-          {normalizedStatus === 'alert' && (
-            <FastImage
-              resizeMode="contain"
-              source={ICONS.alertIcon}
-              style={{height: width(25), width: width(25)}}
-            />
-          )}
-          {normalizedStatus === 'error' && (
-            <FastImage
-              source={ICONS.redcross}
-              style={{height: width(12), width: width(12)}}
-            />
-          )}
-        </View>
-
-        <Text
-          style={{
-            fontSize: 14,
-            color: COLORS.textDark,
-            fontFamily: fontFamly.PlusJakartaSansBold,
-            marginVertical: width(5),
-            textAlign: 'center',
-          }}>
-          {normalizedMessage}
-        </Text>
-
-        {normalizedStatus === 'ok' && (
-          <View style={{justifyContent: 'center', height: width(14)}}>
-            <GradientButton
-              text={t('OK')}
-              onPress={() => {
-                if (handlePressOk) handlePressOk();
-                close();
-              }}
-              type="filled"
-              textStyle={{
-                fontSize: 12,
-                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                color: 'white',
-              }}
-            />
-          </View>
-        )}
-        {normalizedStatus === 'error' && (
-          <View style={{justifyContent: 'center', height: width(14)}}>
-            <GradientButton
-              text={t('OK')}
-              onPress={close}
-              type="filled"
-              textStyle={{
-                fontSize: 12,
-                fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                color: 'white',
-              }}
-            />
-          </View>
-        )}
-
-        {normalizedStatus === 'alert' && (
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: width(3),
-            }}>
-            <View style={{width: width(33)}}>
-              <GradientButton
-                text={t('No')}
-                onPress={close}
-                type="filled"
-                textStyle={{
-                  fontSize: 12,
-                  fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                  color: 'white',
-                }}
+    <Modal
+      visible={isVisible}
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      onRequestClose={close}>
+      <Animated.View style={[styles.backdrop, {opacity}]}>
+        <View style={styles.card}>
+          <View style={styles.iconWrap}>
+            {normalizedStatus === 'ok' && (
+              <FastImage
+                source={ICONS.checkedCircle}
+                style={{height: width(25), width: width(25)}}
               />
-            </View>
-            <View style={{width: width(33)}}>
+            )}
+            {normalizedStatus === 'alert' && (
+              <FastImage
+                resizeMode="contain"
+                source={ICONS.alertIcon}
+                style={{height: width(25), width: width(25)}}
+              />
+            )}
+            {normalizedStatus === 'error' && (
+              <FastImage
+                source={ICONS.redcross}
+                style={{height: width(12), width: width(12)}}
+              />
+            )}
+          </View>
+
+          <Text style={styles.message}>{normalizedMessage}</Text>
+
+          {normalizedStatus === 'ok' && (
+            <View style={{justifyContent: 'center', height: width(14)}}>
               <GradientButton
-                text={t('Yes')}
+                text={t('OK')}
                 onPress={() => {
                   if (handlePressOk) handlePressOk();
                   close();
                 }}
                 type="filled"
-                textStyle={{
-                  fontSize: 12,
-                  fontFamily: fontFamly.PlusJakartaSansSemiRegular,
-                  color: 'white',
-                }}
+                textStyle={styles.buttonText}
               />
             </View>
-          </View>
-        )}
-      </View>
-    </Animated.View>
+          )}
+          {normalizedStatus === 'error' && (
+            <View style={{justifyContent: 'center', height: width(14)}}>
+              <GradientButton
+                text={t('OK')}
+                onPress={close}
+                type="filled"
+                textStyle={styles.buttonText}
+              />
+            </View>
+          )}
+
+          {normalizedStatus === 'alert' && (
+            <View style={styles.alertActions}>
+              <View style={{width: width(33)}}>
+                <GradientButton
+                  text={t('No')}
+                  onPress={close}
+                  type="filled"
+                  textStyle={styles.buttonText}
+                />
+              </View>
+              <View style={{width: width(33)}}>
+                <GradientButton
+                  text={t('Yes')}
+                  onPress={() => {
+                    if (handlePressOk) handlePressOk();
+                    close();
+                  }}
+                  type="filled"
+                  textStyle={styles.buttonText}
+                />
+              </View>
+            </View>
+          )}
+        </View>
+      </Animated.View>
+    </Modal>
   );
 });
 
 const styles = StyleSheet.create({
   backdrop: {
+    flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 999,
-    elevation: 999, // Android stacking within a View
+  },
+  card: {
+    width: width(86),
+    backgroundColor: 'white',
+    borderRadius: width(2),
+    padding: width(8),
+  },
+  iconWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  message: {
+    fontSize: 14,
+    color: COLORS.textDark,
+    fontFamily: fontFamly.PlusJakartaSansBold,
+    marginVertical: width(5),
+    textAlign: 'center',
+  },
+  buttonText: {
+    fontSize: 12,
+    fontFamily: fontFamly.PlusJakartaSansSemiRegular,
+    color: 'white',
+  },
+  alertActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: width(3),
   },
 });
 

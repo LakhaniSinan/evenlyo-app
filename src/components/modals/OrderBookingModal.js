@@ -493,9 +493,8 @@ const OrderBooking = ({
     normalizedPricingType === 'perday' || normalizedPricingType === 'daily';
   const isPerEventPricing =
     normalizedPricingType === 'perevent' || normalizedPricingType === 'event';
-  const requiresTimeSelection =
-    (isPerHourPricing && isSingleDateSelected) ||
-    (isPerDayPricing && !!startDateStr);
+  // Time pickers only for single-day bookings; multi-day ranges hide them
+  const requiresTimeSelection = isSingleDateSelected;
   const chargedDays = Math.max(
     Number(availableSelectedDays || 0),
     startDateStr ? 1 : 0,
@@ -924,6 +923,21 @@ const OrderBooking = ({
         return;
       }
 
+      // Same date tapped again = still a single-day booking (keep times)
+      if (date === localStartDate) {
+        setLocalEndDate(date);
+        onSelectedDateChange?.(localStartDate, date);
+        updatedMarks[date] = {
+          ...updatedMarks[date],
+          customStyles: {
+            container: {backgroundColor: '#FF295D', borderRadius: 5},
+            text: {color: '#fff', fontWeight: 'bold'},
+          },
+        };
+        setMarkedDates(updatedMarks);
+        return;
+      }
+
       let curr = start.clone();
       while (curr.isSameOrBefore(end)) {
         const d = curr.format('YYYY-MM-DD');
@@ -940,6 +954,11 @@ const OrderBooking = ({
         curr.add(1, 'day');
       }
 
+      // Multi-day range: clear time selection
+      setStartTime(null);
+      setEndTime(null);
+      setShowStartPicker(false);
+      setShowEndPicker(false);
       setLocalEndDate(date);
       setMarkedDates(updatedMarks);
       onSelectedDateChange?.(localStartDate, date);
@@ -949,6 +968,10 @@ const OrderBooking = ({
     if (localStartDate && localEndDate) {
       setLocalStartDate(date);
       setLocalEndDate(null);
+      setStartTime(null);
+      setEndTime(null);
+      setShowStartPicker(false);
+      setShowEndPicker(false);
       onSelectedDateChange?.(date, null);
 
       updatedMarks[date] = {
@@ -1257,7 +1280,7 @@ const OrderBooking = ({
                       {moment(localStartDate).format('DD/MM/YYYY')}
                     </Text>
                   )}
-                  {localEndDate && (
+                  {localEndDate && localEndDate !== localStartDate && (
                     <Text style={styles.dateValue}>
                       , {moment(localEndDate).format('DD/MM/YYYY')}
                     </Text>
@@ -1665,7 +1688,6 @@ const OrderBooking = ({
           )}
         </View>
 
-        <CommonAlert ref={modalRef} />
         {showTermsModal && (
           <View style={styles.termsModalOverlay}>
             <View style={styles.termsModalContainer}>
@@ -1691,6 +1713,7 @@ const OrderBooking = ({
           </View>
         )}
       </Modal>
+      <CommonAlert ref={modalRef} />
     </>
   );
 };
