@@ -2,7 +2,7 @@ export default {
   // Common
   or: 'OF',
   english: 'Engels',
-  dutch: 'Nederlands',
+  dutch: 'Netherland',
   loading: 'Laden...',
 
   // Auth screens
@@ -697,7 +697,7 @@ export default {
 
   // Language Names (for display in language selection)
   English: 'Engels',
-  Dutch: 'Nederlands',
+  Dutch: 'Netherland',
 
   // Notifications and locations
   Notifications: 'Notificaties',
@@ -896,15 +896,15 @@ export default {
   'Basic Information': 'Basisinformatie',
   'Select Language:': 'Selecteer taal:',
   'US English': 'Engels (VS)',
-  'NL Dutch': 'Nederlands (NL)',
+  'NL Dutch': 'Netherland (NL)',
   English: 'Engels',
-  Dutch: 'Nederlands',
+  Dutch: 'Netherland',
   'Title (English)': 'Titel (Engels)',
-  'Title (Dutch)': 'Titel (Nederlands)',
+  'Title (Dutch)': 'Titel (Netherland)',
   'Sub Title (English)': 'Subtitel (Engels)',
-  'Sub Title (Dutch)': 'Subtitel (Nederlands)',
+  'Sub Title (Dutch)': 'Subtitel (Netherland)',
   'Description (English)': 'Beschrijving (Engels)',
-  'Description (Dutch)': 'Beschrijving (Nederlands)',
+  'Description (Dutch)': 'Beschrijving (Netherland)',
   'Enter title': 'Voer titel in',
   'Enter subtitle': 'Voer subtitel in',
   'Main Category': 'Hoofdcategorie',
@@ -943,13 +943,13 @@ export default {
   dayFri: 'VR',
   daySat: 'ZA',
   'Title (English) is required': 'Titel (Engels) is verplicht',
-  'Title (Dutch) is required': 'Titel (Nederlands) is verplicht',
+  'Title (Dutch) is required': 'Titel (Netherland) is verplicht',
   'Sub Title (English) is required': 'Subtitel (Engels) is verplicht',
-  'Sub Title (Dutch) is required': 'Subtitel (Nederlands) is verplicht',
+  'Sub Title (Dutch) is required': 'Subtitel (Netherland) is verplicht',
   'Main Category is required': 'Hoofdcategorie is verplicht',
   'Sub Category is required': 'Subcategorie is verplicht',
   'Description (English) is required': 'Beschrijving (Engels) is verplicht',
-  'Description (Dutch) is required': 'Beschrijving (Nederlands) is verplicht',
+  'Description (Dutch) is required': 'Beschrijving (Netherland) is verplicht',
   'Pricing Type is required': 'Prijstype is verplicht',
   'Cost is required and must be a valid amount greater than 0':
     'Kosten zijn verplicht en moeten een geldig bedrag groter dan 0 zijn',
@@ -1053,15 +1053,15 @@ export default {
   'Team Size': 'Teamgrootte',
   'Number of team': 'Aantal teamleden',
   'Tagline (English)': 'Tagline (Engels)',
-  'Tagline (Dutch)': 'Tagline (Nederlands)',
+  'Tagline (Dutch)': 'Tagline (Netherland)',
   'Add Why Choose Us (English)': 'Voeg toe waarom voor ons (Engels)',
-  'Add Why Choose Us (Dutch)': 'Voeg toe waarom voor ons (Nederlands)',
+  'Add Why Choose Us (Dutch)': 'Voeg toe waarom voor ons (Netherland)',
   'Description (English)': 'Beschrijving (Engels)',
-  'Description (Dutch)': 'Beschrijving (Nederlands)',
+  'Description (Dutch)': 'Beschrijving (Netherland)',
   'Focused on creating vibes through immersive sound... (English)':
     'Gericht op het creëren van sfeer met meeslepend geluid... (Engels)',
   'Focused on creating vibes through immersive sound... (Dutch)':
-    'Gericht op het creëren van sfeer met meeslepend geluid... (Nederlands)',
+    'Gericht op het creëren van sfeer met meeslepend geluid... (Netherland)',
   'Enter First Name': 'Voer voornaam in',
   'Enter Last Name': 'Voer achternaam in',
   'Enter Email': 'Voer e-mail in',
@@ -1195,9 +1195,9 @@ export default {
   validationCompanyAddressRequired: 'Voer het bedrijfsadres in.',
   validationWorkTypeRequired: 'Selecteer je werktype.',
   validationTeamSizeRequired: 'Selecteer je teamgrootte.',
-  validationTaglineDutchRequired: 'Voer de tagline in het Nederlands in.',
+  validationTaglineDutchRequired: 'Voer de tagline in het Netherland in.',
   validationDescriptionDutchRequired:
-    'Voer de bedrijfsomschrijving in het Nederlands in.',
+    'Voer de bedrijfsomschrijving in het Netherland in.',
   'Passport Number (optional)': 'Paspoortnummer (optioneel)',
   'Enter Passport Number': 'Voer paspoortnummer in',
   'Company Website (optional)': 'Bedrijfswebsite (optioneel)',

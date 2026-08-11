@@ -12,7 +12,7 @@ const LanguageSwitcher = ({style}) => {
 
   const languages = [
     {code: 'en', name: t('english'), nativeName: 'English'},
-    {code: 'nl', name: t('dutch'), nativeName: 'Nederlands'},
+    {code: 'nl', name: t('dutch'), nativeName: 'Netherland'},
   ];
 
   const handleLanguageChange = (languageCode) => {

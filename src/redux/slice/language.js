@@ -5,7 +5,7 @@ import i18n from '../../services/i18n';
 const initialState = {
   currentLanguage: 'nl',
   availableLanguages: [
-    {code: 'nl', name: 'Dutch', nativeName: 'Nederlands'},
+    {code: 'nl', name: 'Dutch', nativeName: 'Netherland'},
     {code: 'en', name: 'English', nativeName: 'English'},
   ],
 };
