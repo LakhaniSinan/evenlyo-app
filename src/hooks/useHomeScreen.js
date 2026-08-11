@@ -414,15 +414,11 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
 
   const onResetFilters = useCallback(() => {
     activeFiltersRef.current = {};
-
     if (categories.length > 0 && subCategories.length > 0) {
       const firstSubCategory = subCategories[0];
-
       setSelectedSubCategory(firstSubCategory);
-
       fetchHomeData(selectedCategoryId, firstSubCategory._id);
     }
-
     setFilterVisible(false);
   }, [categories, subCategories, selectedCategoryId, fetchHomeData]);
 
@@ -449,7 +445,6 @@ const useHomeScreen = ({modalRef, navigation, openLogin}) => {
     onBookingCardPress,
     onVendorCardPress,
     handleAddToWishList,
-
     onApplyFilters,
   };
 };
